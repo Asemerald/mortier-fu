@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    public class LobbyManager : MonoBehaviour
+    public class LobbyManager
     {
-
+        
     }
 }
