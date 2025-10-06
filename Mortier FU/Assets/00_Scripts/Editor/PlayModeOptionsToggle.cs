@@ -1,8 +1,8 @@
-﻿using UnityEditor;
+﻿using MortierFu.Shared;
+using UnityEditor;
 using UnityEngine;
-using MortierFU.Shared;
 
-namespace MortierFU.Editor
+namespace MortierFu.Editor
 {
     public class EnterPlayModeToggle
     {
