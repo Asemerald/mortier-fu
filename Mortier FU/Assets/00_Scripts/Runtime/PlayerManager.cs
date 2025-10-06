@@ -8,45 +8,44 @@ namespace MortierFu
         [Header("Setup")]
         public GameObject playerInGamePrefab; // le perso à spawn pendant la partie
 
-        private PlayerInput playerInput;
-        private GameObject inGameCharacter;
-        private bool isInGame = false;
+        private PlayerInput _playerInput;
+        private GameObject _inGameCharacter;
+        private bool _isInGame = false;
 
         void Awake()
         {
-            playerInput = GetComponent<PlayerInput>();
+            _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject); // garde la référence entre les scènes
         }
 
         void Start()
         {
-            Debug.Log($"Player {playerInput.playerIndex} joined with {playerInput.devices[0].displayName}");
-            // Ici tu peux faire feedback UI dans le lobby
+            Debug.Log($"Player {_playerInput.playerIndex} joined with {_playerInput.devices[0].displayName}");
         }
 
         // Appelée depuis le GameManager quand on entre dans la GameScene
         public void SpawnInGame(Vector3 spawnPosition)
         {
-            if (isInGame) return;
+            if (_isInGame) return;
 
             // On spawn un nouveau PlayerInput lié à CE joueur
             var newPlayer = PlayerInput.Instantiate(
                 playerInGamePrefab,
-                controlScheme: playerInput.currentControlScheme,
-                pairWithDevice: playerInput.devices[0]
+                controlScheme: _playerInput.currentControlScheme,
+                pairWithDevice: _playerInput.devices[0]
             );
 
-            inGameCharacter = newPlayer.gameObject;
-            inGameCharacter.transform.position = spawnPosition;
+            _inGameCharacter = newPlayer.gameObject;
+            _inGameCharacter.transform.position = spawnPosition;
 
-            isInGame = true;
+            _isInGame = true;
         }
 
         public void DespawnInGame()
         {
-            if (inGameCharacter != null)
-                Destroy(inGameCharacter);
-            isInGame = false;
+            if (_inGameCharacter != null)
+                Destroy(_inGameCharacter);
+            _isInGame = false;
         }
     }
 }

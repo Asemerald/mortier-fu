@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
@@ -6,18 +8,30 @@ namespace MortierFu
     {
         [SerializeField] private float _moveSpeed = 5f;
         private Vector3 _moveDirection;
+        private PlayerInput _playerInput;
 
         private Rigidbody _rb;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            _playerInput = GetComponent<PlayerInput>();
+        }
+
+        private void OnEnable()
+        {
+            _playerInput.enabled = true;
+        }
+        
+        private void OnDisable()
+        {
+            _playerInput.enabled = false;
         }
 
         private void Update()
         {
-            float horizontal = Input.GetAxis("Horizontal");
-            float vertical = Input.GetAxis("Vertical");
+            float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
+            float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
             _moveDirection = new Vector3(horizontal, 0f, vertical).normalized * _moveSpeed;
         }
