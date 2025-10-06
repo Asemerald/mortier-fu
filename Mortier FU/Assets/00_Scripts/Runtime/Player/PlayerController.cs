@@ -33,12 +33,12 @@ namespace MortierFu
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
-            _moveDirection = new Vector3(horizontal, 0f, vertical).normalized * _moveSpeed;
+            _moveDirection = new Vector2(horizontal, vertical).normalized * _moveSpeed;
         }
 
         private void FixedUpdate()
         {
-            Vector3 velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.z);
+            Vector3 velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
             _rb.linearVelocity = velocity;
             //Debug.Log(_rb.linearVelocity);
         }
