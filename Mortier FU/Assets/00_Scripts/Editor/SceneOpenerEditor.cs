@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace MortierFu.Editor
+namespace MortierFU.Editor
 {
     public class SceneOpenerEditor : EditorWindow
     {
