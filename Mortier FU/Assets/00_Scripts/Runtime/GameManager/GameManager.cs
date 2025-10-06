@@ -1,6 +1,5 @@
 using System;
-using MortierFU;
-using MortierFU.Shared;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
