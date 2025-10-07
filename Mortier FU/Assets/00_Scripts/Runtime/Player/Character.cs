@@ -2,18 +2,14 @@ using UnityEngine;
 using MortierFu;
 public class Character : MonoBehaviour
 {
-    [SerializeField] private float _maxHealth = 100f;
-    
     [SerializeField] private HealthUI _healthUI;
+    public Health Health { get; private set; } = new(100.0f);
     
-    private Health _health;
     private void Awake()
     {
-        _health = new Health(_maxHealth);
-
         if (_healthUI != null)
         {
-            _healthUI.SetHealth(_health);
+            _healthUI.SetHealth(Health);
         }
     }
 
@@ -21,7 +17,7 @@ public class Character : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
-            _health.TakeDamage(20);
+            Health.TakeDamage(20);
         }
     }
 }
