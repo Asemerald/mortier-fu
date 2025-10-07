@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 1420642191809473458}
   - component: {fileID: 3329774902489699383}
   - component: {fileID: 7161519617783280849}
+  - component: {fileID: 8390863107016301744}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -456,6 +457,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::Character
   _maxHealth: 100
   _healthUI: {fileID: 8537908433334717502}
+--- !u!114 &8390863107016301744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5739bf13260fe84449953768feed04b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Mortar
+  AttackSpeed:
+    BaseValue: 2
+  ShotRange:
+    BaseValue: 20
+  _projectilePrefab: {fileID: 0}
+  _aimWidgetPrefab: {fileID: 0}
+  _firePoint: {fileID: 0}
+  _enableDebug: 1
 --- !u!1 &3101542205371046612
 GameObject:
   m_ObjectHideFlags: 0
