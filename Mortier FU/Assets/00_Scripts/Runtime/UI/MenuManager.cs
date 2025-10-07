@@ -13,7 +13,7 @@ public class MenuManager : MonoBehaviour
     
     private void Awake()
     {
-        
+        CheckReferences();
     }
     
     private void CheckReferences()
