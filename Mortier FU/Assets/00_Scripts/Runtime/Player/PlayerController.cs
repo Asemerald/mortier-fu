@@ -1,3 +1,4 @@
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -26,7 +27,7 @@ namespace MortierFu
         {
             _playerInput.enabled = false;
         }
-
+        
         private void Update()
         {
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
