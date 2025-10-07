@@ -1,18 +1,24 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using MortierFu;
 
 public class HealthUI : MonoBehaviour
 {
-    [SerializeField] private Image healthImage;
+    [SerializeField] private Canvas _healthCanvas;
+    [SerializeField] private Image _healthImage;
     
-    private Health health;
+    private Camera _mainCamera;
+    
+    private Health _health;
 
     private void OnEnable()
     {
-        if (health != null)
+        _mainCamera = Camera.main;
+        
+        if (_health != null)
         {
-            health.OnHealthChanged += OnHealthChanged;
+            _health.OnHealthChanged += OnHealthChanged;
         }
         
         UpdateUI();
@@ -20,8 +26,10 @@ public class HealthUI : MonoBehaviour
 
     private void OnDisable()
     {
-        if (health != null)
-            health.OnHealthChanged -= OnHealthChanged;
+        if (_health != null)
+        {
+            _health.OnHealthChanged -= OnHealthChanged;
+        }
     }
 
     private void OnHealthChanged(float amount)
@@ -31,24 +39,32 @@ public class HealthUI : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (healthImage != null && health != null)
+        if (_healthImage != null && _health != null)
         {
-            healthImage.fillAmount = health.HealthRatio;
+            _healthImage.fillAmount = _health.HealthRatio;
         }
     }
 
     public void SetHealth(Health newHealth)
     {
-        if (health != null)
+        if (_health != null)
         {
-            health.OnHealthChanged -= OnHealthChanged;
+            _health.OnHealthChanged -= OnHealthChanged;
         }
-        health = newHealth;
+        _health = newHealth;
         
-        if (health != null)
+        if (_health != null)
         {
-            health.OnHealthChanged += OnHealthChanged;
+            _health.OnHealthChanged += OnHealthChanged;
         }
         UpdateUI();
+    }
+
+    private void FixedUpdate()
+    {
+        if (_healthCanvas != null && _mainCamera != null)
+        {
+            _healthCanvas.transform.rotation = Quaternion.LookRotation(_mainCamera.transform.forward, Vector3.up);
+        }
     }
 }
