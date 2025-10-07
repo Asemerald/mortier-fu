@@ -1,4 +1,4 @@
-﻿using MortierFu.Shared;
+using MortierFu.Shared;
 using UnityEditor;
 using UnityEngine;
 
