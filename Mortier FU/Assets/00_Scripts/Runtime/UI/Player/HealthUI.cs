@@ -60,7 +60,7 @@ public class HealthUI : MonoBehaviour
         UpdateUI();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         if (_healthCanvas != null && _mainCamera != null)
         {
