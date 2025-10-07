@@ -20,22 +20,22 @@ namespace MortierFu {
             }
         }
         
-        protected bool isDirty = true;
         protected float _value;
+        protected bool isDirty = true;
         protected float lastBaseValue = float.MinValue;
         
         protected readonly List<StatModifier> statModifiers;
         public readonly ReadOnlyCollection<StatModifier> StatModifiers;
 
-        readonly Comparison<StatModifier> comparison;
-        readonly Predicate<StatModifier> predicate;
-        object sourceToRemove; 
+        readonly Comparison<StatModifier> _comparison;
+        readonly Predicate<StatModifier> _predicate;
+        object _sourceToRemove; 
 
         public CharacterStat() {
             statModifiers = new List<StatModifier>();
             StatModifiers = statModifiers.AsReadOnly();
-            comparison = CompareModifierOrder;
-            predicate = mod => mod.Source == sourceToRemove;
+            _comparison = CompareModifierOrder;
+            _predicate = mod => mod.Source == _sourceToRemove;
         }
         
         public CharacterStat(float baseValue) : this() {
@@ -58,9 +58,9 @@ namespace MortierFu {
         }
 
         public virtual bool RemoveAllModifiersFromSource(object source) {
-            sourceToRemove = source;
-            int numRemovals = statModifiers.RemoveAll(predicate);
-            sourceToRemove = null;
+            _sourceToRemove = source;
+            int numRemovals = statModifiers.RemoveAll(_predicate);
+            _sourceToRemove = null;
             
             if (numRemovals > 0) {
                 isDirty = true;
@@ -74,7 +74,7 @@ namespace MortierFu {
             float finalValue = BaseValue;
             float sumPercentAdd = 0f;
             
-            statModifiers.Sort(comparison);
+            statModifiers.Sort(_comparison);
             
             for (int i = 0; i < statModifiers.Count; i++) {
                 var mod = statModifiers[i];
