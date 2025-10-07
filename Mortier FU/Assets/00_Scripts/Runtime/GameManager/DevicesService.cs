@@ -57,7 +57,6 @@ namespace MortierFu
             if (_deviceToPlayer.TryGetValue(device, out var index))
             {
                 Logs.Warning($"Player {index}'s device '{device.displayName}' disconnected");
-                // Ici, tu peux notifier ton UI ou bloquer les inputs
             }
         }
 
@@ -67,7 +66,7 @@ namespace MortierFu
             {
                 Logs.Log($"Device '{device.displayName}' reconnected for Player {index}");
 
-                var playerInputs = Object.FindObjectsOfType<PlayerInput>();
+                var playerInputs = Object.FindObjectsByType<PlayerInput>(sortMode: FindObjectsSortMode.None);
                 foreach (var input in playerInputs)
                 {
                     if (input.playerIndex == index)
