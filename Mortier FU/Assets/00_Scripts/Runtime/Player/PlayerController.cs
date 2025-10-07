@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,13 +33,19 @@ namespace MortierFu
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
             _moveDirection = new Vector2(horizontal, vertical).normalized * _moveSpeed;
+
+            Vector3 lookDir = new Vector3(horizontal, 0f, vertical);
+            
+            if (lookDir.sqrMagnitude > 0.001f)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+            }
         }
 
         private void FixedUpdate()
         {
             Vector3 velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
             _rb.linearVelocity = velocity;
-            //Debug.Log(_rb.linearVelocity);
         }
     }
 }
