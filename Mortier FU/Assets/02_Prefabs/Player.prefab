@@ -267,10 +267,10 @@ GameObject:
   - component: {fileID: 8506839193199987739}
   - component: {fileID: 4756351554904133735}
   - component: {fileID: 8940724329505566821}
-  - component: {fileID: 1420642191809473458}
-  - component: {fileID: 3329774902489699383}
   - component: {fileID: 7161519617783280849}
+  - component: {fileID: 1420642191809473458}
   - component: {fileID: 8390863107016301744}
+  - component: {fileID: 3329774902489699383}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -401,6 +401,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!114 &7161519617783280849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 576061da83e1dc64cb698bb903302e88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::Character
+  _healthUI: {fileID: 8537908433334717502}
 --- !u!114 &1420642191809473458
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -413,7 +426,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa6100515e40ccc42a31f493f23f5e88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::PlayerController
-  _moveSpeed: 10
+  <MoveSpeed>k__BackingField:
+    BaseValue: 5
+  <Size>k__BackingField:
+    BaseValue: 1
+--- !u!114 &8390863107016301744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5739bf13260fe84449953768feed04b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Mortar
+  <Damage>k__BackingField:
+    BaseValue: 30
+  <AttackSpeed>k__BackingField:
+    BaseValue: 2
+  <ShotRange>k__BackingField:
+    BaseValue: 15
+  <ProjectileSpeed>k__BackingField:
+    BaseValue: 8
+  <AOERange>k__BackingField:
+    BaseValue: 2
+  <AimWidgetSpeed>k__BackingField: 20
+  _aimWidgetPrefab: {fileID: 5943473467255466114, guid: 004830d94ece65d4e91b896b0d48cd78, type: 3}
+  _firePoint: {fileID: 1982637571052939492}
 --- !u!114 &3329774902489699383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -444,38 +485,6 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &7161519617783280849
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2480035117616147565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 576061da83e1dc64cb698bb903302e88, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::Character
-  _healthUI: {fileID: 8537908433334717502}
---- !u!114 &8390863107016301744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2480035117616147565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5739bf13260fe84449953768feed04b2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Mortar
-  AttackSpeed:
-    BaseValue: 2
-  ShotRange:
-    BaseValue: 12
-  <AimWidgetSpeed>k__BackingField: 20
-  _aimWidgetPrefab: {fileID: 5943473467255466114, guid: 004830d94ece65d4e91b896b0d48cd78, type: 3}
-  _firePoint: {fileID: 1982637571052939492}
 --- !u!1 &3101542205371046612
 GameObject:
   m_ObjectHideFlags: 0
