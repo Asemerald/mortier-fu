@@ -52,24 +52,17 @@ namespace MortierFu
 
         void OnEnable()
         {
-            _cycleShootModeAction.performed += CycleShootMode;
+            _cycleShootModeAction.performed += ShootModeManager.CycleShootMode;
         }
 
         void OnDisable()
         {
-            _cycleShootModeAction.performed -= CycleShootMode;
+            _cycleShootModeAction.performed -= ShootModeManager.CycleShootMode;
         }
 
         private void OnDestroy()
         {
             _shootStrategy?.DeInitialize();
-        }
-
-        private void CycleShootMode(InputAction.CallbackContext obj)
-        {
-            int modeCount = Enum.GetValues(typeof(ShootMode)).Length;
-            var newShootMode = (ShootMode)(((int)_currentShootMode + 1) % modeCount);
-            SetShootMode(newShootMode);
         }
 
         public void SetShootMode(ShootMode mode)

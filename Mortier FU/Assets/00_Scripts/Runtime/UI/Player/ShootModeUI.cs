@@ -6,14 +6,11 @@ namespace MortierFu
     public class ShootModeUI : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _shootModeText;
-        [SerializeField] private Mortar _target;
 
         void Start()
         {
-            if (_target == null) return;
-            
-            _target.OnShootModeChanged += UpdateShootModeText;
-            UpdateShootModeText(_target.CurrentShootMode);
+            ShootModeManager.OnShootModeChanged += UpdateShootModeText;
+            UpdateShootModeText(ShootModeManager.CurrentShootMode);
         }
 
         private void UpdateShootModeText(ShootMode newMode)
