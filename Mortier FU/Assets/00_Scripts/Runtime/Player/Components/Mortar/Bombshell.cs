@@ -58,7 +58,7 @@ namespace MortierFu
             _rb.MovePosition(newPos);
         }
 
-        protected virtual void OnCollisionEnter(Collision other)
+        void OnTriggerEnter(Collider other)
         {
             // Notify impact & recycle the bombshell
             _manager.NotifyImpactAndRecycle(this);
