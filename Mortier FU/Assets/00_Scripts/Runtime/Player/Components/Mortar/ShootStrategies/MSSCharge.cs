@@ -29,7 +29,7 @@ namespace MortierFu
             aimWidget.IsActive = false;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.RelativePosition = Vector3.zero;
+            aimWidget.SetRelativePosition(Vector3.zero);
             aimWidget.Hide();
             
             // Bind to actions
@@ -54,7 +54,7 @@ namespace MortierFu
             _currentCharge = Mathf.Clamp01(_currentCharge); 
             
             Vector3 newPos = new Vector3(_currentAimInput.x, 0.0f, _currentAimInput.y) * (mortar.ShotRange.Value * _currentCharge);
-            mortar.AimWidget.RelativePosition = newPos;
+            mortar.AimWidget.SetRelativePosition(newPos);
         }
         
         private void BeginCharging(InputAction.CallbackContext ctx)
@@ -66,7 +66,7 @@ namespace MortierFu
 
             var aimWidget = mortar.AimWidget;
             aimWidget.IsActive = true;
-            aimWidget.RelativePosition = Vector3.zero;
+            aimWidget.SetRelativePosition(Vector3.zero);;
             aimWidget.Show();
         }
         
