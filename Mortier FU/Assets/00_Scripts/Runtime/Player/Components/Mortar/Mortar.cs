@@ -15,7 +15,6 @@ namespace MortierFu
         [field: SerializeField] public float AimWidgetSpeed { get; private set; } = 7.0f;
         
         [Header("References")]
-        [SerializeField] private BombshellManager _bombshellManager;
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
@@ -86,7 +85,7 @@ namespace MortierFu
             if (_shootTimer.IsRunning) return;
 
             var owner = GetComponent<Character>();
-            var bombshell = _bombshellManager.RequestBombshell(owner, 100, 2.0f, 8.0f,
+            var bombshell = BombshellManager.Instance.RequestBombshell(owner, 100, 2.0f, 8.0f,
                 1.0f, _firePoint.position, AimWidget.transform.position);
             
             _shootTimer.Start();
