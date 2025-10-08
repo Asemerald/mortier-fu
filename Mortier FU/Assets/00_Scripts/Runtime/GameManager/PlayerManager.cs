@@ -34,6 +34,8 @@ namespace MortierFu
             _inGameCharacter.transform.position = spawnPosition;
 
             _isInGame = true;
+            
+            GM_Base.Instance.RegisterPlayer(_playerInput);
         }
 
         public void DespawnInGame()
