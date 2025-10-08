@@ -3,7 +3,7 @@ using MortierFu;
 public class Character : MonoBehaviour
 {
     [SerializeField] private HealthUI _healthUI;
-    public Health Health { get; private set; } = new(100.0f);
+    public Health Health { get; } = new(100.0f);
     
     private void Awake()
     {
