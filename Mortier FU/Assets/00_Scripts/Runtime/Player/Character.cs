@@ -1,15 +1,19 @@
 using UnityEngine;
-using MortierFu;
-public class Character : MonoBehaviour
+
+namespace MortierFu
 {
-    [SerializeField] private HealthUI _healthUI;
-    public Health Health { get; } = new(100.0f);
-    
-    private void Awake()
+    public class Character : MonoBehaviour
     {
-        if (_healthUI != null)
+        [SerializeField] private HealthUI _healthUI;
+        public Health Health { get; } = new(100.0f);
+    
+        private void Awake()
         {
-            _healthUI.SetHealth(Health);
+            if (_healthUI != null)
+            {
+                _healthUI.SetHealth(Health);
+            }
         }
     }
+   
 }

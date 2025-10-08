@@ -1,4 +1,3 @@
-using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,7 +5,13 @@ namespace MortierFu
 {
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private float _moveSpeed = 5f;
+        [Header("Statistics")]
+        [field: SerializeField, Tooltip("Movement speed of the player in units per second.")]
+        public CharacterStat MoveSpeed { get; private set; } = new CharacterStat(5.0f);
+        
+        [field: SerializeField, Tooltip("Size of the player character.")]
+        public CharacterStat Size { get; private set; } = new CharacterStat(1.0f);
+        
         private Vector3 _moveDirection;
         private PlayerInput _playerInput;
 
@@ -16,6 +21,8 @@ namespace MortierFu
         {
             _rb = GetComponent<Rigidbody>();
             _playerInput = GetComponent<PlayerInput>();
+            
+            transform.localScale = Vector3.one * Size.Value;
         }
 
         private void OnEnable()
@@ -33,7 +40,7 @@ namespace MortierFu
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
-            _moveDirection = new Vector2(horizontal, vertical).normalized * _moveSpeed;
+            _moveDirection = new Vector2(horizontal, vertical).normalized * MoveSpeed.Value;
 
             Vector3 lookDir = new Vector3(horizontal, 0f, vertical);
             
