@@ -10,7 +10,7 @@ namespace MortierFu
         public static GameInstance Instance { get; private set; }
 
         [Header("Input")]
-        public PlayerInputManager playerInputManager;
+        public PlayerInputManager _playerInputManager;
 
         public DevicesService DevicesService { get; private set; }
 
@@ -27,8 +27,8 @@ namespace MortierFu
 
             DevicesService = new DevicesService(this);
 
-            playerInputManager.onPlayerJoined += OnPlayerJoined;
-            playerInputManager.onPlayerLeft += OnPlayerLeft;
+            _playerInputManager.onPlayerJoined += OnPlayerJoined;
+            _playerInputManager.onPlayerLeft += OnPlayerLeft;
 
             InputSystem.onDeviceChange += OnDeviceChange;
         }
@@ -36,21 +36,25 @@ namespace MortierFu
         private void OnDestroy()
         {
             InputSystem.onDeviceChange -= OnDeviceChange;
-            playerInputManager.onPlayerJoined -= OnPlayerJoined;
-            playerInputManager.onPlayerLeft -= OnPlayerLeft;
+            _playerInputManager.onPlayerJoined -= OnPlayerJoined;
+            _playerInputManager.onPlayerLeft -= OnPlayerLeft;
         }
 
         private void OnPlayerJoined(PlayerInput playerInput)
         {
-            var device = playerInput.devices[0];
+            if (LobbyManager.Instance._gameStarted) return;
+            
+            var deviceMain = playerInput.devices.Count > 0 ? playerInput.devices[0] : null;
             var index = playerInput.playerIndex;
 
-            Logs.Log($"Player {index} joined with {device.displayName}");
-            DevicesService.RegisterPlayerDevice(index, device);
+            Logs.Log($"Player {index} joined with {(deviceMain != null ? deviceMain.displayName : "Unknown Device")}");
+            DevicesService.RegisterPlayerDevice(index, deviceMain);
         }
 
         private void OnPlayerLeft(PlayerInput playerInput)
         {
+            if (LobbyManager.Instance._gameStarted) return;
+            
             var index = playerInput.playerIndex;
             Logs.Warning($"Player {index} left");
             DevicesService.UnregisterPlayer(index);

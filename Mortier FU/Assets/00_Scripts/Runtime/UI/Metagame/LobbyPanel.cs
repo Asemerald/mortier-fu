@@ -1,22 +1,62 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using TMPro;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine;
 
 namespace MortierFu
 {
     public class LobbyPanel : MonoBehaviour
     {
+        [SerializeField] private GameObject[] playerSlots;
+        [SerializeField] private Button startGameButton;
+        [SerializeField] private TextMeshProUGUI[] playerSlotTexts;
+
         private void Start()
         {
             Hide();
+            InitializeButtons();
+            UpdateSlots(new List<PlayerInput>());
         }
     
-        public void Show()
+        private void Show()
         {
             gameObject.SetActive(true);
         }
+
+        private void InitializeButtons()
+        {
+            startGameButton.onClick.AddListener(OnStartGameClicked);
+        }
     
-        public void Hide()
+        private void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        public void UpdateSlots(List<PlayerInput> joinedPlayers)
+        {
+            for (var i = 0; i < playerSlots.Length; i++)
+            {
+                if (i < joinedPlayers.Count)
+                {
+                    playerSlots[i].SetActive(true);
+                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
+                        playerSlotTexts[i].text = $"Joueur {i + 1}";
+                }
+                else
+                {
+                    playerSlots[i].SetActive(false);
+                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
+                        playerSlotTexts[i].text = string.Empty;
+                }
+            }
+            startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
+        }
+
+        private void OnStartGameClicked()
+        {
+            LobbyManager.Instance?.TryStartGame();
         }
     }
 }
