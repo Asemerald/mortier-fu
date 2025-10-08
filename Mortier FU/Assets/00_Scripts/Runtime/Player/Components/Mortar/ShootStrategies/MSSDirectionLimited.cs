@@ -15,9 +15,9 @@ namespace MortierFu
             
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.zero;
-            aimWidget.RelativePosition = mortar.transform.forward * mortar.ShotRange.Value;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
+            aimWidget.SetRelativePosition(mortar.transform.forward * mortar.ShotRange.Value);
             aimWidget.Show();
             
             // Bind input actions
@@ -40,7 +40,8 @@ namespace MortierFu
             float strength = mortar.ShotRange.Value * inputStrength;
             var aimWidget = mortar.AimWidget;
             
-            aimWidget.RelativePosition = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * strength;
+            Vector3 newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * strength;
+            aimWidget.SetRelativePosition(newPos);
         }
         
         private void OnShoot(InputAction.CallbackContext ctx)

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -18,8 +19,12 @@ namespace MortierFu
         {
             var aimWidget = mortar.AimWidget;
             
-            aimWidget.IsActive = false;
-            aimWidget.Hide();
+            aimWidget.IsActive = true;
+            aimWidget.AttachedToTarget = false;
+            aimWidget.Target = null;
+            aimWidget.Origin = Vector3.zero;
+            aimWidget.SetRelativePosition(Vector3.zero);
+            aimWidget.Show();
             
             // Bind input actions
             aimAction.performed += OnAiming;
@@ -48,6 +53,8 @@ namespace MortierFu
             // Place the aim widget on the most relevant target
             Mortar bestTarget = FindBestTarget();
             if (bestTarget == null) return;
+
+            mortar.AimWidget.SetRelativePosition(bestTarget.transform.position);
             
             mortar.Shoot();
         }
