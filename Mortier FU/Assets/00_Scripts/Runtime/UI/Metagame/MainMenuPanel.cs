@@ -1,4 +1,6 @@
+using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MainMenuPanel : MonoBehaviour
 {
@@ -10,7 +12,7 @@ public class MainMenuPanel : MonoBehaviour
     [SerializeField] private GameObject quitConfirmationPanel;
     
     [Header("Buttons")]
-    [SerializeField] private GameObject playButton;
+    [SerializeField] private Button playButton;
     [SerializeField] private GameObject settingsButton;
     [SerializeField] private GameObject creditsButton;
     [SerializeField] private GameObject quitButton;
@@ -18,6 +20,12 @@ public class MainMenuPanel : MonoBehaviour
     private void Start()
     {
         Show();
+        InitializeButtons();
+    }
+
+    private void InitializeButtons()
+    {
+        playButton.onClick.AddListener(OpenLobbyPanel);
     }
     
     public void Show()
@@ -28,5 +36,11 @@ public class MainMenuPanel : MonoBehaviour
     public void Hide()
     {
         mainMenuPanel.SetActive(false);
+    }
+
+    private void OpenLobbyPanel()
+    {
+        Hide();
+        lobbyPanel.SetActive(true);
     }
 }
