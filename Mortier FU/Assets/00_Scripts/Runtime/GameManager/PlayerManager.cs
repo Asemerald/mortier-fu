@@ -32,7 +32,7 @@ namespace MortierFu
 
             _inGameCharacter = newPlayer.gameObject;
             _inGameCharacter.transform.position = spawnPosition;
-
+            
             _isInGame = true;
             
            // GM_Base.Instance.RegisterPlayer(_playerInput);

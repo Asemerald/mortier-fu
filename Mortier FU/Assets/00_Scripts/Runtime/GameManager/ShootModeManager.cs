@@ -12,6 +12,13 @@ namespace MortierFu
         private static Mortar[] _mortars;
         
         public static ShootMode CurrentShootMode => _currentShootMode;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Init()
+        {
+            _currentShootMode = ShootMode.PositionLimited;
+            _mortars = null;
+        }
         
         public static void CycleShootMode(InputAction.CallbackContext ctx)
         {

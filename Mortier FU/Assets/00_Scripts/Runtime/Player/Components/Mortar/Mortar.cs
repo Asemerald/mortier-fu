@@ -69,7 +69,8 @@ namespace MortierFu
             _shootStrategy?.DeInitialize();
             
             _currentShootMode = mode;
-            _shootStrategy = MortarShootStrategyFactory.Create(_currentShootMode, this, _aimInputAction,_shootInputAction);
+            _shootStrategy = MortarShootStrategyFactory.Create(_currentShootMode, this, 
+                _aimInputAction, _shootInputAction);
             _shootStrategy.Initialize();
             
             OnShootModeChanged?.Invoke(_currentShootMode);
