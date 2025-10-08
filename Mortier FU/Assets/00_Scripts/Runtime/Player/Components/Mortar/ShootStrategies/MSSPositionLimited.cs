@@ -19,21 +19,19 @@ namespace MortierFu
             aimWidget.Show();
             
             // Bind to actions
-            aimAction.performed += OnAiming;
             shootAction.performed += OnShoot;
         }
 
         public override void DeInitialize()
         {
             // Unbind from actions
-            aimAction.performed -= OnAiming;
             shootAction.performed -= OnShoot;
         }
 
-        void OnAiming(InputAction.CallbackContext ctx)
+        public override void Update()
         {
             var aimWidget = mortar.AimWidget;
-            var aimInput = ctx.ReadValue<Vector2>();
+            Vector2 aimInput = aimAction.ReadValue<Vector2>();
 
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;

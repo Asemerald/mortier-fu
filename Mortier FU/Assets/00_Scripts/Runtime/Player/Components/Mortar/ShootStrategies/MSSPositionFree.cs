@@ -14,32 +14,29 @@ namespace MortierFu
             
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.zero;
-            aimWidget.RelativePosition = mortar.transform.forward * (mortar.ShotRange.Value * 0.5f);
+            aimWidget.RelativePosition = Vector3.zero;
             aimWidget.AttachedToTarget = false;
             aimWidget.Target = null;
             aimWidget.Show();
             
             // Bind input actions
-            aimAction.performed += OnAiming;
             shootAction.performed += OnShoot;
         }
         
         public override void DeInitialize()
         {
             // Unbind input actions
-            aimAction.performed -= OnAiming;
             shootAction.performed -= OnShoot;
         }
 
-        private void OnAiming(InputAction.CallbackContext ctx)
+        public override void Update()
         {
-            var aimWidget = mortar.AimWidget;
-            var aimInput = ctx.ReadValue<Vector2>();
+            var aimInput = aimAction.ReadValue<Vector2>();
             
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
             
-            aimWidget.RelativePosition += new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * mortar.AimWidgetSpeed);
+            mortar.AimWidget.RelativePosition += new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * mortar.AimWidgetSpeed);
         }
 
         private void OnShoot(InputAction.CallbackContext ctx)

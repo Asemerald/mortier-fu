@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -15,8 +16,8 @@ namespace MortierFu
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.zero;
             aimWidget.RelativePosition = mortar.transform.forward * mortar.ShotRange.Value;
-            aimWidget.AttachedToTarget = false;
-            aimWidget.Target = null;
+            aimWidget.AttachedToTarget = true;
+            aimWidget.Target = mortar.transform;
             aimWidget.Show();
             
             // Bind input actions
@@ -44,6 +45,10 @@ namespace MortierFu
         
         private void OnShoot(InputAction.CallbackContext ctx)
         {
+            if (mortar == null)
+            {
+                Logs.Error("WTF ?? ?? ");
+            }
             mortar.Shoot();
         }
     }
