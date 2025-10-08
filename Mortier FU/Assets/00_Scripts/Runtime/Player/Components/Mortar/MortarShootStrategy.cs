@@ -19,6 +19,7 @@ namespace MortierFu
         protected readonly InputAction shootAction;
 
         protected const float k_minAimInputLength = 0.0001f;
+        protected const float k_aimDeadZone = 0.2f;
         
         protected MortarShootStrategy(Mortar mortar, InputAction aimAction, InputAction shootAction)
         {

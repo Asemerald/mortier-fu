@@ -34,6 +34,8 @@ namespace MortierFu
 
         public ShootMode CurrentShootMode => _currentShootMode;
         
+        public bool CanShoot => !_shootTimer.IsRunning;
+
         void Awake()
         {
             // TODO: Remove direct dependency on PlayerInput

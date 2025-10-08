@@ -34,21 +34,17 @@ namespace MortierFu
 
         private void OnAiming(InputAction.CallbackContext ctx)
         {
-            var aimWidget = mortar.AimWidget;
             var aimInput = ctx.ReadValue<Vector2>();
             
-            if (aimInput.sqrMagnitude < k_minAimInputLength)
+            if (aimInput.sqrMagnitude < k_aimDeadZone)
                 return;
             
+            var aimWidget = mortar.AimWidget;
             aimWidget.RelativePosition = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * mortar.ShotRange.Value;
         }
         
         private void OnShoot(InputAction.CallbackContext ctx)
         {
-            if (mortar == null)
-            {
-                Logs.Error("WTF ?? ?? ");
-            }
             mortar.Shoot();
         }
     }

@@ -7,7 +7,7 @@ namespace MortierFu
     {
         private Mortar[] _mortars;
         private Vector2 _currentAimInput;
-
+        
         public MSSDirectionAutoTarget(Mortar mortar, InputAction aimAction, InputAction shootAction) : base(mortar,
             aimAction, shootAction)
         {
@@ -37,10 +37,10 @@ namespace MortierFu
         {
             Vector2 aimInput = ctx.ReadValue<Vector2>();
 
-            if (aimInput.sqrMagnitude < k_minAimInputLength)
+            if (aimInput.sqrMagnitude < k_aimDeadZone)
                 return;
             
-            _currentAimInput = aimInput;
+            _currentAimInput = aimInput.normalized;
         }
         
         private void OnShoot(InputAction.CallbackContext ctx)
