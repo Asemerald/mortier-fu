@@ -29,7 +29,7 @@ namespace MortierFu
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
             aimWidget.RelativePosition = Vector3.zero;
-            aimWidget.Show();
+            aimWidget.Hide();
             
             // Bind to actions
             aimAction.performed += OnAiming;
@@ -66,6 +66,7 @@ namespace MortierFu
             var aimWidget = mortar.AimWidget;
             aimWidget.IsActive = true;
             aimWidget.RelativePosition = Vector3.zero;
+            aimWidget.Show();
         }
         
         private void EndCharging(InputAction.CallbackContext obj)
@@ -75,6 +76,7 @@ namespace MortierFu
             
             _isCharging = false;
             mortar.AimWidget.IsActive = false;
+            mortar.AimWidget.Hide();
             
             mortar.Shoot();
         }

@@ -1,3 +1,4 @@
+using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,6 +7,8 @@ namespace MortierFu
 {
     public class Mortar : MonoBehaviour
     {
+        public Action<ShootMode> OnShootModeChanged;
+        
         [Header("Statistics")]
         public CharacterStat AttackSpeed = new CharacterStat(2.0f);
         public CharacterStat ShotRange = new CharacterStat(20.0f);
@@ -18,7 +21,8 @@ namespace MortierFu
 
         [Header("Debugging")] 
         [SerializeField] private bool _enableDebug = true;
-        
+
+        private ShootMode _currentShootMode = ShootMode.PositionLimited;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootTimer;
         public AimWidget AimWidget { get; private set; }
@@ -28,27 +32,56 @@ namespace MortierFu
         private PlayerInput _playerInput;
         private InputAction _aimInputAction;
         private InputAction _shootInputAction;
+        private InputAction _cycleShootStrategyAction;
+        private InputAction _cycleShootModeAction;
 
+        public ShootMode CurrentShootMode => _currentShootMode;
+        
         void Awake()
         {
             // TODO: Remove direct dependency on PlayerInput
             _playerInput = GetComponent<PlayerInput>();
             _aimInputAction = _playerInput.actions.FindAction("Aim");
             _shootInputAction = _playerInput.actions.FindAction("Shoot");
-            
-            _shootStrategy = new MSSPositionLimited(this, _aimInputAction, _shootInputAction);
-            _shootTimer = new CountdownTimer(AttackSpeed.Value);
+            _cycleShootModeAction = _playerInput.actions.FindAction("CycleShootMode");
             
             AimWidget = Instantiate(_aimWidgetPrefab);
+            SetShootMode(_currentShootMode);
             
-            AttackSpeed.AddModifier(new StatModifier(-0.9f, StatModType.Flat));
-            AttackSpeed.AddModifier(new  StatModifier(-.5f, StatModType.PercentMult));
-            _shootTimer.Reset(AttackSpeed.Value);
+            _shootTimer = new CountdownTimer(AttackSpeed.Value);
         }
 
-        void Start()
+        void OnEnable()
         {
-            _shootStrategy?.Initialize();
+            _cycleShootModeAction.performed += CycleShootMode;
+        }
+
+        void OnDisable()
+        {
+            _cycleShootModeAction.performed -= CycleShootMode;
+        }
+
+        private void OnDestroy()
+        {
+            _shootStrategy?.DeInitialize();
+        }
+
+        private void CycleShootMode(InputAction.CallbackContext obj)
+        {
+            int modeCount = Enum.GetValues(typeof(ShootMode)).Length;
+            var newShootMode = (ShootMode)(((int)_currentShootMode + 1) % modeCount);
+            SetShootMode(newShootMode);
+        }
+
+        public void SetShootMode(ShootMode mode)
+        {
+            _shootStrategy?.DeInitialize();
+            
+            _currentShootMode = mode;
+            _shootStrategy = MortarShootStrategyFactory.Create(_currentShootMode, this, _aimInputAction,_shootInputAction);
+            _shootStrategy.Initialize();
+            
+            OnShootModeChanged?.Invoke(_currentShootMode);
         }
 
         void Update()
