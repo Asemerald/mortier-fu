@@ -33,6 +33,8 @@ namespace MortierFu
             _inGameCharacter = newPlayer.gameObject;
             _inGameCharacter.transform.position = spawnPosition;
             
+            CameraManager.Instance.AddPlayerToCameraView(_inGameCharacter);
+            
             _isInGame = true;
             
            // GM_Base.Instance.RegisterPlayer(_playerInput);

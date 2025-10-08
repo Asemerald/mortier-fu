@@ -33,6 +33,8 @@ namespace MortierFu
             
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(-amount);
+
+            CameraManager.Instance.ShakeCamera(3, 0.25f);
             
             if (!IsAlive)
             {
