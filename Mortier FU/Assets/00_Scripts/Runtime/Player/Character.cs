@@ -12,12 +12,4 @@ public class Character : MonoBehaviour
             _healthUI.SetHealth(Health);
         }
     }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            Health.TakeDamage(20);
-        }
-    }
 }
