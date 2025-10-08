@@ -18,7 +18,7 @@ namespace MortierFu
             InitializeButtons();
             UpdateSlots(new List<PlayerInput>());
         }
-    
+
         private void Show()
         {
             gameObject.SetActive(true);
@@ -28,7 +28,7 @@ namespace MortierFu
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
         }
-    
+
         private void Hide()
         {
             gameObject.SetActive(false);

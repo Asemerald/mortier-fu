@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 
@@ -7,20 +8,22 @@ namespace MortierFu
 {
     public class LobbyManager : MonoBehaviour
     {
-        public static LobbyManager Instance { get; private set; }
         private const int k_maxPlayers = 4;
         private const int k_minPlayers = 2;
 
         [SerializeField] private string _gameSceneName = "Enzo";
-        
+
         [SerializeField] private List<Vector3> _spawnPositions;
-        
+
         [SerializeField] private LobbyPanel _lobbyPanel;
 
-        private List<PlayerInput> _joinedPlayers = new (k_maxPlayers);
-        
+        [SerializeField] private EventSystem _eventSystem;
+
         public bool _gameStarted = false;
-        
+
+        private List<PlayerInput> _joinedPlayers = new (k_maxPlayers);
+        public static LobbyManager Instance { get; private set; }
+
 
         private void Awake()
         {
@@ -71,12 +74,11 @@ namespace MortierFu
             _joinedPlayers.Remove(playerInput);
             _lobbyPanel?.UpdateSlots(_joinedPlayers);
         }
-
+        
         public void TryStartGame()
         {
-            if (_joinedPlayers.Count < k_minPlayers || _joinedPlayers.Count > k_maxPlayers) 
+            if (_joinedPlayers.Count < k_minPlayers || _joinedPlayers.Count > k_maxPlayers)
                 return;
-            
             SceneManager.sceneLoaded += OnGameSceneLoaded;
             SceneManager.LoadScene(_gameSceneName);
             _gameStarted = true;
