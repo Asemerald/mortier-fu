@@ -6,6 +6,8 @@ namespace MortierFu
 {
     public class BombshellManager : MonoBehaviour
     {
+        public static BombshellManager Instance { get; private set; }
+        
         [Header("References")]
         [SerializeField] private Bombshell _bombshellPrefab;
 
@@ -17,8 +19,16 @@ namespace MortierFu
         
         private const int k_maxImpactTargets = 30;
 
-        void Awake()
+        private void Awake()
         {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            
             _activeBombshells = new List<Bombshell>();
             _impactResults = new Collider[k_maxImpactTargets];
         }
