@@ -15,7 +15,7 @@ namespace MortierFu
         {
             if (!IsActive) return;
 
-            if(AttachedToTarget) {
+            if(AttachedToTarget && Target) {
                 Origin = Target.position;
             }
 

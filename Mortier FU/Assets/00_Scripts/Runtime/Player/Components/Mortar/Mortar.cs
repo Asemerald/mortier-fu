@@ -36,7 +36,7 @@ namespace MortierFu
             _aimInputAction = _playerInput.actions.FindAction("Aim");
             _shootInputAction = _playerInput.actions.FindAction("Shoot");
             
-            _shootStrategy = new MortarShootStrategy_PositionLimited(this);
+            _shootStrategy = new MSSPositionLimited(this, _aimInputAction, _shootInputAction);
             _shootTimer = new CountdownTimer(AttackSpeed.Value);
             
             AimWidget = Instantiate(_aimWidgetPrefab);
@@ -46,62 +46,17 @@ namespace MortierFu
             _shootTimer.Reset(AttackSpeed.Value);
         }
 
-        // TODO: Should be handled externally by controller
-        void OnEnable()
-        {
-            if (_shootInputAction == null) return;
-            _shootInputAction.performed += Shoot;
-        }
-        
-        void OnDisable()
-        {
-            if (_shootInputAction == null) return;
-            _shootInputAction.performed -= Shoot;
-        }
-
         void Start()
         {
             _shootStrategy?.Initialize();
         }
-        
+
         void Update()
         {
-            if (_aimInputAction == null) return;
-            
-            Vector2 aimInput = _aimInputAction.ReadValue<Vector2>();
-            bool isAiming = aimInput.sqrMagnitude > 0.001f;
-            if (isAiming && !_isAiming)
-            {
-                _isAiming = true;
-                BeginAiming();
-            }
-            else if (!isAiming && _isAiming)
-            {
-                _isAiming = false;
-                EndAiming();
-            }
-
-            if (!isAiming) return;
-            
-            UpdateAiming(aimInput);
+            _shootStrategy?.Update();
         }
         
-        public void BeginAiming()
-        {
-            
-        }
-
-        public void UpdateAiming(Vector2 aimInput)
-        {
-            _shootStrategy?.UpdateAiming(aimInput);
-        }
-        
-        public void EndAiming()
-        {
-            
-        }
-        
-        public void Shoot(InputAction.CallbackContext ctx)
+        public void Shoot()
         {
             if (_shootTimer.IsRunning) return;
 
