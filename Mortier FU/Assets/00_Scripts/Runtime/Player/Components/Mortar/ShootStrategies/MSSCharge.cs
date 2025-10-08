@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -33,7 +34,7 @@ namespace MortierFu
             
             // Bind to actions
             aimAction.performed += OnAiming;
-            shootAction.started += BeginCharging;
+            shootAction.performed += BeginCharging;
             shootAction.canceled += EndCharging;
         }
 
@@ -41,7 +42,7 @@ namespace MortierFu
         {
             // Unbind from actions
             aimAction.performed -= OnAiming;
-            shootAction.started -= BeginCharging;
+            shootAction.performed -= BeginCharging;
             shootAction.canceled -= EndCharging;
         }
 
@@ -56,9 +57,9 @@ namespace MortierFu
             mortar.AimWidget.RelativePosition = newPos;
         }
         
-        private void BeginCharging(InputAction.CallbackContext obj)
+        private void BeginCharging(InputAction.CallbackContext ctx)
         {
-            if (_isCharging) return;
+            if (!mortar.CanShoot || _isCharging) return;
             
             _currentCharge = 0.0f;
             _isCharging = true;
@@ -69,7 +70,7 @@ namespace MortierFu
             aimWidget.Show();
         }
         
-        private void EndCharging(InputAction.CallbackContext obj)
+        private void EndCharging(InputAction.CallbackContext ctx)
         {
             if (!_isCharging)
                 return;
