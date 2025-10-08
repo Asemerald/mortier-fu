@@ -19,9 +19,6 @@ namespace MortierFu
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        [Header("Debugging")] 
-        [SerializeField] private bool _enableDebug = true;
-
         private ShootMode _currentShootMode = ShootMode.PositionLimited;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootTimer;
@@ -98,18 +95,6 @@ namespace MortierFu
                 1.0f, _firePoint.position, AimWidget.transform.position);
             
             _shootTimer.Start();
-        }
-        
-        static Vector3 PositionAtTime(Vector3 start, Vector3 v0, float t, Vector3 g)
-        {
-            return start + v0 * t + g * (0.5f * t * t);
-        }
-
-        // helper: compute v0 for a chosen absolute time T
-        static Vector3 InitialVelocityForTime(Vector3 start, Vector3 target, float T, Vector3 g)
-        {
-            if (T <= 0f) return Vector3.zero;
-            return (target - start - g * (0.5f * T * T)) / T;
         }
     }
 }
