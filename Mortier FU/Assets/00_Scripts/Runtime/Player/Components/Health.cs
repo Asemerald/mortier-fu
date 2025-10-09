@@ -19,10 +19,10 @@ namespace MortierFu
         public float MaxHealth => _maxHealth;
         public float HealthRatio => _currentHealth / _maxHealth;
         public bool IsAlive => _currentHealth > 0;
-        
+
         public event Action<Health, Health> OnDeathEvent = delegate { };
         
-        public Health(DA_CharacterData characterData)
+        public Health(DA_CharacterStats characterStats)
         {
             _characterStats = characterStats;
 
