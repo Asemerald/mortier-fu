@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine.InputSystem;
 using UnityEngine;
 
@@ -19,8 +20,8 @@ namespace MortierFu
     {
         public static GM_Base Instance { get; private set; }
         
-        [SerializeField] private ScorePanel _scorePanel;
-        [SerializeField] private BonusSelectionPanel _bonusSelectionPanel;
+        private ScorePanel _scorePanel;
+        private BonusSelectionPanel _bonusSelectionPanel;
         
         [SerializeField] private int _maxRound = 4;
 
@@ -35,6 +36,8 @@ namespace MortierFu
         private GameState _currentState = GameState.Lobby;
 
         private List<PlayerInput> _joinedPlayers = new List<PlayerInput>();
+        private List<PlayerInput> _alivePlayers = new List<PlayerInput>();
+        
         private Dictionary<PlayerInput, int> _scores;
 
         private CountdownTimer _timer;
@@ -56,9 +59,16 @@ namespace MortierFu
 
         private void StartGame()
         {
+            Logs.Log("Game is started");
             // Initialisation des variables de la partie
             _scores = new();
             _currentRound = 0;
+            
+            // Recherche dynamique du ScorePanel si non assigné
+            if (_scorePanel == null)
+                _scorePanel = FindObjectOfType<ScorePanel>(); 
+            if (_bonusSelectionPanel == null)
+                _bonusSelectionPanel = FindObjectOfType<BonusSelectionPanel>();
 
             _scorePanel.Init(_joinedPlayers);
 
@@ -69,16 +79,34 @@ namespace MortierFu
 
         private void StartRound()
         {
+            Logs.Log("Round is started");
+            
             // Initialisation du timer du round
             _timer = new CountdownTimer(_roundDuration);
             _timer.Start();
             _timer.OnTimerStop += EndRound;
 
-            // Spawn des joueurs
-            InitializePlayers();
+            _alivePlayers = new List<PlayerInput>(_joinedPlayers);
             
+            InitializePlayers();
+
             // Activation des inputs des joueurs pour se battre
             EnablePlayerInputs();
+
+            // Abonnement à l'event de mort pour chaque joueur
+            foreach (var player in _joinedPlayers)
+            {
+                var playerManager = player.GetComponent<PlayerManager>();
+                if (playerManager == null) continue;
+                
+                var characterGO = playerManager.CharacterGO;
+                if (characterGO == null) continue;
+                
+                var character = characterGO.GetComponent<Character>();
+                if (character == null) continue;
+
+               // character.Test(NotifyPlayerDeath);
+            }
 
             // TODO : lancement de la musique de round
             // TODO : lancer 
@@ -86,6 +114,8 @@ namespace MortierFu
 
         private void EndRound()
         {
+            Logs.Log("Round is ended");
+            
             // Fin du timer de round
             _timer.OnTimerStop -= EndRound;
             _timer.Stop();
@@ -117,6 +147,8 @@ namespace MortierFu
 
         private void StartBonusSelection()
         {
+            Logs.Log("Bonus selection is started");
+            
             _currentState = GameState.StartBonusSelection; // Je modifierai plus tard
             
             _scorePanel.Hide();
@@ -136,6 +168,8 @@ namespace MortierFu
         }
         private void EndBonusSelection()
         {
+            Logs.Log("Bonus selection is ended");
+            
             _currentState = GameState.EndBonusSelection; // Je modifierai plus tard
             
             _bonusSelectionPanel.Hide();
@@ -148,8 +182,12 @@ namespace MortierFu
 
         private void EndGame()
         {
+            Logs.Log("Game is finished");
+            
             _timer = null;
-
+            
+            SetGameState(GameState.StartGame);
+            
             // TODO : afficher l'écran de fin de partie avec les scores finaux
             // TODO : permettre de retourner au lobby ou de quitter le jeu ou de relancer une partie
             // TODO : lancement de la musique de fin de partie
@@ -214,7 +252,7 @@ namespace MortierFu
             }
         }
 
-        public void AddScore(PlayerInput playerInput, int score)
+        private void AddScore(PlayerInput playerInput, int score)
         {
             if (!_scores.ContainsKey(playerInput))
             {
@@ -235,5 +273,9 @@ namespace MortierFu
             SetGameState(GameState.EndBonusSelection);
         }
 
+        private void NotifyPlayerDeath(Character character)
+        {
+            
+        }
     }
 }

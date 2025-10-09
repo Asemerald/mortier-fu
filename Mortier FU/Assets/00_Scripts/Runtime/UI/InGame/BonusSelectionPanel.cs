@@ -10,12 +10,10 @@ namespace MortierFu
     {
         [SerializeField] private Transform bonusPanelGroup;
         [SerializeField] private GameObject bonusButtonPrefab;
-        [SerializeField] private GameObject playerLabelPrefab;
 
-        private Dictionary<PlayerInput, Button> playerBonusButtons = new();
+        private Dictionary<Button, PlayerInput> buttonToPlayer = new();
         private Dictionary<PlayerInput, string> playerBonusChoices = new();
-        private List<PlayerInput> currentPlayers;
-        private List<string> currentBonuses;
+        private List<Button> spawnedButtons = new();
 
         public event System.Action OnAllPlayersSelected;
 
@@ -23,48 +21,50 @@ namespace MortierFu
         {
             foreach (Transform child in bonusPanelGroup)
                 Destroy(child.gameObject);
-            playerBonusButtons.Clear();
+            buttonToPlayer.Clear();
             playerBonusChoices.Clear();
-            currentPlayers = players;
-            currentBonuses = bonusNames;
+            spawnedButtons.Clear();
 
-            for (int i = 0; i < players.Count; i++)
+            for (int i = 0; i < bonusNames.Count; i++)
             {
-                var player = players[i];
-                var labelGo = Instantiate(playerLabelPrefab, bonusPanelGroup);
-                var label = labelGo.GetComponent<TMP_Text>();
-                label.text = $"Joueur {player.playerIndex + 1}";
-
                 var buttonGo = Instantiate(bonusButtonPrefab, bonusPanelGroup);
                 var button = buttonGo.GetComponent<Button>();
                 var buttonText = buttonGo.GetComponentInChildren<TMP_Text>();
-                string bonusName = bonusNames[i % bonusNames.Count];
-                buttonText.text = bonusName;
-                playerBonusButtons[player] = button;
-                
-                button.onClick.AddListener(() => OnBonusSelected(player, bonusName));
+                buttonText.text = bonusNames[i];
+                spawnedButtons.Add(button);
+                int idx = i;
+                button.onClick.AddListener(() => OnBonusSelected(button, bonusNames[idx], players));
             }
             Hide();
         }
 
-        private void OnBonusSelected(PlayerInput player, string bonusName)
+        private void OnBonusSelected(Button button, string bonusName, List<PlayerInput> players)
         {
-            playerBonusChoices[player] = bonusName;
-            if (playerBonusButtons.TryGetValue(player, out var btn))
-                btn.interactable = false;
+            PlayerInput selectingPlayer = null;
+            foreach (var player in players)
+            {
+                if (!playerBonusChoices.ContainsKey(player))
+                {
+                    selectingPlayer = player;
+                    break;
+                }
+            }
+            if (selectingPlayer == null) return;
             
-            if (AllPlayersSelected())
+            playerBonusChoices[selectingPlayer] = bonusName;
+            buttonToPlayer[button] = selectingPlayer;
+            
+            var buttonText = button.GetComponentInChildren<TMP_Text>();
+            if (buttonText != null)
+            {
+                buttonText.text = $"Joueur {selectingPlayer.playerIndex + 1}";
+            }
+            button.interactable = false;
+            
+            if (playerBonusChoices.Count == players.Count)
+            {
                 OnAllPlayersSelected?.Invoke();
-        }
-
-        public string GetPlayerBonus(PlayerInput player)
-        {
-            return playerBonusChoices.TryGetValue(player, out var bonus) ? bonus : null;
-        }
-
-        private bool AllPlayersSelected()
-        {
-            return playerBonusChoices.Count == currentPlayers.Count;
+            }
         }
 
         public void Show()
