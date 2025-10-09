@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,8 +15,9 @@ namespace MortierFu
         
         private Vector3 _moveDirection;
         private PlayerInput _playerInput;
-
+        
         private Rigidbody _rb;
+        
 
         private void Awake()
         {
