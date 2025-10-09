@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -32,7 +33,8 @@ namespace MortierFu
         public void TakeDamage(float amount)
         {
             // Cannot take damage if already dead
-            if (!IsAlive) return;
+            if (!IsAlive)
+                return;
             
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(-amount);
