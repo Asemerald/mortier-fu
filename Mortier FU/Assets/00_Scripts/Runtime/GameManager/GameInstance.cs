@@ -33,6 +33,7 @@ namespace MortierFu
             InputSystem.onDeviceChange += OnDeviceChange;
         }
 
+        // TODO MOVE DEVICE LOGIC ELSEWHERE
         private void OnDestroy()
         {
             InputSystem.onDeviceChange -= OnDeviceChange;
