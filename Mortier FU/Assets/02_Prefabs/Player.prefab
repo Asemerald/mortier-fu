@@ -413,7 +413,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 576061da83e1dc64cb698bb903302e88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::Character
+  _characterDataTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
   _healthUI: {fileID: 8537908433334717502}
+  <CharacterData>k__BackingField: {fileID: 0}
 --- !u!114 &1420642191809473458
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -426,10 +428,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa6100515e40ccc42a31f493f23f5e88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::PlayerController
-  <MoveSpeed>k__BackingField:
-    BaseValue: 8
-  <Size>k__BackingField:
-    BaseValue: 1
+  <CharacterData>k__BackingField: {fileID: 0}
 --- !u!114 &8390863107016301744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -442,19 +441,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5739bf13260fe84449953768feed04b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Mortar
-  <Damage>k__BackingField:
-    BaseValue: 30
-  <AttackSpeed>k__BackingField:
-    BaseValue: 1
-  <ShotRange>k__BackingField:
-    BaseValue: 15
-  <ProjectileSpeed>k__BackingField:
-    BaseValue: 20
-  <AOERange>k__BackingField:
-    BaseValue: 2.5
-  <AimWidgetSpeed>k__BackingField: 40
   _aimWidgetPrefab: {fileID: 5943473467255466114, guid: 004830d94ece65d4e91b896b0d48cd78, type: 3}
   _firePoint: {fileID: 1982637571052939492}
+  <CharacterData>k__BackingField: {fileID: 0}
 --- !u!114 &3329774902489699383
 MonoBehaviour:
   m_ObjectHideFlags: 0

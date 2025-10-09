@@ -1,4 +1,5 @@
 using MortierFu.Shared;
+using NaughtyAttributes;
 using UnityEngine;
 
 namespace MortierFu
@@ -11,8 +12,10 @@ namespace MortierFu
         
         private Color _playerColor;
         
-        [field: SerializeField] public DA_CharacterData CharacterData { get; private set; }
+        [field: SerializeField, Expandable]
+        public DA_CharacterData CharacterData { get; private set; }
         public Health Health { get; private set; }
+        public Color PlayerColor => _playerColor;
 
         void Awake()
         {
@@ -21,6 +24,9 @@ namespace MortierFu
             
             // Initialize the health component based on that Data
             Health = new Health(CharacterData);
+            
+            // TEMPORARY: Choose a random color
+            _playerColor = ColorUtils.RandomizedHue();
         }
         
         private void Start()
@@ -30,17 +36,10 @@ namespace MortierFu
                 _healthUI.SetHealth(Health);
             }
             
-            // TEMPORARY: Choose a random color
-            _playerColor = ColorUtils.RandomizedHue();
-            
             // Apply it
             if (TryGetComponent(out Renderer rend))
             {
                 rend.material.color = _playerColor;
-            }
-            if (TryGetComponent(out Mortar mortar))
-            {
-                mortar.AimWidget.GetComponent<Renderer>().material.color = _playerColor;
             }
         }
     }

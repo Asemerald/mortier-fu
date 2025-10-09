@@ -62,6 +62,8 @@ namespace MortierFu
             CharacterData = character.CharacterData;
             
             AimWidget = Instantiate(_aimWidgetPrefab);
+            AimWidget.GetComponent<Renderer>().material.color = character.PlayerColor;
+            
             SetShootMode(_currentShootMode);
             
             _shootTimer = new CountdownTimer(CharacterData.AttackSpeed.Value);

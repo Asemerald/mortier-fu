@@ -1,4 +1,4 @@
-using NaughtyAttributes;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,7 +11,6 @@ namespace MortierFu
         private PlayerInput _playerInput;
 
         private Rigidbody _rb;
-        
 
         public DA_CharacterData CharacterData { get; private set; }
 
