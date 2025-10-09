@@ -15,7 +15,7 @@ namespace MortierFu.Editor
         }
 
         private Vector2 _scrollPosition;
-        private string _targetFolderPath = "Assets/Scenes";
+        private string _targetFolderPath = "Assets/03_Scenes";
         private int _columns = 4;
         private float _buttonHeight = 30f;
         private float _padding = 10f;
