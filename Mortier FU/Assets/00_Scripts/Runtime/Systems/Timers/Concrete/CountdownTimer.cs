@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MortierFu.Shared {
+namespace MortierFu {
     /// <summary>
     /// Timer that counts down from a specific value to zero.
     /// | Credits: <see href="https://www.youtube.com/@git-amend">git-amend</see>

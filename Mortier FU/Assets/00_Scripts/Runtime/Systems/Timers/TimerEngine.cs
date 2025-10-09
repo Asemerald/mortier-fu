@@ -1,9 +1,10 @@
+using MortierFu.Shared;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 
-namespace MortierFu.Shared {
+namespace MortierFu {
     internal static class TimerBootstrapper {
         private static PlayerLoopSystem _timerSystem;
 

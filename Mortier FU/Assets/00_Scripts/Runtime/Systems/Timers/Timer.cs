@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace MortierFu.Shared {
+namespace MortierFu {
     /// <summary>
     /// Credits: <see href="https://www.youtube.com/@git-amend">git-amend</see>
     /// </summary>
