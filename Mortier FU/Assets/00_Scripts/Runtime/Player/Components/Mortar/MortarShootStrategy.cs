@@ -15,6 +15,8 @@ namespace MortierFu
     public abstract class MortarShootStrategy // MSS
     {
         protected readonly Mortar mortar;
+        protected readonly AimWidget aimWidget;
+        protected readonly DA_CharacterData characterData;
         protected readonly InputAction aimAction;
         protected readonly InputAction shootAction;
 
@@ -24,6 +26,8 @@ namespace MortierFu
         protected MortarShootStrategy(Mortar mortar, InputAction aimAction, InputAction shootAction)
         {
             this.mortar = mortar;
+            this.aimWidget = mortar.AimWidget;
+            this.characterData = mortar.CharacterData;
             this.aimAction = aimAction;
             this.shootAction = shootAction;
         }

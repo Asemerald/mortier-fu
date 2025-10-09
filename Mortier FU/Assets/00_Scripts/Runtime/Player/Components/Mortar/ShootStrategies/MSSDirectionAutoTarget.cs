@@ -17,8 +17,6 @@ namespace MortierFu
         
         public override void Initialize()
         {
-            var aimWidget = mortar.AimWidget;
-            
             aimWidget.IsActive = true;
             aimWidget.AttachedToTarget = false;
             aimWidget.Target = null;
@@ -54,7 +52,7 @@ namespace MortierFu
             Mortar bestTarget = FindBestTarget();
             if (bestTarget == null) return;
 
-            mortar.AimWidget.SetRelativePosition(bestTarget.transform.position);
+            aimWidget.SetRelativePosition(bestTarget.transform.position);
             
             mortar.Shoot();
         }

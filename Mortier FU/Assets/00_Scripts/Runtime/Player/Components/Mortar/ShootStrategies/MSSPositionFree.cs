@@ -10,8 +10,6 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            var aimWidget = mortar.AimWidget;
-            
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.up * 0.1f;
             aimWidget.AttachedToTarget = false;
@@ -35,8 +33,9 @@ namespace MortierFu
             
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
-            
-            Vector3 newPos = mortar.AimWidget.RelativePosition + new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * mortar.AimWidgetSpeed);
+
+            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * characterData.AimWidgetSpeed.Value);
+            Vector3 newPos = mortar.AimWidget.RelativePosition + offset;
             mortar.AimWidget.SetRelativePosition(newPos);
         }
 

@@ -9,34 +9,18 @@ namespace MortierFu
     {
         public Action<ShootMode> OnShootModeChanged;
         
-        [Header("Statistics")]
-        [field: SerializeField, Tooltip("Damage dealt on impact inside the AoE radius.")]
-        public CharacterStat Damage { get; private set; }= new(30.0f);
-        
-        [field: SerializeField, Tooltip("Time in seconds between two shots.")]
-        public CharacterStat AttackSpeed { get; private set; }= new(2.0f);
-        
-        [field: SerializeField, Tooltip("Maximum range of the shot.")]
-        public CharacterStat ShotRange { get; private set; } = new(20.0f);
-        
-        [field: SerializeField, Tooltip("The speed of the projectile when fired.")] 
-        public CharacterStat ProjectileSpeed { get; private set; } = new(8.0f);
-        
-        [field: SerializeField, Tooltip("The radius of the area of effect damage.")]
-        public CharacterStat AOERange { get; private set; } = new(2.0f);
-        
-        [field: SerializeField, Tooltip("Speed at which the aim widget moves (world indicator of shoot target)")]
-        public float AimWidgetSpeed { get; private set; } = 7.0f;
-        
         [Header("References")]
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
+        private Character character;
         private ShootMode _currentShootMode = ShootMode.PositionLimited;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootTimer;
-        public AimWidget AimWidget { get; private set; }
         private bool _isAiming;
+        
+        public DA_CharacterData CharacterData { get; private set; }
+        public AimWidget AimWidget { get; private set; }
         
         // TODO: Remove direct dependency on PlayerInput
         private PlayerInput _playerInput;
@@ -56,11 +40,6 @@ namespace MortierFu
             _aimInputAction = _playerInput.actions.FindAction("Aim");
             _shootInputAction = _playerInput.actions.FindAction("Shoot");
             _cycleShootModeAction = _playerInput.actions.FindAction("CycleShootMode");
-            
-            AimWidget = Instantiate(_aimWidgetPrefab);
-            SetShootMode(_currentShootMode);
-            
-            _shootTimer = new CountdownTimer(AttackSpeed.Value);
         }
 
         void OnEnable()
@@ -73,6 +52,21 @@ namespace MortierFu
             _cycleShootModeAction.performed -= ShootModeManager.CycleShootMode;
         }
 
+        void Start()
+        {
+            if (!TryGetComponent(out character))
+            {
+                Logs.Error("Mortar requires a Character component on the same GameObject.");
+                return;
+            }
+            CharacterData = character.CharacterData;
+            
+            AimWidget = Instantiate(_aimWidgetPrefab);
+            SetShootMode(_currentShootMode);
+            
+            _shootTimer = new CountdownTimer(CharacterData.AttackSpeed.Value);
+        }
+        
         private void OnDestroy()
         {
             _shootStrategy?.DeInitialize();
@@ -99,9 +93,11 @@ namespace MortierFu
         {
             if (_shootTimer.IsRunning) return;
 
-            var owner = GetComponent<Character>();
-            var bombshell = BombshellManager.Instance.RequestBombshell(owner, Damage.Value, AOERange.Value,
-                ProjectileSpeed.Value, 1.0f, _firePoint.position, AimWidget.transform.position);
+            float damage = CharacterData.Damage.Value;
+            float aoeRange = CharacterData.AOERange.Value;
+            float projectileSpeed = CharacterData.ProjectileSpeed.Value;
+            var bombshell = BombshellManager.Instance.RequestBombshell(character, damage, aoeRange, projectileSpeed,
+                1.0f, _firePoint.position, AimWidget.transform.position);
             
             _shootTimer.Start();
         }

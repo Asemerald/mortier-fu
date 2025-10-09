@@ -1,14 +1,28 @@
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
 {
     public class Character : MonoBehaviour
     {
+        [Header("References")]
+        [SerializeField] private DA_CharacterData _characterDataTemplate;
         [SerializeField] private HealthUI _healthUI;
-        public Health Health { get; } = new(100.0f);
-
+        
         private Color _playerColor;
-    
+        
+        [field: SerializeField] public DA_CharacterData CharacterData { get; private set; }
+        public Health Health { get; private set; }
+
+        void Awake()
+        {
+            // Create a unique instance of CharacterData for this character
+            CharacterData = Instantiate(_characterDataTemplate);
+            
+            // Initialize the health component based on that Data
+            Health = new Health(CharacterData);
+        }
+        
         private void Start()
         {
             if (_healthUI != null)
@@ -17,13 +31,13 @@ namespace MortierFu
             }
             
             // TEMPORARY: Choose a random color
-            _playerColor = Color.HSVToRGB(Random.Range(0.0f, 1.0f), 1.0f, 1.0f);
+            _playerColor = ColorUtils.RandomizedHue();
             
+            // Apply it
             if (TryGetComponent(out Renderer rend))
             {
                 rend.material.color = _playerColor;
             }
-
             if (TryGetComponent(out Mortar mortar))
             {
                 mortar.AimWidget.GetComponent<Renderer>().material.color = _playerColor;

@@ -12,20 +12,23 @@ namespace MortierFu
         
         [SerializeField] private float _currentHealth;
         [SerializeField] private float _maxHealth;
+        private DA_CharacterData _characterData;
         
         public float CurrentHealth => _currentHealth;
         public float MaxHealth => _maxHealth;
         public float HealthRatio => _currentHealth / _maxHealth;
         public bool IsAlive => _currentHealth > 0;
         
-        public Health(float maxHealth)
+        public Health(DA_CharacterData characterData)
         {
-            _maxHealth = maxHealth;
-            _currentHealth = maxHealth;
+            _characterData = characterData;
+
+            _maxHealth = characterData.MaxHealth.Value;
+            _currentHealth = _maxHealth;
             OnHealthChanged = null;
             OnDeath = null;
         }
-        
+
         public void TakeDamage(float amount)
         {
             // Cannot take damage if already dead

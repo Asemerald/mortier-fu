@@ -6,25 +6,30 @@ namespace MortierFu
 {
     public class PlayerController : MonoBehaviour
     {
-        [Header("Statistics")]
-        [field: SerializeField, Tooltip("Movement speed of the player in units per second.")]
-        public CharacterStat MoveSpeed { get; private set; } = new CharacterStat(5.0f);
-        
-        [field: SerializeField, Tooltip("Size of the player character.")]
-        public CharacterStat Size { get; private set; } = new CharacterStat(1.0f);
-        
+        private Character character;
         private Vector3 _moveDirection;
         private PlayerInput _playerInput;
-        
+
         private Rigidbody _rb;
         
+
+        public DA_CharacterData CharacterData { get; private set; }
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _playerInput = GetComponent<PlayerInput>();
-            
-            transform.localScale = Vector3.one * Size.Value;
+        }
+
+        void Start()
+        {
+            if (!TryGetComponent(out character))
+            {
+                Logs.Error("PlayerController requires a Character component on the same GameObject.");
+                return;
+            }
+            CharacterData = character.CharacterData;
+            transform.localScale = Vector3.one * CharacterData.AvatarSize.Value;
         }
 
         private void OnEnable()
@@ -42,7 +47,7 @@ namespace MortierFu
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
-            _moveDirection = new Vector2(horizontal, vertical).normalized * MoveSpeed.Value;
+            _moveDirection = new Vector2(horizontal, vertical).normalized * CharacterData.MoveSpeed.Value;
 
             Vector3 lookDir = new Vector3(horizontal, 0f, vertical);
             

@@ -11,13 +11,11 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            var aimWidget = mortar.AimWidget;
-            
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.zero;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * mortar.ShotRange.Value);
+            aimWidget.SetRelativePosition(mortar.transform.forward * characterData.ShotRange.Value);
             aimWidget.Show();
             
             // Bind input actions
@@ -34,11 +32,9 @@ namespace MortierFu
         {
             Vector2 aimInput = aimAction.ReadValue<Vector2>();
             
-            
             // Use the analog of the stick to know how far the shell should go
             float inputStrength = Mathf.Clamp01(aimInput.magnitude);
-            float strength = mortar.ShotRange.Value * inputStrength;
-            var aimWidget = mortar.AimWidget;
+            float strength = characterData.ShotRange.Value * inputStrength;
             
             Vector3 newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * strength;
             aimWidget.SetRelativePosition(newPos);

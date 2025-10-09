@@ -11,13 +11,11 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            var aimWidget = mortar.AimWidget;
-            
             aimWidget.IsActive = true;
             aimWidget.Origin = Vector3.zero;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * mortar.ShotRange.Value);
+            aimWidget.SetRelativePosition(mortar.transform.forward * characterData.ShotRange.Value);
             aimWidget.Show();
             
             // Bind input actions
@@ -39,8 +37,7 @@ namespace MortierFu
             if (aimInput.sqrMagnitude < k_aimDeadZone)
                 return;
             
-            var aimWidget = mortar.AimWidget;
-            var newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * mortar.ShotRange.Value;
+            var newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * characterData.ShotRange.Value;
             aimWidget.SetRelativePosition(newPos);
         }
         
