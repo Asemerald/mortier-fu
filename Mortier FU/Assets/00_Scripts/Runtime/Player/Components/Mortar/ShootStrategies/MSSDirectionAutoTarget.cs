@@ -24,7 +24,7 @@ namespace MortierFu
             aimWidget.Target = null;
             aimWidget.Origin = Vector3.zero;
             aimWidget.SetRelativePosition(Vector3.zero);
-            aimWidget.Show();
+            aimWidget.Hide();
             
             // Bind input actions
             aimAction.performed += OnAiming;
