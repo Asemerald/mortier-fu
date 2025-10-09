@@ -19,7 +19,7 @@ namespace MortierFu
         private CountdownTimer _shootTimer;
         private bool _isAiming;
         
-        public DA_CharacterData CharacterData { get; private set; }
+        public DA_CharacterStats CharacterStats { get; private set; }
         public AimWidget AimWidget { get; private set; }
         
         // TODO: Remove direct dependency on PlayerInput
@@ -59,14 +59,14 @@ namespace MortierFu
                 Logs.Error("Mortar requires a Character component on the same GameObject.");
                 return;
             }
-            CharacterData = character.CharacterData;
+            CharacterStats = character.CharacterStats;
             
             AimWidget = Instantiate(_aimWidgetPrefab);
             AimWidget.GetComponent<Renderer>().material.color = character.PlayerColor;
             
             SetShootMode(_currentShootMode);
             
-            _shootTimer = new CountdownTimer(CharacterData.AttackSpeed.Value);
+            _shootTimer = new CountdownTimer(CharacterStats.AttackSpeed.Value);
         }
         
         private void OnDestroy()
@@ -95,9 +95,9 @@ namespace MortierFu
         {
             if (_shootTimer.IsRunning) return;
 
-            float damage = CharacterData.Damage.Value;
-            float aoeRange = CharacterData.AOERange.Value;
-            float projectileSpeed = CharacterData.ProjectileSpeed.Value;
+            float damage = CharacterStats.Damage.Value;
+            float aoeRange = CharacterStats.AOERange.Value;
+            float projectileSpeed = CharacterStats.ProjectileSpeed.Value;
             var bombshell = BombshellManager.Instance.RequestBombshell(character, damage, aoeRange, projectileSpeed,
                 1.0f, _firePoint.position, AimWidget.transform.position);
             

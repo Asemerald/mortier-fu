@@ -13,7 +13,7 @@ namespace MortierFu
             aimWidget.IsActive = true;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * (characterData.ShotRange.Value * 0.5f));
+            aimWidget.SetRelativePosition(mortar.transform.forward * (CharacterStats.ShotRange.Value * 0.5f));
             aimWidget.Show();
             
             // Bind to actions
@@ -33,9 +33,9 @@ namespace MortierFu
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
             
-            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * characterData.AimWidgetSpeed.Value);
+            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
             Vector3 newPos = aimWidget.RelativePosition + offset;
-            newPos = Vector3.ClampMagnitude(newPos, characterData.ShotRange.Value);
+            newPos = Vector3.ClampMagnitude(newPos, CharacterStats.ShotRange.Value);
             aimWidget.SetRelativePosition(newPos);
         }
         

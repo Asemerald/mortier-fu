@@ -12,7 +12,7 @@ namespace MortierFu
 
         private Rigidbody _rb;
 
-        public DA_CharacterData CharacterData { get; private set; }
+        public DA_CharacterStats CharacterStats { get; private set; }
 
         private void Awake()
         {
@@ -27,8 +27,8 @@ namespace MortierFu
                 Logs.Error("PlayerController requires a Character component on the same GameObject.");
                 return;
             }
-            CharacterData = character.CharacterData;
-            transform.localScale = Vector3.one * CharacterData.AvatarSize.Value;
+            CharacterStats = character.CharacterStats;
+            transform.localScale = Vector3.one * CharacterStats.AvatarSize.Value;
         }
 
         private void OnEnable()
@@ -46,7 +46,7 @@ namespace MortierFu
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
-            _moveDirection = new Vector2(horizontal, vertical).normalized * CharacterData.MoveSpeed.Value;
+            _moveDirection = new Vector2(horizontal, vertical).normalized * CharacterStats.MoveSpeed.Value;
 
             Vector3 lookDir = new Vector3(horizontal, 0f, vertical);
             

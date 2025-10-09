@@ -34,7 +34,7 @@ namespace MortierFu
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
 
-            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * characterData.AimWidgetSpeed.Value);
+            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
             Vector3 newPos = mortar.AimWidget.RelativePosition + offset;
             mortar.AimWidget.SetRelativePosition(newPos);
         }

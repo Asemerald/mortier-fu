@@ -15,7 +15,7 @@ namespace MortierFu
             aimWidget.Origin = Vector3.zero;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * characterData.ShotRange.Value);
+            aimWidget.SetRelativePosition(mortar.transform.forward * CharacterStats.ShotRange.Value);
             aimWidget.Show();
             
             // Bind input actions
@@ -34,7 +34,7 @@ namespace MortierFu
             
             // Use the analog of the stick to know how far the shell should go
             float inputStrength = Mathf.Clamp01(aimInput.magnitude);
-            float strength = characterData.ShotRange.Value * inputStrength;
+            float strength = CharacterStats.ShotRange.Value * inputStrength;
             
             Vector3 newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * strength;
             aimWidget.SetRelativePosition(newPos);
