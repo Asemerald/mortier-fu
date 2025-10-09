@@ -20,7 +20,13 @@ namespace MortierFu
         public float HealthRatio => _currentHealth / _maxHealth;
         public bool IsAlive => _currentHealth > 0;
         
+<<<<<<< HEAD
         public Health(DA_CharacterStats characterStats)
+=======
+        public event Action<Health, Health> OnDeathEvent = delegate { };
+        
+        public Health(DA_CharacterData characterData)
+>>>>>>> origin/feature/GameLoopV1.1
         {
             _characterStats = characterStats;
 
