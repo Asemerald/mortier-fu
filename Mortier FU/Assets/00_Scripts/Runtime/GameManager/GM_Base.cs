@@ -22,32 +22,32 @@ public class GM_Base : MonoBehaviour
 
     private void StartGame()
     {
-        // TO DO : spawn des joueurs, remise à 0 de leur état, etc...
-        // TO DO : remise à zéro des scores, des variables etc...
-        // TO DO : lancement de la musique de jeu
-        // TO DO : définir le nombre max de round et StartRound()
+        // TODO : spawn des joueurs, remise à 0 de leur état, etc...
+        // TODO : remise à zéro des scores, des variables etc...
+        // TODO : lancement de la musique de jeu
+        // TODO : définir le nombre max de round et StartRound()
     }
 
     private void StartRound()
     {
-        // TO DO : remise à zéro des variables de round, timer, etc...
-        // TO DO : lancement de la musique de round
-        // TO DO : replacer les joueurs au point de spawn
-        // TO DO : activer les controllers
+        // TODO : remise à zéro des variables de round, timer, etc...
+        // TODO : lancement de la musique de round
+        // TODO : replacer les joueurs au point de spawn
+        // TODO : activer les controllers
     }
 
     private void EndRound()
     {
-        // TO DO : doit être appeler à chaque fois qu'un joueur est mort
-        // TO DO : désactiver les controllers
-        // TO DO : gestion des scores, affichage des résultats, etc...
-        // TO DO : lancement de la musique de fin de round
-        // TO DO : vérifier si la partie est finie et si oui, EndGame() sinon StartBonusSelection()
+        // TODO : doit être appeler à chaque fois qu'un joueur est mort
+        // TODO : désactiver les controllers
+        // TODO : gestion des scores, affichage des résultats, etc...
+        // TODO : lancement de la musique de fin de round
+        // TODO : vérifier si la partie est finie et si oui, EndGame() sinon StartBonusSelection()
     }
 
     private void StartBonusSelection()
     {
-        // TO DO : afficher l'écran de sélection de bonus
+        // TODO : afficher l'écran de sélection de bonus
     }
     
     private void EndBonusSelection()
