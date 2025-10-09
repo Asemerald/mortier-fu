@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -76,6 +77,8 @@ namespace MortierFu
             _cycleShootModeAction.performed += ShootModeManager.CycleShootMode;
             _AimActivationAction.performed += AimActivation;
             
+            
+            
             AimWidget.Hide();
             BasePlayerSpeed = _playercontroller.MoveSpeed.BaseValue;
         }
@@ -111,27 +114,40 @@ namespace MortierFu
         public void Shoot()
         {
             if (_shootTimer.IsRunning || isAimActive ==false) return;
-
+            
+            
             var owner = GetComponent<Character>();
             var bombshell = BombshellManager.Instance.RequestBombshell(owner, Damage.Value, AOERange.Value,
                 ProjectileSpeed.Value, 1.0f, _firePoint.position, AimWidget.transform.position);
-            
             _shootTimer.Start();
+            StartCoroutine(ShootingLoop(AttackSpeed.Value));
+        }
+
+        public IEnumerator ShootingLoop(float time)
+        {
+           
+            yield return new WaitForSeconds(time);
+            Shoot();
+            
+        }
+
+        public void CancelledShoot()
+        {
+            StopAllCoroutines();
         }
         
         public void AimActivation(InputAction.CallbackContext ctx)
         {
+            
             if (isAimActive)
             {
                 _playercontroller.MoveSpeed.BaseValue = BasePlayerSpeed;
                 AimWidget.Hide();
-                Debug.Log("hide");
             }
             else
             {
                 _playercontroller.MoveSpeed.BaseValue = 7f;
                 AimWidget.Show();
-                Debug.Log("show");
             }
             isAimActive = !isAimActive;
             

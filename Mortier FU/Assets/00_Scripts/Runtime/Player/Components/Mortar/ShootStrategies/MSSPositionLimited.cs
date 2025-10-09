@@ -20,12 +20,14 @@ namespace MortierFu
             
             // Bind to actions
             shootAction.performed += OnShoot;
+            shootAction.canceled += OnShootCancelled;
         }
 
         public override void DeInitialize()
         {
             // Unbind from actions
             shootAction.performed -= OnShoot;
+            shootAction.canceled -= OnShootCancelled;
         }
 
         public override void Update()
@@ -38,11 +40,20 @@ namespace MortierFu
             
             aimWidget.RelativePosition += new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * mortar.AimWidgetSpeed);
             aimWidget.RelativePosition = Vector3.ClampMagnitude(aimWidget.RelativePosition, mortar.ShotRange.Value);
+            
         }
         
         private void OnShoot(InputAction.CallbackContext ctx)
         {
-            mortar.Shoot();
+
+            mortar.StartCoroutine(mortar.ShootingLoop(0f));
+
+        }
+
+        private void OnShootCancelled(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("cancelled");
+            mortar.CancelledShoot();
         }
     }
 }
