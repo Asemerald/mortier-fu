@@ -12,9 +12,7 @@ namespace MortierFu
         private const int k_minPlayers = 2;
 
         [SerializeField] private string _gameSceneName = "Enzo";
-
-        [SerializeField] private List<Vector3> _spawnPositions;
-
+        
         [SerializeField] private LobbyPanel _lobbyPanel;
 
         [SerializeField] private EventSystem _eventSystem;
@@ -63,6 +61,8 @@ namespace MortierFu
             
             _joinedPlayers.Add(playerInput);
             _lobbyPanel?.UpdateSlots(_joinedPlayers);
+            
+            GM_Base.Instance.RegisterPlayer(playerInput);
         }
 
         private void OnPlayerLeft(PlayerInput playerInput)
@@ -73,28 +73,22 @@ namespace MortierFu
             
             _joinedPlayers.Remove(playerInput);
             _lobbyPanel?.UpdateSlots(_joinedPlayers);
+            
+            GM_Base.Instance.UnregisterPlayer(playerInput);
         }
         
         public void TryStartGame()
         {
             if (_joinedPlayers.Count < k_minPlayers || _joinedPlayers.Count > k_maxPlayers)
                 return;
-            SceneManager.sceneLoaded += OnGameSceneLoaded;
+            
+            SceneManager.sceneLoaded += (_, _) =>
+            {
+                GM_Base.Instance.SetGameState(GameState.StartGame);
+            };
+            
             SceneManager.LoadScene(_gameSceneName);
             _gameStarted = true;
-        }
-
-        private void OnGameSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            for (var i = 0; i < _joinedPlayers.Count; i++)
-            {
-                var playerManager = _joinedPlayers[i].GetComponent<PlayerManager>();
-                if (playerManager != null)
-                {
-                    playerManager.SpawnInGame(_spawnPositions[i]);
-                }
-            }
-            SceneManager.sceneLoaded -= OnGameSceneLoaded;
         }
     }
 }
