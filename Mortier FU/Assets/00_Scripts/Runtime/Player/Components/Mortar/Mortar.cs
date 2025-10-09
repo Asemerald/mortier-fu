@@ -37,6 +37,7 @@ namespace MortierFu
         private CountdownTimer _shootTimer;
         public AimWidget AimWidget { get; private set; }
         private bool _isAiming;
+        private bool isAimActive;
         
         // TODO: Remove direct dependency on PlayerInput
         private PlayerInput _playerInput;
@@ -44,6 +45,10 @@ namespace MortierFu
         private InputAction _shootInputAction;
         private InputAction _cycleShootStrategyAction;
         private InputAction _cycleShootModeAction;
+        
+        private InputAction _AimActivationAction;
+        private PlayerController _playercontroller;
+        private float BasePlayerSpeed;
 
         public ShootMode CurrentShootMode => _currentShootMode;
         
@@ -57,6 +62,9 @@ namespace MortierFu
             _shootInputAction = _playerInput.actions.FindAction("Shoot");
             _cycleShootModeAction = _playerInput.actions.FindAction("CycleShootMode");
             
+            _AimActivationAction = _playerInput.actions.FindAction("AimActivation");
+            _playercontroller = GetComponent<PlayerController>();
+            
             AimWidget = Instantiate(_aimWidgetPrefab);
             SetShootMode(_currentShootMode);
             
@@ -66,11 +74,16 @@ namespace MortierFu
         void OnEnable()
         {
             _cycleShootModeAction.performed += ShootModeManager.CycleShootMode;
+            _AimActivationAction.performed += AimActivation;
+            
+            AimWidget.Hide();
+            BasePlayerSpeed = _playercontroller.MoveSpeed.BaseValue;
         }
 
         void OnDisable()
         {
             _cycleShootModeAction.performed -= ShootModeManager.CycleShootMode;
+            _AimActivationAction.performed -= AimActivation;
         }
 
         private void OnDestroy()
@@ -97,13 +110,31 @@ namespace MortierFu
         
         public void Shoot()
         {
-            if (_shootTimer.IsRunning) return;
+            if (_shootTimer.IsRunning || isAimActive ==false) return;
 
             var owner = GetComponent<Character>();
             var bombshell = BombshellManager.Instance.RequestBombshell(owner, Damage.Value, AOERange.Value,
                 ProjectileSpeed.Value, 1.0f, _firePoint.position, AimWidget.transform.position);
             
             _shootTimer.Start();
+        }
+        
+        public void AimActivation(InputAction.CallbackContext ctx)
+        {
+            if (isAimActive)
+            {
+                _playercontroller.MoveSpeed.BaseValue = BasePlayerSpeed;
+                AimWidget.Hide();
+                Debug.Log("hide");
+            }
+            else
+            {
+                _playercontroller.MoveSpeed.BaseValue = 7f;
+                AimWidget.Show();
+                Debug.Log("show");
+            }
+            isAimActive = !isAimActive;
+            
         }
     }
 }

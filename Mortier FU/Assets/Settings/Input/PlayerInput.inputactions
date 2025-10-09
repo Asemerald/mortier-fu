@@ -113,6 +113,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "AimActivation",
+                    "type": "Button",
+                    "id": "61c51bbb-8dba-4acf-b65d-1e1b1296c0de",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -531,6 +540,17 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "CycleShootMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ae8ce12e-c05f-41fd-8186-6451e53c6e3a",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "AimActivation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
