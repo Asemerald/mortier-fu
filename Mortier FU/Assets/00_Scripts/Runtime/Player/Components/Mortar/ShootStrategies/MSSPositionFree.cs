@@ -13,7 +13,7 @@ namespace MortierFu
             var aimWidget = mortar.AimWidget;
             
             aimWidget.IsActive = true;
-            aimWidget.Origin = Vector3.zero;
+            aimWidget.Origin = Vector3.up * 0.1f;
             aimWidget.AttachedToTarget = false;
             aimWidget.Target = null;
             aimWidget.SetRelativePosition(Vector3.zero);

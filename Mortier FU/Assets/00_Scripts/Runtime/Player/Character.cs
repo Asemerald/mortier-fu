@@ -17,8 +17,8 @@ namespace MortierFu
             }
             
             // TEMPORARY: Choose a random color
-            _playerColor = Random.ColorHSV();
-            ;
+            _playerColor = Color.HSVToRGB(Random.Range(0.0f, 1.0f), 1.0f, 1.0f);
+            
             if (TryGetComponent(out Renderer rend))
             {
                 rend.material.color = _playerColor;
