@@ -51,7 +51,7 @@ namespace MortierFu
             _currentCharge += Time.deltaTime * _chargeSpeed;
             _currentCharge = Mathf.Clamp01(_currentCharge); 
             
-            Vector3 newPos = new Vector3(_currentAimInput.x, 0.0f, _currentAimInput.y) * (characterData.ShotRange.Value * _currentCharge);
+            Vector3 newPos = new Vector3(_currentAimInput.x, 0.0f, _currentAimInput.y) * (CharacterStats.ShotRange.Value * _currentCharge);
             aimWidget.SetRelativePosition(newPos);
         }
         

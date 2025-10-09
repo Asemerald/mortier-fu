@@ -16,7 +16,7 @@ namespace MortierFu
     {
         protected readonly Mortar mortar;
         protected readonly AimWidget aimWidget;
-        protected readonly DA_CharacterData characterData;
+        protected readonly DA_CharacterStats CharacterStats;
         protected readonly InputAction aimAction;
         protected readonly InputAction shootAction;
 
@@ -27,7 +27,7 @@ namespace MortierFu
         {
             this.mortar = mortar;
             this.aimWidget = mortar.AimWidget;
-            this.characterData = mortar.CharacterData;
+            this.CharacterStats = mortar.CharacterStats;
             this.aimAction = aimAction;
             this.shootAction = shootAction;
         }

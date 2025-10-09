@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MortierFu
 {
     [CreateAssetMenu(fileName = "DA_PlayerData", menuName = "Mortier Fu/Player Data", order = 0)]
-    public class DA_CharacterData : ScriptableObject
+    public class DA_CharacterStats : ScriptableObject
     {
         [Header("Character Statistics")]
         [field: SerializeField, Tooltip("Maximum health of the player.")]

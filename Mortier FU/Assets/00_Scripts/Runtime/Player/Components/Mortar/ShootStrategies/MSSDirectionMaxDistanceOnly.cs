@@ -15,7 +15,7 @@ namespace MortierFu
             aimWidget.Origin = Vector3.zero;
             aimWidget.AttachedToTarget = true;
             aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * characterData.ShotRange.Value);
+            aimWidget.SetRelativePosition(mortar.transform.forward * CharacterStats.ShotRange.Value);
             aimWidget.Show();
             
             // Bind input actions
@@ -37,7 +37,7 @@ namespace MortierFu
             if (aimInput.sqrMagnitude < k_aimDeadZone)
                 return;
             
-            var newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * characterData.ShotRange.Value;
+            var newPos = new Vector3(aimInput.x, 0.0f, aimInput.y).normalized * CharacterStats.ShotRange.Value;
             aimWidget.SetRelativePosition(newPos);
         }
         
