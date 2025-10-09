@@ -12,6 +12,7 @@ namespace MortierFu
         private GameObject _inGameCharacter;
         private bool _isInGame = false;
 
+        public GameObject CharacterGO => _inGameCharacter;
         void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
@@ -23,7 +24,13 @@ namespace MortierFu
         {
             if (_isInGame) return;
 
-            // On spawn un nouveau PlayerInput lié à CE joueur
+            if (_inGameCharacter != null)
+            {
+                _inGameCharacter.SetActive(true);
+                _inGameCharacter.transform.position = spawnPosition;
+                return;
+            }
+            
             var newPlayer = PlayerInput.Instantiate(
                 _playerInGamePrefab,
                 controlScheme: _playerInput.currentControlScheme,
@@ -34,14 +41,14 @@ namespace MortierFu
             _inGameCharacter.transform.position = spawnPosition;
             
             _isInGame = true;
-            
-           // GM_Base.Instance.RegisterPlayer(_playerInput);
         }
-
-        public void DespawnInGame()
+        
+        private void DespawnInGame()
         {
             if (_inGameCharacter != null)
-                Destroy(_inGameCharacter);
+            {
+                _inGameCharacter.SetActive(false);
+            }
             _isInGame = false;
         }
     }
