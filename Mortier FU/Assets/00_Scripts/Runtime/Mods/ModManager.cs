@@ -1,188 +1,278 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using BepInEx;
 
-namespace MortierFu
+namespace Mortierfu
 {
-    [Serializable]
-    public class ModManifest
-    {
-        public string name = "Unnamed Mod";
-        public string version = "1.0";
-        public string author = "Unknown";
-        public string description = "";
-    }
-
     [Serializable]
     public class ModInfo
     {
-        public ModManifest manifest;
-        public string folderPath;
-        public bool isEnabled;
-        public bool isLoaded;
-        public Type modType;
-        public Assembly modAssembly;
-        public ModBase instance;
+        public string guid;           // com.author.modname
+        public string name;           // Nom du mod
+        public string version;        // 1.0.0
+        public string author;         // Nom de l'auteur
+        public string description;    // Description
+        public string folderPath;     // Chemin du dossier
+        public bool isEnabled;        // Activé ou non
+        public bool isLoaded;         // Chargé en mémoire
+        
+        public ModInfo(string guid, string name, string version, string folderPath)
+        {
+            this.guid = guid;
+            this.name = name;
+            this.version = version;
+            this.folderPath = folderPath;
+            this.isEnabled = true;
+            this.isLoaded = false;
+        }
     }
 
     public class ModManager : MonoBehaviour
     {
         public static ModManager Instance { get; private set; }
+        
         public List<ModInfo> allMods = new List<ModInfo>();
         public Action<ModInfo> OnModToggled;
-
-        private string modsFolder;
-
+        
+        private string pluginsPath;
+        private string configPath;
+        
         void Awake()
         {
-            if (Instance != null) { Destroy(gameObject); return; }
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            modsFolder = Path.Combine(Application.dataPath, "Mods");
-            if (!Directory.Exists(modsFolder))
-                Directory.CreateDirectory(modsFolder);
-
+            
+            pluginsPath = Path.Combine(Paths.BepInExRootPath, "plugins");
+            configPath = Path.Combine(Paths.ConfigPath, "ModManager.json");
+            
             ScanMods();
-            LoadMods();
+            LoadModStates();
         }
-
-        void Update()
-        {
-            foreach (var mod in allMods)
-            {
-                if (mod.isLoaded && mod.instance != null)
-                    mod.instance.ModUpdate();
-            }
-        }
-
+        
+        /// <summary>
+        /// Scan tous les dossiers dans BepInEx/plugins pour trouver les mods
+        /// </summary>
         public void ScanMods()
         {
             allMods.Clear();
-
-            foreach (var dir in Directory.GetDirectories(modsFolder))
+            
+            if (!Directory.Exists(pluginsPath))
             {
-                bool isDisabled = dir.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
-                string manifestPath = Path.Combine(dir, "manifest.json");
-                ModManifest manifest = new ModManifest();
-
+                Debug.LogWarning("Plugins folder not found!");
+                return;
+            }
+            
+            // Récupère tous les DLLs dans plugins/ (récursif)
+            string[] dllFiles = Directory.GetFiles(pluginsPath, "*.dll", SearchOption.AllDirectories);
+            
+            Debug.Log($"Found {dllFiles.Length} DLL files");
+            
+            foreach (string dllPath in dllFiles)
+            {
                 try
                 {
+                    // Récupère le dossier parent du DLL
+                    string folderPath = Path.GetDirectoryName(dllPath);
+                    string folderName = Path.GetFileName(folderPath);
+                    
+                    // Skip si c'est directement dans plugins/ (pas dans un sous-dossier) TODO suremenet a tej
+                    if (folderPath == pluginsPath)
+                        continue;
+                    
+                    // Check si un manifest.json existe
+                    string manifestPath = Path.Combine(folderPath, "manifest.json");
+                    
+                    ModInfo modInfo;
+                    
                     if (File.Exists(manifestPath))
-                        manifest = JsonUtility.FromJson<ModManifest>(File.ReadAllText(manifestPath));
+                    {
+                        // Charge depuis le manifest
+                        modInfo = LoadFromManifest(manifestPath, folderPath);
+                    }
                     else
-                        Debug.LogWarning($"[ModManager] No manifest.json found in {dir}");
-
-                    string[] dlls = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly);
-                    if (dlls.Length == 0)
                     {
-                        Debug.LogWarning($"[ModManager] No DLL found in {dir}");
-                        continue;
+                        // Crée un ModInfo basique depuis le nom du DLL
+                        string dllName = Path.GetFileNameWithoutExtension(dllPath);
+                        modInfo = new ModInfo(
+                            guid: $"unknown.{dllName}",
+                            name: dllName,
+                            version: "Unknown",
+                            folderPath: folderPath
+                        );
+                        modInfo.description = "No manifest.json found";
                     }
-
-                    string dllPath = dlls[0];
-                    var asm = Assembly.Load(File.ReadAllBytes(dllPath));
-                    var modType = asm.GetTypes().FirstOrDefault(t => t.IsSubclassOf(typeof(ModBase)) && !t.IsAbstract);
-
-                    if (modType == null)
-                    {
-                        Debug.LogWarning($"[ModManager] No ModBase class found in {dllPath}");
-                        continue;
-                    }
-
-                    ModInfo info = new ModInfo
-                    {
-                        manifest = manifest,
-                        folderPath = dir,
-                        modType = modType,
-                        modAssembly = asm,
-                        isEnabled = !isDisabled,
-                        isLoaded = false,
-                        instance = null
-                    };
-
-                    allMods.Add(info);
-                    Debug.Log($"[ModManager] Found mod: {manifest.name} (Enabled: {info.isEnabled})");
+                    
+                    // Check si le dossier est désactivé (.disabled)
+                    modInfo.isEnabled = !folderName.EndsWith(".disabled");
+                    
+                    // Check si le mod est actuellement chargé par BepInEx
+                    modInfo.isLoaded = IsModLoaded(modInfo.guid);
+                    
+                    allMods.Add(modInfo);
+                    Debug.Log($"Found mod: {modInfo.name} ({modInfo.version})");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[ModManager] Error loading mod in {dir}: {e.Message}");
+                    Debug.LogError($"Error scanning {dllPath}: {e.Message}");
                 }
             }
-
-            Debug.Log($"[ModManager] Total mods found: {allMods.Count}");
+            
+            Debug.Log($"Total mods found: {allMods.Count}");
         }
-
+        
+        /// <summary>
+        /// Charge les infos depuis un manifest.json
+        /// </summary>
+        private ModInfo LoadFromManifest(string manifestPath, string folderPath)
+        {
+            string json = File.ReadAllText(manifestPath);
+            ManifestData data = JsonUtility.FromJson<ManifestData>(json);
+            
+            ModInfo modInfo = new ModInfo(
+                guid: data.guid ?? "unknown",
+                name: data.name ?? "Unknown Mod",
+                version: data.version ?? "1.0.0",
+                folderPath: folderPath
+            );
+            
+            modInfo.author = data.author;
+            modInfo.description = data.description;
+            
+            return modInfo;
+        }
+        
+        /// <summary>
+        /// Check si un mod est actuellement chargé par BepInEx
+        /// </summary>
+        private bool IsModLoaded(string guid)
+        {
+            // BepInEx garde une liste des plugins chargés
+            var loadedPlugins = BepInEx.Bootstrap.Chainloader.PluginInfos;
+            return loadedPlugins.ContainsKey(guid);
+        }
+        
+        /// <summary>
+        /// Active/Désactive un mod en renommant son dossier
+        /// </summary>
         public void ToggleMod(ModInfo mod)
         {
-            bool newState = !mod.isEnabled;
-
-            // On renomme le dossier
-            string newPath = newState
-                ? mod.folderPath.Replace(".disabled", "")
-                : mod.folderPath + ".disabled";
-
+            string currentPath = mod.folderPath;
+            string newPath;
+            
+            if (mod.isEnabled)
+            {
+                // Désactive le mod
+                newPath = currentPath + ".disabled";
+                mod.isEnabled = false;
+            }
+            else
+            {
+                // Active le mod (enlève .disabled)
+                newPath = currentPath.Replace(".disabled", "");
+                mod.isEnabled = true;
+            }
+            
             try
             {
-                if (Directory.Exists(mod.folderPath))
-                    Directory.Move(mod.folderPath, newPath);
-
-                Debug.Log($"[ModManager] Mod '{mod.manifest.name}' renamed to {newPath}");
+                Directory.Move(currentPath, newPath);
                 mod.folderPath = newPath;
-                mod.isEnabled = newState;
+                
+                Debug.Log($"Mod {mod.name} {(mod.isEnabled ? "enabled" : "disabled")}");
+                
+                OnModToggled?.Invoke(mod);
+                SaveModStates();
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ModManager] Failed to rename mod folder: {e.Message}");
-            }
-
-            // On applique l’état immédiatement si nécessaire
-            if (!mod.isEnabled && mod.isLoaded)
-            {
-                mod.instance?.DeInitialize();
-                mod.instance = null;
-                mod.isLoaded = false;
-            }
-            else if (mod.isEnabled && !mod.isLoaded)
-            {
-                LoadMod(mod);
-            }
-
-            OnModToggled?.Invoke(mod);
-        }
-
-        public void LoadMods()
-        {
-            foreach (var mod in allMods)
-            {
-                if (mod.isEnabled && !mod.isLoaded)
-                    LoadMod(mod);
+                Debug.LogError($"Error toggling mod {mod.name}: {e.Message}");
             }
         }
-
-        private void LoadMod(ModInfo mod)
+        
+        /// <summary>
+        /// Sauvegarde l'état des mods (pour se souvenir après redémarrage)
+        /// </summary>
+        private void SaveModStates()
         {
+            ModStatesSave save = new ModStatesSave();
+            save.modStates = allMods.Select(m => new ModState 
+            { 
+                guid = m.guid, 
+                isEnabled = m.isEnabled 
+            }).ToList();
+            
+            string json = JsonUtility.ToJson(save, true);
+            File.WriteAllText(configPath, json);
+        }
+        
+        /// <summary>
+        /// Charge l'état sauvegardé des mods
+        /// </summary>
+        private void LoadModStates()
+        {
+            if (!File.Exists(configPath))
+                return;
+            
             try
             {
-                var instance = (ModBase)Activator.CreateInstance(mod.modType);
-                instance.Initialize();
-                mod.instance = instance;
-                mod.isLoaded = true;
-                Debug.Log($"[ModManager] Loaded mod: {mod.manifest.name}");
+                string json = File.ReadAllText(configPath);
+                ModStatesSave save = JsonUtility.FromJson<ModStatesSave>(json);
+                
+                // Applique les états sauvegardés
+                foreach (var state in save.modStates)
+                {
+                    var mod = allMods.FirstOrDefault(m => m.guid == state.guid);
+                    if (mod != null && mod.isEnabled != state.isEnabled)
+                    {
+                        // Si l'état a changé, applique le changement
+                        ToggleMod(mod);
+                    }
+                }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ModManager] Error initializing mod {mod.manifest.name}: {e.Message}");
+                Debug.LogError($"Error loading mod states: {e.Message}");
             }
         }
-
-        public void RestartGame()
+        
+        /// <summary>
+        /// Force le rechargement de tous les mods
+        /// </summary>
+        public void RefreshMods()
         {
-            Debug.Log("Restarting game to apply mods...");
-            DebugManager.RestartGame();
+            ScanMods();
         }
+    }
+    
+    // Classes pour la sérialisation JSON
+    [Serializable]
+    public class ManifestData
+    {
+        public string guid;
+        public string name;
+        public string version;
+        public string author;
+        public string description;
+    }
+    
+    [Serializable]
+    public class ModState
+    {
+        public string guid;
+        public bool isEnabled;
+    }
+    
+    [Serializable]
+    public class ModStatesSave
+    {
+        public List<ModState> modStates = new List<ModState>();
     }
 }
