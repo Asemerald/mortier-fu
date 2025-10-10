@@ -17,7 +17,7 @@ public class DebugManager : MonoBehaviour
 #endif
     }
     
-    public static void RestartGame()
+    public void RestartGame()
     {
         string exePath = Application.dataPath; // normalement le dossier Data
         string parentPath = Path.GetFullPath(Path.Combine(exePath, ".."));
