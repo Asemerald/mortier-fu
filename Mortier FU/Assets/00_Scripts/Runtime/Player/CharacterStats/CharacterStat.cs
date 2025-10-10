@@ -5,7 +5,10 @@ using UnityEngine;
 
 namespace MortierFu {
     [Serializable]
-    public class CharacterStat {
+    public class CharacterStat
+    {
+        public Action<float> OnValueChanged;
+
         public float BaseValue;
 
         public virtual float Value {
@@ -14,6 +17,8 @@ namespace MortierFu {
                     _value = CalculateFinalValue();
                     lastBaseValue = BaseValue;
                     isDirty = false;
+                    
+                    OnValueChanged?.Invoke(_value);
                 }
                 
                 return _value;
