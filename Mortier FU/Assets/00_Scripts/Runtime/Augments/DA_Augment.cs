@@ -13,5 +13,8 @@ namespace MortierFu
         [Tooltip("The type of augment this is. Must implement IAugment interface.")]
         [TypeFilter(typeof(IAugment))]
         public SerializableType AugmentType;
+        
+        [HideInInspector]
+        public string ModBundlePath; // chemin vers l'asset bundle si mod
     }
 }
