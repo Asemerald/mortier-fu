@@ -77,7 +77,7 @@ namespace MortierFu
         {
             if (!_activeBombshells.Contains(bombshell))
             {
-                Logs.Warning("Trying to recycle a Bombshell that is not managed.");
+                Logs.LogWarning("Trying to recycle a Bombshell that is not managed.");
                 return;
             }
             

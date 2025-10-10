@@ -20,19 +20,19 @@ public class MenuManager : MonoBehaviour
     {
         if (mainMenuPanel == null)
         {
-            Logs.Error("MenuManager: MainMenuPanel reference is missing.", this);
+            Logs.LogError("MenuManager: MainMenuPanel reference is missing.", this);
         }
         if (settingsPanel == null)
         {
-            Logs.Error("MenuManager: SettingsPanel reference is missing.", this);
+            Logs.LogError("MenuManager: SettingsPanel reference is missing.", this);
         }
         if (creditsPanel == null)
         {
-            Logs.Error("MenuManager: CreditsPanel reference is missing.", this);
+            Logs.LogError("MenuManager: CreditsPanel reference is missing.", this);
         }
         if (lobbyPanel == null)
         {
-            Logs.Error("MenuManager: LobbyPanel reference is missing.", this);
+            Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
         }
     }
 }

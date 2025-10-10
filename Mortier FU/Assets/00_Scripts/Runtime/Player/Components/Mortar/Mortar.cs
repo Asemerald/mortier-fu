@@ -56,7 +56,7 @@ namespace MortierFu
         {
             if (!TryGetComponent(out character))
             {
-                Logs.Error("Mortar requires a Character component on the same GameObject.");
+                Logs.LogError("Mortar requires a Character component on the same GameObject.");
                 return;
             }
             CharacterStats = character.CharacterStats;

@@ -56,7 +56,7 @@ namespace MortierFu
         {
             if (_deviceToPlayer.TryGetValue(device, out var index))
             {
-                Logs.Warning($"Player {index}'s device '{device.displayName}' disconnected");
+                Logs.LogWarning($"Player {index}'s device '{device.displayName}' disconnected");
             }
         }
 
@@ -80,7 +80,7 @@ namespace MortierFu
             }
             else
             {
-                Logs.Warning($"Reconnected device '{device.displayName}' not linked to any player");
+                Logs.LogWarning($"Reconnected device '{device.displayName}' not linked to any player");
             }
         }
     }
