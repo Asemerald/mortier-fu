@@ -6,22 +6,22 @@ namespace MortierFu {
     /// Credits: <see href="https://www.youtube.com/@git-amend">git-amend</see>
     /// </summary>
     public abstract class Timer : IDisposable {
+        public float InitialTime { get; protected set; }
         public float CurrentTime { get; protected set; }
         public bool IsRunning { get; private set; }
 
-        protected float _initialTime;
 
-        public virtual float Progress => Mathf.Clamp(CurrentTime / _initialTime, 0f, 1f);
-
+        public virtual float Progress => Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
+        
         public Action OnTimerStart = delegate { };
         public Action OnTimerStop = delegate { };
 
         public Timer(float value) {
-            _initialTime = value;
+            InitialTime = value;
         }
 
         public void Start() {
-            CurrentTime = _initialTime;
+            CurrentTime = InitialTime;
             if(!IsRunning) {
                 IsRunning = true;
                 TimerManager.RegisterTimer(this);
@@ -43,10 +43,10 @@ namespace MortierFu {
         public void Resume() => IsRunning = true;
         public void Pause() => IsRunning = false;
 
-        public virtual void Reset() => CurrentTime = _initialTime;
+        public virtual void Reset() => CurrentTime = InitialTime;
 
         public virtual void Reset(float newTime) {
-            _initialTime = newTime;
+            InitialTime = newTime;
             Reset();
         }
 
