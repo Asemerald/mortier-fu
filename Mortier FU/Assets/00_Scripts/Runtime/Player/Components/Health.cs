@@ -53,5 +53,11 @@ namespace MortierFu
             _currentHealth = Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(amount);
         }
+
+        public void ResetHealth()
+        {
+            _currentHealth = _maxHealth;
+            OnHealthChanged?.Invoke(_maxHealth);
+        }
     }
 }

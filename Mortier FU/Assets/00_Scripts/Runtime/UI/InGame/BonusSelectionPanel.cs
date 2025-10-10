@@ -17,7 +17,7 @@ namespace MortierFu
 
         public event System.Action OnAllPlayersSelected;
 
-        public void Init(List<PlayerInput> players, List<string> bonusNames)
+        public void Init(List<Cnc> players, List<string> bonusNames)
         {
             foreach (Transform child in bonusPanelGroup)
                 Destroy(child.gameObject);
@@ -38,14 +38,14 @@ namespace MortierFu
             Hide();
         }
 
-        private void OnBonusSelected(Button button, string bonusName, List<PlayerInput> players)
+        private void OnBonusSelected(Button button, string bonusName, List<Cnc> players)
         {
             PlayerInput selectingPlayer = null;
             foreach (var player in players)
             {
-                if (!playerBonusChoices.ContainsKey(player))
+                if (!playerBonusChoices.ContainsKey(player.GameInput))
                 {
-                    selectingPlayer = player;
+                    selectingPlayer = player.GameInput;
                     break;
                 }
             }

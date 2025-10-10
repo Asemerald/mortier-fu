@@ -61,8 +61,6 @@ namespace MortierFu
             
             _joinedPlayers.Add(playerInput);
             _lobbyPanel?.UpdateSlots(_joinedPlayers);
-            
-            GM_Base.Instance.RegisterPlayer(playerInput);
         }
 
         private void OnPlayerLeft(PlayerInput playerInput)

@@ -53,10 +53,19 @@ namespace MortierFu
                     if(character == bombshell.Owner) 
                         continue; 
                     
+                    if(!character.Health.IsAlive)
+                        continue;
+                    
                     character.Health.TakeDamage(bombshell.Damage);
+                    
                     if (_enableDebug)
                     {
                         Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
+                    }
+
+                    if (!character.Health.IsAlive)
+                    {
+                        GM_Base.Instance.NotifyKillEvent(bombshell.Owner, character);
                     }
                 }
             }

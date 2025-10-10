@@ -59,11 +59,14 @@ namespace MortierFu
         }
 
         // Could also implement a RemoveAugment method if needed
-
         public void ClearAugments()
         {
             _augments.Clear();
         }
+
+        public void ResetCharacter()
+        {
+            Health.ResetHealth();
+        }
     }
-   
 }
