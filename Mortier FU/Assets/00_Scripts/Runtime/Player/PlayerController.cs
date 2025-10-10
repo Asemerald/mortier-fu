@@ -28,7 +28,6 @@ namespace MortierFu
                 return;
             }
             CharacterStats = character.CharacterStats;
-            transform.localScale = Vector3.one * CharacterStats.AvatarSize.Value;
         }
 
         private void OnEnable()
@@ -43,6 +42,8 @@ namespace MortierFu
         
         private void Update()
         {
+            UpdateAvatarSize();
+            
             float horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             float vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
 
@@ -60,6 +61,11 @@ namespace MortierFu
         {
             Vector3 velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
             _rb.linearVelocity = velocity;
+        }
+        
+        private void UpdateAvatarSize()
+        {
+            transform.localScale = Vector3.one * CharacterStats.AvatarSize.Value;
         }
     }
 }
