@@ -98,7 +98,8 @@ namespace MortierFu
             Logs.Log("Round is started");
             
             // Initialisation du timer du round
-            _timer = new CountdownTimer(_roundDuration);
+            _timer ??= new CountdownTimer(0);
+            _timer.Reset(_roundDuration);
             _timer.Start();
             _timer.OnTimerStop += EndRound;
             
@@ -118,7 +119,7 @@ namespace MortierFu
             _timer.OnTimerStop -= EndRound;
             _timer.Stop();
             
-            _timer = new CountdownTimer(_showScoreDuration);
+            _timer.Reset(_showScoreDuration);
             _timer.Start();
             _timer.OnTimerStop += StartBonusSelection;
 
@@ -153,7 +154,7 @@ namespace MortierFu
             _timer.OnTimerStop -= StartBonusSelection;
             _timer.Stop();   
             
-            _timer = new CountdownTimer(_bonusSelectionDuration);
+            _timer.Reset(_bonusSelectionDuration);
             _timer.Start();
             _timer.OnTimerStop += EndBonusSelection;
             
