@@ -7,7 +7,10 @@ namespace MortierFu
     public class BombshellManager : MonoBehaviour
     {
         public static BombshellManager Instance { get; private set; }
-        
+
+        [Header("Game Feel")] 
+        [SerializeField] private TimeEffect _hitStopEffect;
+
         [Header("References")]
         [SerializeField] private Bombshell _bombshellPrefab;
 
@@ -44,7 +47,9 @@ namespace MortierFu
         
         public void NotifyImpactAndRecycle(Bombshell bombshell)
         {
+            bool didDamage = false;
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.Radius, _impactResults);
+            
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
@@ -57,6 +62,7 @@ namespace MortierFu
                         continue;
                     
                     character.Health.TakeDamage(bombshell.Damage);
+                    didDamage = true;
                     
                     if (_enableDebug)
                     {
@@ -68,6 +74,11 @@ namespace MortierFu
                         GM_Base.Instance.NotifyKillEvent(bombshell.Owner, character);
                     }
                 }
+            }
+
+            if (didDamage)
+            {
+                TimeService.Instance.AddEffect(_hitStopEffect);
             }
             
             RecycleBombshell(bombshell);

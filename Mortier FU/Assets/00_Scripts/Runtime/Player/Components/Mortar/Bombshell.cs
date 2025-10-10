@@ -17,6 +17,7 @@ namespace MortierFu
         private Vector3 _targetPos;
         private Vector3 _initialVelocity;
         private float _t = -1.0f;
+        private bool _contactHandled;
 
         private BombshellManager _manager;
         private Rigidbody _rb;
@@ -45,6 +46,7 @@ namespace MortierFu
             _gravityScale = gravityScale;
             _startPos = start;
             _targetPos = target;
+            _contactHandled = false;
             
             float targetT = Vector3.Distance(start, target) / _speed;
             _initialVelocity = InitialVelocityForTime(start, target, targetT, Physics.gravity * _gravityScale);
@@ -60,6 +62,9 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
+            if (_contactHandled) return;
+            _contactHandled = true;
+            
             // Notify impact & recycle the bombshell
             _manager.NotifyImpactAndRecycle(this);
         }

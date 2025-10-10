@@ -41,6 +41,12 @@ namespace MortierFu
             _playerInputManager.onPlayerLeft -= OnPlayerLeft;
         }
 
+        // TODO: MOVE THIS AWAY
+        void Update()
+        {
+            TimeService.Instance.Update();
+        }
+
         private void OnPlayerJoined(PlayerInput playerInput)
         {
             if (LobbyManager.Instance._gameStarted) return;
