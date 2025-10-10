@@ -2446,7 +2446,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1892091464}
-  - component: {fileID: 1892091463}
   m_Layer: 0
   m_Name: MenuManager
   m_TagString: Untagged
@@ -2454,22 +2453,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1892091463
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1892091462}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23631ba015b210f4eafcabaf5bceb5cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  mainMenuPanel: {fileID: 1163620011}
-  settingsPanel: {fileID: 1488956645}
-  creditsPanel: {fileID: 514514708}
-  lobbyPanel: {fileID: 1725973106}
 --- !u!4 &1892091464
 Transform:
   m_ObjectHideFlags: 0
@@ -3261,16 +3244,14 @@ PrefabInstance:
       propertyPath: _playerInputManager
       value: 
       objectReference: {fileID: 213900849}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7251727231984779969, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5494191993685522960, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
       insertIndex: -1
       addedObject: {fileID: 213900849}
-    - targetCorrespondingSourceObject: {fileID: 5494191993685522960, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 213900852}
   m_SourcePrefab: {fileID: 100100000, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
