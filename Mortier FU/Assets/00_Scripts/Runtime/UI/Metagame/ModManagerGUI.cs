@@ -1,91 +1,46 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using Debug = UnityEngine.Debug;
 
-namespace Mortierfu
+namespace MortierFu
 {
-    public class ModManagerGUI : MonoBehaviour
+    public class ModMenuGUI : MonoBehaviour
     {
-        private bool showWindow = false;
-        private Vector2 scroll;
-        private ModManager manager;
-
-        void Start()
-        {
-            manager = ModManager.Instance;
-            if (manager == null)
-            {
-                Debug.LogError("ModManager instance not found!");
-            }
-        }
+        private Vector2 scrollPos;
+        private bool showMenu = false;
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F1))
-                showWindow = !showWindow;
+            if (Input.GetKeyDown(KeyCode.M))
+                showMenu = !showMenu;
         }
 
         void OnGUI()
         {
-            if (!showWindow || manager == null) return;
+            if (!showMenu) return;
 
-            float width = 500;
-            float height = 400;
-            Rect rect = new Rect(20, 20, width, height);
-            GUI.Box(rect, "Mods Manager");
+            GUI.Box(new Rect(10, 10, 300, 400), "Mods");
 
-            GUILayout.BeginArea(new Rect(30, 50, width - 20, height - 60));
-            scroll = GUILayout.BeginScrollView(scroll);
+            scrollPos = GUI.BeginScrollView(new Rect(10, 40, 300, 350), scrollPos, new Rect(0, 0, 280, ModManager.Instance.allMods.Count * 30));
 
-            foreach (var mod in manager.allMods)
+            for (int i = 0; i < ModManager.Instance.allMods.Count; i++)
             {
-                GUILayout.BeginHorizontal("box");
-
-                GUILayout.Label(mod.name, GUILayout.Width(200));
-                GUILayout.Label($"v{mod.version}", GUILayout.Width(60));
-
-                string status = mod.isEnabled ? "Enabled" : "Disabled";
-                Color color = mod.isEnabled ? Color.green : Color.gray;
-                GUI.contentColor = color;
-                GUILayout.Label(status, GUILayout.Width(100));
-                GUI.contentColor = Color.white;
-
-                bool toggle = GUILayout.Button(mod.isEnabled ? "Disable" : "Enable", GUILayout.Width(80));
-                if (toggle)
+                var mod = ModManager.Instance.allMods[i];
+                bool newEnabled = GUI.Toggle(new Rect(10, i * 30, 200, 20), mod.isEnabled, mod.name);
+                if (newEnabled != mod.isEnabled)
                 {
-                    manager.ToggleMod(mod);
+                    ModManager.Instance.ToggleMod(mod);
                 }
-
-                GUILayout.EndHorizontal();
             }
 
-            GUILayout.EndScrollView();
-            GUILayout.EndArea();
-        }
-        
-        public void RestartGame()
-        {
-            string exePath = Application.dataPath; // normalement le dossier Data
-            string parentPath = Path.GetFullPath(Path.Combine(exePath, ".."));
-            string gameExe = Path.Combine(parentPath, Path.GetFileNameWithoutExtension(Application.dataPath) + ".exe");
+            GUI.EndScrollView();
 
-            if (!File.Exists(gameExe))
+            if (GUI.Button(new Rect(10, 360, 100, 30), "Load Mods"))
             {
-                UnityEngine.Debug.LogError($"Restart failed: game exe not found at {gameExe}");
-                return;
+                ModManager.Instance.LoadMods();
             }
 
-            try
+            if (GUI.Button(new Rect(120, 360, 100, 30), "Restart"))
             {
-                Process.Start(gameExe);
-                UnityEngine.Debug.Log("Restarting game...");
-                Application.Quit();
-            }
-            catch (System.Exception e)
-            {
-                UnityEngine.Debug.LogError($"Restart failed: {e.Message}");
+                ModManager.Instance.RestartGame();
             }
         }
     }
