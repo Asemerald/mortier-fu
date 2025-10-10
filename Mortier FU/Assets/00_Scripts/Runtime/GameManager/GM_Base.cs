@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
-using MortierFu.Shared;
+using System.Linq;
 using UnityEngine.InputSystem;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -14,6 +16,15 @@ namespace MortierFu
         StartBonusSelection,
         EndBonusSelection,
         EndGame
+    }
+
+    public class Cnc
+    {
+        public PlayerManager PlayerManager;
+        public PlayerInput LobbyInput;
+        public PlayerInput GameInput;
+        public Character Character;
+        public int Score;
     }
 
     public class GM_Base : MonoBehaviour
@@ -30,21 +41,24 @@ namespace MortierFu
         [SerializeField] private float _showScoreDuration = 10f; // en secondes
 
         [SerializeField] private List<Vector3> _spawnPositions;
+        
+        [Header("Debugging")]
+        [SerializeField] private bool _enableDebug = true;
 
         private int _currentRound;
 
         private GameState _currentState = GameState.Lobby;
 
-        private List<PlayerInput> _joinedPlayers = new List<PlayerInput>();
-        private List<PlayerInput> _alivePlayers = new List<PlayerInput>();
+        private List<Cnc> _joinedPlayers = new();
         
-        private Dictionary<PlayerInput, int> _scores;
-
         private CountdownTimer _timer;
 
-        private List<string> bonusList = new List<string> { "bonus1", "bonus2", "bonus3", "bonus4", "bonus5" };
+        private List<string> _bonusList = new List<string>() { "bonus1", "bonus2", "bonus3", "bonus4", "bonus5" };
         public GameState CurrentState => _currentState;
 
+        /// (killer, victim)
+        public Action<Cnc, Cnc> OnPlayerKilled; 
+        
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -61,20 +75,22 @@ namespace MortierFu
         {
             Logs.Log("Game is started");
             // Initialisation des variables de la partie
-            _scores = new();
             _currentRound = 0;
+            
+            InitializePlayers();
             
             // Recherche dynamique du ScorePanel si non assigné
             if (_scorePanel == null)
-                _scorePanel = FindObjectOfType<ScorePanel>(); 
-            if (_bonusSelectionPanel == null)
-                _bonusSelectionPanel = FindObjectOfType<BonusSelectionPanel>();
+                _scorePanel = FindFirstObjectByType<ScorePanel>(); 
+            if (_bonusSelectionPanel == null) 
+                _bonusSelectionPanel = FindFirstObjectByType<BonusSelectionPanel>();
 
             _scorePanel.Init(_joinedPlayers);
-
+            _bonusSelectionPanel.Hide();
+            
             SetGameState(GameState.StartRound);
 
-            //TODO: lancement de la musique de début de partie
+            // TODO: lancement de la musique de début de partie
         }
 
         private void StartRound()
@@ -85,28 +101,10 @@ namespace MortierFu
             _timer = new CountdownTimer(_roundDuration);
             _timer.Start();
             _timer.OnTimerStop += EndRound;
-
-            _alivePlayers = new List<PlayerInput>(_joinedPlayers);
             
-            InitializePlayers();
-
+            RespawnPlayers();
             // Activation des inputs des joueurs pour se battre
             EnablePlayerInputs();
-
-            // Abonnement à l'event de mort pour chaque joueur
-            foreach (var player in _joinedPlayers)
-            {
-                var playerManager = player.GetComponent<PlayerManager>();
-                if (playerManager == null) continue;
-                
-                var characterGO = playerManager.CharacterGO;
-                if (characterGO == null) continue;
-                
-                var character = characterGO.GetComponent<Character>();
-                if (character == null) continue;
-
-               // character.Test(NotifyPlayerDeath);
-            }
 
             // TODO : lancement de la musique de round
             // TODO : lancer 
@@ -141,7 +139,6 @@ namespace MortierFu
             _scorePanel.UpdateAllScores();
             _scorePanel.Show();
             
-            // TODO : doit être appeler à chaque fois qu'un joueur est mort
             // TODO : lancement de la musique de fin de round
         }
 
@@ -160,7 +157,7 @@ namespace MortierFu
             _timer.Start();
             _timer.OnTimerStop += EndBonusSelection;
             
-            _bonusSelectionPanel.Init(_joinedPlayers, bonusList);
+            _bonusSelectionPanel.Init(_joinedPlayers, _bonusList);
             _bonusSelectionPanel.OnAllPlayersSelected += HandleAllPlayersSelected;
             _bonusSelectionPanel.Show();
             
@@ -196,16 +193,28 @@ namespace MortierFu
 
         public void RegisterPlayer(PlayerInput playerInput)
         {
-            if (_joinedPlayers.Contains(playerInput)) return;
+            if (_joinedPlayers.Any(p => p.LobbyInput == playerInput)) 
+                return;
 
-            _joinedPlayers.Add(playerInput);
+            if (!playerInput.TryGetComponent(out PlayerManager playerManager))
+            {
+                Logs.Error("PlayerInput does not have a PlayerManager component.");
+                return;
+            }
+            
+            _joinedPlayers.Add(new Cnc
+            {
+                PlayerManager = playerManager,
+                LobbyInput = playerInput,
+                Score = 0
+            });
         }
 
         public void UnregisterPlayer(PlayerInput playerInput)
         {
-            if (!_joinedPlayers.Contains(playerInput)) return;
-
-            _joinedPlayers.Remove(playerInput);
+            var cnc = _joinedPlayers.FirstOrDefault(p => p.LobbyInput == playerInput);
+            if (cnc == null) return;
+            _joinedPlayers.Remove(cnc);
         }
 
         public void SetGameState(GameState newState)
@@ -226,13 +235,28 @@ namespace MortierFu
         private void InitializePlayers()
         {
             for (var i = 0; i < _joinedPlayers.Count; i++)
-            {
-                var playerManager = _joinedPlayers[i].GetComponent<PlayerManager>();
-                if (playerManager != null)
+            { 
+                var cnc = _joinedPlayers[i];
+                
+                cnc.PlayerManager.InitializePlayer();
+                _joinedPlayers[i].LobbyInput.DeactivateInput();
+                
+                cnc.GameInput = cnc.PlayerManager.PlayerInput;
+                
+                if (!cnc.PlayerManager.CharacterGO.TryGetComponent(out cnc.Character))
                 {
-                    playerManager.SpawnInGame(_spawnPositions[i]);
-                    _joinedPlayers[i].DeactivateInput();
+                    Logs.Error("Player's CharacterGO does not have a Character component.");
                 }
+            }
+        }
+        
+        private void RespawnPlayers()
+        {
+            for (var i = 0; i < _joinedPlayers.Count; i++)
+            { 
+                var cnc = _joinedPlayers[i];
+                cnc.Character.ResetCharacter();
+                cnc.PlayerManager.SpawnInGame(_spawnPositions[i]);
             }
         }
 
@@ -240,7 +264,8 @@ namespace MortierFu
         {
             foreach (var player in _joinedPlayers)
             {
-                player.ActivateInput();
+                player.LobbyInput.enabled = true;
+                player.GameInput.enabled = true;
             }
         }
 
@@ -248,23 +273,9 @@ namespace MortierFu
         {
             foreach (var player in _joinedPlayers)
             {
-                player.DeactivateInput();
+                player.LobbyInput.enabled = false;
+                player.GameInput.enabled = false;
             }
-        }
-
-        private void AddScore(PlayerInput playerInput, int score)
-        {
-            if (!_scores.ContainsKey(playerInput))
-            {
-                _scores[playerInput] = 0;
-            }
-
-            _scores[playerInput] += score;
-        }
-
-        public int GetPlayerScore(PlayerInput playerInput)
-        {
-            return _scores.ContainsKey(playerInput) ? _scores[playerInput] : 0;
         }
         
         private void HandleAllPlayersSelected()
@@ -273,9 +284,39 @@ namespace MortierFu
             SetGameState(GameState.EndBonusSelection);
         }
 
-        private void NotifyPlayerDeath(Character character)
+        public void NotifyKillEvent(Character killer, Character victim)
         {
+            if (!killer || !victim)
+            {
+                Logs.Error("Killer or victim is null in NotifyKillEvent.");
+                return;
+            }
             
+            var killerCnc = _joinedPlayers.FirstOrDefault(p => p.Character == killer);
+            var victimCnc = _joinedPlayers.FirstOrDefault(p => p.Character == victim);
+
+            if (killerCnc == null || victimCnc == null)
+            {
+                Logs.Error($"An unregistered character was involved in a kill event. Killer: {killer.name}, Victim: {victim.name}");
+                return;
+            }
+            
+            killerCnc.Score += 1;
+            OnPlayerKilled?.Invoke(killerCnc, victimCnc);
+            
+            victimCnc.PlayerManager.DespawnInGame();
+            
+            if (_enableDebug)
+            {
+                Logs.Log($"Player {killerCnc.LobbyInput.playerIndex + 1} killed Player {victimCnc.LobbyInput.playerIndex + 1}. New score: {killerCnc.Score}");
+            }
+            
+            // Check if all but one player are dead
+            int aliveCount = _joinedPlayers.Count(p => p.Character.Health.IsAlive);
+            if (aliveCount <= 1)
+            {
+                SetGameState(GameState.EndRound);
+            }
         }
     }
 }
