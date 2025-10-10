@@ -101,6 +101,8 @@ namespace MortierFu
             var bombshell = BombshellManager.Instance.RequestBombshell(character, damage, aoeRange, projectileSpeed,
                 1.0f, _firePoint.position, AimWidget.transform.position);
             
+            // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
+            _shootTimer.Reset(CharacterStats.AttackSpeed.Value);
             _shootTimer.Start();
         }
     }
