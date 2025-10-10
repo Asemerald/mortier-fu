@@ -24,6 +24,7 @@ namespace MortierFu
         public PlayerInput LobbyInput;
         public PlayerInput GameInput;
         public Character Character;
+        public int PlayerNumber;
         public int Score;
     }
 
@@ -69,11 +70,13 @@ namespace MortierFu
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _joinedPlayers = new List<Cnc>();
         }
 
         private void StartGame()
         {
-            Logs.Log("Game is started");
+            if(_enableDebug)
+                Logs.Log("Game is started");
             // Initialisation des variables de la partie
             _currentRound = 0;
             
@@ -86,6 +89,7 @@ namespace MortierFu
                 _bonusSelectionPanel = FindFirstObjectByType<BonusSelectionPanel>();
 
             _scorePanel.Init(_joinedPlayers);
+            
             _bonusSelectionPanel.Hide();
             
             SetGameState(GameState.StartRound);
@@ -95,16 +99,17 @@ namespace MortierFu
 
         private void StartRound()
         {
-            Logs.Log("Round is started");
-            
-            // Initialisation du timer du round
+            if(_enableDebug)
+                Logs.Log("Round is started");
+
             _timer ??= new CountdownTimer(0);
-            _timer.Reset(_roundDuration);
-            _timer.Start();
-            _timer.OnTimerStop += EndRound;
+            StopAllTimers();
             
+            _timer.Reset(_roundDuration);
+            _timer.OnTimerStop += EndRound;
+            _timer.Start();
+
             RespawnPlayers();
-            // Activation des inputs des joueurs pour se battre
             EnablePlayerInputs();
 
             // TODO : lancement de la musique de round
@@ -113,83 +118,95 @@ namespace MortierFu
 
         private void EndRound()
         {
-            Logs.Log("Round is ended");
-            
+            if(_enableDebug)
+                Logs.Log("Round is ended");
+
             // Fin du timer de round
-            _timer.OnTimerStop -= EndRound;
-            _timer.Stop();
-            
+            StopAllTimers();
+
             _timer.Reset(_showScoreDuration);
-            _timer.Start();
             _timer.OnTimerStop += StartBonusSelection;
+            _timer.Start();
 
             // Mise à jour du round actuel et vérification de la fin de partie
             _currentRound++;
-            
+
             if(_currentRound == _maxRound)
             {
                 SetGameState(GameState.EndGame);
                 return;
             }
-            
+
             _currentState = GameState.EndRound; // Je modifierai plus tard
-            
+
             DisablePlayerInputs();
-            
+
             // Mise à jour des visuels de score et affichage
             _scorePanel.UpdateAllScores();
             _scorePanel.Show();
-            
+
             // TODO : lancement de la musique de fin de round
         }
 
         private void StartBonusSelection()
         {
-            Logs.Log("Bonus selection is started");
-            
+            if(_enableDebug)
+                Logs.Log("Bonus selection is started");
+
             _currentState = GameState.StartBonusSelection; // Je modifierai plus tard
-            
+
             _scorePanel.Hide();
             
-            _timer.OnTimerStop -= StartBonusSelection;
-            _timer.Stop();   
-            
+            StopAllTimers();  
             _timer.Reset(_bonusSelectionDuration);
-            _timer.Start();
             _timer.OnTimerStop += EndBonusSelection;
-            
+            _timer.Start();
+
             _bonusSelectionPanel.Init(_joinedPlayers, _bonusList);
             _bonusSelectionPanel.OnAllPlayersSelected += HandleAllPlayersSelected;
             _bonusSelectionPanel.Show();
-            
+
             // TODO: Peut être load un nouveau controller ou du moins qui bloque certains inputs pour ne faire que du melee
         }
         private void EndBonusSelection()
         {
-            Logs.Log("Bonus selection is ended");
-            
+            if(_enableDebug)
+                Logs.Log("Bonus selection is ended");
+
             _currentState = GameState.EndBonusSelection; // Je modifierai plus tard
-            
+
             _bonusSelectionPanel.Hide();
-            
-            _timer.OnTimerStop -= EndBonusSelection;
-            _timer.Stop();
-            
+
+            StopAllTimers();
+
             SetGameState(GameState.StartRound);
         }
 
         private void EndGame()
         {
-            Logs.Log("Game is finished");
+            if(_enableDebug)
+                Logs.Log("Game is finished");
             
-            _timer = null;
+            StopAllTimers();
+            
+            ResetAllScores();
+            RespawnPlayers();
             
             SetGameState(GameState.StartGame);
             
             // TODO : afficher l'écran de fin de partie avec les scores finaux
             // TODO : permettre de retourner au lobby ou de quitter le jeu ou de relancer une partie
             // TODO : lancement de la musique de fin de partie
-            // TODO : reset des joueurs, de leurs états, de leurs scores, etc...
+        }
+
+        private void ResetAllScores()
+        {
+            foreach (var player in _joinedPlayers)
+            {
+                player.Score = 0;
+            }
+            if (_scorePanel != null)
+                _scorePanel.UpdateAllScores();
         }
 
         public void RegisterPlayer(PlayerInput playerInput)
@@ -207,7 +224,8 @@ namespace MortierFu
             {
                 PlayerManager = playerManager,
                 LobbyInput = playerInput,
-                Score = 0
+                Score = 0,
+                PlayerNumber = playerInput.playerIndex
             });
         }
 
@@ -248,7 +266,7 @@ namespace MortierFu
                 {
                     Logs.Error("Player's CharacterGO does not have a Character component.");
                 }
-            }
+            } 
         }
         
         private void RespawnPlayers()
@@ -318,6 +336,16 @@ namespace MortierFu
             {
                 SetGameState(GameState.EndRound);
             }
+        }
+        
+        private void StopAllTimers()
+        {
+            if (_timer == null) return;
+            
+            _timer.OnTimerStop -= EndRound;
+            _timer.OnTimerStop -= StartBonusSelection;
+            _timer.OnTimerStop -= EndBonusSelection;
+            _timer.Stop();
         }
     }
 }

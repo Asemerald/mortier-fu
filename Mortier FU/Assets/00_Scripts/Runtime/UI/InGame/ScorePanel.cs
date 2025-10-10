@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine.InputSystem;
 using UnityEngine;
 using TMPro;
@@ -14,6 +15,13 @@ namespace MortierFu
         
         public void Init(List<Cnc> players)
         {
+            playerScoreTexts.Clear();
+
+            foreach (Transform child in scorePanelGroup)
+            {
+                Destroy(child.gameObject);
+            }
+
             foreach (var player in players)
             {
                 var go = Instantiate(scoreTextPrefab, scorePanelGroup);
@@ -30,7 +38,7 @@ namespace MortierFu
         {
             if (playerScoreTexts.TryGetValue(player, out var scoreText))
             {
-                scoreText.text = $"Joueur {player.LobbyInput.playerIndex + 1} : {player.Score}";
+                scoreText.text = $"Joueur {player.PlayerNumber + 1} : {player.Score}";
             }
         }
 

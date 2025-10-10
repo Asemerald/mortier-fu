@@ -38,7 +38,6 @@ namespace MortierFu
             
             _inGameCharacter.SetActive(true);
             _inGameCharacter.transform.position = spawnPosition;
-            
             if (_inGameCharacter.TryGetComponent(out Character character) && character.Health != null)
             {
                 character.Health.ResetHealth();

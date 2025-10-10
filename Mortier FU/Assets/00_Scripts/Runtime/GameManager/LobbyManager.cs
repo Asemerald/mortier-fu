@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -82,6 +83,7 @@ namespace MortierFu
             
             SceneManager.sceneLoaded += (_, _) =>
             {
+                Logs.Log("hein");
                 GM_Base.Instance.SetGameState(GameState.StartGame);
             };
             
