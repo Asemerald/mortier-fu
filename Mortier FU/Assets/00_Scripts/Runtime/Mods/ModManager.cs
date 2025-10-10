@@ -1,154 +1,149 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
-namespace Mortierfu
+namespace MortierFu
 {
     [Serializable]
     public class ModInfo
     {
-        public string guid;
         public string name;
-        public string version;
-        public string author;
-        public string description;
         public string folderPath;
         public bool isEnabled;
         public bool isLoaded;
-        
-        public ModInfo(string guid, string name, string version, string folderPath, bool enabled)
-        {
-            this.guid = guid;
-            this.name = name;
-            this.version = version;
-            this.folderPath = folderPath;
-            this.isEnabled = enabled;
-            this.isLoaded = false;
-        }
+        public Type modType;         // type à instancier
+        public Assembly modAssembly;
+        public ModBase instance;     // instance en mémoire
+    }
+
+    public interface IUpdatable
+    {
+        void ModUpdate();
     }
 
     public class ModManager : MonoBehaviour
     {
         public static ModManager Instance { get; private set; }
-
         public List<ModInfo> allMods = new List<ModInfo>();
         public Action<ModInfo> OnModToggled;
 
-        private string pluginsPath;
-        private string pluginsDisabledPath;
+        private string modsFolder;
 
         void Awake()
         {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
+            if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Chemins
-            pluginsPath = Path.Combine(Application.dataPath, "../BepInEx/plugins");
-            pluginsDisabledPath = Path.Combine(Application.dataPath, "../BepInEx/plugins_disabled");
-
-            // Création des dossiers si manquants
-            Directory.CreateDirectory(pluginsPath);
-            Directory.CreateDirectory(pluginsDisabledPath);
+            modsFolder = Path.Combine(Application.dataPath, "Mods");
+            if (!Directory.Exists(modsFolder))
+                Directory.CreateDirectory(modsFolder);
 
             ScanMods();
+            LoadMods();
+            Debug.Log("Unity asm location " + typeof(IUpdatable).Assembly.Location);
+        }
+
+        void Update()
+        {
+            foreach (var mod in allMods)
+            {
+                if (mod.isLoaded && mod.instance != null)
+                {
+                    mod.instance.ModUpdate();
+                }
+            }
         }
 
         public void ScanMods()
         {
             allMods.Clear();
-            ScanFolder(pluginsPath, true);
-            ScanFolder(pluginsDisabledPath, false);
-        }
+            string[] dlls = Directory.GetFiles(modsFolder, "*.dll", SearchOption.AllDirectories);
 
-        private void ScanFolder(string folder, bool isEnabled)
-        {
-            if (!Directory.Exists(folder))
-                return;
-
-            string[] dllFiles = Directory.GetFiles(folder, "*.dll", SearchOption.AllDirectories);
-            foreach (var dll in dllFiles)
+            foreach (var dllPath in dlls)
             {
                 try
                 {
-                    string folderName = Path.GetFileName(Path.GetDirectoryName(dll));
-                    string dllName = Path.GetFileNameWithoutExtension(dll);
+                    var rawBytes = File.ReadAllBytes(dllPath);
+                    var asm = Assembly.Load(rawBytes);
+                    var modTypes = asm.GetTypes().Where(t => t.IsSubclassOf(typeof(ModBase)) && !t.IsAbstract);
 
-                    ModInfo mod;
-                    string manifestPath = Path.Combine(Path.GetDirectoryName(dll), "manifest.json");
-                    if (File.Exists(manifestPath))
+                    foreach (var type in modTypes)
                     {
-                        string json = File.ReadAllText(manifestPath);
-                        ManifestData data = JsonUtility.FromJson<ManifestData>(json);
-                        mod = new ModInfo(
-                            guid: data.guid ?? $"mod.{dllName}",
-                            name: data.name ?? dllName,
-                            version: data.version ?? "1.0.0",
-                            folderPath: Path.GetDirectoryName(dll),
-                            enabled: isEnabled
-                        );
-                        mod.author = data.author;
-                        mod.description = data.description;
+                        ModInfo info = new ModInfo
+                        {
+                            name = type.Name,
+                            folderPath = Path.GetDirectoryName(dllPath),
+                            modType = type,
+                            modAssembly = asm,
+                            isEnabled = true,
+                            isLoaded = false,
+                            instance = null
+                        };
+                        allMods.Add(info);
+                        Debug.Log($"[ModManager] Found mod: {info.name} in {dllPath}");
                     }
-                    else
-                    {
-                        mod = new ModInfo(
-                            guid: $"mod.{dllName}",
-                            name: dllName,
-                            version: "Unknown",
-                            folderPath: Path.GetDirectoryName(dll),
-                            enabled: isEnabled
-                        );
-                        mod.description = "No manifest.json";
-                    }
-
-                    allMods.Add(mod);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Error scanning {dll}: {e.Message}");
+                    Debug.LogError($"Error loading mod {dllPath}: {e.Message}");
                 }
             }
+
+
+            Debug.Log($"Found {allMods.Count} mods.");
         }
 
         public void ToggleMod(ModInfo mod)
         {
-            if (mod.isEnabled)
-            {
-                // Désactivation : move vers plugins_disabled
-                string dest = Path.Combine(pluginsDisabledPath, Path.GetFileName(mod.folderPath));
-                Directory.Move(mod.folderPath, dest);
-                mod.folderPath = dest;
-                mod.isEnabled = false;
-            }
-            else
-            {
-                // Activation : move vers plugins
-                string dest = Path.Combine(pluginsPath, Path.GetFileName(mod.folderPath));
-                Directory.Move(mod.folderPath, dest);
-                mod.folderPath = dest;
-                mod.isEnabled = true;
-            }
-
+            mod.isEnabled = !mod.isEnabled;
             OnModToggled?.Invoke(mod);
-            ScanMods();
-        }
-    }
 
-    [Serializable]
-    public class ManifestData
-    {
-        public string guid;
-        public string name;
-        public string version;
-        public string author;
-        public string description;
+            if (!mod.isEnabled && mod.isLoaded)
+            {
+                mod.instance?.DeInitialize();
+                mod.instance = null;
+                mod.isLoaded = false;
+            }
+            else if (mod.isEnabled && !mod.isLoaded)
+            {
+                LoadMod(mod);
+            }
+        }
+
+        public void LoadMods()
+        {
+            foreach (var mod in allMods)
+            {
+                if (mod.isEnabled && !mod.isLoaded)
+                {
+                    LoadMod(mod);
+                }
+            }
+        }
+
+        private void LoadMod(ModInfo mod)
+        {
+            try
+            {
+                var instance = (ModBase)Activator.CreateInstance(mod.modType);
+                instance.Initialize();
+                mod.instance = instance;
+                mod.isLoaded = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error initializing mod {mod.name}: {e.Message}");
+            }
+        }
+
+        public void RestartGame()
+        {
+            Debug.Log("Restarting game to apply mods...");
+            Application.Quit();
+        }
     }
 }
