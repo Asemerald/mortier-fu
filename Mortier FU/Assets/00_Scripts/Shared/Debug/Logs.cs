@@ -22,7 +22,7 @@ namespace MortierFu.Shared
 
         // Warning log
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        public static void Warning(string message)
+        public static void LogWarning(string message)
         {
             if (!EnableLogs) return;
             UnityEngine.Debug.LogWarning($"<color={WarningColor}>[WARN] {message}</color>");
@@ -30,7 +30,7 @@ namespace MortierFu.Shared
 
         // Error log
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        public static void Error(string message)
+        public static void LogError(string message)
         {
             if (!EnableLogs) return;
             UnityEngine.Debug.LogError($"<color={ErrorColor}>[ERROR] {message}</color>");
@@ -45,14 +45,14 @@ namespace MortierFu.Shared
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        public static void Warning(string message, Object context)
+        public static void LogWarning(string message, Object context)
         {
             if (!EnableLogs) return;
             UnityEngine.Debug.LogWarning($"<color={WarningColor}>[WARN] {message}</color>", context);
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        public static void Error(string message, Object context)
+        public static void LogError(string message, Object context)
         {
             if (!EnableLogs) return;
             UnityEngine.Debug.LogError($"<color={ErrorColor}>[ERROR] {message}</color>", context);

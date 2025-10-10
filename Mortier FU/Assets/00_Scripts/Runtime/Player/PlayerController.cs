@@ -24,7 +24,7 @@ namespace MortierFu
         {
             if (!TryGetComponent(out character))
             {
-                Logs.Error("PlayerController requires a Character component on the same GameObject.");
+                Logs.LogError("PlayerController requires a Character component on the same GameObject.");
                 return;
             }
             CharacterStats = character.CharacterStats;

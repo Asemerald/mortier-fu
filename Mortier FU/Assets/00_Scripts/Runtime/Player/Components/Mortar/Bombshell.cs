@@ -30,7 +30,7 @@ namespace MortierFu
             // Already initialized
             if (_t >= 0.0f)
             {
-                Logs.Warning("Trying to re-initialize a Bombshell.");
+                Logs.LogWarning("Trying to re-initialize a Bombshell.");
                 return;
             }
 

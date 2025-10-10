@@ -57,7 +57,7 @@ namespace MortierFu
             if (LobbyManager.Instance._gameStarted) return;
             
             var index = playerInput.playerIndex;
-            Logs.Warning($"Player {index} left");
+            Logs.LogWarning($"Player {index} left");
             DevicesService.UnregisterPlayer(index);
         }
 
