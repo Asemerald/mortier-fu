@@ -1,4 +1,5 @@
 ﻿using MortierFu.Shared;
+using NaughtyAttributes;
 using UnityEngine;
 
 namespace MortierFu
@@ -10,10 +11,10 @@ namespace MortierFu
     {
         // Note: Globally hard set to given height and computed at different places (including strategies) CAN BE IMPROVED
         // Privacy is not relevant as this object is meant to be manipulated by the mortar
-        public Vector3 Origin;
-        public Transform Target;
-        public bool IsActive;
-        public bool AttachedToTarget;
+        [ReadOnly] public Vector3 Origin;
+        [ReadOnly] public Transform Target;
+        [ReadOnly] public bool IsActive;
+        [ReadOnly] public bool AttachedToTarget;
         
         private Vector3 _relativePosition;
         

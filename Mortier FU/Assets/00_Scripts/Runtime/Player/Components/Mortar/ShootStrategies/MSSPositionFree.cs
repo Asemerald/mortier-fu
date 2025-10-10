@@ -11,7 +11,7 @@ namespace MortierFu
         public override void Initialize()
         {
             aimWidget.IsActive = true;
-            aimWidget.Origin = Vector3.up * 0.1f;
+            aimWidget.Origin = Vector3.down * .9f;
             aimWidget.AttachedToTarget = false;
             aimWidget.Target = null;
             aimWidget.SetRelativePosition(Vector3.zero);
