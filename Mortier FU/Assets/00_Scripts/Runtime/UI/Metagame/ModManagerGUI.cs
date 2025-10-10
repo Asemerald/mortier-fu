@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using Debug = UnityEngine.Debug;
 
 namespace Mortierfu
 {
@@ -60,6 +63,30 @@ namespace Mortierfu
 
             GUILayout.EndScrollView();
             GUILayout.EndArea();
+        }
+        
+        public void RestartGame()
+        {
+            string exePath = Application.dataPath; // normalement le dossier Data
+            string parentPath = Path.GetFullPath(Path.Combine(exePath, ".."));
+            string gameExe = Path.Combine(parentPath, Path.GetFileNameWithoutExtension(Application.dataPath) + ".exe");
+
+            if (!File.Exists(gameExe))
+            {
+                UnityEngine.Debug.LogError($"Restart failed: game exe not found at {gameExe}");
+                return;
+            }
+
+            try
+            {
+                Process.Start(gameExe);
+                UnityEngine.Debug.Log("Restarting game...");
+                Application.Quit();
+            }
+            catch (System.Exception e)
+            {
+                UnityEngine.Debug.LogError($"Restart failed: {e.Message}");
+            }
         }
     }
 }
