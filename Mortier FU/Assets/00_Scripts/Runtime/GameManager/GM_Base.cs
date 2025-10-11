@@ -216,7 +216,7 @@ namespace MortierFu
 
             if (!playerInput.TryGetComponent(out PlayerManager playerManager))
             {
-                Logs.Error("PlayerInput does not have a PlayerManager component.");
+                Logs.LogError("PlayerInput does not have a PlayerManager component.");
                 return;
             }
             
@@ -264,7 +264,7 @@ namespace MortierFu
                 
                 if (!cnc.PlayerManager.CharacterGO.TryGetComponent(out cnc.Character))
                 {
-                    Logs.Error("Player's CharacterGO does not have a Character component.");
+                    Logs.LogError("Player's CharacterGO does not have a Character component.");
                 }
             } 
         }
@@ -307,7 +307,7 @@ namespace MortierFu
         {
             if (!killer || !victim)
             {
-                Logs.Error("Killer or victim is null in NotifyKillEvent.");
+                Logs.LogError("Killer or victim is null in NotifyKillEvent.");
                 return;
             }
             
@@ -316,7 +316,7 @@ namespace MortierFu
 
             if (killerCnc == null || victimCnc == null)
             {
-                Logs.Error($"An unregistered character was involved in a kill event. Killer: {killer.name}, Victim: {victim.name}");
+                Logs.LogError($"An unregistered character was involved in a kill event. Killer: {killer.name}, Victim: {victim.name}");
                 return;
             }
             
