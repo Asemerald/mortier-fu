@@ -150,7 +150,6 @@ namespace MortierFu
             {
                 LoadMod(mod);
             }
-
             OnModToggled?.Invoke(mod);
         }
 
