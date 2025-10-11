@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -8,25 +9,33 @@ namespace MortierFu
 {
     public class LobbyPanel : MonoBehaviour
     {
+        [Header("Player Slots Reference")]
         [SerializeField] private GameObject[] playerSlots;
-        [SerializeField] private Button startGameButton;
         [SerializeField] private TextMeshProUGUI[] playerSlotTexts;
+        [SerializeField] private Button startGameButton;
+        [Header("Customization")]
+        [SerializeField] private GameObject[] customizationSlots;
+
 
         private void Start()
         {
             Hide();
-            InitializeButtons();
             UpdateSlots(new List<PlayerInput>());
+        }
+
+        private void OnEnable()
+        {
+            startGameButton.onClick.AddListener(OnStartGameClicked);
+        }
+        
+        private void OnDisable()
+        {
+            startGameButton.onClick.RemoveListener(OnStartGameClicked);
         }
 
         private void Show()
         {
             gameObject.SetActive(true);
-        }
-
-        private void InitializeButtons()
-        {
-            startGameButton.onClick.AddListener(OnStartGameClicked);
         }
 
         private void Hide()
