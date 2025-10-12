@@ -1,3 +1,4 @@
+using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -13,6 +14,9 @@ namespace MortierFu
         public PlayerInputManager _playerInputManager;
 
         public DevicesService DevicesService { get; private set; }
+        
+        public ServiceManager ServiceManager { get; } = new();
+        public SystemManager SystemManager { get; } = new();
 
         private void Awake()
         {
@@ -31,6 +35,21 @@ namespace MortierFu
             _playerInputManager.onPlayerLeft += OnPlayerLeft;
 
             InputSystem.onDeviceChange += OnDeviceChange;
+            
+            // Register services
+            
+        }
+
+        private void Update()
+        {
+            ServiceManager.Tick();
+            SystemManager.Tick();
+        }
+
+        private void OnDisable()
+        {
+            ServiceManager.Dispose();
+            SystemManager.Dispose();
         }
 
         // TODO MOVE DEVICE LOGIC ELSEWHERE
