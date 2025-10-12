@@ -8,15 +8,10 @@ namespace MortierFu
 {
     public class DevicesService : IGameService
     {
-        private GameInstance _gameInstance;
 
         private readonly Dictionary<int, InputDevice> _playerDevices = new();
         private readonly Dictionary<InputDevice, int> _deviceToPlayer = new();
-
-        public DevicesService(GameInstance gameInstance)
-        {
-            _gameInstance = gameInstance;
-        }
+        
 
         public void RegisterPlayerDevice(int playerIndex, InputDevice device)
         {
@@ -96,7 +91,6 @@ namespace MortierFu
 
         public void Tick()
         {
-            throw new System.NotImplementedException();
         }
     }
 }

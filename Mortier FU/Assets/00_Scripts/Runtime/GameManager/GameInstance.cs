@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    [DefaultExecutionOrder(-100)] // Pour s'assurer qu'il s'initialise avant le reste
     public class GameInstance : MonoBehaviour
     {
         public static GameInstance Instance { get; private set; }
@@ -15,8 +14,8 @@ namespace MortierFu
 
         public DevicesService DevicesService { get; private set; }
         
-        public ServiceManager ServiceManager { get; } = new();
-        public SystemManager SystemManager { get; } = new();
+        public ServiceManager ServiceManager { get; private set; }
+        public SystemManager SystemManager { get; private set;}
 
         private void Awake()
         {
@@ -25,19 +24,19 @@ namespace MortierFu
                 Destroy(gameObject);
                 return;
             }
+            
+            ServiceManager = new ServiceManager();
+            SystemManager = new SystemManager();
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            DevicesService = new DevicesService(this);
+            DevicesService = new DevicesService();
 
             _playerInputManager.onPlayerJoined += OnPlayerJoined;
             _playerInputManager.onPlayerLeft += OnPlayerLeft;
 
             InputSystem.onDeviceChange += OnDeviceChange;
-            
-            // Register services
-            
         }
 
         private void Update()
