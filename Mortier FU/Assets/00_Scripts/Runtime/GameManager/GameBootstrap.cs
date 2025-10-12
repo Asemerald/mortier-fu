@@ -22,5 +22,17 @@ namespace MortierFu
             // Register systems and services
             Services.RegisterAll<IGameService>();
         }
+        
+        void Update()
+        {
+            Services.Tick();
+            Systems.Tick();
+        }
+        
+        void OnDestroy()
+        {
+            Services.Dispose();
+            Systems.Dispose();
+        }
     }
 }
