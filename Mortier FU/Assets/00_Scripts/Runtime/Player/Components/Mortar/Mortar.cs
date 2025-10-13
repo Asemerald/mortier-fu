@@ -100,7 +100,7 @@ namespace MortierFu
                 Owner = character,
                 StartPos = _firePoint.position,
                 TargetPos = AimWidget.transform.position,
-                Speed = CharacterStats.ProjectileSpeed.Value,
+                TravelTime = CharacterStats.ProjectileTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = CharacterStats.Damage.Value,
                 AoeRange = CharacterStats.DamageRange.Value

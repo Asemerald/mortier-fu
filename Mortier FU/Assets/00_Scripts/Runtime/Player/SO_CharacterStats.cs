@@ -29,7 +29,7 @@ namespace MortierFu
         public CharacterStat ShotRange { get; private set; } = new(20.0f);
         
         [field: SerializeField, Tooltip("Speed of the projectile after being fired.")]
-        public CharacterStat ProjectileSpeed { get; private set; } = new(8.0f);
+        public CharacterStat ProjectileTimeTravel { get; private set; } = new(3.0f);
         
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);

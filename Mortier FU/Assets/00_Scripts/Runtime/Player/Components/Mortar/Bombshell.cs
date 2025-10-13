@@ -33,7 +33,8 @@ namespace MortierFu
         private float _initialSpeed;
         private Vector3 _direction;
         private float _angle;
-        private float _travelTime; // TODO: Remove if no use is found
+        private float _travelTime;
+        private float _timeFactor;
 
         private BombshellManager _manager;
         private Rigidbody _rb;
@@ -63,11 +64,13 @@ namespace MortierFu
             _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
             _direction = groundDir.normalized;
             ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
+            _timeFactor = _travelTime / _data.TravelTime;
         }
         
         void Update()
         {
-            _t += Time.deltaTime * _data.Speed * 0.1f;
+            //_t += Time.deltaTime * _data.Speed * 0.1f;
+            _t += Time.deltaTime * _timeFactor;
 
             Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
             _rb.MovePosition(newPos);
