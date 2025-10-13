@@ -15,7 +15,8 @@ namespace MortierFu
             // Movement
             public Vector3 StartPos;
             public Vector3 TargetPos;
-            public float Speed;
+            // public float Speed;
+            public float TravelTime;
             public float GravityScale;
         
             // Damage
@@ -57,9 +58,10 @@ namespace MortierFu
             _t = 0.0f;
 
             const float k_height = 10.0f;
-            Vector3 toTarget = (_data.TargetPos - _data.StartPos).With(y: 0); // Ground direction
-            _data.TargetPos = new Vector3(toTarget.magnitude, _direction.y, 0);
-            _direction = toTarget.normalized;
+            Vector3 toTarget = _data.TargetPos - _data.StartPos;
+            Vector3 groundDir = toTarget.With(y: 0f);
+            _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
+            _direction = groundDir.normalized;
             ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
         }
         
@@ -121,6 +123,12 @@ namespace MortierFu
         {
             _trail.transform.SetParent(null);
             Destroy(_trail.gameObject, 0.6f);
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(_data.StartPos + _data.TargetPos, 0.2f);
         }
     }
 }
