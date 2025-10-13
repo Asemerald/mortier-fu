@@ -1,4 +1,5 @@
-﻿using MortierFu.Shared;
+﻿using System;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -6,6 +7,8 @@ namespace MortierFu
     [RequireComponent(typeof(Rigidbody))]
     public class Bombshell : MonoBehaviour
     {
+        [SerializeField] private TrailRenderer _trail;
+        
         // Could be packed in an initialization struct
         private Character _owner;
         private float _damage;
@@ -73,6 +76,13 @@ namespace MortierFu
         static Vector3 PositionAtTime(Vector3 start, Vector3 v0, float t, Vector3 g)
         {
             return start + v0 * t + g * (0.5f * t * t);
+        }
+
+        // TODO: Remove this, trail view purpose only
+        private void OnDestroy()
+        {
+            _trail.transform.SetParent(null);
+            Destroy(_trail.gameObject, 0.6f);
         }
     }
 }
