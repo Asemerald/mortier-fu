@@ -33,18 +33,17 @@ namespace MortierFu
             _impactResults = new Collider[k_maxImpactTargets];
         }
 
-        public Bombshell RequestBombshell(Character owner, float damage, float radius, float speed, float gravityScale, 
-            Vector3 start, Vector3 target)
+        public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
-            Bombshell bombshell = Instantiate(_bombshellPrefab, start, Quaternion.identity, transform);
-            bombshell.Initialize(this, owner, damage, radius, speed, gravityScale, start, target);
+            Bombshell bombshell = Instantiate(_bombshellPrefab, bombshellData.StartPos, Quaternion.identity, transform);
+            bombshell.Initialize(this, bombshellData);
             _activeBombshells.Add(bombshell);
             return bombshell;
         }
         
         public void NotifyImpactAndRecycle(Bombshell bombshell)
         {
-            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.Radius, _impactResults);
+            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];

@@ -12,7 +12,7 @@ namespace MortierFu
 
         private Rigidbody _rb;
 
-        public DA_CharacterStats CharacterStats { get; private set; }
+        public SO_CharacterStats CharacterStats { get; private set; }
 
         private void Awake()
         {

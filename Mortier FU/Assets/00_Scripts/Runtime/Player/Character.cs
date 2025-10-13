@@ -9,19 +9,24 @@ namespace MortierFu
     public class Character : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private DA_CharacterStats _characterStatsTemplate;
+        [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private HealthUI _healthUI;
         
         private Color _playerColor;
         
-        [field: SerializeField, Expandable]
-        public DA_CharacterStats CharacterStats { get; private set; }
+        [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
+        public SO_CharacterStats CharacterStats { get; private set; }
         public Health Health { get; private set; }
         public Color PlayerColor => _playerColor;
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
+#if UNITY_EDITOR
+        // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
+        private bool ShouldShowStats => CharacterStats != null;
+#endif
+        
         void Awake()
         {
             _augments = new List<IAugment>();

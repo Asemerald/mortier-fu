@@ -19,7 +19,7 @@ namespace MortierFu
         private CountdownTimer _shootTimer;
         private bool _isAiming;
         
-        public DA_CharacterStats CharacterStats { get; private set; }
+        public SO_CharacterStats CharacterStats { get; private set; }
         public AimWidget AimWidget { get; private set; }
         
         // TODO: Remove direct dependency on PlayerInput
@@ -95,11 +95,18 @@ namespace MortierFu
         {
             if (_shootTimer.IsRunning) return;
 
-            float damage = CharacterStats.Damage.Value;
-            float aoeRange = CharacterStats.AOERange.Value;
-            float projectileSpeed = CharacterStats.ProjectileSpeed.Value;
-            var bombshell = BombshellManager.Instance.RequestBombshell(character, damage, aoeRange, projectileSpeed,
-                1.0f, _firePoint.position, AimWidget.transform.position);
+            Bombshell.Data bombshellData = new Bombshell.Data
+            {
+                Owner = character,
+                StartPos = _firePoint.position,
+                TargetPos = AimWidget.transform.position,
+                Speed = CharacterStats.ProjectileSpeed.Value,
+                GravityScale = 1.0f,
+                Damage = CharacterStats.Damage.Value,
+                AoeRange = CharacterStats.AOERange.Value
+            };
+            
+            var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
             _shootTimer.Reset(CharacterStats.AttackSpeed.Value);

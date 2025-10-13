@@ -13,7 +13,7 @@ namespace MortierFu
         
         [SerializeField] private float _currentHealth;
         [SerializeField] private float _maxHealth;
-        private DA_CharacterStats _characterStats;
+        private SO_CharacterStats _characterStats;
         
         public float CurrentHealth => _currentHealth;
         public float MaxHealth => _maxHealth;
@@ -22,7 +22,7 @@ namespace MortierFu
 
         public event Action<Health, Health> OnDeathEvent = delegate { };
         
-        public Health(DA_CharacterStats characterStats)
+        public Health(SO_CharacterStats characterStats)
         {
             _characterStats = characterStats;
 

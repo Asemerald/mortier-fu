@@ -16,7 +16,7 @@ namespace MortierFu
     {
         protected readonly Mortar mortar;
         protected readonly AimWidget aimWidget;
-        protected readonly DA_CharacterStats CharacterStats;
+        protected readonly SO_CharacterStats CharacterStats;
         protected readonly InputAction aimAction;
         protected readonly InputAction shootAction;
 

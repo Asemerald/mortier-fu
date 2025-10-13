@@ -6,7 +6,7 @@ namespace MortierFu
     {
         protected DA_Augment augmentData;
         protected Character owner;
-        protected DA_CharacterStats stats;
+        protected SO_CharacterStats stats;
 
         public Character Owner => owner;
         

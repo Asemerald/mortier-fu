@@ -7,28 +7,41 @@ namespace MortierFu
     [RequireComponent(typeof(Rigidbody))]
     public class Bombshell : MonoBehaviour
     {
-        [SerializeField] private TrailRenderer _trail;
+        public struct Data
+        {
+            // Meta
+            public Character Owner;
         
-        // Could be packed in an initialization struct
-        private Character _owner;
-        private float _damage;
-        private float _radius;
-        private float _speed;
-        private float _impactRange;
-        private float _gravityScale;
-        private Vector3 _startPos;
-        private Vector3 _targetPos;
-        private Vector3 _initialVelocity;
+            // Movement
+            public Vector3 StartPos;
+            public Vector3 TargetPos;
+            public float Speed;
+            public float GravityScale;
+        
+            // Damage
+            public float Damage;
+            public float AoeRange;
+        }
+        
+        // TODO: Temporary to see the curves
+        [SerializeField] private TrailRenderer _trail;
+
+        private Data _data;
+        
         private float _t = -1.0f;
+        private float _initialSpeed;
+        private Vector3 _direction;
+        private float _angle;
+        private float _travelTime; // TODO: Remove if no use is found
 
         private BombshellManager _manager;
         private Rigidbody _rb;
 
-        public Character Owner => _owner;
-        public float Damage => _damage;
-        public float Radius => _radius;
-        
-        public void Initialize(BombshellManager manager, Character owner, float damage, float radius, float speed, float gravityScale, Vector3 start, Vector3 target)
+        public Character Owner => _data.Owner;
+        public float Damage => _data.Damage;
+        public float AoeRange => _data.AoeRange;
+
+        public void Initialize(BombshellManager manager, Data data)
         {
             // Already initialized
             if (_t >= 0.0f)
@@ -40,24 +53,21 @@ namespace MortierFu
             _manager = manager;
             _rb = GetComponent<Rigidbody>();
 
+            _data = data;
             _t = 0.0f;
-            _owner = owner;
-            _damage = damage;
-            _radius = radius;
-            _speed = speed;
-            _gravityScale = gravityScale;
-            _startPos = start;
-            _targetPos = target;
-            
-            float targetT = Vector3.Distance(start, target) / _speed;
-            _initialVelocity = InitialVelocityForTime(start, target, targetT, Physics.gravity * _gravityScale);
+
+            const float k_height = 10.0f;
+            Vector3 toTarget = (_data.TargetPos - _data.StartPos).With(y: 0); // Ground direction
+            _data.TargetPos = new Vector3(toTarget.magnitude, _direction.y, 0);
+            _direction = toTarget.normalized;
+            ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
         }
         
         void Update()
         {
-            _t += Time.deltaTime;
-            
-            Vector3 newPos = PositionAtTime(_startPos, _initialVelocity, _t, Physics.gravity * _gravityScale);
+            _t += Time.deltaTime * _data.Speed * 0.1f;
+
+            Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
             _rb.MovePosition(newPos);
         }
 
@@ -66,16 +76,44 @@ namespace MortierFu
             // Notify impact & recycle the bombshell
             _manager.NotifyImpactAndRecycle(this);
         }
-        
-        static Vector3 InitialVelocityForTime(Vector3 start, Vector3 target, float T, Vector3 g)
-        {
-            if (T <= 0f) return Vector3.zero;
-            return (target - start - 0.5f * g * T * T) / T;
-        }
 
-        static Vector3 PositionAtTime(Vector3 start, Vector3 v0, float t, Vector3 g)
+        /// <summary>
+        /// Calculates the initial velocity, launch angle, and flight time required to reach a target position
+        /// with a specified arc height and gravity scale.
+        /// </summary>
+        /// <param name="targetPos">The target position to reach.</param>
+        /// <param name="height">The desired maximum height of the arc.</param>
+        /// <param name="gravityScale">The scale factor for gravity.</param>
+        /// <param name="v0">Output: The required initial velocity.</param>
+        /// <param name="angle">Output: The launch angle in radians.</param>
+        /// <param name="time">Output: The total flight time.</param>
+        private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale, 
+            out float v0, out float angle, out float time)
         {
-            return start + v0 * t + g * (0.5f * t * t);
+            float xt = targetPos.x;
+            float yt = targetPos.y;
+            float g = -Physics.gravity.y * gravityScale;
+            
+            float b = Mathf.Sqrt(2 * g * height);
+            float a = -0.5f * g;
+            float c = -yt;
+            
+            float tplus = MathUtils.QuadraticEquation(a, b, c, 1);
+            float tmin = MathUtils.QuadraticEquation(a, b, c, -1);
+            time = tplus > tmin ? tplus : tmin;
+
+            angle = Mathf.Atan(b * time / xt);
+ 
+            v0 = b / Mathf.Sin(angle);
+        }
+        
+        private static Vector3 ComputePositionAtTime(Vector3 start, Vector3 dir, float angle, float v0,
+            float gravityScale, float t)
+        {
+            float x = v0 * t * Mathf.Cos(angle);
+            float y = v0 * t * Mathf.Sin(angle) - 0.5f * Physics.gravity.y * -gravityScale * t * t;
+
+            return start + dir * x + Vector3.up * y;
         }
 
         // TODO: Remove this, trail view purpose only
