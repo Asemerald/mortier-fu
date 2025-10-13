@@ -103,7 +103,7 @@ namespace MortierFu
                 Speed = CharacterStats.ProjectileSpeed.Value,
                 GravityScale = 1.0f,
                 Damage = CharacterStats.Damage.Value,
-                AoeRange = CharacterStats.AOERange.Value
+                AoeRange = CharacterStats.DamageRange.Value
             };
             
             var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);
