@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public class BombshellManager : MonoBehaviour
+    public class BombshellSystem : MonoBehaviour
     {
-        public static BombshellManager Instance { get; private set; }
+        public static BombshellSystem Instance { get; private set; }
         
-        [Header("References")]
+        [Header("References")] // TODO: Load from Addressables
         [SerializeField] private Bombshell _bombshellPrefab;
 
         [Header("Debugging")]
@@ -19,7 +19,7 @@ namespace MortierFu
         
         private const int k_maxImpactTargets = 30;
 
-        private void Awake()
+        void Awake()
         {
             if (Instance != null)
             {

@@ -106,7 +106,7 @@ namespace MortierFu
                 AoeRange = CharacterStats.DamageRange.Value
             };
             
-            var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);
+            var bombshell = BombshellSystem.Instance.RequestBombshell(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
             _shootTimer.Reset(CharacterStats.AttackSpeed.Value);

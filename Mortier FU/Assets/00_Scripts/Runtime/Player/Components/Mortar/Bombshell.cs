@@ -36,14 +36,14 @@ namespace MortierFu
         private float _travelTime;
         private float _timeFactor;
 
-        private BombshellManager _manager;
+        private BombshellSystem _system;
         private Rigidbody _rb;
 
         public Character Owner => _data.Owner;
         public float Damage => _data.Damage;
         public float AoeRange => _data.AoeRange;
 
-        public void Initialize(BombshellManager manager, Data data)
+        public void Initialize(BombshellSystem system, Data data)
         {
             // Already initialized
             if (_t >= 0.0f)
@@ -52,7 +52,7 @@ namespace MortierFu
                 return;
             }
 
-            _manager = manager;
+            _system = system;
             _rb = GetComponent<Rigidbody>();
 
             _data = data;
@@ -79,7 +79,7 @@ namespace MortierFu
         void OnTriggerEnter(Collider other)
         {
             // Notify impact & recycle the bombshell
-            _manager.NotifyImpactAndRecycle(this);
+            _system.NotifyImpactAndRecycle(this);
         }
 
         /// <summary>
