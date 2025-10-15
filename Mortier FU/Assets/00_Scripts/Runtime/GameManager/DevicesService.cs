@@ -6,17 +6,12 @@ using UnityEngine.InputSystem.Users;
 
 namespace MortierFu
 {
-    public class DevicesService
+    public class DevicesService : IGameService
     {
-        private GameInstance _gameInstance;
 
         private readonly Dictionary<int, InputDevice> _playerDevices = new();
         private readonly Dictionary<InputDevice, int> _deviceToPlayer = new();
-
-        public DevicesService(GameInstance gameInstance)
-        {
-            _gameInstance = gameInstance;
-        }
+        
 
         public void RegisterPlayerDevice(int playerIndex, InputDevice device)
         {
@@ -82,6 +77,20 @@ namespace MortierFu
             {
                 Logs.LogWarning($"Reconnected device '{device.displayName}' not linked to any player");
             }
+        }
+
+        public void Dispose()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Initialize()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Tick()
+        {
         }
     }
 }
