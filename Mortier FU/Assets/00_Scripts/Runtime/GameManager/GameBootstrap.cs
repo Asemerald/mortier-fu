@@ -1,38 +1,139 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using FMODUnity;
+using MortierFu.Shared;
 
 namespace MortierFu
 {
-    [DefaultExecutionOrder(-100)] // Ensure it initializes before everything else
     public class GameBootstrap : MonoBehaviour
     {
-        public static GameBootstrap Instance { get; private set; }
-        public ServiceManager Services { get; private set; }
-        public SystemManager Systems { get; private set; }
+        [Header("Scene to load after init")]
+        public string Scene = "Lobby";
 
-        void Awake()
-        {
-            if (Instance != null) { Destroy(gameObject); return; }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            // Init managers
-            Services = new ServiceManager();
-            Systems = new SystemManager();
-
-            // Register systems and services
-            Services.RegisterAll<IGameService>();
-        }
+        private ModManager modManager;
+        private List<AssetBundle> loadedBundles = new();
+        private bool isInitialized = false;
         
-        void Update()
+        private ServiceManager serviceManager;
+
+        private void Awake()
         {
-            Services.Tick();
-            Systems.Tick();
+            DontDestroyOnLoad(this);
+            StartCoroutine(InitializeRoutine());
         }
-        
-        void OnDestroy()
+
+        private IEnumerator InitializeRoutine()
         {
-            Services.Dispose();
-            Systems.Dispose();
+            Logs.Log("[Bootstrap] Starting initialization...");
+
+            // Step 1 — Initialize core systems
+            yield return InitializeCoreSystems();
+
+            // Step 2 — Initialize and scan mods
+            yield return InitializeMods();
+
+            // Step 3 — Load asset bundles from mods
+            yield return LoadModAssetBundles();
+
+            // Step 4 — Load FMOD banks from bundles
+            yield return LoadFmodBanksFromBundles();
+
+            // Step 5 — Load next scene (async but blocked)
+            yield return LoadMainScene();
+
+            isInitialized = true;
+            Logs.Log("[Bootstrap] Initialization complete!");
+        }
+
+        private IEnumerator InitializeCoreSystems()
+        {
+            Logs.Log("[Bootstrap] Initializing core systems...");
+            serviceManager.RegisterAll<IGameService>();
+            yield return null;
+        }
+
+        private IEnumerator InitializeMods()
+        {
+            Logs.Log("[Bootstrap] Scanning and loading mods...");
+            modManager = ModManager.Instance;
+            modManager.ScanMods();
+            modManager.LoadMods();
+            yield return null;
+        }
+
+        private IEnumerator LoadModAssetBundles()
+        {
+            Logs.Log("[Bootstrap] Searching for AssetBundles in Mods...");
+
+            foreach (var mod in modManager.allMods)
+            {
+                string modFolder = mod.folderPath;
+                var bundleFiles = Directory.GetFiles(modFolder, "*.bundle", SearchOption.AllDirectories);
+
+                foreach (var path in bundleFiles)
+                {
+                    Logs.Log($"[Bootstrap] Loading AssetBundle: {path}");
+                    var bundleLoadRequest = AssetBundle.LoadFromFileAsync(path);
+                    yield return bundleLoadRequest;
+
+                    var bundle = bundleLoadRequest.assetBundle;
+                    if (bundle != null)
+                    {
+                        loadedBundles.Add(bundle);
+                        Logs.Log($"[Bootstrap] Loaded bundle: {bundle.name}");
+
+                        // Optional: Inspect contents
+                        string[] assetNames = bundle.GetAllAssetNames();
+                        foreach (string a in assetNames)
+                            Logs.Log($"    > Contains: {a}");
+                    }
+                    else
+                    {
+                        Logs.LogError($"[Bootstrap] Failed to load bundle at {path}");
+                    }
+                }
+            }
+        }
+
+        private IEnumerator LoadFmodBanksFromBundles()
+        {
+            Logs.Log("[Bootstrap] Loading FMOD banks from bundles...");
+
+            foreach (var bundle in loadedBundles)
+            {
+                var assets = bundle.LoadAllAssets<TextAsset>();
+                foreach (var asset in assets)
+                {
+                    if (asset.name.EndsWith(".bank") || asset.name.Contains("Bank"))
+                    {
+                        string tempPath = Path.Combine(Application.persistentDataPath, asset.name);
+                        File.WriteAllBytes(tempPath, asset.bytes);
+
+                        var result = RuntimeManager.StudioSystem.loadBankFile(tempPath, FMOD.Studio.LOAD_BANK_FLAGS.NORMAL, out var bank);
+                        Logs.Log($"[Bootstrap] Loaded FMOD bank {asset.name}: {result}");
+                    }
+                }
+            }
+
+            yield return null;
+        }
+
+        private IEnumerator LoadMainScene()
+        {
+            Debug.Log($"[Bootstrap] Loading main scene: {Scene}");
+            AsyncOperation async = SceneManager.LoadSceneAsync(Scene);
+            async.allowSceneActivation = false;
+
+            // Wait until everything is ready
+            while (!isInitialized)
+                yield return null;
+
+            Logs.Log("[Bootstrap] All systems ready, activating scene.");
+            async.allowSceneActivation = true;
         }
     }
 }

@@ -42,7 +42,7 @@ namespace MortierFu
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            modsFolder = Path.Combine(Application.dataPath, "Mods");
+            modsFolder = Path.Combine(Application.persistentDataPath, "Mods");
             if (!Directory.Exists(modsFolder))
                 Directory.CreateDirectory(modsFolder);
 

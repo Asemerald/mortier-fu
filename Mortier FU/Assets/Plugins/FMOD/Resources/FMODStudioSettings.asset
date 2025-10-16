@@ -458,11 +458,11 @@ MonoBehaviour:
   sourceBankPathUnformatted: 
   BankRefreshCooldown: 5
   ShowBankRefreshWindow: 1
-  AutomaticEventLoading: 1
-  BankLoadType: 0
+  AutomaticEventLoading: 0
+  BankLoadType: 2
   AutomaticSampleLoading: 0
   EncryptionKey: 
-  ImportType: 0
+  ImportType: 1
   TargetAssetPath: FMODBanks
   TargetBankFolder: 
   EventLinkage: 0
@@ -476,7 +476,8 @@ MonoBehaviour:
   VirtualChannelSettings: []
   RealChannelSettings: []
   Plugins: []
-  MasterBanks: []
+  MasterBanks:
+  - Master
   Banks: []
   BanksToLoad: []
   LiveUpdatePort: 9264
@@ -529,7 +530,7 @@ MonoBehaviour:
       Value: 0
       HasValue: 0
     Overlay:
-      Value: 1
+      Value: 0
       HasValue: 1
     OverlayPosition:
       Value: 0
