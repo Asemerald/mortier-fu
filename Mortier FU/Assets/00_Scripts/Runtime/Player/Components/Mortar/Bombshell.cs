@@ -1,5 +1,4 @@
-﻿using System;
-using MortierFu.Shared;
+﻿using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -26,39 +25,43 @@ namespace MortierFu
         
         // TODO: Temporary to see the curves
         [SerializeField] private TrailRenderer _trail;
+        
+        // TODO: Make it configurable
+        const float k_height = 10.0f;
 
+        // Configurable bombshell properties
         private Data _data;
         
-        private float _t = -1.0f;
+        // Movement tracking and curve calculation
+        private float _elapsed;
         private float _initialSpeed;
         private Vector3 _direction;
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
 
+        // Dependencies
         private BombshellSystem _system;
         private Rigidbody _rb;
 
+        // Getters
         public Character Owner => _data.Owner;
         public float Damage => _data.Damage;
         public float AoeRange => _data.AoeRange;
 
-        public void Initialize(BombshellSystem system, Data data)
+        /// Called once when the bombshell is instantiated.
+        public void Initialize(BombshellSystem system)
         {
-            // Already initialized
-            if (_t >= 0.0f)
-            {
-                Logs.LogWarning("Trying to re-initialize a Bombshell.");
-                return;
-            }
-
             _system = system;
             _rb = GetComponent<Rigidbody>();
+        }
 
+        /// Called each time the bombshell is reused.
+        public void Configure(Data data)
+        {
             _data = data;
-            _t = 0.0f;
-
-            const float k_height = 10.0f;
+            _elapsed = 0.0f;
+            
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
@@ -66,13 +69,25 @@ namespace MortierFu
             ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
         }
+
+        public void Reset()
+        {
+            _data = default;
+
+            _elapsed = 0f;
+            _initialSpeed = 0f;
+            _direction = Vector3.zero;
+            _angle = 0f;
+            _travelTime = 0f;
+            _timeFactor = 1f;
+        }
         
-        void Update()
+        void FixedUpdate()
         {
             //_t += Time.deltaTime * _data.Speed * 0.1f;
-            _t += Time.deltaTime * _timeFactor;
+            _elapsed += Time.deltaTime * _timeFactor;
 
-            Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
+            Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _elapsed);
             _rb.MovePosition(newPos);
         }
 
@@ -81,7 +96,8 @@ namespace MortierFu
             // Notify impact & recycle the bombshell
             _system.NotifyImpactAndRecycle(this);
         }
-
+        
+        #region Curve Maths
         /// <summary>
         /// Calculates the initial velocity, launch angle, and flight time required to reach a target position
         /// with a specified arc height and gravity scale.
@@ -120,18 +136,6 @@ namespace MortierFu
 
             return start + dir * x + Vector3.up * y;
         }
-
-        // TODO: Remove this, trail view purpose only
-        private void OnDestroy()
-        {
-            _trail.transform.SetParent(null);
-            Destroy(_trail.gameObject, 0.6f);
-        }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(_data.StartPos + _data.TargetPos, 0.2f);
-        }
+        #endregion
     }
 }
