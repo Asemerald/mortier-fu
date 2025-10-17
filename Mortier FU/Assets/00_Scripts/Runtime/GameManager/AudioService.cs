@@ -17,14 +17,14 @@ namespace MortierFu
             
         }
         
-        public IEnumerator LoadBank(string bankName)
+        public IEnumerator LoadBank(AssetReference bankAsset)
         {
             // Iterate all the Studio Banks and start them loading in the background
             // including the audio sample data
             foreach (var bank in Banks)
             {
-                FMODUnity.RuntimeManager.LoadBank(bank, true, () => {
-                    Logs.Log($"Bank " + bank + "loaded");
+                FMODUnity.RuntimeManager.LoadBank(bankAsset, true, () => {
+                    Logs.Log($"Bank " + bankAsset.Asset.name + "loaded");
                 });
             }
 

@@ -23,27 +23,30 @@ namespace MortierFu
         private void Awake()
         {
             DontDestroyOnLoad(this);
+
+            serviceManager = new ServiceManager();
             StartCoroutine(InitializeRoutine());
+            
         }
 
         private IEnumerator InitializeRoutine()
         {
             Logs.Log("[Bootstrap] Starting initialization...");
+            
+            // Step 1 — Load next scene (async but blocked)
+            StartCoroutine(LoadMainScene());
 
-            // Step 1 — Initialize core systems
+            // Step 2 — Initialize core systems
             yield return InitializeCoreSystems();
 
-            // Step 2 — Initialize and scan mods
+            // Step 3 — Initialize and scan mods
             yield return InitializeMods();
 
-            // Step 3 — Load asset bundles from mods
+            // Step 4 — Load asset bundles from mods
             yield return LoadModAssetBundles();
 
-            // Step 4 — Load FMOD banks from bundles
+            // Step 5 — Load FMOD banks from bundles
             yield return LoadFmodBanksFromBundles();
-
-            // Step 5 — Load next scene (async but blocked)
-            yield return LoadMainScene();
 
             isInitialized = true;
             Logs.Log("[Bootstrap] Initialization complete!");
