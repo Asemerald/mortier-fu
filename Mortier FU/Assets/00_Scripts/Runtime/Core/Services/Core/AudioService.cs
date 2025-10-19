@@ -15,16 +15,6 @@ namespace MortierFu
 
         public void PlayMainMenuMusic()
         {
-            // Debug which banks are loaded and debug all events path
-            FMOD.Studio.EventDescription[] events;
-            RuntimeManager.StudioSystem.getBankList( out FMOD.Studio.Bank[] banks);
-            foreach (var e in banks)
-            {
-                e.getPath(out string path);
-                Debug.Log("Loaded FMOD event: " + path);
-            }
-            
-            
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
 

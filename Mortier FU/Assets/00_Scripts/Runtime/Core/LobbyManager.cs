@@ -37,20 +37,20 @@ namespace MortierFu
 
         private void OnEnable()
         {
-            if (GameInstance.Instance == null || GameInstance.Instance._playerInputManager == null) 
+            if (PlayerInputBridge.Instance == null || PlayerInputBridge.Instance.PlayerInputManager == null) 
                 return;
             
-            GameInstance.Instance._playerInputManager.onPlayerJoined += OnPlayerJoined;
-            GameInstance.Instance._playerInputManager.onPlayerLeft += OnPlayerLeft;
+            PlayerInputBridge.Instance.PlayerInputManager.onPlayerJoined += OnPlayerJoined;
+            PlayerInputBridge.Instance.PlayerInputManager.onPlayerLeft += OnPlayerLeft;
         }
 
         private void OnDisable()
         {
-            if (GameInstance.Instance == null || GameInstance.Instance._playerInputManager == null) 
+            if (PlayerInputBridge.Instance == null || PlayerInputBridge.Instance.PlayerInputManager == null) 
                 return;
             
-            GameInstance.Instance._playerInputManager.onPlayerJoined -= OnPlayerJoined;
-            GameInstance.Instance._playerInputManager.onPlayerLeft -= OnPlayerLeft;
+            PlayerInputBridge.Instance.PlayerInputManager.onPlayerJoined -= OnPlayerJoined;
+            PlayerInputBridge.Instance.PlayerInputManager.onPlayerLeft -= OnPlayerLeft;
         }
 
         private void OnPlayerJoined(PlayerInput playerInput)

@@ -12,6 +12,8 @@ namespace MortierFu
     {
         
         protected readonly Dictionary<Type, IGameComponent> _systems = new();
+        
+        public static GameComponentManager Instance { get; private set; }
         public void Register<T>(T system) where T : class, IGameComponent
         {
             _systems[typeof(T)] = system ?? throw new ArgumentNullException(nameof(system));
@@ -26,6 +28,8 @@ namespace MortierFu
 
         public Task Initialize()
         {
+            Instance = this;
+            
             try
             {
                 foreach (var system in _systems.Values) system.Initialize();
