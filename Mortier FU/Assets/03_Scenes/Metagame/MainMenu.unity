@@ -834,19 +834,6 @@ MonoBehaviour:
   _lobbyPanel: {fileID: 1725973106}
   _eventSystem: {fileID: 512820383}
   _gameStarted: 0
---- !u!114 &213900855
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 213900846}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1de9005f4b234763903a808838a33393, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::Mortierfu.ModManager
-  allMods: []
 --- !u!1 &214221716
 GameObject:
   m_ObjectHideFlags: 0
@@ -5963,7 +5950,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1892091464}
   - component: {fileID: 1892091463}
-  - component: {fileID: 1892091465}
   m_Layer: 0
   m_Name: MenuManager
   m_TagString: Untagged
@@ -6002,18 +5988,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1892091465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1892091462}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a18526bde6f44efa47355a06744dfae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.ModManagerGUI
 --- !u!1 &1898914998
 GameObject:
   m_ObjectHideFlags: 0
@@ -7117,9 +7091,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5494191993685522960, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
       insertIndex: -1
       addedObject: {fileID: 213900852}
-    - targetCorrespondingSourceObject: {fileID: 5494191993685522960, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 213900855}
   m_SourcePrefab: {fileID: 100100000, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

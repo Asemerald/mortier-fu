@@ -4,92 +4,81 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using FMODUnity;
 
 namespace MortierFu
 {
-    [Serializable]
-    public class ModManifest
+    public class ModService : IGameService
     {
-        public string name = "Unnamed Mod";
-        public string version = "1.0";
-        public string author = "Unknown";
-        public string description = "";
-    }
-
-    [Serializable]
-    public class ModInfo
-    {
-        public ModManifest manifest;
-        public string folderPath;
-        public bool isEnabled;
-        public bool isLoaded;
-        public Type modType;
-        public Assembly modAssembly;
-        public ModBase instance;
-    }
-
-    public class ModManager : MonoBehaviour
-    {
-        public static ModManager Instance { get; private set; }
-        public List<ModInfo> allMods = new List<ModInfo>();
+        public List<ModInfo> AllMods { get; private set; } = new();
         public Action<ModInfo> OnModToggled;
 
-        private string modsFolder;
+        private readonly string modsFolder;
 
-        void Awake()
+        public ModService()
         {
-            if (Instance != null) { Destroy(gameObject); return; }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
             modsFolder = Path.Combine(Application.persistentDataPath, "Mods");
             if (!Directory.Exists(modsFolder))
                 Directory.CreateDirectory(modsFolder);
+        }
 
+        public void Initialize()
+        {
             ScanMods();
             LoadMods();
         }
 
-        void Update()
+        public void Tick()
         {
-            foreach (var mod in allMods)
+            foreach (var mod in AllMods)
             {
                 if (mod.isLoaded && mod.instance != null)
                     mod.instance.ModUpdate();
             }
         }
 
+        public void Dispose()
+        {
+            foreach (var mod in AllMods)
+            {
+                if (mod.isLoaded)
+                    mod.instance?.DeInitialize();
+            }
+        }
+
         public void ScanMods()
         {
-            allMods.Clear();
+            AllMods.Clear();
 
             foreach (var dir in Directory.GetDirectories(modsFolder))
             {
                 bool isDisabled = dir.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
                 string manifestPath = Path.Combine(dir, "manifest.json");
-                ModManifest manifest = new ModManifest();
 
                 try
                 {
-                    if (File.Exists(manifestPath))
-                        manifest = JsonUtility.FromJson<ModManifest>(File.ReadAllText(manifestPath));
-                    else
-                        Debug.LogWarning($"[ModManager] No manifest.json found in {dir}");
-
-                    string[] dlls = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly);
-                    if (dlls.Length == 0)
+                    if (!File.Exists(manifestPath))
                     {
-                        Debug.LogWarning($"[ModManager] No DLL found in {dir}");
+                        Debug.LogWarning($"[ModService] Missing manifest.json in {dir}");
                         continue;
                     }
 
-                    string dllPath = dlls[0];
+                    var manifest = JsonUtility.FromJson<ModManifest>(File.ReadAllText(manifestPath));
+                    string dllPath = manifest.dlls.FirstOrDefault(d => File.Exists(Path.Combine(dir, d)));
+
+                    if (string.IsNullOrEmpty(dllPath))
+                    {
+                        Debug.LogWarning($"[ModService] No valid DLL found for {manifest.name}");
+                        continue;
+                    }
+
+                    dllPath = Path.Combine(dir, dllPath);
                     var asm = Assembly.Load(File.ReadAllBytes(dllPath));
                     var modType = asm.GetTypes().FirstOrDefault(t => t.IsSubclassOf(typeof(ModBase)) && !t.IsAbstract);
 
                     if (modType == null)
                     {
-                        Debug.LogWarning($"[ModManager] No ModBase class found in {dllPath}");
+                        Debug.LogWarning($"[ModService] No ModBase class found in {dllPath}");
                         continue;
                     }
 
@@ -104,23 +93,20 @@ namespace MortierFu
                         instance = null
                     };
 
-                    allMods.Add(info);
-                    Debug.Log($"[ModManager] Found mod: {manifest.name} (Enabled: {info.isEnabled})");
+                    AllMods.Add(info);
+                    Debug.Log($"[ModService] Found mod: {manifest.name} (Enabled: {info.isEnabled})");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[ModManager] Error loading mod in {dir}: {e.Message}");
+                    Debug.LogError($"[ModService] Error scanning mod {dir}: {e.Message}");
                 }
             }
-
-            Debug.Log($"[ModManager] Total mods found: {allMods.Count}");
         }
 
         public void ToggleMod(ModInfo mod)
         {
             bool newState = !mod.isEnabled;
 
-            // On renomme le dossier
             string newPath = newState
                 ? mod.folderPath.Replace(".disabled", "")
                 : mod.folderPath + ".disabled";
@@ -130,16 +116,15 @@ namespace MortierFu
                 if (Directory.Exists(mod.folderPath))
                     Directory.Move(mod.folderPath, newPath);
 
-                Debug.Log($"[ModManager] Mod '{mod.manifest.name}' renamed to {newPath}");
                 mod.folderPath = newPath;
                 mod.isEnabled = newState;
+                OnModToggled?.Invoke(mod);
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ModManager] Failed to rename mod folder: {e.Message}");
+                Debug.LogError($"[ModService] Failed to rename mod folder: {e.Message}");
             }
 
-            // On applique l’état immédiatement si nécessaire
             if (!mod.isEnabled && mod.isLoaded)
             {
                 mod.instance?.DeInitialize();
@@ -150,16 +135,13 @@ namespace MortierFu
             {
                 LoadMod(mod);
             }
-            OnModToggled?.Invoke(mod);
         }
 
         public void LoadMods()
         {
-            foreach (var mod in allMods)
-            {
+            foreach (var mod in AllMods)
                 if (mod.isEnabled && !mod.isLoaded)
                     LoadMod(mod);
-            }
         }
 
         private void LoadMod(ModInfo mod)
@@ -170,18 +152,12 @@ namespace MortierFu
                 instance.Initialize();
                 mod.instance = instance;
                 mod.isLoaded = true;
-                Debug.Log($"[ModManager] Loaded mod: {mod.manifest.name}");
+                Debug.Log($"[ModService] Loaded mod: {mod.manifest.name}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ModManager] Error initializing mod {mod.manifest.name}: {e.Message}");
+                Debug.LogError($"[ModService] Error initializing mod {mod.manifest.name}: {e.Message}");
             }
-        }
-
-        public void RestartGame()
-        {
-            Debug.Log("Restarting game to apply mods...");
-            DebugManager.RestartGame();
         }
     }
 }
