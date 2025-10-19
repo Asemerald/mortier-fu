@@ -11,55 +11,49 @@ namespace MortierFu
 {
     public class AudioService : IGameService
     {
-        private readonly List<AssetReference> _bankRefs = new();
-        private bool _isInitialized = false;
+        private List<AssetReference> Banks = new List<AssetReference>();
 
-        public void Initialize() { }
-
-        /// <summary>
-        /// Loads all FMOD banks labeled as "fmodBanks" from Addressables.
-        /// </summary>
-        public IEnumerator LoadAllBanksFromAddressables()
+        public void PlayMainMenuMusic()
         {
-            Logs.Log("[AudioService] Loading FMOD banks from Addressables...");
-
-            // Charge toutes les locations avec le label "fmodBanks"
-            AsyncOperationHandle<IList<IResourceLocation>> handle = 
-                Addressables.LoadResourceLocationsAsync("FMODBank", typeof(AssetReference));
-            yield return handle;
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+            // Debug which banks are loaded and debug all events path
+            FMOD.Studio.EventDescription[] events;
+            RuntimeManager.StudioSystem.getBankList( out FMOD.Studio.Bank[] banks);
+            foreach (var e in banks)
             {
-                Logs.LogError("[AudioService] Failed to locate FMOD banks Addressables.");
-                yield break;
+                e.getPath(out string path);
+                Debug.Log("Loaded FMOD event: " + path);
             }
-
-            List<AssetReference> bankRefs = new List<AssetReference>();
-            foreach (var location in handle.Result)
-            {
-                var bankRef = new AssetReference(location.PrimaryKey);
-                bankRefs.Add(bankRef);
-
-                Logs.Log($"[AudioService] Loading FMOD Bank: {location.PrimaryKey}");
-                FMODUnity.RuntimeManager.LoadBank(bankRef, true, () =>
-                {
-                    Logs.Log($"[AudioService] Bank loaded: {location.PrimaryKey}");
-                });
-            }
-
-            // Wait until FMOD finished loading all banks and sample data
-            while (!FMODUnity.RuntimeManager.HaveAllBanksLoaded || FMODUnity.RuntimeManager.AnySampleDataLoading())
-                yield return null;
-
-            Logs.Log("[AudioService] All FMOD banks successfully loaded.");
+            
+            
+            RuntimeManager.PlayOneShot("event:/Serachan");
         }
 
-        public void Tick() { }
+        public void RegisterBanks(AssetReference[] banks)
+        {
+            if (banks == null || banks.Length == 0) return;
+            foreach (var bank in banks)
+            {
+                Banks.Add(bank);
+                Logs.Log("[AudioService] Registered bank: " + bank);
+            }
+        }
 
+        public IEnumerator LoadAllBanks()
+        {
+            foreach (var bankRef in Banks)
+            {
+                bool loaded = false;
+                RuntimeManager.LoadBank(bankRef, true, () => { loaded = true; });
+
+                while (!loaded) yield return null;
+                Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef}");
+            }
+        }
+        
         public void Dispose()
         {
             Logs.Log("[AudioService] Unloading FMOD banks...");
-            foreach (var bankRef in _bankRefs)
+            foreach (var bankRef in Banks)
             {
                 try
                 {
@@ -67,7 +61,7 @@ namespace MortierFu
                 }
                 catch { /* ignore */ }
             }
-            _bankRefs.Clear();
+            Banks.Clear();
         }
     }
 }

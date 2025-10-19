@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using MortierFu.Services;
 using MortierFu.Shared;
+using NaughtyAttributes;
 
 namespace MortierFu
 {
@@ -14,6 +15,9 @@ namespace MortierFu
     {
         [Header("Scene to load after init")]
         public string Scene = "MainMenu";
+        
+        [Expandable]
+        public GameConfig config;
 
         private ServiceManager serviceManager;
         private ModService modService;
@@ -46,8 +50,14 @@ namespace MortierFu
             // --- Load mod resources
             yield return loaderService.LoadAllModResources();
             
-            // --- Load FMOD banks from Addressables
-            yield return audioService.LoadAllBanksFromAddressables();
+            // --- Inject GameConfig banks
+            audioService.RegisterBanks(config.fmodBanks);
+
+            // --- Inject mods banks
+            audioService.RegisterBanks(modService.GetAllModFmodBanks());
+            
+            // --- Load all banks
+            yield return audioService.LoadAllBanks();
             
             // --- Check for missing services
             yield return serviceManager.CheckForMissingServices<IGameService>();
@@ -55,6 +65,9 @@ namespace MortierFu
             // --- All ready
             async.allowSceneActivation = true;
             Logs.Log("[Bootstrap] All systems ready!");
+            
+            // --- TODO Test REMOVE
+            audioService.PlayMainMenuMusic();
         }
 
         private Task InitializeGameService()

@@ -82,13 +82,5 @@ namespace MortierFu
         public void Dispose()
         {
         }
-
-        public void Initialize()
-        {
-        }
-
-        public void Tick()
-        {
-        }
     }
 }

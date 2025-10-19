@@ -1,4 +1,6 @@
 ﻿using System;
+using MortierFu.Shared;
+using UnityEditor.VersionControl;
 
 namespace MortierFu
 {
@@ -10,12 +12,13 @@ namespace MortierFu
         /// <summary>
         /// Method to call to initialize the service
         /// </summary>
-        void Initialize();
-    
+        void Initialize()
+        { }
+
         /// <summary>
         ///  Method to call every frame to update the service
         /// </summary>
-        void Tick();
+        void Tick() {}
     }
     /// <summary>
     /// For services that should be unique and persist across scenes (e.g., AudioService, InputService).

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using FMODUnity;
+using UnityEngine.AddressableAssets;
 
 namespace MortierFu
 {
@@ -22,7 +23,7 @@ namespace MortierFu
                 Directory.CreateDirectory(modsFolder);
         }
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             ScanMods();
             LoadMods();
@@ -159,5 +160,23 @@ namespace MortierFu
                 Debug.LogError($"[ModService] Error initializing mod {mod.manifest.name}: {e.Message}");
             }
         }
+        
+        public AssetReference[] GetAllModFmodBanks()
+        {
+            var list = new AssetReference[0];
+            foreach (var mod in AllMods.Where(m => m.isEnabled))
+            {
+                if (mod.manifest.fmodBanks == null) continue;
+
+                foreach (var path in mod.manifest.fmodBanks)
+                {
+                    var ar = new AssetReference(path);
+                    Array.Resize(ref list, list.Length + 1);
+                    list[list.Length - 1] = ar;
+                }
+            }
+            return list;
+        }
+
     }
 }
