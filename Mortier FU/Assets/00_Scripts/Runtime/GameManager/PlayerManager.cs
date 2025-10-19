@@ -18,7 +18,7 @@ namespace MortierFu
         void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
-            DontDestroyOnLoad(gameObject); // garde la référence entre les scènes
+            DontDestroyOnLoad(gameObject); // garde la référence entre les scène
         }
 
         private void Start()
