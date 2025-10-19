@@ -18,7 +18,7 @@ namespace MortierFu.Shared
         public static void Log(string message)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.Log($"<color={InfoColor}>[INFO] {message}</color>");
+            UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>");
         }
 
         // Warning log
@@ -26,7 +26,7 @@ namespace MortierFu.Shared
         public static void LogWarning(string message)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.LogWarning($"<color={WarningColor}>[WARN] {message}</color>");
+            UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>");
         }
 
         // Error log
@@ -34,7 +34,7 @@ namespace MortierFu.Shared
         public static void LogError(string message)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.LogError($"<color={ErrorColor}>[ERROR] {message}</color>");
+            UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>");
         }
 
         // Overloads with context object
@@ -42,21 +42,21 @@ namespace MortierFu.Shared
         public static void Log(string message, Object context)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.Log($"<color={InfoColor}>[INFO] {message}</color>", context);
+            UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>", context);
         }
 
         [Conditional("DEBUG")]
         public static void LogWarning(string message, Object context)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.LogWarning($"<color={WarningColor}>[WARN] {message}</color>", context);
+            UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>", context);
         }
 
         [Conditional("DEBUG")]
         public static void LogError(string message, Object context)
         {
             if (!EnableLogs) return;
-            UnityEngine.Debug.LogError($"<color={ErrorColor}>[ERROR] {message}</color>", context);
+            UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>", context);
         }
     }
 }

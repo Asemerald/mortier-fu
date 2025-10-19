@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -10,40 +11,10 @@ namespace MortierFu
     public class GameComponentManager : IDisposable
     {
         
-        private readonly Dictionary<Type, IGameComponent> _systems = new();
+        protected readonly Dictionary<Type, IGameComponent> _systems = new();
         public void Register<T>(T system) where T : class, IGameComponent
         {
             _systems[typeof(T)] = system ?? throw new ArgumentNullException(nameof(system));
-        }
-        
-        /// <summary>
-        /// Automatically finds and registers all services implementing IGameService.
-        /// Optionally filtered by namespace or assembly.
-        /// </summary>
-        public void RegisterAll<T> (Assembly assembly = null, string namespaceFilter = null) where T : class, IGameComponent
-        {
-            assembly ??= Assembly.GetExecutingAssembly();
-
-            var types = assembly.GetTypes()
-                .Where(t => typeof(T).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
-
-            if (!string.IsNullOrEmpty(namespaceFilter))
-                types = types.Where(t => t.Namespace != null && t.Namespace.StartsWith(namespaceFilter));
-
-            foreach (var type in types)
-            {
-                try
-                {
-                    var instance = (IGameComponent)Activator.CreateInstance(type);
-                    Register(instance);
-                }
-                catch (Exception e)
-                {
-                    Logs.LogError($"[GameComponentManager] Failed to create {type.Name}: {e.Message}");
-                    return;
-                }
-                Logs.Log($"[GameComponentManager] Registered GameComponent {type.Name}");
-            }
         }
 
 
@@ -53,7 +24,7 @@ namespace MortierFu
             return system as T;
         }
 
-        public void Initialize()
+        public Task Initialize()
         {
             try
             {
@@ -72,6 +43,7 @@ namespace MortierFu
 
                 throw;
             }
+            return Task.CompletedTask;
         }
 
         public void Tick()
@@ -84,6 +56,8 @@ namespace MortierFu
             foreach (var system in _systems.Values) system.Dispose();
             _systems.Clear();
         }
+        
+        
     }
 
     public class SystemManager : GameComponentManager
@@ -92,5 +66,35 @@ namespace MortierFu
     
     public class ServiceManager : GameComponentManager
     {
+        /// <summary>
+        /// Check for missing services of type T in _services dictionary.
+        /// Optionally filtered by namespace or assembly.
+        /// <param name="assembly">
+        /// If provided, only types from this assembly are checked.
+        /// </param>
+        /// <param name="namespaceFilter">
+        ///  If provided, only types within this namespace (or its sub-namespaces) are checked.
+        /// </param>
+        /// </summary>
+        public Task CheckForMissingServices<T> (Assembly assembly = null, string namespaceFilter = null) where T : class, IGameComponent
+        {
+            assembly ??= Assembly.GetExecutingAssembly();
+
+            var types = assembly.GetTypes()
+                .Where(t => typeof(T).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+
+            if (!string.IsNullOrEmpty(namespaceFilter))
+                types = types.Where(t => t.Namespace != null && t.Namespace.StartsWith(namespaceFilter));
+
+            foreach (var type in types)
+            {
+                // if type not in _services, log warning
+                if (!_systems.ContainsKey(type))
+                {
+                    Logs.LogWarning($"[ServiceManager] Missing service of type {type.FullName}");
+                }
+            }
+            return Task.CompletedTask;
+        }
     }
 }
