@@ -7,20 +7,9 @@ namespace MortierFu
     [RequireComponent(typeof(PlayerInputManager))]
     public class PlayerInputBridge : MonoBehaviour
     {
-        public PlayerInputManager PlayerInputManager;
-        
-        public static PlayerInputBridge Instance { get; private set; }
-
+        public PlayerInputManager PlayerInputManager { get; private set; }
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Logs.LogWarning("[PlayerInputBridge] Instance already exists, destroying duplicate.");
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            
             PlayerInputManager = GetComponent<PlayerInputManager>();
             PlayerInputManager.onPlayerJoined += OnPlayerJoined;
             PlayerInputManager.onPlayerLeft += OnPlayerLeft;
@@ -37,7 +26,7 @@ namespace MortierFu
             Debug.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
 
             // Relais vers ton DeviceService
-            var deviceService = ServiceManager.Instance.Get<DevicesService>();
+            var deviceService = ServiceManager.Instance.Get<LobbyService>();
             deviceService?.RegisterPlayerInput(playerInput);
         }
 
@@ -45,7 +34,7 @@ namespace MortierFu
         {
             Debug.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
 
-            var deviceService = ServiceManager.Instance.Get<DevicesService>();
+            var deviceService = ServiceManager.Instance.Get<LobbyService>();
             deviceService?.UnregisterPlayerInput(playerInput);
         }
     }

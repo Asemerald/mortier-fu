@@ -5,58 +5,52 @@ namespace MortierFu.Shared
 {
     public static class Logs
     {
-        // Active ou désactive tous les logs
-        public static bool EnableLogs = true;
+        public enum LogLevel
+        {
+            None = 0,
+            Error = 1,
+            Warning = 2,
+            Info = 3
+        }
 
-        // Couleurs pour Unity Console
         private static string InfoColor = "white";
         private static string WarningColor = "yellow";
         private static string ErrorColor = "red";
 
-        // Info log
+        // Niveau de log actuel (modifiable via le menu DEBUG)
+        public static LogLevel CurrentLevel = LogLevel.Info;
+
+        // Log Info
         [Conditional("DEBUG")]
-        public static void Log(string message)
+        public static void Log(string message, Object context = null)
         {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>");
+            if (CurrentLevel < LogLevel.Info) return;
+            if (context)
+                UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>", context);
+            else
+                UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>");
         }
 
-        // Warning log
+        // Log Warning
         [Conditional("DEBUG")]
-        public static void LogWarning(string message)
+        public static void LogWarning(string message, Object context = null)
         {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>");
+            if (CurrentLevel < LogLevel.Warning) return;
+            if (context)
+                UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>", context);
+            else
+                UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>");
         }
 
-        // Error log
+        // Log Error
         [Conditional("DEBUG")]
-        public static void LogError(string message)
+        public static void LogError(string message, Object context = null)
         {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>");
-        }
-
-        // Overloads with context object
-        [Conditional("DEBUG")]
-        public static void Log(string message, Object context)
-        {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>", context);
-        }
-
-        [Conditional("DEBUG")]
-        public static void LogWarning(string message, Object context)
-        {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.LogWarning($"<color={WarningColor}>{message}</color>", context);
-        }
-
-        [Conditional("DEBUG")]
-        public static void LogError(string message, Object context)
-        {
-            if (!EnableLogs) return;
-            UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>", context);
+            if (CurrentLevel < LogLevel.Error) return;
+            if (context)
+                UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>", context);
+            else
+                UnityEngine.Debug.LogError($"<color={ErrorColor}>{message}</color>");
         }
     }
 }

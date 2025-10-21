@@ -65,7 +65,7 @@ namespace MortierFu
 
         private void OnStartGameClicked()
         {
-            LobbyManager.Instance?.TryStartGame();
+            //LobbyManager.Instance?.TryStartGame();
         }
     }
 }

@@ -6,10 +6,10 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    [SerializeField] private MainMenuPanel mainMenuPanel;
-    [SerializeField] private SettingsPanel settingsPanel;
-    [SerializeField] private CreditsPanel creditsPanel;
-    [SerializeField] private LobbyPanel lobbyPanel;
+    [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
+    [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
+    [field: SerializeField] public CreditsPanel CreditsPanel { get; private set; }
+    [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
     
     private void Awake()
     {
@@ -18,19 +18,19 @@ public class MenuManager : MonoBehaviour
     
     private void CheckReferences()
     {
-        if (mainMenuPanel == null)
+        if (MainMenuPanel == null)
         {
             Logs.LogError("MenuManager: MainMenuPanel reference is missing.", this);
         }
-        if (settingsPanel == null)
+        if (SettingsPanel == null)
         {
             Logs.LogError("MenuManager: SettingsPanel reference is missing.", this);
         }
-        if (creditsPanel == null)
+        if (CreditsPanel == null)
         {
             Logs.LogError("MenuManager: CreditsPanel reference is missing.", this);
         }
-        if (lobbyPanel == null)
+        if (LobbyPanel == null)
         {
             Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
         }

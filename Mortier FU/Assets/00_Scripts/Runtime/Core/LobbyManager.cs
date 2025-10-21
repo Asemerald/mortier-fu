@@ -21,36 +21,11 @@ namespace MortierFu
         public bool _gameStarted = false;
 
         private List<PlayerInput> _joinedPlayers = new (k_maxPlayers);
-        public static LobbyManager Instance { get; private set; }
 
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        private void OnEnable()
-        {
-            if (PlayerInputBridge.Instance == null || PlayerInputBridge.Instance.PlayerInputManager == null) 
-                return;
             
-            PlayerInputBridge.Instance.PlayerInputManager.onPlayerJoined += OnPlayerJoined;
-            PlayerInputBridge.Instance.PlayerInputManager.onPlayerLeft += OnPlayerLeft;
-        }
-
-        private void OnDisable()
-        {
-            if (PlayerInputBridge.Instance == null || PlayerInputBridge.Instance.PlayerInputManager == null) 
-                return;
-            
-            PlayerInputBridge.Instance.PlayerInputManager.onPlayerJoined -= OnPlayerJoined;
-            PlayerInputBridge.Instance.PlayerInputManager.onPlayerLeft -= OnPlayerLeft;
         }
 
         private void OnPlayerJoined(PlayerInput playerInput)

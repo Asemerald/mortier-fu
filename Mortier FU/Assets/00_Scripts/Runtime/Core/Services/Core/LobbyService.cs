@@ -10,7 +10,7 @@ namespace MortierFu
     /// <summary>
     /// Service responsable du suivi et de la gestion des périphériques d'entrée des joueurs.
     /// </summary>
-    public class DevicesService : IGameService
+    public class LobbyService : IGameService
     {
         // Mapping principal : PlayerIndex <-> InputDevice
         private readonly Dictionary<int, InputDevice> _playerDevices = new();

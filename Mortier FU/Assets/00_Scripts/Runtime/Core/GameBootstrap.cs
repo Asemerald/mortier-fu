@@ -16,17 +16,17 @@ namespace MortierFu
     public class GameBootstrap : MonoBehaviour
     {
         [Header("Scene to load after init")]
-        public string Scene = "MainMenu";
+        public string scene = "MainMenu";
         
         [Expandable]
         public GameConfig config;
 
-        private ServiceManager serviceManager;
-        private ModService modService;
-        private ModLoaderService loaderService;
-        private AudioService audioService;
-        private DevicesService devicesService;
-        private GameInstance gameInstance;
+        private ServiceManager _serviceManager;
+        private ModService _modService;
+        private ModLoaderService _loaderService;
+        private AudioService _audioService;
+        private LobbyService _lobbyService;
+        private GameInstance _gameInstance;
         
         //private float _progress = 0f;
 
@@ -38,47 +38,47 @@ namespace MortierFu
 
         private IEnumerator InitializeRoutine()
         {
-            serviceManager = new ServiceManager();
+            _serviceManager = new ServiceManager();
             
             yield return InitializeGameService();
             
             // Initialise les services de base avant les mods
-            yield return serviceManager.Initialize();
+            yield return _serviceManager.Initialize();
 
             // --- Load mod resources
-            yield return loaderService.LoadAllModResources();
+            yield return _loaderService.LoadAllModResources();
             
             // --- Load GameConfig banks
-            yield return audioService.LoadBanks(config.fmodBanks);
+            yield return _audioService.LoadBanks(config.fmodBanks);
             
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
-            yield return audioService.LoadBanks(modService.GetAllModFmodBanks());
+            yield return _audioService.LoadBanks(_modService.GetAllModFmodBanks());
             
             // --- Check for missing services
-            yield return serviceManager.CheckForMissingServices<IGameService>();
+            yield return _serviceManager.CheckForMissingServices<IGameService>();
             
             // --- Load MainMenu Scene
-            yield return SceneManager.LoadSceneAsync(Scene);
+            yield return SceneManager.LoadSceneAsync(scene);
             
-            audioService.PlayMainMenuMusic();
+            _audioService.PlayMainMenuMusic();
         }
 
 
         private Task InitializeGameService()
         {
             // --- Instantiate core services
-            modService = new ModService();
-            loaderService = new ModLoaderService(modService);
-            audioService = new AudioService();
-            devicesService = new DevicesService();
-            gameInstance = new GameInstance();
+            _modService = new ModService();
+            _loaderService = new ModLoaderService(_modService);
+            _audioService = new AudioService();
+            _lobbyService = new LobbyService();
+            _gameInstance = new GameInstance();
             
             // --- Register services
-            serviceManager.Register(modService);
-            serviceManager.Register(loaderService);
-            serviceManager.Register(audioService);
-            serviceManager.Register(devicesService);
-            serviceManager.Register(gameInstance);
+            _serviceManager.Register(_modService);
+            _serviceManager.Register(_loaderService);
+            _serviceManager.Register(_audioService);
+            _serviceManager.Register(_lobbyService);
+            _serviceManager.Register(_gameInstance);
             
             return Task.CompletedTask;
         }
