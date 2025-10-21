@@ -10,7 +10,7 @@ namespace MortierFu.Shared
             None = 0,
             Error = 1,
             Warning = 2,
-            Info = 3
+            Log = 3
         }
 
         private static string InfoColor = "white";
@@ -18,13 +18,13 @@ namespace MortierFu.Shared
         private static string ErrorColor = "red";
 
         // Niveau de log actuel (modifiable via le menu DEBUG)
-        public static LogLevel CurrentLevel = LogLevel.Info;
+        public static LogLevel CurrentLevel = LogLevel.Log;
 
         // Log Info
         [Conditional("DEBUG")]
         public static void Log(string message, Object context = null)
         {
-            if (CurrentLevel < LogLevel.Info) return;
+            if (CurrentLevel < LogLevel.Log) return;
             if (context)
                 UnityEngine.Debug.Log($"<color={InfoColor}>{message}</color>", context);
             else

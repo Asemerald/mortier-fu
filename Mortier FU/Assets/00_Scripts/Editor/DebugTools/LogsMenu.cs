@@ -12,7 +12,7 @@ namespace MortierFu.Shared.Editor
         static LogsMenu()
         {
             // Charger le niveau de log depuis EditorPrefs
-            int savedLevel = EditorPrefs.GetInt(PREF_KEY, (int)Logs.LogLevel.Info);
+            int savedLevel = EditorPrefs.GetInt(PREF_KEY, (int)Logs.LogLevel.Log);
             Logs.CurrentLevel = (Logs.LogLevel)savedLevel;
             UpdateMenuChecks();
         }
@@ -26,8 +26,8 @@ namespace MortierFu.Shared.Editor
         [MenuItem(MENU_ROOT + "Warning", false, 2)]
         public static void SetWarning() => SetLogLevel(Logs.LogLevel.Warning);
 
-        [MenuItem(MENU_ROOT + "Info", false, 3)]
-        public static void SetInfo() => SetLogLevel(Logs.LogLevel.Info);
+        [MenuItem(MENU_ROOT + "Log", false, 3)]
+        public static void SetInfo() => SetLogLevel(Logs.LogLevel.Log);
 
         private static void SetLogLevel(Logs.LogLevel level)
         {
@@ -42,7 +42,7 @@ namespace MortierFu.Shared.Editor
             Menu.SetChecked(MENU_ROOT + "None", Logs.CurrentLevel == Logs.LogLevel.None);
             Menu.SetChecked(MENU_ROOT + "Error", Logs.CurrentLevel == Logs.LogLevel.Error);
             Menu.SetChecked(MENU_ROOT + "Warning", Logs.CurrentLevel == Logs.LogLevel.Warning);
-            Menu.SetChecked(MENU_ROOT + "Info", Logs.CurrentLevel == Logs.LogLevel.Info);
+            Menu.SetChecked(MENU_ROOT + "Log", Logs.CurrentLevel == Logs.LogLevel.Log);
         }
     }
 }

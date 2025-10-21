@@ -23,19 +23,19 @@ namespace MortierFu
 
         private void OnPlayerJoined(PlayerInput playerInput)
         {
-            Debug.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
-
-            // Relais vers ton DeviceService
+            Logs.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
+            
             var deviceService = ServiceManager.Instance.Get<LobbyService>();
             deviceService?.RegisterPlayerInput(playerInput);
         }
 
         private void OnPlayerLeft(PlayerInput playerInput)
         {
-            Debug.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
+            Logs.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
 
             var deviceService = ServiceManager.Instance.Get<LobbyService>();
             deviceService?.UnregisterPlayerInput(playerInput);
+            
         }
     }
 }

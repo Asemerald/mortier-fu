@@ -32,7 +32,6 @@ namespace MortierFu
 
         private void Awake()
         {
-            DontDestroyOnLoad(this);
             StartCoroutine(InitializeRoutine());
         }
 
@@ -59,8 +58,6 @@ namespace MortierFu
             
             // --- Load MainMenu Scene
             yield return SceneManager.LoadSceneAsync(scene);
-            
-            _audioService.PlayMainMenuMusic();
         }
 
 
