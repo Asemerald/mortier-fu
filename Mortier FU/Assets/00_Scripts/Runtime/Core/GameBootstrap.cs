@@ -8,6 +8,8 @@ using UnityEngine.SceneManagement;
 using MortierFu.Services;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -37,38 +39,38 @@ namespace MortierFu
         {
             serviceManager = new ServiceManager();
             
-            // --- Initialize game services
             yield return InitializeGameService();
-
-            // --- Initialize systems
+            
+            // Initialise les services de base avant les mods
             yield return serviceManager.Initialize();
-
-            // --- Begin async scene load (paused)
-            AsyncOperation async = SceneManager.LoadSceneAsync(Scene);
-            async.allowSceneActivation = false;
 
             // --- Load mod resources
             yield return loaderService.LoadAllModResources();
             
             // --- Inject GameConfig banks
             audioService.RegisterBanks(config.fmodBanks);
-
+            
             // --- Inject mods banks
             audioService.RegisterBanks(modService.GetAllModFmodBanks());
             
-            // --- Load all banks
+            // --- Load all banks 
             yield return audioService.LoadAllBanks();
+
+            // Et enfin prefab
+            var handle = config.globalPrefabs.First().LoadAssetAsync<GameObject>();
+            yield return handle;
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+                Instantiate(handle.Result);
             
             // --- Check for missing services
             yield return serviceManager.CheckForMissingServices<IGameService>();
-
-            // --- All ready
-            async.allowSceneActivation = true;
-            Logs.Log("[Bootstrap] All systems ready!");
             
-            // --- TODO Test REMOVE
+            // Prépare la scène à charger
+            yield return SceneManager.LoadSceneAsync(Scene);
+            
             audioService.PlayMainMenuMusic();
         }
+
 
         private Task InitializeGameService()
         {

@@ -1,6 +1,5 @@
 ﻿using System;
 using MortierFu.Shared;
-using UnityEditor.VersionControl;
 
 namespace MortierFu
 {

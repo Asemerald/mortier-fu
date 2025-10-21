@@ -36,7 +36,7 @@ namespace MortierFu
                 RuntimeManager.LoadBank(bankRef, true, () => { loaded = true; });
 
                 while (!loaded) yield return null;
-                Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef}");
+                //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef}");
             }
         }
         
