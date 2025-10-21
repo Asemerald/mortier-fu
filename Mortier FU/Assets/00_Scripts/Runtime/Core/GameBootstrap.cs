@@ -26,6 +26,7 @@ namespace MortierFu
         private ModLoaderService loaderService;
         private AudioService audioService;
         private DevicesService devicesService;
+        private GameInstance gameInstance;
         
         //private float _progress = 0f;
 
@@ -47,25 +48,16 @@ namespace MortierFu
             // --- Load mod resources
             yield return loaderService.LoadAllModResources();
             
-            // --- Inject GameConfig banks
-            audioService.RegisterBanks(config.fmodBanks);
+            // --- Load GameConfig banks
+            yield return audioService.LoadBanks(config.fmodBanks);
             
-            // --- Inject mods banks
-            audioService.RegisterBanks(modService.GetAllModFmodBanks());
-            
-            // --- Load all banks 
-            yield return audioService.LoadAllBanks();
-
-            // Et enfin prefab
-            var handle = config.globalPrefabs.First().LoadAssetAsync<GameObject>();
-            yield return handle;
-            if (handle.Status == AsyncOperationStatus.Succeeded)
-                Instantiate(handle.Result);
+            // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
+            yield return audioService.LoadBanks(modService.GetAllModFmodBanks());
             
             // --- Check for missing services
             yield return serviceManager.CheckForMissingServices<IGameService>();
             
-            // Prépare la scène à charger
+            // --- Load MainMenu Scene
             yield return SceneManager.LoadSceneAsync(Scene);
             
             audioService.PlayMainMenuMusic();
@@ -79,12 +71,14 @@ namespace MortierFu
             loaderService = new ModLoaderService(modService);
             audioService = new AudioService();
             devicesService = new DevicesService();
+            gameInstance = new GameInstance();
             
             // --- Register services
             serviceManager.Register(modService);
             serviceManager.Register(loaderService);
             serviceManager.Register(audioService);
             serviceManager.Register(devicesService);
+            serviceManager.Register(gameInstance);
             
             return Task.CompletedTask;
         }

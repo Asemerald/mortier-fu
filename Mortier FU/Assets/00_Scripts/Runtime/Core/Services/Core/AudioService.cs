@@ -18,25 +18,16 @@ namespace MortierFu
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
 
-        public void RegisterBanks(AssetReference[] banks)
+        public IEnumerator LoadBanks(AssetReference[] banksToLoad)
         {
-            if (banks == null || banks.Length == 0) return;
-            foreach (var bank in banks)
-            {
-                Banks.Add(bank);
-                Logs.Log("[AudioService] Registered bank: " + bank);
-            }
-        }
-
-        public IEnumerator LoadAllBanks()
-        {
-            foreach (var bankRef in Banks)
+            foreach (var bankRef in banksToLoad)
             {
                 bool loaded = false;
                 RuntimeManager.LoadBank(bankRef, true, () => { loaded = true; });
 
                 while (!loaded) yield return null;
-                //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef}");
+                //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef.Asset.name}");
+                Banks.Add(bankRef);
             }
         }
         
