@@ -13,7 +13,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
-    public class GameBootstrap : MonoBehaviour
+    public class GameInitializer : MonoBehaviour
     {
         [Header("Scene to load after init")]
         public string scene = "MainMenu";
@@ -27,12 +27,19 @@ namespace MortierFu
         private AudioService _audioService;
         private DeviceService _deviceService;
         private GameInstance _gameInstance;
+        private LobbyService _lobbyService;
         
         //private float _progress = 0f;
 
         private void Awake()
         {
             StartCoroutine(InitializeRoutine());
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void Update()
+        {
+            _serviceManager?.Tick();
         }
 
         private IEnumerator InitializeRoutine()
@@ -69,6 +76,7 @@ namespace MortierFu
             _audioService = new AudioService();
             _deviceService = new DeviceService();
             _gameInstance = new GameInstance();
+            _lobbyService = new LobbyService();
             
             // --- Register services
             _serviceManager.Register(_modService);
@@ -76,6 +84,7 @@ namespace MortierFu
             _serviceManager.Register(_audioService);
             _serviceManager.Register(_deviceService);
             _serviceManager.Register(_gameInstance);
+            _serviceManager.Register(_lobbyService);
             
             return Task.CompletedTask;
         }

@@ -271,6 +271,7 @@ public class DebugManager : MonoBehaviour
         EditorApplication.update += RestartPlayMode;
         return;
 #endif
+#pragma warning disable CS0162 // Unreachable code detected
         string dataPath = Application.dataPath;
         string parentPath = Directory.GetParent(dataPath)?.FullName;
         if (parentPath != null)
@@ -287,6 +288,7 @@ public class DebugManager : MonoBehaviour
                 Logs.LogError("Could not find executable to restart the game.", null);
             }
         }
+#pragma warning restore CS0162 // Unreachable code detected
     }
 
 #if UNITY_EDITOR

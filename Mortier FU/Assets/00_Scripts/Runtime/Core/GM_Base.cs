@@ -247,7 +247,7 @@ namespace MortierFu
             { 
                 var cnc = _joinedPlayers[i];
                 
-                cnc.PlayerManager.InitializePlayer();
+                cnc.PlayerManager.SpawnInGame(_spawnPositions[i]);
                 _joinedPlayers[i].LobbyInput.DeactivateInput();
                 
                 cnc.GameInput = cnc.PlayerManager.PlayerInput;

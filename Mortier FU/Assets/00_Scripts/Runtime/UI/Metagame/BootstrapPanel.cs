@@ -6,12 +6,12 @@ using UnityEngine.UI;
 
 public class BootstrapPanel : MonoBehaviour
 {
-    [SerializeField] private GameBootstrap _gameBootstrap;
+    [SerializeField] private GameInitializer gameInitializer;
     [SerializeField] private Image _loadingBar;
     
     private void Awake()
     {
-        if (_gameBootstrap == null)
+        if (gameInitializer == null)
         {
             Logs.LogWarning("BootstrapPanel: GameBootstrap reference is missing.", this);
         }
@@ -24,7 +24,7 @@ public class BootstrapPanel : MonoBehaviour
 
     private void Update()
     {
-        if (_gameBootstrap && _loadingBar)
+        if (gameInitializer && _loadingBar)
         {
             //_loadingBar.fillAmount = _gameBootstrap.GetProgress();
             //TODO Do something, ça load tellement vite la progress bar sert a r mais a test avec des mods fat

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -6,7 +7,8 @@ namespace MortierFu
     public class PlayerManager : MonoBehaviour
     {
         [Header("Setup")]
-        public GameObject _playerInGamePrefab; // le perso à spawn pendant la partie
+        [Tooltip("Prefab du personnage à instancier en jeu.")]
+        public GameObject playerInGamePrefab;
 
         private PlayerInput _playerInput;
         private GameObject _inGameCharacter;
@@ -14,57 +16,70 @@ namespace MortierFu
 
         public PlayerInput PlayerInput => _playerInput;
         public GameObject CharacterGO => _inGameCharacter;
-        
-        void Awake()
+        public int PlayerIndex => _playerInput.playerIndex;
+        public bool IsInGame => _isInGame;
+
+        public event System.Action<PlayerManager> OnPlayerInitialized;
+        public event System.Action<PlayerManager> OnPlayerDestroyed;
+
+        private void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
-            DontDestroyOnLoad(gameObject); // garde la référence entre les scène
+            DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            GM_Base.Instance.RegisterPlayer(_playerInput);
+            ServiceManager.Instance.Get<LobbyService>().RegisterPlayer(this);
+            OnPlayerInitialized?.Invoke(this);
         }
 
         private void OnDestroy()
         {
-            GM_Base.Instance.UnregisterPlayer(_playerInput);
+            OnPlayerDestroyed?.Invoke(this);
         }
 
-        // Appelée depuis le GameManager quand on entre dans la GameScene
+        /// <summary>
+        /// Instancie le personnage du joueur dans la scène de jeu.
+        /// </summary>
         public void SpawnInGame(Vector3 spawnPosition)
         {
-            if (_isInGame) return;
-            
-            _inGameCharacter.SetActive(true);
-            _inGameCharacter.transform.position = spawnPosition;
-            if (_inGameCharacter.TryGetComponent(out Character character) && character.Health != null)
+            if (_isInGame)
+                return;
+
+            if (_inGameCharacter == null && playerInGamePrefab != null)
             {
-                character.Health.ResetHealth();
+                _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
             }
-            _isInGame = true;
+
+            if (_inGameCharacter != null)
+            {
+                _inGameCharacter.SetActive(true);
+                _inGameCharacter.transform.position = spawnPosition;
+
+                if (_inGameCharacter.TryGetComponent(out Character character) && character.Health != null)
+                {
+                    character.Health.ResetHealth();
+                }
+
+                _isInGame = true;
+            }
+            else
+            {
+                Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
+            }
         }
 
-        public void InitializePlayer()
-        {
-            if (_isInGame) return;
-
-            var newPlayer = PlayerInput.Instantiate(
-                _playerInGamePrefab,
-                controlScheme: _playerInput.currentControlScheme,
-                pairWithDevice: _playerInput.devices[0]
-            );
-            
-            _inGameCharacter = newPlayer.gameObject;
-        }
-        
+        /// <summary>
+        /// Supprime le joueur de la scène de jeu.
+        /// </summary>
         public void DespawnInGame()
         {
             if (_inGameCharacter != null)
             {
                 _inGameCharacter.SetActive(false);
             }
-            
+
             _isInGame = false;
         }
     }
