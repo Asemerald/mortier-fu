@@ -368,7 +368,7 @@ GameObject:
   - component: {fileID: 482653299}
   - component: {fileID: 482653300}
   m_Layer: 0
-  m_Name: GameBootstrap
+  m_Name: GameInitializer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -842,7 +842,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f331026866edbbc40aa42dec3d18b8f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  _gameBootstrap: {fileID: 482653300}
+  gameInitializer: {fileID: 482653300}
   _loadingBar: {fileID: 1961302754}
 --- !u!1 &1907765253
 GameObject:
@@ -888,6 +888,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ca7cf06c57d98d499df3036ce50c41d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::DebugManager
+  enableDebugMode: 1
+  showFPS: 0
+  showConsoleOnScreen: 0
+  toggleConsoleKey: 282
+  toggleFPSKey: 283
+  screenshotKey: 293
+  showMemoryUsage: 0
+  performanceUpdateInterval: 0.5
+  toggleMemoryKey: 284
 --- !u!1 &1961302750
 GameObject:
   m_ObjectHideFlags: 0
