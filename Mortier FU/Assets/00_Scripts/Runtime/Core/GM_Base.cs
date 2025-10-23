@@ -7,17 +7,6 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public enum GameState
-    {
-        Lobby,
-        StartGame,
-        StartRound,
-        EndRound,
-        StartBonusSelection,
-        EndBonusSelection,
-        EndGame
-    }
-
     public class Cnc
     {
         public PlayerManager PlayerManager;
@@ -67,6 +56,7 @@ namespace MortierFu
                 Destroy(gameObject);
                 return;
             }
+            
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
