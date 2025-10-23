@@ -25,7 +25,7 @@ namespace MortierFu
         private ModService _modService;
         private ModLoaderService _loaderService;
         private AudioService _audioService;
-        private LobbyService _lobbyService;
+        private DeviceService _deviceService;
         private GameInstance _gameInstance;
         
         //private float _progress = 0f;
@@ -67,14 +67,14 @@ namespace MortierFu
             _modService = new ModService();
             _loaderService = new ModLoaderService(_modService);
             _audioService = new AudioService();
-            _lobbyService = new LobbyService();
+            _deviceService = new DeviceService();
             _gameInstance = new GameInstance();
             
             // --- Register services
             _serviceManager.Register(_modService);
             _serviceManager.Register(_loaderService);
             _serviceManager.Register(_audioService);
-            _serviceManager.Register(_lobbyService);
+            _serviceManager.Register(_deviceService);
             _serviceManager.Register(_gameInstance);
             
             return Task.CompletedTask;

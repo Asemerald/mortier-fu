@@ -25,7 +25,7 @@ namespace MortierFu
         {
             Logs.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
             
-            var deviceService = ServiceManager.Instance.Get<LobbyService>();
+            var deviceService = ServiceManager.Instance.Get<DeviceService>();
             deviceService?.RegisterPlayerInput(playerInput);
         }
 
@@ -33,7 +33,7 @@ namespace MortierFu
         {
             Logs.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
 
-            var deviceService = ServiceManager.Instance.Get<LobbyService>();
+            var deviceService = ServiceManager.Instance.Get<DeviceService>();
             deviceService?.UnregisterPlayerInput(playerInput);
             
         }

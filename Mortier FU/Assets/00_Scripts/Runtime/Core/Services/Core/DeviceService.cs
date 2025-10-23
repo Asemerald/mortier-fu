@@ -10,7 +10,7 @@ namespace MortierFu
     /// <summary>
     /// Service responsable du suivi et de la gestion des périphériques d'entrée des joueurs.
     /// </summary>
-    public class LobbyService : IGameService
+    public class DeviceService : IGameService
     {
         // Mapping principal : PlayerIndex <-> InputDevice
         private readonly Dictionary<int, InputDevice> _playerDevices = new();
@@ -24,7 +24,6 @@ namespace MortierFu
 
         public void Initialize()
         {
-            Logs.Log("[DevicesService] Initialized.");
             InputSystem.onDeviceChange += HandleDeviceChange;
         }
 
@@ -34,7 +33,7 @@ namespace MortierFu
             _playerDevices.Clear();
             _deviceToPlayer.Clear();
             _playerInputs.Clear();
-            Logs.Log("[DevicesService] Disposed.");
+            Logs.Log("[DeviceService] Disposed.");
         }
 
         #region Registration
@@ -49,14 +48,14 @@ namespace MortierFu
 
             if (device == null)
             {
-                Logs.LogWarning($"[DevicesService] Player {playerIndex} joined without device.");
+                Logs.LogWarning($"[DeviceService] Player {playerIndex} joined without device.");
                 return;
             }
 
             _playerInputs[playerIndex] = input;
             RegisterPlayerDevice(playerIndex, device);
 
-            Logs.Log($"[DevicesService] Player {playerIndex} registered with device {device.displayName}.");
+            Logs.Log($"[DeviceService] Player {playerIndex} registered with device {device.displayName}.");
         }
 
         public void UnregisterPlayerInput(PlayerInput input)
@@ -68,7 +67,7 @@ namespace MortierFu
             UnregisterPlayer(playerIndex);
 
             _playerInputs.Remove(playerIndex);
-            Logs.Log($"[DevicesService] Player {playerIndex} unregistered.");
+            Logs.Log($"[DeviceService] Player {playerIndex} unregistered.");
         }
 
         public void RegisterPlayerDevice(int playerIndex, InputDevice device)
@@ -115,7 +114,7 @@ namespace MortierFu
             if (!_deviceToPlayer.TryGetValue(device, out int playerIndex))
                 return;
 
-            Logs.LogWarning($"[DevicesService] Device '{device.displayName}' disconnected for Player {playerIndex}");
+            Logs.LogWarning($"[DeviceService] Device '{device.displayName}' disconnected for Player {playerIndex}");
             OnDeviceDisconnected?.Invoke(playerIndex, device);
 
             // Désactiver temporairement les entrées du joueur
@@ -127,11 +126,11 @@ namespace MortierFu
         {
             if (!_deviceToPlayer.TryGetValue(device, out int playerIndex))
             {
-                Logs.LogWarning($"[DevicesService] Device '{device.displayName}' reconnected but not linked to any player.");
+                Logs.LogWarning($"[DeviceService] Device '{device.displayName}' reconnected but not linked to any player.");
                 return;
             }
 
-            Logs.Log($"[DevicesService] Device '{device.displayName}' reconnected for Player {playerIndex}");
+            Logs.Log($"[DeviceService] Device '{device.displayName}' reconnected for Player {playerIndex}");
             OnDeviceReconnected?.Invoke(playerIndex, device);
 
             // Réapparier et réactiver l’entrée
@@ -139,7 +138,7 @@ namespace MortierFu
             {
                 InputUser.PerformPairingWithDevice(device, playerInput.user);
                 playerInput.ActivateInput();
-                Logs.Log($"[DevicesService] Device '{device.displayName}' re-paired for Player {playerIndex}");
+                Logs.Log($"[DeviceService] Device '{device.displayName}' re-paired for Player {playerIndex}");
             }
         }
 
