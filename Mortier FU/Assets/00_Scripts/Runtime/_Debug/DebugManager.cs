@@ -304,7 +304,7 @@ public class DebugManager : MonoBehaviour
 
     public static void TakeScreenshot()
     {
-        string folderPath = Path.Combine(Application.dataPath, "..", "Screenshots");
+        string folderPath = Path.Combine(Application.persistentDataPath, "..", "Screenshots");
         if (!Directory.Exists(folderPath))
         {
             Directory.CreateDirectory(folderPath);
