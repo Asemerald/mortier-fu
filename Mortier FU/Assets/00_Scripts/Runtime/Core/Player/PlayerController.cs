@@ -56,7 +56,6 @@ namespace MortierFu
                 transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
             }
         }
-
         private void FixedUpdate()
         {
             Vector3 velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
