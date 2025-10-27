@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -7,6 +8,8 @@ namespace MortierFu
     {
         public MSSPositionLimited(Mortar mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
         { }
+
+        private bool bShotEnabled;
         
         public override void Initialize()
         {
@@ -28,8 +31,14 @@ namespace MortierFu
 
         public override void Update()
         {
+            //call shot if bShotEnabled
+            if (bShotEnabled)
+            {
+                mortar.Shoot();
+            }
+            
             Vector2 aimInput = aimAction.ReadValue<Vector2>();
-
+            
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
             
@@ -41,7 +50,16 @@ namespace MortierFu
         
         private void OnShoot(InputAction.CallbackContext ctx)
         {
-            mortar.Shoot();
+            if (ctx.action.WasPressedThisFrame())
+            {
+                bShotEnabled = true;
+            }
+            
+            if(ctx.action.WasReleasedThisFrame())
+            {
+                bShotEnabled = false;
+            }
+            
         }
     }
 }

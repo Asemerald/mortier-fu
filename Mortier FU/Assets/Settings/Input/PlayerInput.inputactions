@@ -89,9 +89,9 @@
                 },
                 {
                     "name": "Shoot",
-                    "type": "Button",
+                    "type": "PassThrough",
                     "id": "ffdced2a-42d9-404a-bde8-2b222ac1a31c",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -110,6 +110,15 @@
                     "type": "Button",
                     "id": "20951210-db52-42cc-91a4-d6460b6c2215",
                     "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleAim",
+                    "type": "PassThrough",
+                    "id": "7c0021ab-5ba9-4161-8bd3-138a9f6f27df",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -531,6 +540,17 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "CycleShootMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f4450f9c-7893-4860-9007-91b07fa3908d",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleAim",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
