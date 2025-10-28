@@ -2,13 +2,13 @@ using MortierFu.Shared;
 
 namespace MortierFu
 {
-    public class HitState : BaseState
+    public class StrikeState : BaseState
     {
-        public HitState(PlayerController playerController) : base(playerController) {}
+        public StrikeState(PlayerController playerController) : base(playerController) {}
         
         public override void OnEnter()
         {
-            _playerController.EnterHitState();
+            _playerController.EnterStrikeState();
             
             if(_debug)
                 Logs.Log("Entering Hit State");
@@ -16,7 +16,7 @@ namespace MortierFu
 
         public override void Update()
         {
-            _playerController.ExecuteStun();
+            _playerController.ExecuteStrike();
             _playerController.HandleMovementUpdate();
         }
 
@@ -27,7 +27,7 @@ namespace MortierFu
 
         public override void OnExit()
         {
-            _playerController.ExitHitState();
+            _playerController.ExitStrikeState();
             
             if(_debug) 
                 Logs.Log("Exiting Hit State");

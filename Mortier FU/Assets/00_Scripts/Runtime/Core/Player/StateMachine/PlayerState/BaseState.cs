@@ -4,7 +4,7 @@ namespace MortierFu
     {
         protected readonly PlayerController _playerController;
 
-        protected bool _debug = false;
+        protected bool _debug = true;
         
         protected BaseState(PlayerController playerController)
         {
