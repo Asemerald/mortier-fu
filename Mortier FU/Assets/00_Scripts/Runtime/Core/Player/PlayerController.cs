@@ -2,7 +2,6 @@ using UnityEngine.InputSystem;
 using MortierFu.Shared;
 using UnityEngine;
 
-// TODO : Ne vous inquiètez pas je vais refacto un max !
 namespace MortierFu
 {
     // TODO du refacto pour que ça soit mieux.
@@ -105,6 +104,8 @@ namespace MortierFu
             
             if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
             {
+                _stunCountdownTimer.Stop();
+                
                 _stunTriggerTimer.Start();
             }
             
@@ -152,7 +153,7 @@ namespace MortierFu
 
         public void HandleStun()
         {
-           
+            _playerInput.enabled = false;
         }
         
         // StunState methods
@@ -207,6 +208,8 @@ namespace MortierFu
 
         private void ReceiveStun()
         {
+            if (_stunTimer.IsRunning) return;
+            
             _stunTimer.Start();
         }
         
