@@ -68,7 +68,7 @@ namespace MortierFu
             
             _shootTimer = new CountdownTimer(CharacterStats.AttackSpeed.Value);
             
-            DisableShoot();
+            _shootInputAction.Disable();
         }
         
         private void OnDestroy()
@@ -92,13 +92,13 @@ namespace MortierFu
         {
             _shootStrategy?.Update();
             
-            AimWidget.transform.localScale = Vector3.one * (CharacterStats.DamageRange.Value *2);
+            AimWidget.transform.localScale = Vector3.one * (CharacterStats.DamageRange.Value * 2);
         }
         
         public void Shoot()
         {
             if (_shootTimer.IsRunning) return;
-
+            
             Bombshell.Data bombshellData = new Bombshell.Data
             {
                 Owner = character,
@@ -117,15 +117,17 @@ namespace MortierFu
             _shootTimer.Start();
         }
 
-        public void EnableShoot()
+        public void BeginAiming()
         { 
             AimWidget.Show();
+            _shootStrategy?.BeginAiming();
             _shootInputAction.Enable();
         }
 
-        public void DisableShoot()
+        public void EndAiming()
         {
             AimWidget.Hide();
+            _shootStrategy?.EndAiming();
             _shootInputAction.Disable();
         }
     }

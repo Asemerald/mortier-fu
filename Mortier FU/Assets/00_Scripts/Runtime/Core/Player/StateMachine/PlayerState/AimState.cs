@@ -8,7 +8,7 @@ namespace MortierFu
         
         public override void OnEnter()
         {
-            _playerController.Mortar.EnableShoot();
+            _playerController.Mortar.BeginAiming();
             if(_debug)
                 Logs.Log("Entering Aim State", _playerController.gameObject);
         }
@@ -26,7 +26,7 @@ namespace MortierFu
 
         public override void OnExit()
         {
-            _playerController.Mortar.DisableShoot();
+            _playerController.Mortar.EndAiming();
             if(_debug)
                 Logs.Log("Exiting Aim State");
         }

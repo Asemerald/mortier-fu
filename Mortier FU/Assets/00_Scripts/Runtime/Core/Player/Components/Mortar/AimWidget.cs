@@ -1,4 +1,5 @@
-﻿using MortierFu.Shared;
+﻿using System;
+using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 
@@ -26,6 +27,11 @@ namespace MortierFu
         [SerializeField] Vector3 _relativePosition;
         
         public Vector3 RelativePosition => _relativePosition;
+
+        private void Start()
+        {
+            Hide();
+        }
 
         void Update()
         {
