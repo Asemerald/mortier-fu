@@ -42,7 +42,7 @@ public class TEMP_CameraShake : MonoBehaviour
     {
         float intensity = (aoeRange * power * travelTime) /30;
         float time = intensity * 0.07f;
-        Logs.Log($"intensity : {intensity} / time : {time}");
+        //Logs.Log($"intensity : {intensity} / time : {time}");
         StartCoroutine(ShakeCamera(intensity, time, intensity, time/2));
     }
     
