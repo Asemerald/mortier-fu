@@ -18,23 +18,25 @@ public class TEMP_CameraHandler : MonoBehaviour
     private void Start()
     {
         cameraShake = GetComponent<TEMP_CameraShake>();
-        playerRef = _targetGroup.Targets[0].Object; //
+        playerRef = _targetGroup.Targets[0].Object; //TEMPORARY
     }
 
     private void Update()
     {
-        var dist = Vector3.Distance(transform.position, playerRef.position);
+        var dist = Vector3.Distance(_targetGroup.transform.position, playerRef.position);
         playerDist = Mathf.Lerp(playerDist, dist, Time.deltaTime * 4);
         Logs.Log($"Distance : {playerDist}");
         
         switch (playerDist)
         {
+            case < 7 :
+                break;
             case < 15 :
-                cinemachineCamera.Lens.FieldOfView = 60 - (15 - playerDist) + cameraShake.addedFOV;
+                cinemachineCamera.Lens.OrthographicSize = 18 - ((15 - playerDist)/1.2f) + cameraShake.addedFOV;
                 _targetGroup.enabled = true;
                 break;
             default :
-                cinemachineCamera.Lens.FieldOfView = 60 + cameraShake.addedFOV;
+                cinemachineCamera.Lens.OrthographicSize = 18 + cameraShake.addedFOV;
                 _targetGroup.enabled = false;
                 _targetGroup.transform.position = Vector3.Lerp(_targetGroup.transform.position, Vector3.zero, Time.deltaTime);
                 break;
