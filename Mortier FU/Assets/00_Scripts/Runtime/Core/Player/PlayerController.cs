@@ -26,6 +26,7 @@ namespace MortierFu
         private Character _character;
         private PlayerInput _playerInput;
         private StateMachine _stateMachine;
+        private Mortar _mortar;
         
         private Collider[] _overlapBuffer = new Collider[32];
 
@@ -34,8 +35,11 @@ namespace MortierFu
         private Vector3 _moveDirection;
         
         private InputAction _strikeAction;
+        private InputAction _toggleAimAction;
 
         public SO_CharacterStats CharacterStats { get; private set; }
+        
+        public Mortar Mortar => _mortar;
 
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
@@ -44,8 +48,12 @@ namespace MortierFu
         {
             // Get required components
             _rb = GetComponent<Rigidbody>();
+            
             _playerInput = GetComponent<PlayerInput>();
             _strikeAction = _playerInput.actions.FindAction("Strike");
+            _toggleAimAction = _playerInput.actions.FindAction("ToggleAim");
+            
+            _mortar = GetComponent<Mortar>();
             
             // Set up Timers
             _stunTimer = new CountdownTimer(_stunDuration);
@@ -64,11 +72,11 @@ namespace MortierFu
             
             // Define transitions
             At(stunState, locomotionState, new FuncPredicate(() => !_stunTimer.IsRunning));
-            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
             At(strikeState, locomotionState, new FuncPredicate(() => !_strikeTriggerTimer.IsRunning));
-            // Si en StrikeState alors pas de AimState
-            //At(locomotionState, aimState, new FuncPredicate(() =>)); Si le joueur appuie sur le bouton d'aim
-            //At(aimState, locomotionState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton de tir
+            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
+            At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
+            At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
+            At(aimState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
 
             Any(deathState, new FuncPredicate(() => !_character.Health.IsAlive));
             Any(stunState, new FuncPredicate(() => _stunTimer.IsRunning));

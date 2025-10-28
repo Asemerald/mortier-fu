@@ -8,14 +8,25 @@ namespace MortierFu
         
         public override void OnEnter()
         {
-            // Se bind a l'input de tir
+            _playerController.Mortar.EnableShoot();
             if(_debug)
-                Logs.Log("Entering Aim State");
+                Logs.Log("Entering Aim State", _playerController.gameObject);
         }
-        
+
+        public override void Update()
+        {
+            _playerController.Mortar.HandleAimMovement();
+            _playerController.HandleMovementUpdate();
+        }
+
+        public override void FixedUpdate()
+        {
+            _playerController.HandleMovementFixedUpdate();
+        }
+
         public override void OnExit()
         {
-            // Se debind de l'input de tir
+            _playerController.Mortar.DisableShoot();
             if(_debug)
                 Logs.Log("Exiting Aim State");
         }

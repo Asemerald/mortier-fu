@@ -67,6 +67,8 @@ namespace MortierFu
             SetShootMode(_currentShootMode);
             
             _shootTimer = new CountdownTimer(CharacterStats.AttackSpeed.Value);
+            
+            DisableShoot();
         }
         
         private void OnDestroy()
@@ -86,7 +88,7 @@ namespace MortierFu
             OnShootModeChanged?.Invoke(_currentShootMode);
         }
 
-        void Update()
+        public void HandleAimMovement()
         {
             _shootStrategy?.Update();
             
@@ -113,6 +115,18 @@ namespace MortierFu
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
             _shootTimer.Reset(CharacterStats.AttackSpeed.Value);
             _shootTimer.Start();
+        }
+
+        public void EnableShoot()
+        { 
+            AimWidget.Show();
+            _shootInputAction.Enable();
+        }
+
+        public void DisableShoot()
+        {
+            AimWidget.Hide();
+            _shootInputAction.Disable();
         }
     }
 }
