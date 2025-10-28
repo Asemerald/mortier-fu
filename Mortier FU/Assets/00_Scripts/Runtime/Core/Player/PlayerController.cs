@@ -150,17 +150,6 @@ namespace MortierFu
         {
             _playerInput.enabled = false;
         }
-
-        public void HandleStun()
-        {
-            _playerInput.enabled = false;
-        }
-        
-        // StunState methods
-        public void EnterStunState()
-        {
-            _playerInput.enabled = false;
-        }
         
         // StunState methods
         public void EnterStunState()
