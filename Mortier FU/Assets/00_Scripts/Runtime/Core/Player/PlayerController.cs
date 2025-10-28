@@ -8,6 +8,7 @@ namespace MortierFu
     // TODO du refacto pour que ça soit mieux.
     // Voir pour le timer du countdown puisque jamais je le stop.
     // Faire attention au fait que lorsque le joueur rejoint en appuyant sur la touche LEFT BUMPER alors cela fait son strike.
+    // Déplacer dans le Character toute la state machine.
     public class PlayerController : MonoBehaviour
     {
         [Header("Strike Parameters"), SerializeField] private float _strikeRadius = 2f;
@@ -18,7 +19,7 @@ namespace MortierFu
         
         [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
         
-        private CountdownTimer _strikeCountdownTimer;
+        private CountdownTimer _strikeCooldownTimer;
         private CountdownTimer _strikeTriggerTimer;
         private CountdownTimer _stunTimer;
         
@@ -34,9 +35,6 @@ namespace MortierFu
         
         private InputAction _strikeAction;
 
-        private bool _canStrike => !_strikeCountdownTimer.IsRunning && !_stunTimer.IsRunning && _character.Health.IsAlive;
-        private bool _isStun => _stunTimer.IsRunning && _character.Health.IsAlive;
-        
         public SO_CharacterStats CharacterStats { get; private set; }
 
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
@@ -51,7 +49,7 @@ namespace MortierFu
             
             // Set up Timers
             _stunTimer = new CountdownTimer(_stunDuration);
-            _strikeCountdownTimer = new CountdownTimer(_strikeCooldown);
+            _strikeCooldownTimer = new CountdownTimer(_strikeCooldown);
             _strikeTriggerTimer = new CountdownTimer(_strikeDuration);
             
             // State Machine
@@ -65,15 +63,15 @@ namespace MortierFu
             var deathState = new DeathState(this);
             
             // Define transitions
-            At(stunState, locomotionState, new FuncPredicate(() => !_isStun));
-            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && _canStrike));
-            At(strikeState, locomotionState, new FuncPredicate(() => !_strikeTriggerTimer.IsRunning && _character.Health.IsAlive));
+            At(stunState, locomotionState, new FuncPredicate(() => !_stunTimer.IsRunning));
+            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
+            At(strikeState, locomotionState, new FuncPredicate(() => !_strikeTriggerTimer.IsRunning));
             // Si en StrikeState alors pas de AimState
             //At(locomotionState, aimState, new FuncPredicate(() =>)); Si le joueur appuie sur le bouton d'aim
             //At(aimState, locomotionState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton de tir
 
             Any(deathState, new FuncPredicate(() => !_character.Health.IsAlive));
-            Any(stunState, new FuncPredicate(() => _isStun));
+            Any(stunState, new FuncPredicate(() => _stunTimer.IsRunning));
             
             // Set initial state
             _stateMachine.SetState(locomotionState);
@@ -161,7 +159,7 @@ namespace MortierFu
         {
             _strikeTriggerTimer.Start();
             //_stunCountdownTimer.Reset();
-            _strikeCountdownTimer.Start();
+            _strikeCooldownTimer.Start();
         }
         
         public void ExecuteStrike()
@@ -178,8 +176,8 @@ namespace MortierFu
                  if (hit == null) continue;
 
                  var root = hit.transform.root.gameObject;
-                 if (processedRoots.Contains(root)) continue;
-                 processedRoots.Add(root);
+                 
+                 if (!processedRoots.Add(root)) continue;
 
                 if (hit.TryGetComponent(out Bombshell bombshell))
                 {
@@ -196,7 +194,7 @@ namespace MortierFu
                 if (other == this) continue;
 
                 other.ReceiveStun();
-                other._character.Health.TakeDamage(_character.CharacterStats.HitDamage.Value);
+                other._character.Health.TakeDamage(_character.CharacterStats.StrikeDamage.Value);
              }
         }
 
