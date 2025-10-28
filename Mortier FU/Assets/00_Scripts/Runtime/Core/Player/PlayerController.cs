@@ -100,15 +100,6 @@ namespace MortierFu
         
         private void Update()
         {
-            var attackAction = _playerInput?.actions["Attack"];
-            
-            if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
-            {
-                _stunCountdownTimer.Stop();
-                
-                _stunTriggerTimer.Start();
-            }
-            
             _stateMachine.Update();
         }
         
@@ -150,11 +141,6 @@ namespace MortierFu
         {
             _playerInput.enabled = false;
         }
-
-        public void HandleStun()
-        {
-            _playerInput.enabled = false;
-        }
         
         // StunState methods
         public void EnterStunState()
@@ -193,20 +179,16 @@ namespace MortierFu
                 if (dir.sqrMagnitude <= 0.0001f) continue;
 
                 var angle = Vector3.Angle(forward, dir.normalized);
-                if (angle <= halfAngle)
-                {
-                    other.ReceiveStun(_stunDamage);
-                }
+                
+                if (!(angle <= halfAngle)) continue;
+                other.ReceiveStun();
+                other._character.Health.TakeDamage(_character.CharacterStats.HitDamage.Value);
             }
         }
 
-        private void ReceiveStun(float damage)
+        private void ReceiveStun()
         {
-            if (_stunTimer.IsRunning) return;
-            
             _stunTimer.Start();
-            
-            // TODO : Appliquer des dégâts via damage et il faut que cela provienne des character stats
         }
         
         public void ExitHitState()

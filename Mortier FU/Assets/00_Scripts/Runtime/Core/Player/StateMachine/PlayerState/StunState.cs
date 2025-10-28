@@ -14,11 +14,6 @@ namespace MortierFu
                 Logs.Log("Entering Stun State");
         }
 
-        public override void Update()
-        {
-            _playerController.HandleStun();
-        }
-
         public override void OnExit()
         {
             _playerController.ExitStunState();
