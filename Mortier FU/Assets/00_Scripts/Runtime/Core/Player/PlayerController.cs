@@ -100,6 +100,15 @@ namespace MortierFu
         
         private void Update()
         {
+            var attackAction = _playerInput?.actions["Attack"];
+            
+            if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
+            {
+                _stunCountdownTimer.Stop();
+                
+                _stunTriggerTimer.Start();
+            }
+            
             _stateMachine.Update();
         }
         
@@ -140,6 +149,17 @@ namespace MortierFu
         public void HandleDeath()
         {
             _playerInput.enabled = false;
+        }
+
+        public void HandleStun()
+        {
+            _playerInput.enabled = false;
+        }
+
+        public void EndStun()
+        {
+            _playerInput.enabled = true;
+            _stunTimer.Stop();
         }
         
         // StunState methods
