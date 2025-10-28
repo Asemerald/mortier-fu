@@ -100,15 +100,6 @@ namespace MortierFu
         
         private void Update()
         {
-            var attackAction = _playerInput?.actions["Attack"];
-            
-            if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
-            {
-                _stunCountdownTimer.Stop();
-                
-                _stunTriggerTimer.Start();
-            }
-            
             _stateMachine.Update();
         }
         
@@ -150,8 +141,9 @@ namespace MortierFu
         {
             _playerInput.enabled = false;
         }
-
-        public void HandleStun()
+        
+        // StunState methods
+        public void EnterStunState()
         {
             _playerInput.enabled = false;
         }
@@ -202,8 +194,6 @@ namespace MortierFu
 
         private void ReceiveStun()
         {
-            if (_stunTimer.IsRunning) return;
-            
             _stunTimer.Start();
         }
         
@@ -241,32 +231,38 @@ namespace MortierFu
             } 
         }
         
-        private void OnDrawGizmos()
-  {
-      Gizmos.color = _debugStunColor;
+        public void ExitHitState()
+        {
+            _stunTriggerTimer.Stop();
+        }
 
-      if (!(_currentStunDistance > 0f)) return;
-
-      var origin = transform.position;
-      var forward = transform.forward;
-      var halfAngle = _stunAreaAngle * 0.5f;
-      var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward;
-      var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
-
-      Gizmos.DrawLine(origin, origin + leftDir * _currentStunDistance);
-      Gizmos.DrawLine(origin, origin + rightDir * _currentStunDistance);
-
-      var segments = 24;
-      var prev = origin + leftDir * _currentStunDistance;
-      for (var i = 1; i <= segments; i++)
-      {
-          var t = (float)i / segments;
-          var angle = -halfAngle + t * _stunAreaAngle;
-          var dir = Quaternion.Euler(0f, angle, 0f) * forward;
-          var next = origin + dir * _currentStunDistance;
-          Gizmos.DrawLine(prev, next);
-          prev = next;
-      }
-  }
+        // Debugs
+        private void OnDrawGizmos() 
+        { 
+            Gizmos.color = _debugStunColor;
+            
+            if (!(_currentStunDistance > 0f)) return;
+            
+            var origin = transform.position; 
+            var forward = transform.forward; 
+            var halfAngle = _stunAreaAngle * 0.5f; 
+            var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward; 
+            var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
+            
+            Gizmos.DrawLine(origin, origin + leftDir * _currentStunDistance); 
+            Gizmos.DrawLine(origin, origin + rightDir * _currentStunDistance);
+            
+            var segments = 24; 
+            var prev = origin + leftDir * _currentStunDistance; 
+            for (var i = 1; i <= segments; i++) 
+            { 
+                var t = (float)i / segments; 
+                var angle = -halfAngle + t * _stunAreaAngle; 
+                var dir = Quaternion.Euler(0f, angle, 0f) * forward;
+                var next = origin + dir * _currentStunDistance; 
+                Gizmos.DrawLine(prev, next); 
+                prev = next; 
+            } 
+        }
     }
 }
