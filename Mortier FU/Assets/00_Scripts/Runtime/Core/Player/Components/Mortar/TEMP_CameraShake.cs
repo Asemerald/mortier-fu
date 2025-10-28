@@ -20,17 +20,13 @@ public class TEMP_CameraShake : MonoBehaviour
     private float zoomValue;
     
     [SerializeField] private float defaultFOV = 60;
-    private float targetFOV;
     private float currentFOV;
-    
-    [SerializeField] private AnimationCurve zoomCurve;
     
     private void Awake()
     {
         Instance = this;
         perlin = cinemachineCamera.GetComponent<CinemachineBasicMultiChannelPerlin>();
         
-        targetFOV = defaultFOV;
         currentFOV = defaultFOV;
         cinemachineCamera.Lens.FieldOfView = defaultFOV;
     }
