@@ -31,6 +31,8 @@ namespace MortierFu
         private Rigidbody _rb;
 
         private Vector3 _moveDirection;
+        
+        private InputAction _strikeAction;
 
         private bool _canStrike => !_strikeCountdownTimer.IsRunning && !_stunTimer.IsRunning && _character.Health.IsAlive;
         private bool _isStun => _stunTimer.IsRunning && _character.Health.IsAlive;
@@ -45,6 +47,7 @@ namespace MortierFu
             // Get required components
             _rb = GetComponent<Rigidbody>();
             _playerInput = GetComponent<PlayerInput>();
+            _strikeAction = _playerInput.actions.FindAction("Strike");
             
             // Set up Timers
             _stunTimer = new CountdownTimer(_stunDuration);
@@ -63,7 +66,7 @@ namespace MortierFu
             
             // Define transitions
             At(stunState, locomotionState, new FuncPredicate(() => !_isStun));
-            At(locomotionState, strikeState, new FuncPredicate(() => _playerInput.actions["Strike"].triggered && _canStrike));
+            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && _canStrike));
             At(strikeState, locomotionState, new FuncPredicate(() => !_strikeTriggerTimer.IsRunning && _character.Health.IsAlive));
             // Si en StrikeState alors pas de AimState
             //At(locomotionState, aimState, new FuncPredicate(() =>)); Si le joueur appuie sur le bouton d'aim
