@@ -51,11 +51,18 @@ namespace MortierFu
         
         public void NotifyImpactAndRecycle(Bombshell bombshell)
         {
+            //GAMEFEEL CALLS
             if (TEMP_FXHandler.Instance)
             {
                 TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
+
+            if (TEMP_CameraShake.Instance)
+            {
+                TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, bombshell.Damage, bombshell.Owner.CharacterStats.ProjectileTimeTravel.Value);
+            }
+            else Logs.LogWarning("No CameraShake");
             
             
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
