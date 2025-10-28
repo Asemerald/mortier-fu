@@ -89,6 +89,8 @@ namespace MortierFu
         void Update()
         {
             _shootStrategy?.Update();
+            
+            AimWidget.transform.localScale = Vector3.one * (CharacterStats.DamageRange.Value *2);
         }
         
         public void Shoot()

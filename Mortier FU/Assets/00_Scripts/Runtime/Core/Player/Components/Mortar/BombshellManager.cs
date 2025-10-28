@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -38,12 +39,34 @@ namespace MortierFu
             Bombshell bombshell = Instantiate(_bombshellPrefab, bombshellData.StartPos, Quaternion.identity, transform);
             bombshell.Initialize(this, bombshellData);
             _activeBombshells.Add(bombshell);
+
+            if (TEMP_FXHandler.Instance)
+            {
+                TEMP_FXHandler.Instance.InstantiatePreview(bombshellData.TargetPos, bombshellData.TravelTime, bombshellData.AoeRange);
+            }
+            else Logs.LogWarning("No FX Handler");
+            
             return bombshell;
         }
         
         public void NotifyImpactAndRecycle(Bombshell bombshell)
         {
+            //GAMEFEEL CALLS
+            if (TEMP_FXHandler.Instance)
+            {
+                TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange);
+            }
+            else Logs.LogWarning("No FX Handler");
+
+            if (TEMP_CameraShake.Instance)
+            {
+                TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, bombshell.Damage, bombshell.Owner.CharacterStats.ProjectileTimeTravel.Value);
+            }
+            else Logs.LogWarning("No CameraShake");
+            
+            
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
+            
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
