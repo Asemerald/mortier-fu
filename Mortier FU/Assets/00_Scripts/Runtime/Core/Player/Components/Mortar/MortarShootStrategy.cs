@@ -38,6 +38,12 @@ namespace MortierFu
         public virtual void DeInitialize()
         { }
         
+        public virtual void BeginAiming()
+        { }
+        
+        public virtual void EndAiming()
+        { }
+        
         public virtual void Update()
         { }
     }

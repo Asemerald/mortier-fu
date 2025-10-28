@@ -33,5 +33,8 @@ namespace MortierFu
         
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);
+        
+        [field: SerializeField, Tooltip("Damage of the melee attack.")]
+        public CharacterStat StrikeDamage { get; private set; } = new(.0f);
     }
 }

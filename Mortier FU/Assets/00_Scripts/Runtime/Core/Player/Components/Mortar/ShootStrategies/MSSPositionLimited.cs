@@ -9,7 +9,7 @@ namespace MortierFu
         public MSSPositionLimited(Mortar mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
         { }
 
-        private bool bShotEnabled;
+        private bool _enableShoot;
         
         public override void Initialize()
         {
@@ -32,7 +32,7 @@ namespace MortierFu
         public override void Update()
         {
             //call shot if bShotEnabled
-            if (bShotEnabled)
+            if (_enableShoot)
             {
                 mortar.Shoot();
             }
@@ -52,14 +52,19 @@ namespace MortierFu
         {
             if (ctx.action.WasPressedThisFrame())
             {
-                bShotEnabled = true;
+                _enableShoot = true;
             }
             
             if(ctx.action.WasReleasedThisFrame())
             {
-                bShotEnabled = false;
+                _enableShoot = false;
             }
             
+        }
+
+        public override void BeginAiming()
+        {
+            _enableShoot = false;
         }
     }
 }

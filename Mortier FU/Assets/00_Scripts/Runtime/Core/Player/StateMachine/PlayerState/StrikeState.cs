@@ -2,20 +2,21 @@ using MortierFu.Shared;
 
 namespace MortierFu
 {
-    public class AimState : BaseState
+    public class StrikeState : BaseState
     {
-        public AimState(PlayerController playerController) : base(playerController) {}
+        public StrikeState(PlayerController playerController) : base(playerController) {}
         
         public override void OnEnter()
         {
-            _playerController.Mortar.BeginAiming();
+            _playerController.EnterStrikeState();
+            
             if(_debug)
-                Logs.Log("Entering Aim State", _playerController.gameObject);
+                Logs.Log("Entering Hit State");
         }
 
         public override void Update()
         {
-            _playerController.Mortar.HandleAimMovement();
+            _playerController.ExecuteStrike();
             _playerController.HandleMovementUpdate();
         }
 
@@ -26,9 +27,10 @@ namespace MortierFu
 
         public override void OnExit()
         {
-            _playerController.Mortar.EndAiming();
-            if(_debug)
-                Logs.Log("Exiting Aim State");
+            _playerController.ExitStrikeState();
+            
+            if(_debug) 
+                Logs.Log("Exiting Hit State");
         }
     }
 }
