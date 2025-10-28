@@ -8,18 +8,16 @@ namespace MortierFu
         
         public override void OnEnter()
         {
+            _playerController.EnterStunState();
+            
             if(_debug)
                 Logs.Log("Entering Stun State");
         }
-
-        public override void Update()
-        {
-            _playerController.HandleStun();
-        }
-
+        
         public override void OnExit()
         {
-            _playerController.EndStun();
+            _playerController.ExitStunState();
+            
             if(_debug) 
                 Logs.Log("Exiting Stun State");
         }
