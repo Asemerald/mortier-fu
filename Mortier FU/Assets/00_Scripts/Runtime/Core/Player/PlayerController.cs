@@ -2,7 +2,6 @@ using UnityEngine.InputSystem;
 using MortierFu.Shared;
 using UnityEngine;
 
-// TODO : Ne vous inquiètez pas je vais refacto un max !
 namespace MortierFu
 {
     // TODO du refacto pour que ça soit mieux.
@@ -105,6 +104,8 @@ namespace MortierFu
             
             if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
             {
+                _stunCountdownTimer.Stop();
+                
                 _stunTriggerTimer.Start();
             }
             
@@ -152,7 +153,7 @@ namespace MortierFu
 
         public void HandleStun()
         {
-           
+            _playerInput.enabled = false;
         }
         
         // StunState methods
@@ -201,6 +202,8 @@ namespace MortierFu
 
         private void ReceiveStun()
         {
+            if (_stunTimer.IsRunning) return;
+            
             _stunTimer.Start();
         }
         
@@ -237,5 +240,33 @@ namespace MortierFu
                 prev = next; 
             } 
         }
+        
+        private void OnDrawGizmos()
+  {
+      Gizmos.color = _debugStunColor;
+
+      if (!(_currentStunDistance > 0f)) return;
+
+      var origin = transform.position;
+      var forward = transform.forward;
+      var halfAngle = _stunAreaAngle * 0.5f;
+      var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward;
+      var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
+
+      Gizmos.DrawLine(origin, origin + leftDir * _currentStunDistance);
+      Gizmos.DrawLine(origin, origin + rightDir * _currentStunDistance);
+
+      var segments = 24;
+      var prev = origin + leftDir * _currentStunDistance;
+      for (var i = 1; i <= segments; i++)
+      {
+          var t = (float)i / segments;
+          var angle = -halfAngle + t * _stunAreaAngle;
+          var dir = Quaternion.Euler(0f, angle, 0f) * forward;
+          var next = origin + dir * _currentStunDistance;
+          Gizmos.DrawLine(prev, next);
+          prev = next;
+      }
+  }
     }
 }
