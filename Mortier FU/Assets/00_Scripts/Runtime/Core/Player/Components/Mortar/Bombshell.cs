@@ -58,7 +58,8 @@ namespace MortierFu
             _data = data;
             _t = 0.0f;
 
-            const float k_height = 10.0f;
+            //Change k_height to be link with projectile travel time
+            /*const*/ float k_height = _data.TravelTime * 8;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
