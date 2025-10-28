@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace MortierFu
 {
+    // TODO du refacto pour que ça soit mieux.
+    // Voir pour le timer du countdown puisque jamais je le stop.
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float _stunAreaAngle = 90f;
@@ -28,8 +30,11 @@ namespace MortierFu
         private CountdownTimer _stunCountdownTimer;
         private CountdownTimer _stunTriggerTimer;
         
-        // Runtime computed stun distance (AvatarSize * multiplier)
         private float _currentStunDistance = 0f;
+        
+        private bool _canStun => !_stunCountdownTimer.IsRunning && !_stunTimer.IsRunning && _character.Health.IsAlive;
+
+        private bool _isStun => _stunTimer.IsRunning && _character.Health.IsAlive;
 
         public SO_CharacterStats CharacterStats { get; private set; }
 
@@ -47,12 +52,6 @@ namespace MortierFu
             _stunCountdownTimer = new CountdownTimer(_stunCooldown);
             _stunTriggerTimer = new CountdownTimer(_stunTriggerDelay);
             
-            _stunTriggerTimer.OnTimerStart += ExecuteStun;
-            _stunTriggerTimer.OnTimerStop -= ExecuteStun;
-            
-            _stunTimer.OnTimerStart += () => Logs.Log($"{name} stunned"); 
-            _stunTimer.OnTimerStop += () => Logs.Log($"{name} stun ended");
-            
             // State Machine
             _stateMachine = new StateMachine();
             
@@ -60,15 +59,18 @@ namespace MortierFu
             var locomotionState = new LocomotionState(this);
             var aimState = new AimState(this);
             var stunState = new StunState(this);
+            var hitState = new HitState(this);
             var deathState = new DeathState(this);
             
             // Define transitions
-            At(stunState, locomotionState, new FuncPredicate(() => !_stunTimer.IsRunning));
+            At(stunState, locomotionState, new FuncPredicate(() => !_isStun));
+            At(locomotionState, hitState, new FuncPredicate(() => _playerInput.actions["Attack"].triggered && _canStun));
+            At(hitState, locomotionState, new FuncPredicate(() => !_stunTriggerTimer.IsRunning && _character.Health.IsAlive));
             //At(locomotionState, aimState, new FuncPredicate(() =>)); Si le joueur appuie sur le bouton d'aim
             //At(aimState, locomotionState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton de tir
-            //At(stunState, aimState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton d'aim et qu'il n'appuie pas sur le bouton de stun
+
             Any(deathState, new FuncPredicate(() => !_character.Health.IsAlive));
-            Any(stunState, new FuncPredicate(() => _stunTimer.IsRunning));
+            Any(stunState, new FuncPredicate(() => _isStun));
             
             // Set initial state
             _stateMachine.SetState(locomotionState);
@@ -76,13 +78,13 @@ namespace MortierFu
         
         void Start()
         {
+            // Get components and update Avatar size
             if (!TryGetComponent(out _character))
             {
                 Logs.LogError("PlayerController requires a Character component on the same GameObject.");
                 return;
             }
             CharacterStats = _character.CharacterStats;
-            // Ensure stun distance is initialized even if the player hasn't moved yet
             UpdateAvatarSize();
         }
 
@@ -98,15 +100,6 @@ namespace MortierFu
         
         private void Update()
         {
-            var attackAction = _playerInput?.actions["Attack"];
-            
-            if (attackAction != null && attackAction.triggered && !_stunCountdownTimer.IsRunning)
-            {
-                _stunCountdownTimer.Stop();
-                
-                _stunTriggerTimer.Start();
-            }
-            
             _stateMachine.Update();
         }
         
@@ -121,6 +114,7 @@ namespace MortierFu
             _currentStunDistance = Mathf.Max(0.01f, CharacterStats.AvatarSize.Value * _stunDistanceMultiplier);
         }
         
+        // LocomotionState methods
         public void HandleMovementFixedUpdate()
         {
             var velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
@@ -142,29 +136,33 @@ namespace MortierFu
             }
         }
 
+        // DeathState methods
         public void HandleDeath()
         {
             _playerInput.enabled = false;
-            Logs.Log("Player has died");
         }
-
-        public void HandleStun()
+        
+        // StunState methods
+        public void EnterStunState()
         {
             _playerInput.enabled = false;
         }
 
-        public void EndStun()
+        public void ExitStunState()
         {
             _playerInput.enabled = true;
             _stunTimer.Stop();
         }
         
-        private void ExecuteStun()
+        // HitState methods
+        public void EnterHitState()
         {
-            if (_stunCountdownTimer.IsRunning) return;
-            
+            _stunTriggerTimer.Start();
             _stunCountdownTimer.Start();
-
+        }
+        
+        public void ExecuteStun()
+        {
             var origin = transform.position;
             var forward = transform.forward;
             var halfAngle = _stunAreaAngle * 0.5f;
@@ -190,39 +188,43 @@ namespace MortierFu
 
         private void ReceiveStun(float damage)
         {
-            if (_stunTimer.IsRunning) return;
-            
             _stunTimer.Start();
             
             // TODO : Appliquer des dégâts via damage et il faut que cela provienne des character stats
         }
         
-        private void OnDrawGizmos()
-  {
-      Gizmos.color = _debugStunColor;
+        public void ExitHitState()
+        {
+            _stunTriggerTimer.Stop();
+        }
 
-      if (!(_currentStunDistance > 0f)) return;
-
-      var origin = transform.position;
-      var forward = transform.forward;
-      var halfAngle = _stunAreaAngle * 0.5f;
-      var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward;
-      var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
-
-      Gizmos.DrawLine(origin, origin + leftDir * _currentStunDistance);
-      Gizmos.DrawLine(origin, origin + rightDir * _currentStunDistance);
-
-      var segments = 24;
-      var prev = origin + leftDir * _currentStunDistance;
-      for (var i = 1; i <= segments; i++)
-      {
-          var t = (float)i / segments;
-          var angle = -halfAngle + t * _stunAreaAngle;
-          var dir = Quaternion.Euler(0f, angle, 0f) * forward;
-          var next = origin + dir * _currentStunDistance;
-          Gizmos.DrawLine(prev, next);
-          prev = next;
-      }
-  }
+        // Debugs
+        private void OnDrawGizmos() 
+        { 
+            Gizmos.color = _debugStunColor;
+            
+            if (!(_currentStunDistance > 0f)) return;
+            
+            var origin = transform.position; 
+            var forward = transform.forward; 
+            var halfAngle = _stunAreaAngle * 0.5f; 
+            var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward; 
+            var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
+            
+            Gizmos.DrawLine(origin, origin + leftDir * _currentStunDistance); 
+            Gizmos.DrawLine(origin, origin + rightDir * _currentStunDistance);
+            
+            var segments = 24; 
+            var prev = origin + leftDir * _currentStunDistance; 
+            for (var i = 1; i <= segments; i++) 
+            { 
+                var t = (float)i / segments; 
+                var angle = -halfAngle + t * _stunAreaAngle; 
+                var dir = Quaternion.Euler(0f, angle, 0f) * forward;
+                var next = origin + dir * _currentStunDistance; 
+                Gizmos.DrawLine(prev, next); 
+                prev = next; 
+            } 
+        }
     }
 }
