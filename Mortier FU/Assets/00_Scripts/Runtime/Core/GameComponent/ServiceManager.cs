@@ -34,6 +34,7 @@ namespace MortierFu
             return Task.CompletedTask;
         }
         
+#if UNITY_EDITOR
         /// <summary>
         /// Check for missing services of type T in _services dictionary.
         /// Optionally filtered by namespace or assembly.
@@ -64,5 +65,6 @@ namespace MortierFu
             }
             return Task.CompletedTask;
         }
+#endif
     }
 }

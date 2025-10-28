@@ -60,9 +60,10 @@ namespace MortierFu
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
             yield return _audioService.LoadBanks(_modService.GetAllModFmodBanks());
             
-            // --- Check for missing services
+#if UNITY_EDITOR
+            // --- Check for missing services (only in editor)
             yield return _serviceManager.CheckForMissingServices<IGameService>();
-            
+#endif
             // --- Load MainMenu Scene
             yield return SceneManager.LoadSceneAsync(scene);
         }
