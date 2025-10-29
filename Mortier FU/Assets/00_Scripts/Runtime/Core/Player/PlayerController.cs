@@ -129,12 +129,12 @@ namespace MortierFu
             _rb.linearVelocity = velocity;
         }
 
-        public void HandleMovementUpdate()
+        public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
         {
             var horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             var vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
             
-            _moveDirection = new Vector2(horizontal, vertical).normalized * CharacterStats.MoveSpeed.Value;
+            _moveDirection = new Vector2(horizontal, vertical).normalized * (CharacterStats.MoveSpeed.Value * factor);
 
             var lookDir = new Vector3(horizontal, 0f, vertical);
             
@@ -146,7 +146,7 @@ namespace MortierFu
 
         // DeathState methods
         public void HandleDeath()
-        {
+        { // TODO: ENZO, NON TOUCHE PAS A CA
             _playerInput.enabled = false;
         }
         
@@ -219,6 +219,11 @@ namespace MortierFu
         {
             Gizmos.color = _debugStrikeColor;
             Gizmos.DrawWireSphere(transform.position, _strikeRadius);
+        }
+
+        public void ResetVelocity()
+        {
+            _rb.linearVelocity = Vector3.zero;
         }
     }
 }

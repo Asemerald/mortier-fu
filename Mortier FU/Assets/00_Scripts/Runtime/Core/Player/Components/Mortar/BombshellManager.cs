@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using MortierFu.Shared;
+using NUnit.Framework.Internal;
 using UnityEngine;
 
 namespace MortierFu
@@ -40,13 +42,19 @@ namespace MortierFu
             bombshell.Initialize(this, bombshellData);
             _activeBombshells.Add(bombshell);
 
-            if (TEMP_FXHandler.Instance)
-            {
-                TEMP_FXHandler.Instance.InstantiatePreview(bombshellData.TargetPos, bombshellData.TravelTime, bombshellData.AoeRange);
-            }
-            else Logs.LogWarning("No FX Handler");
+            StartCoroutine(Test(bombshellData.TravelTime - 0.6f, bombshellData.TargetPos, bombshellData.AoeRange));
             
             return bombshell;
+        }
+
+        private IEnumerator Test(float t, Vector3 pos, float aoeRange)
+        {
+            yield return new WaitForSeconds(t);
+            if (TEMP_FXHandler.Instance)
+            {
+                TEMP_FXHandler.Instance.InstantiatePreview(pos, 0.6f, aoeRange);
+            }
+            else Logs.LogWarning("No FX Handler");
         }
         
         public void NotifyImpactAndRecycle(Bombshell bombshell)

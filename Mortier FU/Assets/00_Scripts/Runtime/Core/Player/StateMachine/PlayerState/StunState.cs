@@ -8,6 +8,7 @@ namespace MortierFu
         
         public override void OnEnter()
         {
+            _playerController.ResetVelocity();
             _playerController.EnterStunState();
             
             if(_debug)
