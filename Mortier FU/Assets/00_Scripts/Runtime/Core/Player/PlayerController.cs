@@ -48,17 +48,17 @@ namespace MortierFu
                 Logs.LogError("PlayerController requires a Character component on the same GameObject.");
                 return;
             }
-            
-            // Set up Timers
-            _stunTimer = new CountdownTimer(CharacterStats.StunDuration.Value);
-            _strikeCooldownTimer = new CountdownTimer(CharacterStats.StrikeCooldown.Value);
-            _strikeTriggerTimer = new CountdownTimer(CharacterStats.StrikeDuration.Value);
         }
         
         void Start() 
         {
             CharacterStats = _character.CharacterStats;
             UpdateAvatarSize();
+            
+            // Set up Timers
+            _stunTimer = new CountdownTimer(CharacterStats.StunDuration.Value);
+            _strikeCooldownTimer = new CountdownTimer(CharacterStats.StrikeCooldown.Value);
+            _strikeTriggerTimer = new CountdownTimer(CharacterStats.StrikeDuration.Value);
             
             // Find the move action from PlayerInput
             var playerInput = _character.PlayerInput;

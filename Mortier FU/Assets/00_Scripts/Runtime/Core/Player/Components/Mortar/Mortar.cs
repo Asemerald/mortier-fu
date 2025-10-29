@@ -14,7 +14,7 @@ namespace MortierFu
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        private Character character;
+        private Character _character;
         private ShootMode _currentShootMode = ShootMode.PositionLimited;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootTimer;
@@ -23,47 +23,28 @@ namespace MortierFu
         public SO_CharacterStats CharacterStats { get; private set; }
         public AimWidget AimWidget { get; private set; }
         
-        // TODO: Remove direct dependency on PlayerInput
-        private PlayerInput _playerInput;
         private InputAction _aimInputAction;
         private InputAction _shootInputAction;
         private InputAction _cycleShootStrategyAction;
-        private InputAction _cycleShootModeAction;
 
         public ShootMode CurrentShootMode => _currentShootMode;
         
         public bool CanShoot => !_shootTimer.IsRunning;
-
-        void Awake()
-        {
-            // TODO: Remove direct dependency on PlayerInput
-            _playerInput = GetComponent<PlayerInput>();
-            _aimInputAction = _playerInput.actions.FindAction("Aim");
-            _shootInputAction = _playerInput.actions.FindAction("Shoot");
-            _cycleShootModeAction = _playerInput.actions.FindAction("CycleShootMode");
-        }
-
-        void OnEnable()
-        {
-            _cycleShootModeAction.performed += ShootModeManager.CycleShootMode;
-        }
-
-        void OnDisable()
-        {
-            _cycleShootModeAction.performed -= ShootModeManager.CycleShootMode;
-        }
-
+        
         void Start()
         {
-            if (!TryGetComponent(out character))
+            if (!TryGetComponent(out _character))
             {
                 Logs.LogError("Mortar requires a Character component on the same GameObject.");
                 return;
             }
-            CharacterStats = character.CharacterStats;
+            CharacterStats = _character.CharacterStats;
+
+            _aimInputAction = _character.PlayerInput.actions.FindAction("Aim");
+            _shootInputAction = _character.PlayerInput.actions.FindAction("Shoot");
             
             AimWidget = Instantiate(_aimWidgetPrefab);
-            AimWidget.GetComponent<Renderer>().material.color = character.PlayerColor;
+            AimWidget.GetComponent<Renderer>().material.color = _character.PlayerColor;
             
             SetShootMode(_currentShootMode);
             
@@ -105,7 +86,7 @@ namespace MortierFu
             
             Bombshell.Data bombshellData = new Bombshell.Data
             {
-                Owner = character,
+                Owner = _character,
                 StartPos = _firePoint.position,
                 TargetPos = AimWidget.transform.position,
                 TravelTime = CharacterStats.ProjectileTimeTravel.Value,

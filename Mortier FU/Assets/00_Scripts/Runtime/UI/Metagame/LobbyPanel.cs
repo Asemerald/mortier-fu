@@ -60,7 +60,8 @@ namespace MortierFu
                         playerSlotTexts[i].text = string.Empty;
                 }
             }
-            startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
+            
+            //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
         }
 
         private void OnStartGameClicked()

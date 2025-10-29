@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace MortierFu
 {
-    [System.Serializable]
+    [Serializable]
     public class Health
     {
         /// Sent every time health changes. Provide the amount of change (positive or negative).
@@ -46,6 +46,8 @@ namespace MortierFu
                 _currentHealth = 0;
                 OnDeath?.Invoke();
             }
+            
+            Debug.Log($"{_currentHealth} / {_maxHealth}");
         }
         
         public void Heal(float amount)

@@ -28,7 +28,7 @@ namespace MortierFu
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
-        public PlayerInput PlayerInput => Owner?.PlayerInput ?? GetComponent<PlayerInput>(); // TODO: TEMPORARY PATCH TO REMOVE
+        public PlayerInput PlayerInput => Owner?.PlayerInput;
 
         /// <summary>
         /// Tells the character who possesses it.
@@ -88,6 +88,7 @@ namespace MortierFu
 
         public void Reset()
         {
+            gameObject.SetActive(true);
             Health.Reset();
         }
         
