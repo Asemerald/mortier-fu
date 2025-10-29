@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using MortierFu.Shared;
-using UnityEngine.InputSystem;
 using UnityEngine;
 using TMPro;
 

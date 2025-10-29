@@ -10,12 +10,25 @@ namespace MortierFu
         [Tooltip("Prefab du personnage à instancier en jeu.")]
         public GameObject playerInGamePrefab;
 
+        public PlayerMetrics Metrics;
         private PlayerInput _playerInput;
         private GameObject _inGameCharacter;
         private bool _isInGame = false;
 
         public PlayerInput PlayerInput => _playerInput;
         public GameObject CharacterGO => _inGameCharacter;
+
+        private Character _character;
+
+        public Character Character
+        {
+            get
+            {
+                _character ??= _inGameCharacter != null ? _inGameCharacter.GetComponent<Character>() : null;
+                return _character;
+            }
+        }
+
         public int PlayerIndex => _playerInput.playerIndex;
         public bool IsInGame => _isInGame;
 
@@ -50,17 +63,12 @@ namespace MortierFu
             if (_inGameCharacter == null && playerInGamePrefab != null)
             {
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
+                Character.Initialize(this);
             }
 
             if (_inGameCharacter != null)
             {
                 _inGameCharacter.SetActive(true);
-                _inGameCharacter.transform.position = spawnPosition;
-
-                if (_inGameCharacter.TryGetComponent(out Character character) && character.Health != null)
-                {
-                    character.Health.Reset();
-                }
 
                 _isInGame = true;
             }
