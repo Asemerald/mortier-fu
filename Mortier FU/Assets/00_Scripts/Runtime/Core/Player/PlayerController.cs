@@ -151,14 +151,10 @@ namespace MortierFu
         }
         
         // StunState methods
-        public void EnterStunState()
-        {
-            _playerInput.enabled = false;
-        }
+        public void EnterStunState() {}
 
         public void ExitStunState()
         {
-            _playerInput.enabled = true;
             _stunTimer.Stop();
         }
         
