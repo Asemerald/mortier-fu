@@ -18,10 +18,12 @@
     {
         Lobby,
         StartGame,
-        StartRound,
+        Round,
         EndRound,
-        StartBonusSelection,
-        EndBonusSelection,
-        EndGame
+        DisplayScores,
+        ShowcaseAugments,
+        AugmentSelection,
+        EndAugmentSelection,
+        EndGame,
     }
 }
