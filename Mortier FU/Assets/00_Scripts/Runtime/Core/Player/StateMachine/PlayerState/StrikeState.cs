@@ -11,7 +11,7 @@ namespace MortierFu
             _playerController.EnterStrikeState();
             
             if(_debug)
-                Logs.Log("Entering Hit State");
+                Logs.Log("Entering Strike State");
         }
 
         public override void Update()
@@ -30,7 +30,7 @@ namespace MortierFu
             _playerController.ExitStrikeState();
             
             if(_debug) 
-                Logs.Log("Exiting Hit State");
+                Logs.Log("Exiting Strike State");
         }
     }
 }
