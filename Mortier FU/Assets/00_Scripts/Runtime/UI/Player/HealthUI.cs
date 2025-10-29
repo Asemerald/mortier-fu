@@ -9,15 +9,15 @@ public class HealthUI : MonoBehaviour
     
     private Camera _mainCamera;
     
-    private Health _health;
+    private HealthCharacterComponent _healthCharacterComponent;
 
     private void OnEnable()
     {
         _mainCamera = Camera.main;
         
-        if (_health != null)
+        if (_healthCharacterComponent != null)
         {
-            _health.OnHealthChanged += OnHealthChanged;
+            _healthCharacterComponent.OnHealthChanged += OnHealthChanged;
         }
         
         UpdateUI();
@@ -25,9 +25,9 @@ public class HealthUI : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_health != null)
+        if (_healthCharacterComponent != null)
         {
-            _health.OnHealthChanged -= OnHealthChanged;
+            _healthCharacterComponent.OnHealthChanged -= OnHealthChanged;
         }
     }
 
@@ -38,23 +38,23 @@ public class HealthUI : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (_healthImage != null && _health != null)
+        if (_healthImage != null && _healthCharacterComponent != null)
         {
-            _healthImage.fillAmount = _health.HealthRatio;
+            _healthImage.fillAmount = _healthCharacterComponent.HealthRatio;
         }
     }
 
-    public void SetHealth(Health newHealth)
+    public void SetHealth(HealthCharacterComponent newHealthCharacterComponent)
     {
-        if (_health != null)
+        if (_healthCharacterComponent != null)
         {
-            _health.OnHealthChanged -= OnHealthChanged;
+            _healthCharacterComponent.OnHealthChanged -= OnHealthChanged;
         }
-        _health = newHealth;
+        _healthCharacterComponent = newHealthCharacterComponent;
         
-        if (_health != null)
+        if (_healthCharacterComponent != null)
         {
-            _health.OnHealthChanged += OnHealthChanged;
+            _healthCharacterComponent.OnHealthChanged += OnHealthChanged;
         }
         UpdateUI();
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MortierFu.Shared;
@@ -7,7 +8,7 @@ using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    public class Character : MonoBehaviour
+    public class Character : MonoBehaviour // TODO: Rename this to PlayerCharacter for conviniency
     {
         [Header("References")]
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
@@ -19,7 +20,7 @@ namespace MortierFu
         
         // Associated Components accessors
         public PlayerManager Owner { get; private set; }
-        public Health Health { get; private set; }
+        public HealthCharacterComponent HealthCharacterComponent { get; private set; }
         public PlayerController Controller { get; private set; }
         public Mortar Mortar { get; private set; }
         
@@ -46,8 +47,9 @@ namespace MortierFu
             // Create a unique instance of CharacterData for this character
             CharacterStats = Instantiate(_characterStatsTemplate);
             
-            // Initialize the health component based on that Data
-            Health = new Health(CharacterStats);
+            // Initialize the character components
+            HealthCharacterComponent = new HealthCharacterComponent(this);
+            HealthCharacterComponent.Initialize();
             
             // Get other components
             Controller = GetComponent<PlayerController>();
@@ -63,7 +65,7 @@ namespace MortierFu
         {
             if (_healthUI != null)
             {
-                _healthUI.SetHealth(Health);
+                _healthUI.SetHealth(HealthCharacterComponent);
             }
             
             // Apply it
@@ -71,6 +73,10 @@ namespace MortierFu
             {
                 rend.material.color = _playerColor;
             }
+        }
+        
+        void OnDestroy() {
+            HealthCharacterComponent.Dispose();
         }
 
         public void AddAugment(DA_Augment augmentData)
@@ -89,7 +95,7 @@ namespace MortierFu
         public void Reset()
         {
             gameObject.SetActive(true);
-            Health.Reset();
+            HealthCharacterComponent.Reset();
         }
         
 #if UNITY_EDITOR

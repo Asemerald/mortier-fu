@@ -83,17 +83,17 @@ namespace MortierFu
                     if(character == bombshell.Owner) 
                         continue; 
                     
-                    if(!character.Health.IsAlive)
+                    if(!character.HealthCharacterComponent.IsAlive)
                         continue;
                     
-                    character.Health.TakeDamage(bombshell.Damage);
+                    character.HealthCharacterComponent.TakeDamage(bombshell.Damage);
                     
                     if (_enableDebug)
                     {
                         Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
                     }
 
-                    if (!character.Health.IsAlive)
+                    if (!character.HealthCharacterComponent.IsAlive)
                     {
                         // TODO: COMPLETE CRAP, PLEASE DO BETTER OR I AM HAVING A HEART ATTACK
                         _gmb ??= FindFirstObjectByType<GameModeHolder>()?.Get();

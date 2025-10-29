@@ -99,7 +99,7 @@ namespace MortierFu
             At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
             At(aimState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
 
-            Any(deathState, new FuncPredicate(() => !_character.Health.IsAlive));
+            Any(deathState, new FuncPredicate(() => !_character.HealthCharacterComponent.IsAlive));
             Any(stunState, new FuncPredicate(() => _stunTimer.IsRunning));
             
             // Set initial state
@@ -203,7 +203,7 @@ namespace MortierFu
                 if (other == this) continue;
 
                 other.ReceiveStun();
-                other._character.Health.TakeDamage(_character.CharacterStats.StrikeDamage.Value);
+                other._character.HealthCharacterComponent.TakeDamage(_character.CharacterStats.StrikeDamage.Value);
              }
         }
 

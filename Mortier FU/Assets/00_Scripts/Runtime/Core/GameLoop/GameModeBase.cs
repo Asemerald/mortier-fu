@@ -127,7 +127,7 @@ namespace MortierFu
                 {
                     if (!member.IsInGame || member.Character == null) continue;
                     
-                    if (member.Character.Health.IsAlive)
+                    if (member.Character.HealthCharacterComponent.IsAlive)
                     {
                         aliveTeam++;
                         if (aliveTeam > 1) return false;
@@ -362,7 +362,7 @@ namespace MortierFu
                 return;
             }
 
-            if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
+            if (victimTeam.Members.All(m => m.Character.HealthCharacterComponent.IsAlive == false))
             {
                 victimTeam.Rank = currentRank;
                 currentRank--;
