@@ -1,34 +1,45 @@
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
 {
+    // TODO du refacto pour que ça soit mieux.
+    // Voir pour le timer du countdown puisque jamais je le stop.
+    // Faire attention au fait que lorsque le joueur rejoint en appuyant sur la touche LEFT BUMPER alors cela fait son strike.
+    // Déplacer dans le Character toute la state machine.
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private float _stunAreaAngle = 90f;
-        [SerializeField] private float _stunDistance = 2f;
-        [SerializeField] private float _stunDamage = 0f;
+        [Header("Strike Parameters"), SerializeField] private float _strikeRadius = 2f;
+        [SerializeField] private float _strikeDuration = 0.2f;
+        [SerializeField] private float _strikeCooldown = 2f;
         
-        [SerializeField] private float _stunDuration = 0.5f;
-        [SerializeField] private float _stunTriggerDelay = 0.2f;
-        [SerializeField] private float _stunCooldown = 2f;
+        [Header("Stun Parameters"), SerializeField] private float _stunDuration = 0.5f;
         
-        [Header("Debug"), SerializeField] private Color _debugStunColor = Color.green;
+        [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
+        
+        private CountdownTimer _strikeCooldownTimer;
+        private CountdownTimer _strikeTriggerTimer;
+        private CountdownTimer _stunTimer;
         
         private Character _character;
-        private Vector3 _moveDirection;
         private PlayerInput _playerInput;
+        private StateMachine _stateMachine;
+        private Mortar _mortar;
+        
+        private Collider[] _overlapBuffer = new Collider[32];
 
         private Rigidbody _rb;
+
+        private Vector3 _moveDirection;
         
-        private StateMachine _stateMachine;
-        
-        private CountdownTimer _stunTimer;
-        private CountdownTimer _stunCountdownTimer;
-        private CountdownTimer _stunTriggerTimer;
+        private InputAction _strikeAction;
+        private InputAction _toggleAimAction;
 
         public SO_CharacterStats CharacterStats { get; private set; }
+        
+        public Mortar Mortar => _mortar;
 
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
@@ -37,15 +48,17 @@ namespace MortierFu
         {
             // Get required components
             _rb = GetComponent<Rigidbody>();
+            
             _playerInput = GetComponent<PlayerInput>();
+            _strikeAction = _playerInput.actions.FindAction("Strike");
+            _toggleAimAction = _playerInput.actions.FindAction("ToggleAim");
+            
+            _mortar = GetComponent<Mortar>();
             
             // Set up Timers
             _stunTimer = new CountdownTimer(_stunDuration);
-            _stunCountdownTimer = new CountdownTimer(_stunCooldown);
-            _stunTriggerTimer = new CountdownTimer(_stunTriggerDelay);
-            
-            _stunTimer.OnTimerStart += () => Logs.Log("stun started");
-            _stunTimer.OnTimerStop += () => Logs.Log("stun ended start countdown");
+            _strikeCooldownTimer = new CountdownTimer(_strikeCooldown);
+            _strikeTriggerTimer = new CountdownTimer(_strikeDuration);
             
             // State Machine
             _stateMachine = new StateMachine();
@@ -54,16 +67,19 @@ namespace MortierFu
             var locomotionState = new LocomotionState(this);
             var aimState = new AimState(this);
             var stunState = new StunState(this);
+            var strikeState = new StrikeState(this);
             var deathState = new DeathState(this);
             
             // Define transitions
-            At(locomotionState, stunState, new FuncPredicate(() => !_stunCountdownTimer.IsRunning));
-            At(stunState, locomotionState, new FuncPredicate(() => !_stunTriggerTimer.IsRunning));
-            //At(locomotionState, aimState, new FuncPredicate(() =>)); Si le joueur appuie sur le bouton d'aim
-            //At(aimState, locomotionState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton de tir
-            //At(stunState, aimState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton d'aim et qu'il n'appuie pas sur le bouton de stun
-            //At(aimState, stunState, new FuncPredicate(() => )); Si le joueur appuie sur le bouton de stun
+            At(stunState, locomotionState, new FuncPredicate(() => !_stunTimer.IsRunning));
+            At(strikeState, locomotionState, new FuncPredicate(() => !_strikeTriggerTimer.IsRunning));
+            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
+            At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
+            At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
+            At(aimState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeCooldownTimer.IsRunning));
+
             Any(deathState, new FuncPredicate(() => !_character.Health.IsAlive));
+            Any(stunState, new FuncPredicate(() => _stunTimer.IsRunning));
             
             // Set initial state
             _stateMachine.SetState(locomotionState);
@@ -71,12 +87,14 @@ namespace MortierFu
         
         void Start()
         {
+            // Get components and update Avatar size
             if (!TryGetComponent(out _character))
             {
                 Logs.LogError("PlayerController requires a Character component on the same GameObject.");
                 return;
             }
             CharacterStats = _character.CharacterStats;
+            UpdateAvatarSize();
         }
 
         private void OnEnable()
@@ -104,6 +122,7 @@ namespace MortierFu
             transform.localScale = Vector3.one * CharacterStats.AvatarSize.Value;
         }
         
+        // LocomotionState methods
         public void HandleMovementFixedUpdate()
         {
             var velocity = new Vector3(_moveDirection.x, _rb.linearVelocity.y, _moveDirection.y);
@@ -112,8 +131,6 @@ namespace MortierFu
 
         public void HandleMovementUpdate()
         {
-            UpdateAvatarSize();
-            
             var horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
             var vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
             
@@ -127,38 +144,81 @@ namespace MortierFu
             }
         }
 
+        // DeathState methods
         public void HandleDeath()
         {
             _playerInput.enabled = false;
-            Logs.Log("Player has died");
         }
         
+        // StunState methods
+        public void EnterStunState() {}
+
+        public void ExitStunState()
+        {
+            _stunTimer.Stop();
+        }
+        
+        // HitState methods
+        public void EnterStrikeState()
+        {
+            _strikeTriggerTimer.Start();
+            //_stunCountdownTimer.Reset();
+            _strikeCooldownTimer.Start();
+        }
+        
+        public void ExecuteStrike()
+        {
+            var origin = transform.position;
+            var count = Physics.OverlapSphereNonAlloc(origin, _strikeRadius, _overlapBuffer);
+
+            // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
+            var processedRoots = new HashSet<GameObject>();
+            
+             for (var i = 0; i < count; i++)
+             {
+                 var hit = _overlapBuffer[i];
+                 if (hit == null) continue;
+
+                 var root = hit.transform.root.gameObject;
+                 
+                 if (!processedRoots.Add(root)) continue;
+
+                if (hit.TryGetComponent(out Bombshell bombshell))
+                {
+                    if (BombshellManager.Instance != null)
+                        BombshellManager.Instance.RecycleBombshell(bombshell);
+                    else
+                        Logs.LogWarning("No BombshellManager instance available to recycle bombshell.");
+
+                    continue;
+                }
+
+                var other = hit.GetComponentInParent<PlayerController>();
+                if (other == null) continue;
+                if (other == this) continue;
+
+                other.ReceiveStun();
+                other._character.Health.TakeDamage(_character.CharacterStats.StrikeDamage.Value);
+             }
+        }
+
+        private void ReceiveStun()
+        {
+            if (_stunTimer.IsRunning) return;
+            
+            _stunTimer.Start();
+        }
+        
+        public void ExitStrikeState()
+        {
+            _strikeTriggerTimer.Stop();
+        }
+
+        // Debugs
         private void OnDrawGizmos()
         {
-            Gizmos.color = _debugStunColor;
-
-            if (!(_stunDistance > 0f)) return;
-
-            var origin = transform.position;
-            var forward = transform.forward;
-            var halfAngle = _stunAreaAngle * 0.5f;
-            var leftDir = Quaternion.Euler(0f, -halfAngle, 0f) * forward;
-            var rightDir = Quaternion.Euler(0f, halfAngle, 0f) * forward;
-
-            Gizmos.DrawLine(origin, origin + leftDir * _stunDistance);
-            Gizmos.DrawLine(origin, origin + rightDir * _stunDistance);
-
-            var segments = 24;
-            var prev = origin + leftDir * _stunDistance;
-            for (var i = 1; i <= segments; i++)
-            {
-                var t = (float)i / segments;
-                var angle = -halfAngle + t * _stunAreaAngle;
-                var dir = Quaternion.Euler(0f, angle, 0f) * forward;
-                var next = origin + dir * _stunDistance;
-                Gizmos.DrawLine(prev, next);
-                prev = next;
-            }
+            Gizmos.color = _debugStrikeColor;
+            Gizmos.DrawWireSphere(transform.position, _strikeRadius);
         }
     }
 }
