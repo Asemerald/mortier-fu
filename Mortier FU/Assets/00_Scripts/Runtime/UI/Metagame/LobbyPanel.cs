@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -66,6 +66,7 @@ namespace MortierFu
         private void OnStartGameClicked()
         {
             //LobbyManager.Instance?.TryStartGame();
+            SceneManager.LoadScene("GameLoop");
         }
     }
 }

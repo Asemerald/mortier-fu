@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using MortierFu.Shared;
-using NUnit.Framework.Internal;
 using UnityEngine;
 
 namespace MortierFu
@@ -16,6 +14,8 @@ namespace MortierFu
 
         [Header("Debugging")]
         [SerializeField] private bool _enableDebug = true;
+
+        private GameModeBase _gmb; // TODO: TEMPORARY
         
         private List<Bombshell> _activeBombshells;
         private Collider[] _impactResults;
@@ -95,7 +95,9 @@ namespace MortierFu
 
                     if (!character.Health.IsAlive)
                     {
-                        GM_Base.Instance.NotifyKillEvent(bombshell.Owner, character);
+                        // TODO: COMPLETE CRAP, PLEASE DO BETTER OR I AM HAVING A HEART ATTACK
+                        _gmb ??= FindFirstObjectByType<GameModeHolder>()?.Get();
+                        _gmb?.NotifyKillEvent(bombshell.Owner, character);
                     }
                 }
             }
