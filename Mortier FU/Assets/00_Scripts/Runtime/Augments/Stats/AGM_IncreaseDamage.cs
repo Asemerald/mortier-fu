@@ -7,12 +7,12 @@
 
         public override void Initialize()
         {
-            stats.Damage.AddModifier(new(10.0f, StatModType.Flat, this));
+            stats.DamageAmount.AddModifier(new(10.0f, StatModType.Flat, this));
         }
 
         public override void DeInitialize()
         {
-            stats.Damage.RemoveAllModifiersFromSource(this);
+            stats.DamageAmount.RemoveAllModifiersFromSource(this);
         }
     }
 }

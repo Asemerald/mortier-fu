@@ -1,6 +1,7 @@
 using System.Numerics;
 using UnityEngine;
 using MortierFu.Shared;
+using PrimeTween;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -19,7 +20,8 @@ public class TEMP_FXHandler : MonoBehaviour
     public void InstantiatePreview(Vector3 position, float travelTime, float range)
     {
         ParticleSystem preview = Instantiate(_bombshellPreview, position + new Vector3(0, 0.1f, 0), Quaternion.identity);
-        preview.transform.localScale = Vector3.one * range *2;
+        preview.transform.localScale = Vector3.zero;
+        Tween.Scale(preview.transform, Vector3.one * (range * 2), duration: 0.5f, ease: Ease.OutCubic);
         var main = preview.main;
         main.simulationSpeed = 1/travelTime;
     }

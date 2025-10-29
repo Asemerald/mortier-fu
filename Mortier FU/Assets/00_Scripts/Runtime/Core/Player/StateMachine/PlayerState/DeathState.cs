@@ -8,16 +8,14 @@ namespace MortierFu
         
         public override void OnEnter()
         {
-            if(_debug) 
-                Logs.Log("Entering Death State");
+            if(_debug) Logs.Log("Entering Death State");
             
-            _playerController.HandleDeath();
+            _playerController.EnterDeathState();
         }
         
         public override void OnExit()
         {
-            if(_debug)
-                Logs.Log("Exiting Death State");
+            if (_debug) Logs.Log("Exiting Death State");
         }
     }
 }

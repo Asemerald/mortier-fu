@@ -17,7 +17,7 @@ namespace MortierFu
         public override void Update()
         {
             _playerController.ExecuteStrike();
-            _playerController.HandleMovementUpdate();
+            _playerController.HandleMovementUpdate(0.2f);
         }
 
         public override void FixedUpdate()

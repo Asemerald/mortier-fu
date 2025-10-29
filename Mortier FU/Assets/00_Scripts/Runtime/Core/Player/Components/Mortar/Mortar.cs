@@ -66,7 +66,7 @@ namespace MortierFu
             
             SetShootMode(_currentShootMode);
             
-            _shootTimer = new CountdownTimer(CharacterStats.AttackSpeed.Value);
+            _shootTimer = new CountdownTimer(CharacterStats.FireRate.Value);
             
             _shootInputAction.Disable();
         }
@@ -106,14 +106,14 @@ namespace MortierFu
                 TargetPos = AimWidget.transform.position,
                 TravelTime = CharacterStats.ProjectileTimeTravel.Value,
                 GravityScale = 1.0f,
-                Damage = CharacterStats.Damage.Value,
+                Damage = CharacterStats.DamageAmount.Value,
                 AoeRange = CharacterStats.DamageRange.Value
             };
             
             var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
-            _shootTimer.Reset(CharacterStats.AttackSpeed.Value);
+            _shootTimer.Reset(CharacterStats.FireRate.Value);
             _shootTimer.Start();
         }
 
