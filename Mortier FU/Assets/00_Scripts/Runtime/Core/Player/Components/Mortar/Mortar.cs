@@ -1,5 +1,6 @@
 using System;
 using MortierFu.Shared;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -69,6 +70,9 @@ namespace MortierFu
             _shootTimer = new CountdownTimer(CharacterStats.FireRate.Value);
             
             _shootInputAction.Disable();
+            
+            //TEMPORARY
+            FindFirstObjectByType<CinemachineTargetGroup>().AddMember(transform, 1, 1);
         }
         
         private void OnDestroy()

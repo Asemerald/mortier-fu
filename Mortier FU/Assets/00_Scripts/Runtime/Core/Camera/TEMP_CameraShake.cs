@@ -20,7 +20,7 @@ public class TEMP_CameraShake : MonoBehaviour
     private float zoomValue;
     
     
-    public float addedFOV;
+    [HideInInspector] public float addedFOV;
     
     private void Awake()
     {
