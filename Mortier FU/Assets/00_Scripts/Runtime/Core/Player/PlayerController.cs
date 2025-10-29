@@ -11,12 +11,6 @@ namespace MortierFu
     // Déplacer dans le Character toute la state machine.
     public class PlayerController : MonoBehaviour
     {
-        [Header("Strike Parameters"), SerializeField] private float _strikeRadius = 2f;
-        [SerializeField] private float _strikeDuration = 0.2f;
-        [SerializeField] private float _strikeCooldown = 2f;
-        
-        [Header("Stun Parameters"), SerializeField] private float _stunDuration = 0.5f;
-        
         [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
         
         private CountdownTimer _strikeCooldownTimer;
@@ -36,6 +30,7 @@ namespace MortierFu
         
         private InputAction _strikeAction;
         private InputAction _toggleAimAction;
+        private InputAction _moveAction;
 
         public SO_CharacterStats CharacterStats { get; private set; }
         
@@ -52,13 +47,14 @@ namespace MortierFu
             _playerInput = GetComponent<PlayerInput>();
             _strikeAction = _playerInput.actions.FindAction("Strike");
             _toggleAimAction = _playerInput.actions.FindAction("ToggleAim");
+            _moveAction = _playerInput.actions.FindAction("Move");
             
             _mortar = GetComponent<Mortar>();
             
             // Set up Timers
-            _stunTimer = new CountdownTimer(_stunDuration);
-            _strikeCooldownTimer = new CountdownTimer(_strikeCooldown);
-            _strikeTriggerTimer = new CountdownTimer(_strikeDuration);
+            _stunTimer = new CountdownTimer(CharacterStats.StunDuration.Value);
+            _strikeCooldownTimer = new CountdownTimer(CharacterStats.StrikeCooldown.Value);
+            _strikeTriggerTimer = new CountdownTimer(CharacterStats.StrikeDuration.Value);
             
             // State Machine
             _stateMachine = new StateMachine();
@@ -131,8 +127,8 @@ namespace MortierFu
 
         public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
         {
-            var horizontal = _playerInput.actions["Move"].ReadValue<Vector2>().x;
-            var vertical = _playerInput.actions["Move"].ReadValue<Vector2>().y;
+            var horizontal = _moveAction.ReadValue<Vector2>().x;
+            var vertical = _moveAction.ReadValue<Vector2>().y;
             
             _moveDirection = new Vector2(horizontal, vertical).normalized * (CharacterStats.MoveSpeed.Value * factor);
 
@@ -145,13 +141,17 @@ namespace MortierFu
         }
 
         // DeathState methods
-        public void HandleDeath()
-        { // TODO: ENZO, NON TOUCHE PAS A CA
-            _playerInput.enabled = false;
+        public void EnterDeathState()
+        {
+            ResetVelocity();
+            gameObject.SetActive(false);
         }
         
         // StunState methods
-        public void EnterStunState() {}
+        public void EnterStunState()
+        {
+            ResetVelocity();
+        }
 
         public void ExitStunState()
         {
@@ -169,7 +169,7 @@ namespace MortierFu
         public void ExecuteStrike()
         {
             var origin = transform.position;
-            var count = Physics.OverlapSphereNonAlloc(origin, _strikeRadius, _overlapBuffer);
+            var count = Physics.OverlapSphereNonAlloc(origin, CharacterStats.StrikeRadius.Value, _overlapBuffer);
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             var processedRoots = new HashSet<GameObject>();
@@ -218,10 +218,10 @@ namespace MortierFu
         private void OnDrawGizmos()
         {
             Gizmos.color = _debugStrikeColor;
-            Gizmos.DrawWireSphere(transform.position, _strikeRadius);
+            Gizmos.DrawWireSphere(transform.position, CharacterStats.StrikeRadius.Value);
         }
 
-        public void ResetVelocity()
+        private void ResetVelocity()
         {
             _rb.linearVelocity = Vector3.zero;
         }

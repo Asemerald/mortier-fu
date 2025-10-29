@@ -7,7 +7,7 @@ namespace MortierFu
     {
         [Header("Character Statistics")]
         [field: SerializeField, Tooltip("Maximum health of the player.")]
-        public CharacterStat MaxHealth { get; private set; } = new(100.0f);
+        public CharacterStat MaxHealth { get; private set; } = new(4.0f);
 
         [field: SerializeField, Tooltip("Base movement speed in units per second.")]
         public CharacterStat MoveSpeed { get; private set; } = new(5.0f);
@@ -17,13 +17,13 @@ namespace MortierFu
         
         [Header("Mortar Statistics")]
         [field: SerializeField, Tooltip("Damage dealt by a single mortar shot.")]
-        public CharacterStat Damage { get; private set; } = new(30.0f);
+        public CharacterStat DamageAmount { get; private set; } = new(1.0f);
         
         [field: SerializeField, Tooltip("Radius of the area-of-effect damage.")]
         public CharacterStat DamageRange { get; private set; } = new(2.0f);
         
         [field: SerializeField, Tooltip("Cooldown between each shot.")]
-        public CharacterStat AttackSpeed { get; private set; } = new(2.0f);
+        public CharacterStat FireRate { get; private set; } = new(2.0f);
         
         [field: SerializeField, Tooltip("Maximum effective range of mortar shots.")]
         public CharacterStat ShotRange { get; private set; } = new(20.0f);
@@ -34,7 +34,22 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);
         
-        [field: SerializeField, Tooltip("Damage of the melee attack.")]
+        [field: SerializeField, Tooltip("Damage of the Strike attack.")]
         public CharacterStat StrikeDamage { get; private set; } = new(.0f);
+        
+        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
+        public CharacterStat StrikeDuration { get; private set; } = new( 0.2f);
+        
+        [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
+        public CharacterStat StrikeCooldown { get; private set; } = new( 2.0f);
+        
+        [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
+        public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
+        
+        [field: SerializeField, Tooltip("Duration of the Stun.")]
+        public CharacterStat StunDuration { get; private set; } = new( 0.5f);
+        
+        [field: SerializeField, Tooltip("Amount of bullets each shot will launch.")]
+        public CharacterStat BulletNumber { get; private set; } = new( 1.0f);
     }
 }
