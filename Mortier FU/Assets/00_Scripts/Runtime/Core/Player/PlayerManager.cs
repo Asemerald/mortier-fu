@@ -59,7 +59,7 @@ namespace MortierFu
 
                 if (_inGameCharacter.TryGetComponent(out Character character) && character.Health != null)
                 {
-                    character.Health.ResetHealth();
+                    character.Health.Reset();
                 }
 
                 _isInGame = true;

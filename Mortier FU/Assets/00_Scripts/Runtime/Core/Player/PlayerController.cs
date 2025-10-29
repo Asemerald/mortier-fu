@@ -18,7 +18,6 @@ namespace MortierFu
         private CountdownTimer _stunTimer;
         
         private Character _character;
-        private PlayerInput _playerInput;
         private StateMachine _stateMachine;
         private Mortar _mortar;
         
@@ -28,9 +27,9 @@ namespace MortierFu
 
         private Vector3 _moveDirection;
         
+        private InputAction _moveAction;
         private InputAction _strikeAction;
         private InputAction _toggleAimAction;
-        private InputAction _moveAction;
 
         public SO_CharacterStats CharacterStats { get; private set; }
         
@@ -41,20 +40,46 @@ namespace MortierFu
         
         private void Awake()
         {
-            // Get required components
             _rb = GetComponent<Rigidbody>();
-            
-            _playerInput = GetComponent<PlayerInput>();
-            _strikeAction = _playerInput.actions.FindAction("Strike");
-            _toggleAimAction = _playerInput.actions.FindAction("ToggleAim");
-            _moveAction = _playerInput.actions.FindAction("Move");
-            
             _mortar = GetComponent<Mortar>();
+            // Get components and update Avatar size
+            if (!TryGetComponent(out _character))
+            {
+                Logs.LogError("PlayerController requires a Character component on the same GameObject.");
+                return;
+            }
             
             // Set up Timers
             _stunTimer = new CountdownTimer(CharacterStats.StunDuration.Value);
             _strikeCooldownTimer = new CountdownTimer(CharacterStats.StrikeCooldown.Value);
             _strikeTriggerTimer = new CountdownTimer(CharacterStats.StrikeDuration.Value);
+        }
+        
+        void Start() 
+        {
+            CharacterStats = _character.CharacterStats;
+            UpdateAvatarSize();
+            
+            // Find the move action from PlayerInput
+            var playerInput = _character.PlayerInput;
+            
+            _moveAction = playerInput.actions.FindAction("Move");
+            if (_moveAction == null)
+            {
+                Logs.LogError("[PlayerController]: 'Move' action not found in PlayerInput actions.");
+            }
+
+            _strikeAction = playerInput.actions.FindAction("Strike");
+            if (_strikeAction == null)
+            {
+                Logs.LogError("[PlayerController]: 'Strike' action not found in PlayerInput actions.");
+            }
+            
+            _toggleAimAction = playerInput.actions.FindAction("ToggleAim");
+            if (_toggleAimAction == null)
+            {
+                Logs.LogError("[PlayerController]: 'ToggleAim' action not found in PlayerInput actions.");
+            }
             
             // State Machine
             _stateMachine = new StateMachine();
@@ -79,28 +104,8 @@ namespace MortierFu
             
             // Set initial state
             _stateMachine.SetState(locomotionState);
-        }
-        
-        void Start()
-        {
-            // Get components and update Avatar size
-            if (!TryGetComponent(out _character))
-            {
-                Logs.LogError("PlayerController requires a Character component on the same GameObject.");
-                return;
-            }
-            CharacterStats = _character.CharacterStats;
-            UpdateAvatarSize();
-        }
-
-        private void OnEnable()
-        {
-            _playerInput.enabled = true;
-        }
-
-        private void OnDisable()
-        {
-            _playerInput.enabled = false;
+            
+            _character.PlayerInput.enabled = true; 
         }
         
         private void Update()

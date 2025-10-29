@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
@@ -11,21 +12,31 @@ namespace MortierFu
         [Header("References")]
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private HealthUI _healthUI;
-        
-        private Color _playerColor;
+        private Color _playerColor; // TODO: Make it cleaner
         
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats CharacterStats { get; private set; }
+        
+        // Associated Components accessors
+        public PlayerManager Owner { get; private set; }
         public Health Health { get; private set; }
+        public PlayerController Controller { get; private set; }
+        public Mortar Mortar { get; private set; }
+        
         public Color PlayerColor => _playerColor;
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
-#if UNITY_EDITOR
-        // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
-        private bool ShouldShowStats => CharacterStats != null;
-#endif
+        public PlayerInput PlayerInput => Owner?.PlayerInput ?? GetComponent<PlayerInput>(); // TODO: TEMPORARY PATCH TO REMOVE
+
+        /// <summary>
+        /// Tells the character who possesses it.
+        /// </summary>
+        public void Initialize(PlayerManager owner)
+        {
+            Owner = owner;
+        }
         
         void Awake()
         {
@@ -38,8 +49,14 @@ namespace MortierFu
             // Initialize the health component based on that Data
             Health = new Health(CharacterStats);
             
+            // Get other components
+            Controller = GetComponent<PlayerController>();
+            Mortar = GetComponent<Mortar>();
+            
             // TEMPORARY: Choose a random color
             _playerColor = ColorUtils.RandomizedHue();
+            
+            // TODO: REMOVE THIS
         }
         
         private void Start()
@@ -69,9 +86,14 @@ namespace MortierFu
             _augments.Clear();
         }
 
-        public void ResetCharacter()
+        public void Reset()
         {
-            Health.ResetHealth();
+            Health.Reset();
         }
+        
+#if UNITY_EDITOR
+        // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
+        private bool ShouldShowStats => CharacterStats != null;
+#endif
     }
 }

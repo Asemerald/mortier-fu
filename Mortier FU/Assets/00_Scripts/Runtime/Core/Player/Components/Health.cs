@@ -54,7 +54,7 @@ namespace MortierFu
             OnHealthChanged?.Invoke(amount);
         }
 
-        public void ResetHealth()
+        public void Reset()
         {
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(_maxHealth);
