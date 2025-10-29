@@ -264,7 +264,7 @@ namespace MortierFu
             for (var i = 0; i < _joinedPlayers.Count; i++)
             { 
                 var cnc = _joinedPlayers[i];
-                cnc.Character.ResetCharacter();
+                cnc.Character.Reset();
                 cnc.PlayerManager.SpawnInGame(_spawnPositions[i]);
             }
         }

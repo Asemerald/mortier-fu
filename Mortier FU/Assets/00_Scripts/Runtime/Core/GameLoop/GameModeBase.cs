@@ -6,8 +6,6 @@ using MortierFu.Shared;
 using Random = UnityEngine.Random;
 using MEC;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
