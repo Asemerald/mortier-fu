@@ -20,7 +20,7 @@ namespace MortierFu
             public float GravityScale;
         
             // Damage
-            public float Damage;
+            public int Damage;
             public float AoeRange;
         }
         
@@ -40,7 +40,7 @@ namespace MortierFu
         private Rigidbody _rb;
 
         public PlayerCharacter Owner => _data.Owner;
-        public float Damage => _data.Damage;
+        public int Damage => _data.Damage;
         public float AoeRange => _data.AoeRange;
 
         public void Initialize(BombshellManager manager, Data data)

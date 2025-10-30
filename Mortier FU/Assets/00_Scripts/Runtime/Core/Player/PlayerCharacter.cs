@@ -53,49 +53,52 @@ namespace MortierFu
             // Assign a random color to the player
             // TODO: Make a better color assignment system - TEMPORARY
             _playerColor = ColorUtils.RandomizedHue();
-            
-            // Initialize character components
-            Health.Initialize();
-            Controller.Initialize();
+            if (TryGetComponent(out Renderer rend))
+            {
+                rend.material.color = _playerColor;
+            }
             
             // Handle augments
             _augments = new List<IAugment>();
             Augments = _augments.AsReadOnly();
             
-            // Enable the PlayerInput
-            PlayerInput.enabled = true;
-        }
-        
-        private void Start()
-        {
             // TODO: Should not be this way around. Inversion of control
             if (_healthUI != null)
             {
                 _healthUI.SetHealth(Health);
             }
-            
-            // TODO: TEMPORARY, follows the color assignment above
-            if (TryGetComponent(out Renderer rend))
-            {
-                rend.material.color = _playerColor;
-            }
+        }
+
+        void Start()
+        {
+            // Initialize character components
+            Health.Initialize();
+            Controller.Initialize();
+            Mortar.Initialize();
         }
         
         public void Reset()
         {
             Health.Reset();
             Controller.Reset();
+            Mortar.Reset();
             gameObject.SetActive(true);
         }
         
         void OnDestroy() {
             Health.Dispose();
             Controller.Dispose();
+            Mortar.Dispose();
         }
 
         public void FindInputAction(string actionName, out InputAction action)
         {
-            action = PlayerInput.actions.FindAction(actionName);
+#if UNITY_EDITOR
+            bool isEditor = true;
+#else
+            bool isEditor = false;
+#endif
+            action = PlayerInput.actions.FindAction(actionName, isEditor);
             if (action == null)
             {
                 Logs.LogError($"[PlayerCharacter]: Input Action '{actionName}' not found in PlayerInput actions.");
@@ -123,24 +126,28 @@ namespace MortierFu
         {
             Health.Update();
             Controller.Update();
+            Mortar.Update();
         }
 
         private void FixedUpdate()
         {
             Health.FixedUpdate();
             Controller.FixedUpdate();
+            Mortar.FixedUpdate();
         }
 
         private void OnDrawGizmos()
         {
             Health?.OnDrawGizmos();
             Controller?.OnDrawGizmos();
+            Mortar?.OnDrawGizmos();
         }
 
         private void OnDrawGizmosSelected()
         {
             Health?.OnDrawGizmosSelected();
             Controller?.OnDrawGizmosSelected();
+            Mortar?.OnDrawGizmosSelected();
         }
         #endregion
         

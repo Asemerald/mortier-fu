@@ -48,9 +48,11 @@ namespace MortierFu
             {
                 renderer.material.color = character.PlayerColor;
             }
-            
-            _shootTimer = new CountdownTimer(Stats.FireRate.Value);
 
+            _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
+            _shootTimer = new CountdownTimer(Stats.FireRate.Value);
+            
+            _shootStrategy.Initialize();
             _shootAction.Disable();
             
             // TODO: Feed this group from the GM
@@ -86,7 +88,7 @@ namespace MortierFu
                 TargetPos = AimWidget.transform.position,
                 TravelTime = Stats.ProjectileTimeTravel.Value,
                 GravityScale = 1.0f,
-                Damage = Stats.DamageAmount.Value,
+                Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
                 AoeRange = Stats.DamageRange.Value
             };
             

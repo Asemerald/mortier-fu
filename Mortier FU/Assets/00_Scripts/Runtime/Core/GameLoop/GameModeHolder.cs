@@ -7,7 +7,7 @@ namespace MortierFu
         [SerializeField] private SO_GameModeData gameModeData;
         private GameModeBase _gm;
 
-        void Awake()
+        void Start()
         {
             _gm = new GM_FFA();
             _gm.GameModeData = gameModeData;

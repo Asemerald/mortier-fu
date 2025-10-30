@@ -20,7 +20,7 @@ namespace MortierFu
 
         private PlayerCharacter _playerCharacter;
 
-        public PlayerCharacter PlayerCharacter
+        public PlayerCharacter Character
         {
             get
             {
@@ -63,7 +63,7 @@ namespace MortierFu
             if (_inGameCharacter == null && playerInGamePrefab != null)
             {
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
-                PlayerCharacter.Initialize(this);
+                Character.Initialize(this);
             }
 
             if (_inGameCharacter != null)

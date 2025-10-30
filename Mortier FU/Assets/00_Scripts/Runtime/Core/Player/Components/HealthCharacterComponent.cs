@@ -9,54 +9,55 @@ namespace MortierFu
         public Action<float> OnHealthChanged;
         public Action OnDeath;
         
-        private int currentHealth;
-        private int maxHealth;
-        
-        public int CurrentHealth => currentHealth;
-        public int MaxHealth => maxHealth;
-        public int HealthRatio => currentHealth / maxHealth;
-        public bool IsAlive => currentHealth > 0;
+        private int _currentHealth;
+        private int _maxHealth;
+
+        public int CurrentHealth => _currentHealth;
+        public int MaxHealth => _maxHealth;
+        public float HealthRatio => Mathf.Clamp01(_currentHealth / (float)_maxHealth);
+        public bool IsAlive => _currentHealth > 0;
 
         public HealthCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
         {
-            maxHealth = 0;
-            currentHealth = 0;
+            _maxHealth = 1;
+            _currentHealth = 1;
         }
 
         public override void Initialize()
         {
-            maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
-            currentHealth = maxHealth;
+            _maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
+            _currentHealth = _maxHealth;
         }
         
-        public void TakeDamage(float amount)
+        public void TakeDamage(int amount)
         {
             // Cannot take damage if already dead
             if (!IsAlive)
                 return;
             
-            currentHealth = Mathf.RoundToInt(Mathf.Clamp(currentHealth - amount, 0f, maxHealth));
+            _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth));
             OnHealthChanged?.Invoke(-amount);
             
             if (!IsAlive)
             {
-                currentHealth = 0;
+                _currentHealth = 0;
                 OnDeath?.Invoke();
             }
-            
-            Debug.Log($"{currentHealth} / {maxHealth}");
         }
         
         public void Heal(float amount)
         {
-            currentHealth = Mathf.RoundToInt(Mathf.Clamp(currentHealth + amount, 0f, maxHealth));
+            _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth));
             OnHealthChanged?.Invoke(amount);
         }
 
-        public void Reset()
+        public override void Reset()
         {
-            currentHealth = maxHealth;
-            OnHealthChanged?.Invoke(maxHealth);
+            _currentHealth = _maxHealth;
+            OnHealthChanged?.Invoke(_maxHealth);
         }
+
+        public override void Dispose()
+        { }
     }
 }

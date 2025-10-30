@@ -100,7 +100,7 @@ namespace MortierFu
                 {
                     Vector3 spawnPosition = Random.insideUnitSphere.With(y: 1f).normalized * 10;
                     member.SpawnInGame(spawnPosition);
-                    member.PlayerCharacter.transform.position = spawnPosition;
+                    member.Character.transform.position = spawnPosition;
                 }
             }
         }
@@ -125,9 +125,9 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    if (!member.IsInGame || member.PlayerCharacter == null) continue;
+                    if (!member.IsInGame || member.Character == null) continue;
                     
-                    if (member.PlayerCharacter.Health.IsAlive)
+                    if (member.Character.Health.IsAlive)
                     {
                         aliveTeam++;
                         if (aliveTeam > 1) return false;
@@ -166,7 +166,7 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    member.PlayerCharacter.Reset();
+                    member.Character.Reset();
                 }
             }
         }
@@ -362,7 +362,7 @@ namespace MortierFu
                 return;
             }
 
-            if (victimTeam.Members.All(m => m.PlayerCharacter.Health.IsAlive == false))
+            if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
             {
                 victimTeam.Rank = currentRank;
                 currentRank--;

@@ -166,8 +166,9 @@ namespace MortierFu
                 if (other == null) continue;
                 if (other == character) continue;
 
+                int strikeDamage = Mathf.RoundToInt(Stats.StrikeDamage.Value);
+                other.Health.TakeDamage(strikeDamage);
                 other.Controller.ReceiveStun();
-                other.Health.TakeDamage(Stats.StrikeDamage.Value);
              }
         }
 
@@ -197,6 +198,8 @@ namespace MortierFu
         
         private void InitStateMachine()
         {
+            _stateMachine = new StateMachine();
+            
             // Declare States
             var locomotionState = new LocomotionState(character);
             var aimState = new AimState(character);
