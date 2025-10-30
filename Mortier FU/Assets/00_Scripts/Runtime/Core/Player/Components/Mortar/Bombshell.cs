@@ -35,6 +35,7 @@ namespace MortierFu
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
+        private bool _exploded; // Temp fix
 
         private BombshellManager _manager;
         private Rigidbody _rb;
@@ -57,6 +58,7 @@ namespace MortierFu
 
             _data = data;
             _t = 0.0f;
+            _exploded = false;
 
             //Change k_height to be link with projectile travel time
             /*const*/ float k_height = _data.TravelTime * 8;
@@ -79,6 +81,8 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
+            if (_exploded) return;
+            _exploded = true;
             // Notify impact & recycle the bombshell
             _manager.NotifyImpactAndRecycle(this);
         }

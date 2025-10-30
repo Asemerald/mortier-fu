@@ -70,10 +70,6 @@ namespace MortierFu
             _augments = new List<IAugment>();
             Augments = _augments.AsReadOnly();
             
-            // Find and cache Input Actions
-            FindInputAction("Strike", out _strikeAction);
-            FindInputAction("ToggleAim", out _toggleAimAction);
-            
             InitStateMachine();
             
             // TODO: Should not be this way around. Inversion of control
@@ -85,6 +81,10 @@ namespace MortierFu
 
         void Start()
         {
+            // Find and cache Input Actions
+            FindInputAction("Strike", out _strikeAction);
+            FindInputAction("ToggleAim", out _toggleAimAction);
+            
             // Initialize character components
             Health.Initialize();
             Controller.Initialize();
@@ -118,7 +118,7 @@ namespace MortierFu
             
             // Define transitions
             At(_stunState, locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(strikeState, locomotionState, new FuncPredicate(() => !strikeState.IsFinished));
+            At(strikeState, locomotionState, new FuncPredicate(() => strikeState.IsFinished));
             At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !strikeState.InCooldown));
             At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
