@@ -28,7 +28,8 @@ namespace MortierFu
             _strikeCooldownTimer.Start();
             _strikeTriggerTimer.Start();
             
-            if(debug)
+            TEMP_FXHandler.Instance.InstantiateStrikeFX(_playerController.transform, _playerController.CharacterStats.StrikeRadius.Value);
+            if(_debug)
                 Logs.Log("Entering Strike State");
         }
 
