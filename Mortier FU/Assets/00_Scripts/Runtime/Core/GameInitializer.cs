@@ -29,6 +29,11 @@ namespace MortierFu
         private GameInstance _gameInstance;
         private LobbyService _lobbyService;
         
+#if UNITY_EDITOR
+        [Header("Debug")]
+        public bool isPortableBootstrap = false;
+#endif  
+        
         //private float _progress = 0f;
 
         private void Awake()
@@ -63,6 +68,12 @@ namespace MortierFu
 #if UNITY_EDITOR
             // --- Check for missing services (only in editor)
             yield return _serviceManager.CheckForMissingServices<IGameService>();
+            
+            if (isPortableBootstrap)
+            {
+                // Stay in current Scene
+                yield break;
+            }
 #endif
             // --- Load MainMenu Scene
             yield return SceneManager.LoadSceneAsync(scene);

@@ -11,6 +11,7 @@ public class TEMP_FXHandler : MonoBehaviour
     
     [SerializeField] private ParticleSystem _bombshellPreview;
     [SerializeField] private ParticleSystem _bombshellExplosion;
+    [SerializeField] private ParticleSystem _strike;
     
     private void Awake()
     {
@@ -31,5 +32,11 @@ public class TEMP_FXHandler : MonoBehaviour
         ParticleSystem preview = Instantiate(_bombshellExplosion, new Vector3(position.x, 0.5f, position.z), Quaternion.identity);
         preview.transform.localScale = Vector3.one * range *0.8f;
     }
-    
+
+    public void InstantiateStrikeFX(Vector3 position, float size)
+    {
+        ParticleSystem strikeFX = Instantiate(_strike, position, Quaternion.identity);
+        strikeFX.transform.localScale = Vector3.one * size;
+    }
+
 }

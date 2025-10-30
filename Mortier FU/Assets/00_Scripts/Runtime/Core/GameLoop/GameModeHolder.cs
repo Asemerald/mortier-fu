@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace MortierFu
 {
@@ -11,6 +12,10 @@ namespace MortierFu
         {
             _gm = new GM_FFA();
             _gm.GameModeData = gameModeData;
+#if UNITY_EDITOR
+            GameInitializer initializer = FindObjectOfType<GameInitializer>();
+            if (initializer != null && initializer.isPortableBootstrap) return;
+#endif
             _gm.Initialize();
             _gm.StartGame();
         }
@@ -19,5 +24,18 @@ namespace MortierFu
         {
             return _gm;
         }
+        
+#if UNITY_EDITOR
+        bool _initialized = false;
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.L) && !_initialized)
+            {
+                _gm.Initialize();
+                _gm.StartGame();
+                _initialized = true;
+            }
+        }
+#endif
     }
 }
