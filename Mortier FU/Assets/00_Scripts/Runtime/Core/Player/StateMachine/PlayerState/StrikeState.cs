@@ -10,6 +10,10 @@ namespace MortierFu
         {
             _playerController.EnterStrikeState();
             
+            //Call FX 
+            TEMP_FXHandler.Instance.InstantiateStrikeFX(_playerController.transform, _playerController.CharacterStats.StrikeRadius.Value);
+
+            
             if(_debug)
                 Logs.Log("Entering Strike State");
         }

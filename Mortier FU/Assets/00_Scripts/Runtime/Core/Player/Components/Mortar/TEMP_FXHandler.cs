@@ -33,9 +33,9 @@ public class TEMP_FXHandler : MonoBehaviour
         preview.transform.localScale = Vector3.one * range *0.8f;
     }
 
-    public void InstantiateStrikeFX(Vector3 position, float size)
+    public void InstantiateStrikeFX(Transform player, float size)
     {
-        ParticleSystem strikeFX = Instantiate(_strike, position, Quaternion.identity);
+        ParticleSystem strikeFX = Instantiate(_strike, player);
         strikeFX.transform.localScale = Vector3.one * size;
     }
 
