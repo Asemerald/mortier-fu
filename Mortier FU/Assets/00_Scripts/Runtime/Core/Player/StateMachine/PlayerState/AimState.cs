@@ -1,34 +1,33 @@
 using MortierFu.Shared;
-using UnityEngine;
 
 namespace MortierFu
 {
     public class AimState : BaseState
     {
-        public AimState(PlayerCharacter character) : base(character) {}
+        public AimState(PlayerController playerController) : base(playerController) {}
         
         public override void OnEnter()
         {
-            character.Mortar.BeginAiming();
-            if(debug)
-                Logs.Log("Entering Aim State", character.gameObject);
+            _playerController.Mortar.BeginAiming();
+            if(_debug)
+                Logs.Log("Entering Aim State", _playerController.gameObject);
         }
 
         public override void Update()
         {
-            character.Mortar.HandleAimMovement();
-            character.Controller.HandleMovementUpdate(0.5f);
+            _playerController.Mortar.HandleAimMovement();
+            _playerController.HandleMovementUpdate(0.5f);
         }
 
         public override void FixedUpdate()
         {
-            character.Controller.HandleMovementFixedUpdate();
+            _playerController.HandleMovementFixedUpdate();
         }
 
         public override void OnExit()
         {
-            character.Mortar.EndAiming();
-            if(debug)
+            _playerController.Mortar.EndAiming();
+            if(_debug)
                 Logs.Log("Exiting Aim State");
         }
     }
