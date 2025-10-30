@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace MortierFu
 {
@@ -10,15 +9,22 @@ namespace MortierFu
         public Action<float> OnHealthChanged;
         public Action OnDeath;
         
-        protected int currentHealth;
-        protected int maxHealth;
+        private int currentHealth;
+        private int maxHealth;
         
         public int CurrentHealth => currentHealth;
         public int MaxHealth => maxHealth;
         public int HealthRatio => currentHealth / maxHealth;
         public bool IsAlive => currentHealth > 0;
 
-        public HealthCharacterComponent(Character character) : base(character) {
+        public HealthCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
+        {
+            maxHealth = 0;
+            currentHealth = 0;
+        }
+
+        public override void Initialize()
+        {
             maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
             currentHealth = maxHealth;
         }

@@ -4,21 +4,21 @@ namespace MortierFu
 {
     public class StunState : BaseState
     {
-        public StunState(PlayerController playerController) : base(playerController) {}
+        public StunState(PlayerCharacter character) : base(character) {}
         
         public override void OnEnter()
         {
-            _playerController.EnterStunState();
+            character.Controller.EnterStunState();
             
-            if(_debug)
+            if(debug)
                 Logs.Log("Entering Stun State");
         }
 
         public override void OnExit()
         {
-            _playerController.ExitStunState();
+            character.Controller.ExitStunState();
             
-            if(_debug) 
+            if(debug) 
                 Logs.Log("Exiting Stun State");
         }
     }

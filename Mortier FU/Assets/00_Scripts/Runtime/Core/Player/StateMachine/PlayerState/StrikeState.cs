@@ -4,32 +4,32 @@ namespace MortierFu
 {
     public class StrikeState : BaseState
     {
-        public StrikeState(PlayerController playerController) : base(playerController) {}
+        public StrikeState(PlayerCharacter character) : base(character) {}
         
         public override void OnEnter()
         {
-            _playerController.EnterStrikeState();
+            character.Controller.EnterStrikeState();
             
-            if(_debug)
+            if(debug)
                 Logs.Log("Entering Strike State");
         }
 
         public override void Update()
         {
-            _playerController.ExecuteStrike();
-            _playerController.HandleMovementUpdate(0.2f);
+            character.Controller.ExecuteStrike();
+            character.Controller.HandleMovementUpdate(0.2f);
         }
 
         public override void FixedUpdate()
         {
-            _playerController.HandleMovementFixedUpdate();
+            character.Controller.HandleMovementFixedUpdate();
         }
 
         public override void OnExit()
         {
-            _playerController.ExitStrikeState();
+            character.Controller.ExitStrikeState();
             
-            if(_debug) 
+            if(debug) 
                 Logs.Log("Exiting Strike State");
         }
     }

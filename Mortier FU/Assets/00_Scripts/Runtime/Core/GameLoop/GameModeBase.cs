@@ -100,7 +100,7 @@ namespace MortierFu
                 {
                     Vector3 spawnPosition = Random.insideUnitSphere.With(y: 1f).normalized * 10;
                     member.SpawnInGame(spawnPosition);
-                    member.Character.transform.position = spawnPosition;
+                    member.PlayerCharacter.transform.position = spawnPosition;
                 }
             }
         }
@@ -125,9 +125,9 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    if (!member.IsInGame || member.Character == null) continue;
+                    if (!member.IsInGame || member.PlayerCharacter == null) continue;
                     
-                    if (member.Character.HealthCharacterComponent.IsAlive)
+                    if (member.PlayerCharacter.Health.IsAlive)
                     {
                         aliveTeam++;
                         if (aliveTeam > 1) return false;
@@ -166,7 +166,7 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    member.Character.Reset();
+                    member.PlayerCharacter.Reset();
                 }
             }
         }
@@ -347,10 +347,10 @@ namespace MortierFu
         }
         
         // TODO: Can be improved ?
-        public virtual void NotifyKillEvent(Character killerCharacter, Character victimCharacter)
+        public virtual void NotifyKillEvent(PlayerCharacter killerPlayerCharacter, PlayerCharacter victimPlayerCharacter)
         {
-            var killer = killerCharacter.Owner;
-            var victim = victimCharacter.Owner;
+            var killer = killerPlayerCharacter.Owner;
+            var victim = victimPlayerCharacter.Owner;
             
             killer.Metrics.RoundKills += 1;
             
@@ -362,7 +362,7 @@ namespace MortierFu
                 return;
             }
 
-            if (victimTeam.Members.All(m => m.Character.HealthCharacterComponent.IsAlive == false))
+            if (victimTeam.Members.All(m => m.PlayerCharacter.Health.IsAlive == false))
             {
                 victimTeam.Rank = currentRank;
                 currentRank--;

@@ -5,7 +5,7 @@ namespace MortierFu
 {
     public class MSSPositionFree : MortarShootStrategy
     {
-        public MSSPositionFree(Mortar mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
+        public MSSPositionFree(MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
         { }
 
         public override void Initialize()

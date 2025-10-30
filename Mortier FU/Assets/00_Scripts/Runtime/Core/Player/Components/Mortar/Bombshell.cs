@@ -10,7 +10,7 @@ namespace MortierFu
         public struct Data
         {
             // Meta
-            public Character Owner;
+            public PlayerCharacter Owner;
         
             // Movement
             public Vector3 StartPos;
@@ -39,7 +39,7 @@ namespace MortierFu
         private BombshellManager _manager;
         private Rigidbody _rb;
 
-        public Character Owner => _data.Owner;
+        public PlayerCharacter Owner => _data.Owner;
         public float Damage => _data.Damage;
         public float AoeRange => _data.AoeRange;
 

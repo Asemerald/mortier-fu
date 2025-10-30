@@ -1,25 +1,31 @@
 using System;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu {
     public abstract class CharacterComponent : IDisposable {
-        protected readonly Character character;
+        protected readonly PlayerCharacter character;
 
-        public Character Character => character;
-        public PlayerInput PlayerInput => Character.PlayerInput;
-        public SO_CharacterStats Stats => Character.CharacterStats;
+        public PlayerCharacter Character => character;
+        public PlayerInput PlayerInput => character.PlayerInput;
+        public SO_CharacterStats Stats => character.CharacterStats;
         
-        protected CharacterComponent(Character character) {
-            if (character == null) {
+        protected CharacterComponent(PlayerCharacter playerCharacter) {
+            if (playerCharacter == null) {
                 Logs.LogError("Trying to create a character component for a null character!");
                 return;
             }
 
-            this.character = character;
+            this.character = playerCharacter;
         }
 
         public virtual void Initialize() { }
+        public virtual void Update() { }
+        public virtual void FixedUpdate() { }
+        public virtual void OnDrawGizmos() { }
+        public virtual void OnDrawGizmosSelected() { }
+        public virtual void Reset() { }
         public virtual void Dispose() { }
     }
 }

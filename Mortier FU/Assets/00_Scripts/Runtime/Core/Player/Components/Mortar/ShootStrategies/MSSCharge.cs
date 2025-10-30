@@ -13,7 +13,7 @@ namespace MortierFu
         private float _currentCharge;
         private Vector2 _currentAimInput;
 
-        public MSSCharge(Mortar mortar, InputAction aimAction, InputAction shootAction, float chargeSpeed = 1.0f) :
+        public MSSCharge(MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction, float chargeSpeed = 1.0f) :
             base(mortar, aimAction, shootAction)
         {
             _chargeSpeed = chargeSpeed;
@@ -26,7 +26,7 @@ namespace MortierFu
         {
             aimWidget.IsActive = false;
             aimWidget.AttachedToTarget = true;
-            aimWidget.Target = mortar.transform;
+            aimWidget.Target = mortar.Character.transform;
             aimWidget.SetRelativePosition(Vector3.zero);
             aimWidget.Hide();
             

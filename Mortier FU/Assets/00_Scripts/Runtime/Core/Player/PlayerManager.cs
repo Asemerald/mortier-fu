@@ -18,14 +18,14 @@ namespace MortierFu
         public PlayerInput PlayerInput => _playerInput;
         public GameObject CharacterGO => _inGameCharacter;
 
-        private Character _character;
+        private PlayerCharacter _playerCharacter;
 
-        public Character Character
+        public PlayerCharacter PlayerCharacter
         {
             get
             {
-                _character ??= _inGameCharacter != null ? _inGameCharacter.GetComponent<Character>() : null;
-                return _character;
+                _playerCharacter ??= _inGameCharacter != null ? _inGameCharacter.GetComponent<PlayerCharacter>() : null;
+                return _playerCharacter;
             }
         }
 
@@ -63,7 +63,7 @@ namespace MortierFu
             if (_inGameCharacter == null && playerInGamePrefab != null)
             {
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
-                Character.Initialize(this);
+                PlayerCharacter.Initialize(this);
             }
 
             if (_inGameCharacter != null)

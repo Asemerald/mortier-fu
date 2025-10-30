@@ -13,27 +13,27 @@ namespace MortierFu
     
     public class AugmentSelectionState : BaseState
     {
-        public AugmentSelectionState(PlayerController playerController) : base(playerController) {}
+        public AugmentSelectionState(PlayerCharacter character) : base(character) {}
         
         public override void OnEnter()
         {
-            if(_debug)
+            if(debug)
                 Logs.Log("Entering AugmentSelectionState");
         }
 
         public override void Update()
         {
-            _playerController.HandleMovementUpdate();
+            character.Controller.HandleMovementUpdate();
         }
 
         public override void FixedUpdate()
         {
-            _playerController.HandleMovementFixedUpdate();
+            character.Controller.HandleMovementFixedUpdate();
         }
 
         public override void OnExit()
         {
-            if(_debug) 
+            if(debug) 
                 Logs.Log("Exiting AugmentSelectionState");
         }
     }

@@ -11,7 +11,7 @@ namespace MortierFu
         void OnRoundStart(int roundIndex);
         void OnShoot(Vector3 targetPos);
         void OnImpact(Vector3 impactPos);
-        void OnKill(Character killedCharacter);
+        void OnKill(PlayerCharacter killedPlayerCharacter);
         void OnDeath();
     }
 }

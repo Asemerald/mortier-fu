@@ -2,7 +2,7 @@
 {
     public static class AugmentFactory
     {
-        public static IAugment Create(DA_Augment augment, Character owner)
+        public static IAugment Create(DA_Augment augment, PlayerCharacter owner)
         {
             if (augment == null || augment.AugmentType.Type == null)
             {

@@ -4,18 +4,18 @@ namespace MortierFu
 {
     public class DeathState : BaseState
     {
-        public DeathState(PlayerController playerController) : base(playerController) {}
+        public DeathState(PlayerCharacter character) : base(character) {}
         
         public override void OnEnter()
         {
-            if(_debug) Logs.Log("Entering Death State");
+            if(debug) Logs.Log("Entering Death State");
             
-            _playerController.EnterDeathState();
+            character.Controller.EnterDeathState();
         }
         
         public override void OnExit()
         {
-            if (_debug) Logs.Log("Exiting Death State");
+            if (debug) Logs.Log("Exiting Death State");
         }
     }
 }

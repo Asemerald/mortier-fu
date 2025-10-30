@@ -1,12 +1,11 @@
-﻿using MortierFu.Shared;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
     public class MSSPositionLimited : MortarShootStrategy
     {
-        public MSSPositionLimited(Mortar mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
+        public MSSPositionLimited(MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction) : base(mortar, aimAction, shootAction)
         { }
 
         private bool _enableShoot;
@@ -15,8 +14,8 @@ namespace MortierFu
         {
             aimWidget.IsActive = true;
             aimWidget.AttachedToTarget = true;
-            aimWidget.Target = mortar.transform;
-            aimWidget.SetRelativePosition(mortar.transform.forward * (CharacterStats.ShotRange.Value * 0.5f));
+            aimWidget.Target = mortar.Character.transform;
+            aimWidget.SetRelativePosition(mortar.Character.transform.forward * (CharacterStats.ShotRange.Value * 0.5f));
             aimWidget.Show();
             
             // Bind to actions

@@ -2,32 +2,22 @@ using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    public enum ShootMode
-    {
-        PositionLimited,
-        PositionFree,
-        DirectionMaxDistanceOnly,
-        DirectionLimited,
-        Charge,
-        DirectionAutoTarget
-    }
-    
     public abstract class MortarShootStrategy // MSS
     {
-        protected readonly Mortar mortar;
+        protected readonly MortarCharacterComponent mortar;
         protected readonly AimWidget aimWidget;
-        protected readonly SO_CharacterStats CharacterStats;
         protected readonly InputAction aimAction;
         protected readonly InputAction shootAction;
 
         protected const float k_minAimInputLength = 0.0001f;
         protected const float k_aimDeadZone = 0.2f;
+
+        protected SO_CharacterStats CharacterStats => mortar.Character.CharacterStats;
         
-        protected MortarShootStrategy(Mortar mortar, InputAction aimAction, InputAction shootAction)
+        protected MortarShootStrategy(MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction)
         {
             this.mortar = mortar;
             this.aimWidget = mortar.AimWidget;
-            this.CharacterStats = mortar.CharacterStats;
             this.aimAction = aimAction;
             this.shootAction = shootAction;
         }
@@ -50,7 +40,7 @@ namespace MortierFu
 
     public static class MortarShootStrategyFactory
     {
-        public static MortarShootStrategy Create(ShootMode mode, Mortar mortar, InputAction aimAction, InputAction shootAction)
+        public static MortarShootStrategy Create(ShootMode mode, MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction)
         {
             return mode switch
             {
@@ -63,5 +53,15 @@ namespace MortierFu
                 _ => throw new System.ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
         }
+    }
+    
+    public enum ShootMode
+    {
+        PositionLimited,
+        PositionFree,
+        DirectionMaxDistanceOnly,
+        DirectionLimited,
+        Charge,
+        DirectionAutoTarget
     }
 }

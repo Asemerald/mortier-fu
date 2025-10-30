@@ -78,22 +78,22 @@ namespace MortierFu
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
-                if(hit.TryGetComponent(out Character character)) {
+                if(hit.TryGetComponent(out PlayerCharacter character)) {
                     // Prevent self-damage
                     if(character == bombshell.Owner) 
                         continue; 
                     
-                    if(!character.HealthCharacterComponent.IsAlive)
+                    if(!character.Health.IsAlive)
                         continue;
                     
-                    character.HealthCharacterComponent.TakeDamage(bombshell.Damage);
+                    character.Health.TakeDamage(bombshell.Damage);
                     
                     if (_enableDebug)
                     {
                         Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
                     }
 
-                    if (!character.HealthCharacterComponent.IsAlive)
+                    if (!character.Health.IsAlive)
                     {
                         // TODO: COMPLETE CRAP, PLEASE DO BETTER OR I AM HAVING A HEART ATTACK
                         _gmb ??= FindFirstObjectByType<GameModeHolder>()?.Get();

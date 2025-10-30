@@ -2,13 +2,13 @@ namespace MortierFu
 {
     public abstract class BaseState : IState
     {
-        protected readonly PlayerController _playerController;
+        protected readonly PlayerCharacter character;
 
-        protected bool _debug = false;
+        protected bool debug = false;
         
-        protected BaseState(PlayerController playerController)
+        protected BaseState(PlayerCharacter character)
         {
-            _playerController = playerController;
+            this.character = character;
         }
         
         public virtual void OnEnter() {}

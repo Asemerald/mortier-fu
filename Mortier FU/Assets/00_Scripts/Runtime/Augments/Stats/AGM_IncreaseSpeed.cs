@@ -2,7 +2,7 @@
 {
     public class AGM_IncreaseSpeed : AugmentBase
     {
-        public AGM_IncreaseSpeed(DA_Augment augmentData, Character owner) : base(augmentData, owner)
+        public AGM_IncreaseSpeed(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

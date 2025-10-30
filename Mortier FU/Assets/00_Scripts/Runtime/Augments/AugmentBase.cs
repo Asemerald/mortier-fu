@@ -5,12 +5,12 @@ namespace MortierFu
     public abstract class AugmentBase : IAugment 
     {
         protected DA_Augment augmentData;
-        protected Character owner;
+        protected PlayerCharacter owner;
         protected SO_CharacterStats stats;
 
-        public Character Owner => owner;
+        public PlayerCharacter Owner => owner;
         
-        public AugmentBase(DA_Augment augmentData, Character owner)
+        public AugmentBase(DA_Augment augmentData, PlayerCharacter owner)
         {
             this.augmentData = augmentData;
             this.owner = owner;
@@ -32,7 +32,7 @@ namespace MortierFu
         public virtual void OnImpact(Vector3 impactPos)
         { }
 
-        public virtual void OnKill(Character killedCharacter)
+        public virtual void OnKill(PlayerCharacter killedPlayerCharacter)
         { }
 
         public virtual void OnDeath()

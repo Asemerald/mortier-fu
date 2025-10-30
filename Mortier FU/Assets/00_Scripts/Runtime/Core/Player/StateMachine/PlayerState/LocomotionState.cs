@@ -4,27 +4,27 @@ namespace MortierFu
 {
     public class LocomotionState : BaseState
     {
-        public LocomotionState(PlayerController playerController) : base(playerController) {}
+        public LocomotionState(PlayerCharacter character) : base(character) {}
 
         public override void OnEnter()
         {
-            if(_debug) 
+            if(debug) 
                 Logs.Log("Entering Locomotion State");
         }
         
         public override void Update()
         {
-            _playerController.HandleMovementUpdate();
+            character.Controller.HandleMovementUpdate();
         }
 
         public override void FixedUpdate()
         {
-            _playerController.HandleMovementFixedUpdate();
+            character.Controller.HandleMovementFixedUpdate();
         }
         
         public override void OnExit()
         {
-            if(_debug)
+            if(debug)
                 Logs.Log("Exiting Locomotion State");
         }
     }

@@ -2,7 +2,7 @@
 {
     public class AGM_IncreaseDamage : AugmentBase
     {
-        public AGM_IncreaseDamage(DA_Augment augmentData, Character owner) : base(augmentData, owner)
+        public AGM_IncreaseDamage(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()
