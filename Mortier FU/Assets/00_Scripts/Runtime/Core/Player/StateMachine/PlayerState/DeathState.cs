@@ -10,7 +10,8 @@ namespace MortierFu
         {
             if(debug) Logs.Log("Entering Death State");
             
-            character.Controller.EnterDeathState();
+            character.Controller.ResetVelocity();
+            character.gameObject.SetActive(false);
         }
         
         public override void OnExit()

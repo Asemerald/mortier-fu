@@ -13,7 +13,7 @@ namespace MortierFu
             _gm = new GM_FFA();
             _gm.GameModeData = gameModeData;
 #if UNITY_EDITOR
-            GameInitializer initializer = FindObjectOfType<GameInitializer>();
+            GameInitializer initializer = FindFirstObjectByType<GameInitializer>();
             if (initializer != null && initializer.isPortableBootstrap) return;
 #endif
             _gm.Initialize();
