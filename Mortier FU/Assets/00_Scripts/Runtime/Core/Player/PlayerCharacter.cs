@@ -15,7 +15,13 @@ namespace MortierFu
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
         [SerializeField] private HealthUI _healthUI;
+        
         private Color _playerColor; // TODO: Make it cleaner
+        
+        private StateMachine _stateMachine;
+        
+        private InputAction _strikeAction;
+        private InputAction _toggleAimAction;
         
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
@@ -29,6 +35,8 @@ namespace MortierFu
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
+        
+        private StunState _stunState;
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
 
@@ -46,7 +54,7 @@ namespace MortierFu
             Health = new HealthCharacterComponent(this);
             Controller = new ControllerCharacterComponent(this);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
-
+            
             // Create a unique instance of CharacterData for this character
             CharacterStats = Instantiate(_characterStatsTemplate);
             
@@ -61,6 +69,12 @@ namespace MortierFu
             // Handle augments
             _augments = new List<IAugment>();
             Augments = _augments.AsReadOnly();
+            
+            // Find and cache Input Actions
+            FindInputAction("Strike", out _strikeAction);
+            FindInputAction("ToggleAim", out _toggleAimAction);
+            
+            InitStateMachine();
             
             // TODO: Should not be this way around. Inversion of control
             if (_healthUI != null)
@@ -91,6 +105,37 @@ namespace MortierFu
             Mortar.Dispose();
         }
 
+        private void InitStateMachine()
+        {
+            _stateMachine = new StateMachine();
+            
+            // Declare States
+            var locomotionState = new LocomotionState(this);
+            var aimState = new AimState(this);
+            _stunState = new StunState(this);
+            var strikeState = new StrikeState(this);
+            var deathState = new DeathState(this);
+            
+            // Define transitions
+            At(_stunState, locomotionState, new FuncPredicate(() => !_stunState.IsActive));
+            At(strikeState, locomotionState, new FuncPredicate(() => !strikeState.IsFinished));
+            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !strikeState.InCooldown));
+            At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
+            At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
+            At(aimState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !strikeState.InCooldown));
+
+            Any(deathState, new FuncPredicate(() => !Health.IsAlive));
+            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
+            
+            // Set initial state
+            _stateMachine.SetState(locomotionState);
+        }
+
+        public void ReceiveStun(float duration)
+        {
+            _stunState.ReceiveStun(duration);
+        }
+        
         public void FindInputAction(string actionName, out InputAction action)
         {
 #if UNITY_EDITOR
@@ -124,6 +169,8 @@ namespace MortierFu
         #region Propagate Unity messages to character components
         private void Update()
         {
+            _stateMachine.Update();
+            
             Health.Update();
             Controller.Update();
             Mortar.Update();
@@ -131,6 +178,8 @@ namespace MortierFu
 
         private void FixedUpdate()
         {
+            _stateMachine.FixedUpdate();
+            
             Health.FixedUpdate();
             Controller.FixedUpdate();
             Mortar.FixedUpdate();
@@ -150,6 +199,9 @@ namespace MortierFu
             Mortar?.OnDrawGizmosSelected();
         }
         #endregion
+        
+        private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
+        private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
         
 #if UNITY_EDITOR
         // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
