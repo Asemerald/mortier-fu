@@ -78,7 +78,7 @@ public class TEMP_CameraHandler : MonoBehaviour
         }
         else
         {
-            hideTarget = Vector3.zero;
+            hideTarget = new Vector3(0, -10, 0);
         }
     }
 }
