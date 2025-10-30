@@ -9,7 +9,7 @@ public class TEMP_CameraHandler : MonoBehaviour
     private TEMP_CameraShake cameraShake;
     [Space(10)]
     
-    [SerializeField] private CinemachineTargetGroup _targetGroup;
+    public CinemachineTargetGroup _targetGroup;
     [SerializeField] private Transform _target;
     
     private float playerDist;

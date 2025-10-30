@@ -411,6 +411,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::Character
   _characterStatsTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
+  _healthUI: {fileID: 8537908433334717502}
+  _cooldownUI: {fileID: 7893736277061628718}
+  <CharacterStats>k__BackingField: {fileID: 0}
+--- !u!114 &1420642191809473458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa6100515e40ccc42a31f493f23f5e88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::PlayerController
+  _debugStrikeColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &8390863107016301744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5739bf13260fe84449953768feed04b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Mortar
   _aimWidgetPrefab: {fileID: 5943473467255466114, guid: 004830d94ece65d4e91b896b0d48cd78, type: 3}
   _firePoint: {fileID: 1982637571052939492}
   _healthUI: {fileID: 8537908433334717502}
@@ -775,7 +803,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.5, y: 0}
+  m_AnchoredPosition: {x: 1.3, y: 0}
   m_SizeDelta: {x: 0.6, y: 0.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5922137711149675776
@@ -811,7 +839,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 0
+  m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
@@ -1146,8 +1174,9 @@ GameObject:
   - component: {fileID: 1180964438684887850}
   - component: {fileID: 620909259747276926}
   - component: {fileID: 8537908433334717502}
+  - component: {fileID: 7893736277061628718}
   m_Layer: 0
-  m_Name: PlayerHealthCanvas
+  m_Name: PlayerCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1252,3 +1281,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::HealthUI
   _healthCanvas: {fileID: 7408792819646505458}
   _healthImage: {fileID: 2969421163642841229}
+--- !u!114 &7893736277061628718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818452316734459944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4dba5536eac82f43b3449d7200323a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::CooldownUI
+  _strikeCdImage: {fileID: 8238866083974387399}
