@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
-using FMODUnity;
 using UnityEngine.AddressableAssets;
 
 namespace MortierFu
@@ -23,10 +23,12 @@ namespace MortierFu
                 Directory.CreateDirectory(modsFolder);
         }
 
-        public virtual void Initialize()
+        public Task OnInitialize()
         {
             ScanMods();
             LoadMods();
+            
+            return Task.CompletedTask;
         }
 
         public void Tick()
@@ -37,6 +39,8 @@ namespace MortierFu
                     mod.instance.ModUpdate();
             }
         }
+
+        public bool IsInitialized { get; set; }
 
         public void Dispose()
         {

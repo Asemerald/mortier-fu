@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,11 +22,14 @@ namespace MortierFu
         public event Action<int, InputDevice> OnDeviceUnregistered;
         public event Action<int, InputDevice> OnDeviceDisconnected;
         public event Action<int, InputDevice> OnDeviceReconnected;
-
-        public void Initialize()
+        
+        public Task OnInitialize()
         {
             InputSystem.onDeviceChange += HandleDeviceChange;
+            return Task.CompletedTask;
         }
+
+        public bool IsInitialized { get; set; }
 
         public void Dispose()
         {

@@ -1,11 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FMODUnity;
 using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace MortierFu
 {
@@ -44,5 +42,12 @@ namespace MortierFu
             }
             Banks.Clear();
         }
+
+        public Task OnInitialize()
+        {
+            return Task.CompletedTask;
+        }
+
+        public bool IsInitialized { get; set; }
     }
 }

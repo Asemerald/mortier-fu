@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using FMODUnity;
 
@@ -8,19 +9,20 @@ namespace MortierFu.Services
 {
     public class ModLoaderService : IGameService
     {
-        private readonly ModService modService;
+        private ModService modService;
         private readonly List<AssetBundle> loadedBundles = new();
         private readonly List<FMOD.Studio.Bank> loadedBanks = new();
 
         public float Progress { get; private set; }
 
-        public ModLoaderService(ModService modService)
+        public Task OnInitialize()
         {
-            this.modService = modService;
+            modService = ServiceManager.Instance.Get<ModService>();
+            return Task.CompletedTask;
         }
 
-        public void Initialize() { }
         public void Tick() { }
+        public bool IsInitialized { get; set; }
         public void Dispose() { }
 
         public IEnumerator LoadAllModResources()

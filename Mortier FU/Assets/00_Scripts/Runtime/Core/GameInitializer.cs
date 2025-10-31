@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
-using System.Reflection;
+﻿using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using MortierFu.Services;
-using MortierFu.Shared;
 using NaughtyAttributes;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -22,6 +16,7 @@ namespace MortierFu
         public GameConfig config;
 
         private ServiceManager _serviceManager;
+        private SystemManager _systemManager;
         private ModService _modService;
         private ModLoaderService _loaderService;
         private AudioService _audioService;
@@ -45,11 +40,13 @@ namespace MortierFu
         private void Update()
         {
             _serviceManager?.Tick();
+            _systemManager?.Tick();
         }
 
         private IEnumerator InitializeRoutine()
         {
-            _serviceManager = new ServiceManager();
+            _serviceManager = new ServiceManager(this);
+            _systemManager = new SystemManager(this);
             
             yield return InitializeGameService();
             
@@ -84,7 +81,7 @@ namespace MortierFu
         {
             // --- Instantiate core services
             _modService = new ModService();
-            _loaderService = new ModLoaderService(_modService);
+            _loaderService = new ModLoaderService();
             _audioService = new AudioService();
             _deviceService = new DeviceService();
             _gameInstance = new GameInstance();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -66,5 +67,12 @@ namespace MortierFu
         }
 
         public IReadOnlyList<PlayerManager> GetPlayers() => _players.AsReadOnly();
+
+        public Task OnInitialize()
+        {
+            return Task.CompletedTask;
+        }
+
+        public bool IsInitialized { get; set; }
     }
 }

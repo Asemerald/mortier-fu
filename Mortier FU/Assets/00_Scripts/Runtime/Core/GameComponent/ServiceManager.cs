@@ -8,22 +8,29 @@ namespace MortierFu
 {
     public class ServiceManager : GameComponentManager
     {
-        public static ServiceManager Instance { get; private set; } = new ServiceManager();
+        public GameInitializer GameInitializer { get; private set; }
         
-        public Task Initialize()
+        public static ServiceManager Instance { get; private set; }
+
+        public ServiceManager(GameInitializer gameInitializer)
+        {
+            GameInitializer = gameInitializer;
+        }
+        
+        public async Task Initialize()
         {
             Instance = this;
             
             try
             {
-                foreach (var system in _services.Values) system.Initialize();
-                Logs.Log($"[GameSystems] Initialized {_services.Count} services.");
+                foreach (var system in _components.Values) await system.Initialize();
+                Logs.Log($"[GameSystems] Initialized {_components.Count} services.");
             }
             catch (Exception e)
             {
                 // Debug wich system failed to initialize
                 Logs.LogError($"[GameSystems] Initialization failed: {e.Message}");
-                foreach (var system in _services)
+                foreach (var system in _components)
                     if (system.Value == null)
                         Logs.LogError($"[GameSystems] System {system.Key.Name} is null.");
                     else
@@ -31,8 +38,9 @@ namespace MortierFu
 
                 throw;
             }
-            return Task.CompletedTask;
         }
+        
+        public static GameConfig Config => Instance.GameInitializer.config;
         
 #if UNITY_EDITOR
         /// <summary>
@@ -58,7 +66,7 @@ namespace MortierFu
             foreach (var type in types)
             {
                 // if type not in _services, log warning
-                if (!_services.ContainsKey(type))
+                if (!_components.ContainsKey(type))
                 {
                     Logs.LogWarning($"[ServiceManager] Missing service of type {type.FullName}");
                 }

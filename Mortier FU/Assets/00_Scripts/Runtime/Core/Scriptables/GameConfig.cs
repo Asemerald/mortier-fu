@@ -8,8 +8,7 @@ public class GameConfig : ScriptableObject
     [Header("Core FMOD Banks")] public AssetReference[] fmodBanks;
 
     [Header("Optional global assets")]
+    public AssetReference AugmentPickupPrefab;
     public List<AssetReference> globalPrefabs = new List<AssetReference>();
     public List<Texture> globalTextures = new List<Texture>();
-    
-    
 }

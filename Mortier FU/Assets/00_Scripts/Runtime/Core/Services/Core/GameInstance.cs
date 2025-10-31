@@ -1,4 +1,6 @@
-﻿namespace MortierFu
+﻿using System.Threading.Tasks;
+
+namespace MortierFu
 {
     public class GameInstance : IGameService
     {
@@ -12,6 +14,13 @@
         {
             
         }
+
+        public Task OnInitialize()
+        {
+            return Task.CompletedTask;
+        }
+
+        public bool IsInitialized { get; set; }
     }
     
     public enum GameState

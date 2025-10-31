@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using MortierFu.Shared;
 
 namespace MortierFu
@@ -11,13 +12,21 @@ namespace MortierFu
         /// <summary>
         /// Method to call to initialize the service
         /// </summary>
-        void Initialize()
-        { }
+        async Task Initialize()
+        {
+            IsInitialized = true;
+            await OnInitialize();
+        }
+
+        Task OnInitialize();
 
         /// <summary>
         ///  Method to call every frame to update the service
         /// </summary>
-        void Tick() {}
+        void Tick() 
+        { }
+        
+        bool IsInitialized { get; set; }
     }
     /// <summary>
     /// For services that should be unique and persist across scenes (e.g., AudioService, InputService).
