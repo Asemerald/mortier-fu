@@ -82,10 +82,16 @@ namespace MortierFu
                     continue;
                 }
                 
-                // ajout breakable
+                // TEMP ajout breakable
                 if (hit.TryGetComponent(out Breakable breakable))
                 {
                     breakable.DestroyObject(1);
+                    continue;
+                }
+                // TEMP ajout Moveable
+                if (hit.TryGetComponent(out Movable movable))
+                {
+                    movable.InteratableMove();
                     continue;
                 }
 
