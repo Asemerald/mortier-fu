@@ -68,7 +68,7 @@ namespace MortierFu
 
             if (TEMP_CameraShake.Instance)
             {
-                TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, bombshell.Damage, bombshell.Owner.CharacterStats.ProjectileTimeTravel.Value);
+                TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, bombshell.Damage * 30, bombshell.Owner.CharacterStats.ProjectileTimeTravel.Value);
             }
             else Logs.LogWarning("No CameraShake");
             
