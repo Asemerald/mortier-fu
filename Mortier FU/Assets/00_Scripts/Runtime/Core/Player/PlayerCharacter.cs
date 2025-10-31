@@ -15,6 +15,7 @@ namespace MortierFu
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
         [SerializeField] private HealthUI _healthUI;
+        [SerializeField] private CooldownUI _cooldownUI;
         
         private Color _playerColor; // TODO: Make it cleaner
         
@@ -37,9 +38,12 @@ namespace MortierFu
         public ReadOnlyCollection<IAugment> Augments;
         
         private StunState _stunState;
+        private StrikeState _strikeState;
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
 
+        public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
+        
         /// <summary>
         /// Tells the character who possesses it.
         /// </summary>
@@ -77,6 +81,11 @@ namespace MortierFu
             {
                 _healthUI.SetHealth(Health);
             }
+            
+            if (_cooldownUI != null)
+            {
+                _cooldownUI.SetCharacter(this);
+            }
         }
 
         void Start()
@@ -89,6 +98,8 @@ namespace MortierFu
             Health.Initialize();
             Controller.Initialize();
             Mortar.Initialize();
+            
+            
         }
         
         public void Reset()
@@ -113,16 +124,16 @@ namespace MortierFu
             var locomotionState = new LocomotionState(this);
             var aimState = new AimState(this);
             _stunState = new StunState(this);
-            var strikeState = new StrikeState(this);
+            _strikeState = new StrikeState(this);
             var deathState = new DeathState(this);
             
             // Define transitions
             At(_stunState, locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(strikeState, locomotionState, new FuncPredicate(() => strikeState.IsFinished));
-            At(locomotionState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !strikeState.InCooldown));
+            At(_strikeState, locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
+            At(locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
             At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, strikeState, new FuncPredicate(() => _strikeAction.triggered && !strikeState.InCooldown));
+            At(aimState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));

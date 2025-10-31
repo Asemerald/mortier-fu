@@ -33,7 +33,7 @@ namespace MortierFu
                 return;
             }
             
-            AimWidget = Object.Instantiate(aimWidgetPrefab); // Load via Addressable ?
+            AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable ?
             _firePoint = firePoint;
         }
 
@@ -55,8 +55,7 @@ namespace MortierFu
             _shootStrategy.Initialize();
             _shootAction.Disable();
             
-            // TODO: Feed this group from the GM
-            // FindFirstObjectByType<CinemachineTargetGroup>().AddMember(transform, 1, 1);
+            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1);
         }
 
         public override void Reset()

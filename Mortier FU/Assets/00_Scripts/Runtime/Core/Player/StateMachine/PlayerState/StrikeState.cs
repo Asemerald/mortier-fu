@@ -14,6 +14,8 @@ namespace MortierFu
         public bool InCooldown => _strikeCooldownTimer.IsRunning;
         public bool IsFinished => _strikeTriggerTimer.IsFinished;
         
+        public float StrikeCooldownProgress => _strikeCooldownTimer.Progress;
+        
         public StrikeState(PlayerCharacter character) : base(character)
         {
             _strikeCooldownTimer = new CountdownTimer(0f);
@@ -28,8 +30,8 @@ namespace MortierFu
             _strikeCooldownTimer.Start();
             _strikeTriggerTimer.Start();
             
-            TEMP_FXHandler.Instance.InstantiateStrikeFX(_playerController.transform, _playerController.CharacterStats.StrikeRadius.Value);
-            if(_debug)
+            TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.CharacterStats.StrikeRadius.Value);
+            if(debug)
                 Logs.Log("Entering Strike State");
         }
 

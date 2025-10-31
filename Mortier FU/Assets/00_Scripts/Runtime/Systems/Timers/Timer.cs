@@ -11,7 +11,7 @@ namespace MortierFu {
         public bool IsRunning { get; private set; }
 
 
-        public virtual float Progress => Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
+        public virtual float Progress => InitialTime == 0f ? 0 : Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
         
         public Action OnTimerStart = delegate { };
         public Action OnTimerStop = delegate { };

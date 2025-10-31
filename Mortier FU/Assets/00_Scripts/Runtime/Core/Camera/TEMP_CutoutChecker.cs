@@ -38,9 +38,4 @@ public class TEMP_CutoutChecker : MonoBehaviour
             }
         }
     }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawRay(_camera.transform.position, (transform.position - _camera.transform.position).normalized * 1000);
-    }
 }
