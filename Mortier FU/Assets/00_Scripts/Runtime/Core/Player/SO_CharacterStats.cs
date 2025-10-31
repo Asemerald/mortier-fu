@@ -9,8 +9,14 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Maximum health of the player.")]
         public CharacterStat MaxHealth { get; private set; } = new(4.0f);
 
-        [field: SerializeField, Tooltip("Base movement speed in units per second.")]
+        [field: SerializeField, Tooltip("Maximum move speed in units per second.")]
         public CharacterStat MoveSpeed { get; private set; } = new(5.0f);
+        
+        [field: SerializeField, Tooltip("The greater the acceleration, the faster the character reaches the move speed.")]
+        public CharacterStat MoveAcceleration { get; private set; } = new(6.0f);
+        
+        [field: SerializeField, Tooltip("The greater the drag, the faster the character stops moving.")]
+        public CharacterStat MoveDrag { get; private set; } = new(4.0f);
         
         [field: SerializeField, Tooltip("Scale applied to the player avatar.")]
         public CharacterStat AvatarSize { get; private set; } = new(1.0f);

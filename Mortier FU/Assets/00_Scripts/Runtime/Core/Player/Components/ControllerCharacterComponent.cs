@@ -6,19 +6,14 @@ namespace MortierFu
 {
     public class ControllerCharacterComponent : CharacterComponent
     {
-        [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
-
-        protected Rigidbody rigidbody;
-
-        private Vector3 _moveDirection;
-        
+        private readonly Rigidbody _rigidbody; 
         private InputAction _moveAction;
 
         public ControllerCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
         {
             if (playerCharacter == null) return;
             
-            if (!playerCharacter.TryGetComponent(out rigidbody))
+            if (!playerCharacter.TryGetComponent(out _rigidbody))
             {
                 Logs.LogError("[PlayerController]: Rigidbody component is required and missing.");
                 return;
@@ -28,7 +23,14 @@ namespace MortierFu
         public override void Initialize()
         {
             character.FindInputAction("Move", out _moveAction);
-            
+
+            UpdateAvatarSize();
+        }
+
+        public override void Update()
+        {
+            // Update the linear damping
+            _rigidbody.linearDamping = Stats.MoveDrag.Value;
             UpdateAvatarSize();
         }
 
@@ -38,49 +40,55 @@ namespace MortierFu
         public override void Dispose()
         { }
         
-        public override void Update()
-        { }
-        
-        public override void FixedUpdate()
-        { }
+        /// <summary>
+        /// Should be called in the FixedUpdate
+        /// </summary>
+        public void HandleMovement() // TODO: Implement Speed factor to limit speed during certain actions by a given amount
+        {
+            // Read input
+            Vector2 inputVector = _moveAction.ReadValue<Vector2>();
+            if (inputVector == Vector2.zero) return;
 
-        private void UpdateAvatarSize()
-        {
-            character.transform.localScale = Vector3.one * Stats.AvatarSize.Value;
-        }
-        
-        // LocomotionState methods
-        public void HandleMovementFixedUpdate()
-        {
-            var velocity = new Vector3(_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
-            rigidbody.linearVelocity = velocity;
+            float acceleration = Stats.MoveAcceleration.Value;
+            Vector3 accelerationVector = new Vector3(inputVector.x, 0f, inputVector.y).normalized * acceleration;
+            _rigidbody.AddForce(accelerationVector, ForceMode.Force);
+            
+            LimitVelocity();
         }
 
-        public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
+        private void LimitVelocity()
         {
-            var horizontal = _moveAction.ReadValue<Vector2>().x;
-            var vertical = _moveAction.ReadValue<Vector2>().y;
-            
-            _moveDirection = new Vector2(horizontal, vertical).normalized * (Stats.MoveSpeed.Value * factor);
-
-            var lookDir = new Vector3(horizontal, 0f, vertical);
-            
-            if (lookDir.sqrMagnitude > 0.001f)
+            Vector3 groundVelocity = _rigidbody.linearVelocity.With(y: 0f);
+            float maxSpeed = Stats.MoveSpeed.Value;
+            if (groundVelocity.magnitude > maxSpeed)
             {
-                character.transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+                Vector3 clampedGroundVelocity = groundVelocity.normalized * maxSpeed;
+                _rigidbody.linearVelocity = clampedGroundVelocity.With(y: _rigidbody.linearVelocity.y);
+                Logs.Log($"[ControllerCharacterComponent]: Clamping velocity to max speed {_rigidbody.linearVelocity.magnitude}.");
             }
         }
         
-        // Debugs
-        public override void OnDrawGizmos()
+        /// <summary>
+        /// Should be called in the FixedUpdate
+        /// </summary>
+        public void HandleRotation()
         {
-            Gizmos.color = _debugStrikeColor;
-            Gizmos.DrawWireSphere(character.transform.position, Stats.StrikeRadius.Value);
+            Vector3 groundVelocity = _rigidbody.linearVelocity.With(y: 0f);
+            if (groundVelocity.sqrMagnitude < 0.01f) return;
+
+            Quaternion lookRotation = Quaternion.LookRotation(groundVelocity.normalized, Vector3.up);
+            _rigidbody.MoveRotation(lookRotation);
         }
 
         public void ResetVelocity()
         {
-            rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.linearVelocity = Vector3.zero;
+        }
+
+        private void UpdateAvatarSize()
+        {
+            float scale = Stats.AvatarSize.Value;
+            character.transform.localScale = Vector3.one * scale;
         }
     }
 }

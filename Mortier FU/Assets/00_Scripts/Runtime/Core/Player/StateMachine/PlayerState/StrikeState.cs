@@ -35,14 +35,10 @@ namespace MortierFu
                 Logs.Log("Entering Strike State");
         }
 
-        public override void Update()
-        {
-            character.Controller.HandleMovementUpdate(0.2f);
-        }
-
         public override void FixedUpdate()
         {
-            character.Controller.HandleMovementFixedUpdate();
+            character.Controller.HandleMovement();
+            character.Controller.HandleRotation();
             
             ExecuteStrike();
         }

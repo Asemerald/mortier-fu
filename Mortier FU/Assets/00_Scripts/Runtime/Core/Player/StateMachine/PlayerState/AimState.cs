@@ -17,12 +17,12 @@ namespace MortierFu
         public override void Update()
         {
             character.Mortar.HandleAimMovement();
-            character.Controller.HandleMovementUpdate(0.5f);
         }
 
         public override void FixedUpdate()
         {
-            character.Controller.HandleMovementFixedUpdate();
+            character.Controller.HandleMovement();
+            character.Controller.HandleRotation();
         }
 
         public override void OnExit()

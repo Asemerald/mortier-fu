@@ -30,21 +30,21 @@ namespace MortierFu
 
         public override void Update()
         {
-            //call shot if bShotEnabled
+            Vector2 aimInput = aimAction.ReadValue<Vector2>();
+
+            if (aimInput.sqrMagnitude >= k_minAimInputLength)
+            {
+                Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
+                Vector3 newPos = aimWidget.RelativePosition + offset;
+                newPos = Vector3.ClampMagnitude(newPos, CharacterStats.ShotRange.Value);
+                aimWidget.SetRelativePosition(newPos);   
+            }
+            
+            // call shot if bShotEnabled
             if (_enableShoot)
             {
                 mortar.Shoot();
             }
-            
-            Vector2 aimInput = aimAction.ReadValue<Vector2>();
-            
-            if (aimInput.sqrMagnitude < k_minAimInputLength)
-                return;
-            
-            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
-            Vector3 newPos = aimWidget.RelativePosition + offset;
-            newPos = Vector3.ClampMagnitude(newPos, CharacterStats.ShotRange.Value);
-            aimWidget.SetRelativePosition(newPos);
         }
         
         private void OnShoot(InputAction.CallbackContext ctx)

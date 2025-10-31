@@ -11,15 +11,11 @@ namespace MortierFu
             if(debug) 
                 Logs.Log("Entering Locomotion State");
         }
-        
-        public override void Update()
-        {
-            character.Controller.HandleMovementUpdate();
-        }
 
         public override void FixedUpdate()
         {
-            character.Controller.HandleMovementFixedUpdate();
+            character.Controller.HandleMovement();
+            character.Controller.HandleRotation();
         }
         
         public override void OnExit()
