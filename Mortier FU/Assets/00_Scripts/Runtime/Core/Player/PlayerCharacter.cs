@@ -9,6 +9,11 @@ namespace MortierFu
 {
     public class PlayerCharacter : MonoBehaviour
     {
+        /// <summary>
+        /// Set by the game mode when gameplay actions are allowed or not.
+        /// </summary>
+        public static bool AllowGameplayActions { get; set; }
+        
         [Header("References")]
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [Space]
@@ -36,7 +41,8 @@ namespace MortierFu
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
-        
+
+        private LocomotionState _locomotionState;
         private StunState _stunState;
         private StrikeState _strikeState;
 
@@ -98,8 +104,6 @@ namespace MortierFu
             Health.Initialize();
             Controller.Initialize();
             Mortar.Initialize();
-            
-            
         }
         
         public void Reset()
@@ -108,6 +112,7 @@ namespace MortierFu
             Controller.Reset();
             Mortar.Reset();
             gameObject.SetActive(true);
+            _stateMachine.SetState(_locomotionState);
         }
         
         void OnDestroy() {
@@ -121,25 +126,25 @@ namespace MortierFu
             _stateMachine = new StateMachine();
             
             // Declare States
-            var locomotionState = new LocomotionState(this);
+            _locomotionState = new LocomotionState(this);
             var aimState = new AimState(this);
             _stunState = new StunState(this);
             _strikeState = new StrikeState(this);
             var deathState = new DeathState(this);
             
             // Define transitions
-            At(_stunState, locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(_strikeState, locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
-            At(locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
-            At(locomotionState, aimState, new FuncPredicate(() => _toggleAimAction.IsPressed()));
-            At(aimState, locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed()));
+            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
+            At(_strikeState, _locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
+            At(_locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
+            At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
+            At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
             At(aimState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
             
             // Set initial state
-            _stateMachine.SetState(locomotionState);
+            _stateMachine.SetState(_locomotionState);
         }
 
         public void ReceiveStun(float duration)
@@ -212,6 +217,7 @@ namespace MortierFu
         #endregion
         
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
+        
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
         
 #if UNITY_EDITOR

@@ -180,6 +180,7 @@ namespace MortierFu
             
             SpawnPlayers();
             EnablePlayerInputs();
+            PlayerCharacter.AllowGameplayActions = true;
 
             foreach (var team in teams)
             {
@@ -196,8 +197,9 @@ namespace MortierFu
         protected virtual void EndRound()
         {
             _timer.Stop();
-            EnablePlayerInputs(false);
+            //EnablePlayerInputs(false);
             ResetPlayers();
+            PlayerCharacter.AllowGameplayActions = false;
 
             EvaluateScores();
             
