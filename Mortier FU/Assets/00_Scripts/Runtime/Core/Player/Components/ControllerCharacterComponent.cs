@@ -8,6 +8,7 @@ namespace MortierFu
     {
         private readonly Rigidbody _rigidbody; 
         private InputAction _moveAction;
+        private Vector3 _moveVector;
 
         public ControllerCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
         {
@@ -47,10 +48,11 @@ namespace MortierFu
         {
             // Read input
             Vector2 inputVector = _moveAction.ReadValue<Vector2>();
+            _moveVector = new Vector3(inputVector.x, 0f, inputVector.y).normalized;
             if (inputVector == Vector2.zero) return;
 
             float acceleration = Stats.MoveAcceleration.Value;
-            Vector3 accelerationVector = new Vector3(inputVector.x, 0f, inputVector.y).normalized * acceleration;
+            Vector3 accelerationVector = _moveVector * acceleration;
             _rigidbody.AddForce(accelerationVector, ForceMode.Force);
             
             LimitVelocity();
@@ -73,10 +75,9 @@ namespace MortierFu
         /// </summary>
         public void HandleRotation()
         {
-            Vector3 groundVelocity = _rigidbody.linearVelocity.With(y: 0f);
-            if (groundVelocity.sqrMagnitude < 0.01f) return;
+            if (_moveVector.sqrMagnitude < 0.01f) return;
 
-            Quaternion lookRotation = Quaternion.LookRotation(groundVelocity.normalized, Vector3.up);
+            Quaternion lookRotation = Quaternion.LookRotation(_moveVector, Vector3.up);
             _rigidbody.MoveRotation(lookRotation);
         }
 
