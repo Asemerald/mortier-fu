@@ -81,6 +81,13 @@ namespace MortierFu
 
                     continue;
                 }
+                
+                // ajout breakable
+                if (hit.TryGetComponent(out Breakable breakable))
+                {
+                    breakable.DestroyObject(1);
+                    continue;
+                }
 
                 var other = hit.GetComponentInParent<PlayerCharacter>();
                 if (other == null) continue;
@@ -89,6 +96,8 @@ namespace MortierFu
                 int strikeDamage = Mathf.RoundToInt(character.CharacterStats.StrikeDamage.Value);
                 other.Health.TakeDamage(strikeDamage);
                 other.ReceiveStun(character.CharacterStats.StunDuration.Value);
+                
+                
             }
         }
     }

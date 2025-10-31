@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Codice.Client.Common.EventTracking;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -99,6 +100,11 @@ namespace MortierFu
                         _gmb ??= FindFirstObjectByType<GameModeHolder>()?.Get();
                         _gmb?.NotifyKillEvent(bombshell.Owner, character);
                     }
+                }
+                // temp check for breakable object
+                else if (hit.TryGetComponent(out Breakable breakableObject))
+                {
+                    breakableObject.DestroyObject(0);
                 }
             }
             
