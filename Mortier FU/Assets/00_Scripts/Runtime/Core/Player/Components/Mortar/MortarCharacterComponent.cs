@@ -58,6 +58,7 @@ namespace MortierFu
         public override void Reset()
         {
             _shootTimer?.Stop();
+            AimWidget.Hide();
         }
         
         public override void Dispose()
