@@ -67,9 +67,15 @@ namespace MortierFu
             
             transform.position = Origin + _relativePosition;
         }
-
+        
         public void Show() => gameObject.SetActive(true);
         
         public void Hide() => gameObject.SetActive(false);
+        
+        public void Colorize(Color color) {
+            if (TryGetComponent(out Renderer rend)) {
+                rend.material.color = color;
+            }
+        }
     }
 }

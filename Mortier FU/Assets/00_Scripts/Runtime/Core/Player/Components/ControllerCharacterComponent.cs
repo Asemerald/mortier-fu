@@ -14,11 +14,11 @@ namespace MortierFu
         
         private InputAction _moveAction;
 
-        public ControllerCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
+        public ControllerCharacterComponent(PlayerCharacter character) : base(character)
         {
-            if (playerCharacter == null) return;
+            if (character == null) return;
             
-            if (!playerCharacter.TryGetComponent(out rigidbody))
+            if (!character.TryGetComponent(out rigidbody))
             {
                 Logs.LogError("[PlayerController]: Rigidbody component is required and missing.");
                 return;
