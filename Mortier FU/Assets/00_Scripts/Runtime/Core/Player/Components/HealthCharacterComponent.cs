@@ -17,7 +17,7 @@ namespace MortierFu
         public float HealthRatio => Mathf.Clamp01(_currentHealth / (float)_maxHealth);
         public bool IsAlive => _currentHealth > 0;
 
-        public HealthCharacterComponent(PlayerCharacter playerCharacter) : base(playerCharacter)
+        public HealthCharacterComponent(PlayerCharacter character) : base(character)
         {
             _maxHealth = 1;
             _currentHealth = 1;

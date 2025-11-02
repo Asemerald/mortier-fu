@@ -10,13 +10,13 @@ namespace MortierFu {
         public PlayerInput PlayerInput => character.PlayerInput;
         public SO_CharacterStats Stats => character.CharacterStats;
         
-        protected CharacterComponent(PlayerCharacter playerCharacter) {
-            if (playerCharacter == null) {
+        protected CharacterComponent(PlayerCharacter character) {
+            if (character == null) {
                 Logs.LogError("Trying to create a character component for a null character!");
                 return;
             }
 
-            this.character = playerCharacter;
+            this.character = character;
         }
 
         public virtual void Initialize() { }

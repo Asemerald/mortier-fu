@@ -14,13 +14,16 @@ namespace MortierFu
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
         
-        [Header("References")]
-        [SerializeField] private SO_CharacterStats _characterStatsTemplate;
-        [Space]
+        [Header("Mortar")]
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
         
-        private Color _playerColor; // TODO: Make it cleaner
+        [Header("Aspect")]
+        [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
+        [SerializeField] private Color _characterColorConfig = Color.white;
+        
+        [Header("References")]
+        [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         
         private StateMachine _stateMachine;
         
@@ -30,12 +33,11 @@ namespace MortierFu
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
         public ControllerCharacterComponent Controller { get; private set; }
+        public AspectCharacterComponent Aspect { get; private set; }
         public MortarCharacterComponent Mortar { get; private set; }
         
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats CharacterStats { get; private set; }
-        
-        public Color PlayerColor => _playerColor;
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
@@ -58,21 +60,17 @@ namespace MortierFu
         
         void Awake()
         {
+            // Extract HSV from the character color config
+            Color.RGBToHSV(_characterColorConfig, out float hue, out float saturation, out float value);
+            
             // Create character components
             Health = new HealthCharacterComponent(this);
             Controller = new ControllerCharacterComponent(this);
+            Aspect = new AspectCharacterComponent(this, hue, saturation, value);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
             
             // Create a unique instance of CharacterData for this character
             CharacterStats = Instantiate(_characterStatsTemplate);
-            
-            // Assign a random color to the player
-            // TODO: Make a better color assignment system - TEMPORARY
-            _playerColor = ColorUtils.RandomizedHue();
-            if (TryGetComponent(out Renderer rend))
-            {
-                rend.material.color = _playerColor;
-            }
             
             // Handle augments
             _augments = new List<IAugment>();
@@ -90,6 +88,7 @@ namespace MortierFu
             // Initialize character components
             Health.Initialize();
             Controller.Initialize();
+            Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
         }
         
@@ -97,6 +96,7 @@ namespace MortierFu
         {
             Health.Reset();
             Controller.Reset();
+            Aspect.Reset();
             Mortar.Reset();
             
             gameObject.SetActive(true);
@@ -106,6 +106,7 @@ namespace MortierFu
         void OnDestroy() {
             Health.Dispose();
             Controller.Dispose();
+            Aspect.Dispose();
             Mortar.Dispose();
         }
 
@@ -177,6 +178,7 @@ namespace MortierFu
             
             Health.Update();
             Controller.Update();
+            Aspect.Update();
             Mortar.Update();
         }
 
@@ -186,6 +188,7 @@ namespace MortierFu
             
             Health.FixedUpdate();
             Controller.FixedUpdate();
+            Aspect.FixedUpdate();
             Mortar.FixedUpdate();
         }
 
@@ -193,6 +196,7 @@ namespace MortierFu
         {
             Health?.OnDrawGizmos();
             Controller?.OnDrawGizmos();
+            Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
         }
 
@@ -200,6 +204,7 @@ namespace MortierFu
         {
             Health?.OnDrawGizmosSelected();
             Controller?.OnDrawGizmosSelected();
+            Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
         }
         #endregion
