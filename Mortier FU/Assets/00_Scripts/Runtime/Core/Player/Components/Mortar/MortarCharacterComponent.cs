@@ -60,7 +60,7 @@ namespace MortierFu
 
         public override void Reset()
         {
-            _shootTimer.Stop();
+            _shootTimer?.Stop();
         }
         
         public override void Dispose()

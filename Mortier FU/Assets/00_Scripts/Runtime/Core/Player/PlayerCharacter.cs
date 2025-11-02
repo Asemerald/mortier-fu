@@ -19,8 +19,6 @@ namespace MortierFu
         [Space]
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
-        [SerializeField] private HealthUI _healthUI;
-        [SerializeField] private CooldownUI _cooldownUI;
         
         private Color _playerColor; // TODO: Make it cleaner
         
@@ -81,17 +79,6 @@ namespace MortierFu
             Augments = _augments.AsReadOnly();
             
             InitStateMachine();
-            
-            // TODO: Should not be this way around. Inversion of control
-            if (_healthUI != null)
-            {
-                _healthUI.SetHealth(Health);
-            }
-            
-            if (_cooldownUI != null)
-            {
-                _cooldownUI.SetCharacter(this);
-            }
         }
 
         void Start()
