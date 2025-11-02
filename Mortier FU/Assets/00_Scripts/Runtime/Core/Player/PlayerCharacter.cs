@@ -18,9 +18,6 @@ namespace MortierFu
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        [Space]
-        [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
-        [SerializeField] private Color _characterColorConfig = Color.white;
         
         [Header("Aspect")]
         [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
