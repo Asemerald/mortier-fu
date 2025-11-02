@@ -45,7 +45,7 @@ public class TEMP_CameraHandler : MonoBehaviour
         {
             playerDist = 0;
         }
-        Logs.Log($"Distance : {targetOrthoSize}");
+        // Logs.Log($"Distance : {targetOrthoSize}");
         
         switch (playerDist)
         {
