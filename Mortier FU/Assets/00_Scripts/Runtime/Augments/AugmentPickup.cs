@@ -22,7 +22,10 @@ namespace MortierFu
 
         public event Action<PlayerCharacter> OnTaken;
 
-        public void Initialize()
+        private AugmentSelectionSystem _system;
+        private int _index;
+        
+        public void Initialize(AugmentSelectionSystem system, int augmentIndex)
         {
             // GameSystem de jeu
         }
@@ -30,6 +33,11 @@ namespace MortierFu
         public void SetAugment(DA_Augment augment)
         {
             _augmentData = augment;
+            UpdateVisual();
+        }
+
+        private void UpdateVisual()
+        {
         }
 
         private void Start()
@@ -53,6 +61,11 @@ namespace MortierFu
             var player = other.GetComponentInParent<PlayerCharacter>();
             if (player == null) return;
 
+            bool success = _system.NotifyPlayerInteraction(player, _index);
+            if(success == false) return;
+            
+            Reset();
+            
             TryTake(player);
         }
 
