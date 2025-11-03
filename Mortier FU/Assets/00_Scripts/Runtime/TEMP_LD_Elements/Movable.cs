@@ -5,7 +5,9 @@ using UnityEngine;
 public class Movable : MonoBehaviour
 {
     public bool isAutomatic = true;
+    public bool isPlatform = false;
     public Transform target;
+    public GameObject platform;
     public float speed;
     private Vector3 startingPoint;
     private bool canMove = true;
@@ -15,7 +17,8 @@ public class Movable : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        startingPoint = transform.position;
+        startingPoint = platform.transform.position;
+        target.GetComponent<MeshRenderer>().enabled = false;
         
     }
 
@@ -24,17 +27,13 @@ public class Movable : MonoBehaviour
     {
         if (target != null & isAutomatic & canMove || hasbeenActivated & target != null & !isAutomatic)
         {
-            gameObject.transform.position = Vector3.MoveTowards(gameObject.transform.position, target.position, speed/1000);
-            if (transform.position == target.position)
+            platform.transform.position = Vector3.MoveTowards(platform.transform.position, target.position, speed/1000);
+            if ( platform.transform.position == target.position)
             {
                 (target.position,startingPoint) = (startingPoint,target.position);
                 hasbeenActivated = false;
                 StartCoroutine(Wait());
             }
-        }
-        else
-        {
-            Debug.Log("No target assign");
         }
     }
 
@@ -47,6 +46,6 @@ public class Movable : MonoBehaviour
     {
         canMove = !canMove;
         yield return new WaitForSeconds(waitTime);
+        canMove = !canMove;
     }
-    
 }
