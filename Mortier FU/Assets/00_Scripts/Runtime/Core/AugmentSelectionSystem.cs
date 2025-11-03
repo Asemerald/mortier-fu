@@ -54,6 +54,7 @@ namespace MortierFu
             }
             
             var libs = handle.Result; 
+            
             foreach (var lib in libs)
             {
                 _lootTable.PopulateLootBag(lib.AugmentEntries);
@@ -111,20 +112,6 @@ namespace MortierFu
 
                 _augmentBag[i] = _pickups[i].AugmentData;
             }
-        }
-
-        public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)
-        {
-            if(character == null || augmentIndex < 0 || augmentIndex >= _augmentBag.Count)
-                return false;
-            
-            var augment = _augmentBag[augmentIndex];
-            
-            // Verify if already picked an augment. If so, refuse, return false;
-            
-            character.AddAugment(augment);
-
-            return true;
         }
     }
 }
