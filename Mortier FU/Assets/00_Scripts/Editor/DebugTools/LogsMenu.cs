@@ -34,7 +34,7 @@ namespace MortierFu.Shared.Editor
             Logs.CurrentLevel = level;
             EditorPrefs.SetInt(PREF_KEY, (int)level);
             UpdateMenuChecks();
-            Debug.Log($"[DEBUG] Log level set to: {level}");
+            Logs.Log($"[DEBUG] Log level set to: {level}");
         }
 
         private static void UpdateMenuChecks()

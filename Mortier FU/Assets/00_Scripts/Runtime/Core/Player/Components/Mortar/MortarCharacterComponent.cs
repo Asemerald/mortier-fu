@@ -43,11 +43,8 @@ namespace MortierFu
             character.FindInputAction("Aim", out _aimAction);
             character.FindInputAction("Shoot", out _shootAction);
 
-            // Temporary set the assigned color of the player to the aim widget
-            if (AimWidget.TryGetComponent(out Renderer renderer))
-            {
-                renderer.material.color = character.PlayerColor;
-            }
+            Color playerColor = character.Aspect.PlayerColor;
+            AimWidget.Colorize(playerColor);
 
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
             _shootTimer = new CountdownTimer(Stats.FireRate.Value);
@@ -60,7 +57,8 @@ namespace MortierFu
 
         public override void Reset()
         {
-            _shootTimer.Stop();
+            _shootTimer?.Stop();
+            AimWidget.Hide();
         }
         
         public override void Dispose()

@@ -9,24 +9,31 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public abstract class GameModeBase : IGameMode
-    {
+    public abstract class GameModeBase : IGameMode {
         // Config
         public SO_GameModeData GameModeData;
-        
+
         protected List<PlayerTeam> teams;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
-        
+
         protected int currentRound;
         protected int currentRank;
         protected GameState currentState;
-        
+
         // Dependencies
         protected LobbyService lobbyService;
         protected CountdownTimer _timer;
-        
+
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
+
+        public bool IsReady {
+            get {
+                var players = lobbyService.GetPlayers();
+                return players.Count >= MinPlayerCount && players.Count <= MaxPlayerCount;
+            }
+        }
+
         public int CurrentRoundCount => currentRound;
         public GameState CurrentState => currentState;
         
@@ -42,10 +49,14 @@ namespace MortierFu
 
         public virtual void StartGame()
         {
-            currentRound = 0;
+            if (!IsReady) {
+                Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
+                StartRound();
+                return;
+            }
             
             Logs.Log("Starting the game...");
-            
+            currentRound = 0;
             Timing.RunCoroutine(GameplayCoroutine());
         }
         
@@ -302,21 +313,25 @@ namespace MortierFu
         
         public virtual void Initialize()
         {
-            Logs.Log("Initializing game mode...");
+            // Resolve Dependencies
+            lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _timer = new CountdownTimer(0f);
+            
+            if (!IsReady) {
+                Logs.LogWarning("Invalid number of players for this game mode.");
+            }
             
             teams = new List<PlayerTeam>();
             Teams = teams.AsReadOnly();
             
-            // Resolve Dependencies
-            lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            _timer = new CountdownTimer(0f);
-
             var players = lobbyService.GetPlayers();
             for (int i = 0; i < players.Count; i++)
             {
                 var team = new PlayerTeam(i, players[i]);
                 teams.Add(team);
             }
+            
+            Logs.Log("Game mode initialized successfully.");
         }
 
         public virtual void Update()

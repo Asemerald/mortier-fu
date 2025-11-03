@@ -22,6 +22,7 @@ namespace MortierFu
         /// Internally capped at 99.
         /// </summary>
         public int MaxPlayerCount { get; }
+        public bool IsReady { get; }
         
         /// <summary>
         /// The teams containing their members (PlayerManagers)
