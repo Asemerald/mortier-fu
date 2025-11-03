@@ -14,6 +14,8 @@ namespace MortierFu
         /// </summary>
         async Task Initialize()
         {
+            if(IsInitialized) return;
+            
             IsInitialized = true;
             await OnInitialize();
         }

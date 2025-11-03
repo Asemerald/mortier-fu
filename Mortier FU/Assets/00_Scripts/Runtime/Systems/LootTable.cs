@@ -36,8 +36,6 @@ namespace MortierFu
 
         public virtual void PopulateLootBag(List<LootTableEntry> entries)
         {
-            lootBag.Clear();
-
             foreach (var entry in entries)
             {
                 AddEntry(entry);
@@ -50,15 +48,19 @@ namespace MortierFu
 
             float randomWeight = Random.Range(0, TotalWeight);
             float currentWeight = 0f;
+            
             foreach (var entry in lootBag)
             {
                 currentWeight += entry.Weight;
                 if (randomWeight <= currentWeight)
                 {
+                    if(config.RemoveOnPull)
+                        RemoveEntry(entry);
+                    
                     return entry.Item;
                 }
             }
-
+            
             return default;
         }
 
