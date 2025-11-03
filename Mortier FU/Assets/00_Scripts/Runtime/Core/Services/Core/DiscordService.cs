@@ -130,7 +130,7 @@ public class DiscordService : IGameService
             button2.SetLabel("Jte bz Antoine");
             button2.SetUrl("https://www.github.com/Asemerald/mortier-fu");
             Activity activity = new Activity();
-            activity.SetType(ActivityTypes.Listening);
+            activity.SetType(ActivityTypes.Competing);
             activity.SetState("In Competitive Match");
             activity.SetDetails("Rank: Diamond II");
             activity.AddButton(button);
