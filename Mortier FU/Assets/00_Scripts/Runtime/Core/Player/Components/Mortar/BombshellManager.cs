@@ -79,7 +79,18 @@ namespace MortierFu
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
-                if(hit.TryGetComponent(out PlayerCharacter character)) {
+                
+                // temp check for breakable object
+                if (hit.TryGetComponent(out Breakable breakableObject))
+                {
+                    breakableObject.DestroyObject(0);
+                    if (breakableObject.canprotect)
+                    {
+                        break;
+                    }
+                }
+                
+                else if(hit.TryGetComponent(out PlayerCharacter character)) {
                     // Prevent self-damage
                     if(character == bombshell.Owner) 
                         continue; 
@@ -101,11 +112,7 @@ namespace MortierFu
                         _gmb?.NotifyKillEvent(bombshell.Owner, character);
                     }
                 }
-                // temp check for breakable object
-                else if (hit.TryGetComponent(out Breakable breakableObject))
-                {
-                    breakableObject.DestroyObject(0);
-                }
+                
             }
             
             RecycleBombshell(bombshell);
