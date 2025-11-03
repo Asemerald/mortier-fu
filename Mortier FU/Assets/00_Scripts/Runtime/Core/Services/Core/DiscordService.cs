@@ -124,17 +124,13 @@ public class DiscordService : IGameService
             Debug.Log($"Friend Count: {_client.GetRelationships().Count()}");
 
             ActivityButton button = new ActivityButton();
-            ActivityButton button2 = new ActivityButton();
-            button.SetLabel("Jte bz Enzo");
-            button.SetUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-            button2.SetLabel("Jte bz Antoine");
-            button2.SetUrl("https://www.github.com/Asemerald/mortier-fu");
+            button.SetLabel("Jsp quoi mettre la");
+            button.SetUrl("https://www.github.com/Asemerald/mortier-fu");
             Activity activity = new Activity();
             activity.SetType(ActivityTypes.Competing);
             activity.SetState("In Competitive Match");
             activity.SetDetails("Rank: Diamond II");
             activity.AddButton(button);
-            activity.AddButton(button2);
             _client.UpdateRichPresence(activity, (ClientResult result) => {
                 if (result.Successful()) {
                     Debug.Log("Rich presence updated!");
