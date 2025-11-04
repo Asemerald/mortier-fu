@@ -47,7 +47,7 @@ namespace MortierFu
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
         [field: SerializeField, Tooltip("Duration of the Stun.")]
-        public CharacterStat StunDuration { get; private set; } = new( 0.5f);
+        public CharacterStat StrikeStunDuration { get; private set; } = new( 0.5f);
         
         [field: SerializeField, Tooltip("Amount of bullets each shot will launch.")]
         public CharacterStat BulletNumber { get; private set; } = new( 1.0f);
