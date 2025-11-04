@@ -94,7 +94,15 @@ namespace MortierFu
                     while (_timer.IsRunning)
                         yield return 0f;
                     
+                    var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
+                    system.StartAugmentSelection(GameModeData.AugmentSelectionDuration);
                     StartAugmentSelection();
+                    
+                    while (!system.IsSelectionOver)
+                        yield return 0f;
+                    
+                    system.EndAugmentSelection();
+                    EndAugmentSelection();
                 }
             }
 
@@ -282,9 +290,7 @@ namespace MortierFu
         {
             UpdateGameState(GameState.AugmentSelection);
             
-            // Hide previous showcase UI
-            // Spawn augments
-            
+            // Hide previous showcase UI            
             EnablePlayerInputs();
             
             Logs.Log("Starting augment selection...");

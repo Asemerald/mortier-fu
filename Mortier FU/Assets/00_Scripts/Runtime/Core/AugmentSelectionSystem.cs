@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -9,22 +10,33 @@ namespace MortierFu
 {
     public class AugmentSelectionSystem : IGameSystem
     {
+        private class AugmentState // TODO Better rename
+        {
+            public DA_Augment Augment;
+            public bool IsPicked;
+        }
+        
         private List<AugmentPickup> _pickups;
-        private List<DA_Augment> _augmentBag;
+        private List<AugmentState> _augmentBag;
         
         private LobbyService _lobbyService;
         private readonly LootTable<DA_Augment> _lootTable;
 
         private int _playerCount;
+        private int _augmentCount;
         
         private const string k_augmentLibLabel = "AugmentLib";
+        
+        private CountdownTimer _augmentTimer;
+        
+        public bool IsSelectionOver => _augmentBag.Count(agm => agm.IsPicked) == _playerCount || _augmentTimer.IsFinished; // TODO Refacto player consideration
         
         public AugmentSelectionSystem()
         {
             var config = new LootTableConfig
             {
                 AllowDuplicates = false,
-                RemoveOnPull = true
+                RemoveOnPull = false // TODO Swap
             };
             
             _lootTable = new LootTable<DA_Augment>();
@@ -34,8 +46,8 @@ namespace MortierFu
         {
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _playerCount = _lobbyService.GetPlayers().Count;
-            
-            _augmentBag = new List<DA_Augment>(_playerCount);
+            _augmentCount = _playerCount + 1;
+            _augmentBag = new List<AugmentState>(_augmentCount);
 
             await PopulateLootTable();
             await InstantiatePickups();
@@ -65,13 +77,15 @@ namespace MortierFu
         
         private async Task InstantiatePickups()
         {
-            _pickups = new  List<AugmentPickup>(_playerCount);
+            _pickups = new  List<AugmentPickup>(_augmentCount);
             
             var pickupParent = new GameObject("AugmentPickups").transform;
             
-            for (int i = 0; i < _playerCount; i++)
+            for (int i = 0; i < _augmentCount; i++)
             {
-                var pickupHandle = SystemManager.Config.AugmentPickupPrefab.InstantiateAsync(pickupParent);
+                var pos = (Random.insideUnitSphere.With(y: 0).normalized * 10f).With(y: 0.85f);
+                
+                var pickupHandle = SystemManager.Config.AugmentPickupPrefab.InstantiateAsync(pos, Quaternion.identity, pickupParent);
                 await pickupHandle.Task;
                 
                 if(pickupHandle.Status != AsyncOperationStatus.Succeeded)
@@ -81,9 +95,11 @@ namespace MortierFu
                 }
                 
                 var pickupGO = pickupHandle.Result;
-                pickupGO.SetActive(false);
                 
                 var pickup = pickupGO.GetComponent<AugmentPickup>();
+                pickup.Initialize(this, i);
+                pickup.Hide();
+                
                 _pickups.Add(pickup);
             }
         }
@@ -94,23 +110,41 @@ namespace MortierFu
         {
             _pickups.Clear();
             _augmentBag.Clear();
+            
+            _augmentTimer.Dispose();
+        }
+        
+        public void StartAugmentSelection(float duration)
+        {
+            _augmentTimer ??= new CountdownTimer(duration);
+            _augmentTimer.Start();
+            
+            var augments = _lootTable.BatchPull(_augmentCount);
+
+            _augmentBag.Clear();
+            
+            for (var i = 0; i < augments.Length; i++)
+            {
+                var augment = augments[i];
+                _augmentBag.Add(new AugmentState()
+                {
+                    Augment = augment,
+                    IsPicked = false
+                });
+
+                _pickups[i].SetAugmentVisual(augment);
+            }
         }
 
-        // Rename, pas forcément utile à voir après avec ce qu'a fait Antoine.
-        public async Task RetakeAugments()
+        public void EndAugmentSelection()
         {
-            // Il faudra ici récupérer selon la loot table les augments via un shuffle.
-            _pickups = new  List<AugmentPickup>(_playerCount);
-            _augmentBag = new List<DA_Augment>(_playerCount);
-
-            for (int i = 0; i < _playerCount; i++)
+            foreach (var pickup in _pickups)
             {
-                var pickup = await SystemManager.Config.AugmentPickupPrefab.LoadAndInstantiate<AugmentPickup>();
-                _pickups[i] = pickup;
-                _pickups[i].gameObject.SetActive(false);
-
-                _augmentBag[i] = _pickups[i].AugmentData;
+                pickup.Hide();
             }
+            
+            _augmentBag.Clear();
+            _augmentTimer.Stop();
         }
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)
@@ -119,11 +153,11 @@ namespace MortierFu
                 return false;
             
             var augment = _augmentBag[augmentIndex];
+            if(augment.IsPicked) return false;
             
-            // Verify if already picked an augment. If so, refuse, return false;
+            augment.IsPicked = true;
             
-            character.AddAugment(augment);
-
+            character.AddAugment(augment.Augment);
             return true;
         }
     }
