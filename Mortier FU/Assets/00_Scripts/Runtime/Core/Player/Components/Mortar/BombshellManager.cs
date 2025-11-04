@@ -80,8 +80,8 @@ namespace MortierFu
                 Collider hit = _impactResults[i];
                 if(hit.TryGetComponent(out PlayerCharacter character)) {
                     // Prevent self-damage
-                    if(character == bombshell.Owner) 
-                        continue; 
+                    // if(character == bombshell.Owner) 
+                    //     continue; 
                     
                     if(!character.Health.IsAlive)
                         continue;

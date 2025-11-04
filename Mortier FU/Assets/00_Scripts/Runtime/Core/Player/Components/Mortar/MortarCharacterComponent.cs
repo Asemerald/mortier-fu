@@ -86,7 +86,8 @@ namespace MortierFu
                 TravelTime = Stats.ProjectileTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
-                AoeRange = Stats.DamageRange.Value
+                AoeRange = Stats.DamageRange.Value,
+                Scale = 0.6f * (1 + (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f)
             };
             
             var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);

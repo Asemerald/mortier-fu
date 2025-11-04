@@ -95,7 +95,10 @@ namespace MortierFu
                         yield return 0f;
                     
                     var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
-                    system.StartAugmentSelection(GameModeData.AugmentSelectionDuration);
+                    
+                    var augmentPickers = GetAugmentPickers();
+                    system.StartAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+
                     StartAugmentSelection();
                     
                     while (!system.IsSelectionOver)
@@ -107,6 +110,19 @@ namespace MortierFu
             }
 
             EndGame();
+        }
+
+        private List<PlayerManager> GetAugmentPickers()
+        {
+            var pickers = new List<PlayerManager>();
+            foreach (var team in teams)
+            {
+                if(team.Rank == 1) continue;
+                
+                pickers.AddRange(team.Members);
+            }
+            
+            return pickers;
         }
 
         private void SpawnPlayers()
@@ -216,7 +232,6 @@ namespace MortierFu
         protected virtual void EndRound()
         {
             _timer.Stop();
-            //EnablePlayerInputs(false);
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
 
@@ -290,6 +305,14 @@ namespace MortierFu
         {
             UpdateGameState(GameState.AugmentSelection);
             
+            foreach (var team in teams)
+            {
+                foreach (var member in team.Members)
+                {
+                    member.Character.transform.position = Vector3.up * 3f;
+                }
+            }
+            
             // Hide previous showcase UI            
             EnablePlayerInputs();
             
@@ -303,6 +326,8 @@ namespace MortierFu
             EnablePlayerInputs(false);
 
             // stop selection UI
+            
+            ResetPlayers();
         }
 
         protected virtual void EndGame()
