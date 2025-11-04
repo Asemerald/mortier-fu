@@ -1,108 +1,47 @@
 using UnityEngine;
-using System;
+using TMPro;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
     public class AugmentPickup : MonoBehaviour
     {
-        [Tooltip(
-            "If true the pickup GameObject will be destroyed after being taken. Otherwise it will be left disabled.")]
-        [SerializeField]
-        private bool _destroyOnTaken = false;
+        [SerializeField] private TextMeshProUGUI _augmentNameText;
+        [SerializeField] private Image _augmentIconImage;
+        [SerializeField] private MeshRenderer _bgMeshRenderer;
         
-        private DA_Augment _augmentData;
-        
-        private bool _isTaken;
-        
-        private Collider _collider;
-        
-        public bool HasAugment => _augmentData != null;
-
-        public DA_Augment AugmentData => _augmentData;
-
-        public event Action<PlayerCharacter> OnTaken;
-
         private AugmentSelectionSystem _system;
         private int _index;
         
         public void Initialize(AugmentSelectionSystem system, int augmentIndex)
         {
-            // GameSystem de jeu
+            _system = system;
+            _index = augmentIndex;
         }
         
-        public void SetAugment(DA_Augment augment)
+        public void SetAugmentVisual(DA_Augment augment)
         {
-            _augmentData = augment;
-            UpdateVisual();
-        }
-
-        private void UpdateVisual()
-        {
-        }
-
-        private void Start()
-        {
-            _collider = GetComponent<Collider>();
+            _augmentNameText.text = augment != null ? augment.Name : "None";
+            _augmentIconImage.sprite = augment != null ? augment.Icon : null;
+            _bgMeshRenderer.material.color = augment != null ? augment.BgColor : Color.magenta;
+            
+            Show();
         }
         
-        private void Reset()
-        {
-            if (_collider != null)
-                _collider.isTrigger = true;
-
-            _isTaken = false;
-            gameObject.SetActive(true);
-        }
-
         private void OnTriggerEnter(Collider other)
         {
-            if (_isTaken) return;
-
-            var player = other.GetComponentInParent<PlayerCharacter>();
-            if (player == null) return;
-
-            bool success = _system.NotifyPlayerInteraction(player, _index);
-            if(success == false) return;
+            if(other.attachedRigidbody == null) return;
             
-            Reset();
+            if (other.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
+            {
+                bool success = _system.NotifyPlayerInteraction(character, _index);
+                if(success == false) return;
             
-            TryTake(player);
-        }
-
-        public bool TryTake(PlayerCharacter player)
-        {
-            if (player == null) return false;
-            if (_isTaken) return false;
-
-            if (_augmentData == null)
-            {
-                Debug.LogWarning(
-                    $"[AugmentPickup] No augment assigned on pickup '{name}'. Call SetAugment(...) after Instantiate.");
-                return false;
-            }
-
-            _isTaken = true;
-            gameObject.SetActive(false);
-
-            try
-            {
-                player.AddAugment(_augmentData);
-
-                OnTaken?.Invoke(player);
-
-                if (_destroyOnTaken)
-                {
-                    Destroy(gameObject);
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                _isTaken = false;
-                return false;
+                Hide();
             }
         }
+        
+        public void Show() => gameObject.SetActive(true);
+        public void Hide() => gameObject.SetActive(false);
     }
 }
