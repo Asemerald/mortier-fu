@@ -1,4 +1,6 @@
-﻿using MortierFu.Shared;
+﻿using System.Collections.Generic;
+using MEC;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -37,25 +39,21 @@ namespace MortierFu
         private float _timeFactor;
         private bool _exploded; // Temp fix
 
-        private BombshellManager _manager;
+        private BombshellSystem _system;
         private Rigidbody _rb;
 
         public PlayerCharacter Owner => _data.Owner;
         public int Damage => _data.Damage;
         public float AoeRange => _data.AoeRange;
-
-        public void Initialize(BombshellManager manager, Data data)
+        
+        public void Initialize(BombshellSystem system)
         {
-            // Already initialized
-            if (_t >= 0.0f)
-            {
-                Logs.LogWarning("Trying to re-initialize a Bombshell.");
-                return;
-            }
-
-            _manager = manager;
+            _system = system;
             _rb = GetComponent<Rigidbody>();
-
+        }
+        
+        public void SetData(Data data)
+        {
             _data = data;
             _t = 0.0f;
             _exploded = false;
@@ -70,6 +68,18 @@ namespace MortierFu
             _timeFactor = _travelTime / _data.TravelTime;
             
             transform.localScale = Vector3.one * _data.Scale;
+            
+            Timing.RunCoroutine(Test()); // TODO: Can be improved
+        }
+        
+        private IEnumerator<float> Test()
+        {
+            yield return Timing.WaitForSeconds(_travelTime - 0.6f);
+            if (TEMP_FXHandler.Instance)
+            {
+                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
+            }
+            else Logs.LogWarning("No FX Handler");
         }
         
         void Update()
@@ -86,7 +96,7 @@ namespace MortierFu
             if (_exploded) return;
             _exploded = true;
             // Notify impact & recycle the bombshell
-            _manager.NotifyImpactAndRecycle(this);
+            _system.NotifyImpact(this);
         }
 
         /// <summary>

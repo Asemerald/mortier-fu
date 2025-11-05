@@ -358,7 +358,19 @@ namespace MortierFu
             var players = lobbyService.GetPlayers();
             for (int i = 0; i < players.Count; i++)
             {
-                var team = new PlayerTeam(i, players[i]);
+                var player = players[i];
+                player.SpawnInGame(Vector3.zero);
+                player.Character.Health.OnDeath += source =>
+                {
+                    player.Metrics.TotalDeaths++;
+                    
+                    if (source is PlayerCharacter killer)
+                    {
+                        OnPlayerKill(player.Character, killer);
+                    }
+                };
+                
+                var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
             
@@ -394,11 +406,10 @@ namespace MortierFu
             return false;
         }
         
-        // TODO: Can be improved ?
-        public virtual void NotifyKillEvent(PlayerCharacter killerPlayerCharacter, PlayerCharacter victimPlayerCharacter)
+        public virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
         {
-            var killer = killerPlayerCharacter.Owner;
-            var victim = victimPlayerCharacter.Owner;
+            var killer = killerCharacter.Owner;
+            var victim = victimCharacter.Owner;
             
             killer.Metrics.RoundKills += 1;
             

@@ -9,6 +9,7 @@ public class GameConfig : ScriptableObject
 
     [Header("Optional global assets")]
     public AssetReference AugmentPickupPrefab;
+    public AssetReference BombshellPrefab;
     public List<AssetReference> globalPrefabs = new List<AssetReference>();
     public List<Texture> globalTextures = new List<Texture>();
 }
