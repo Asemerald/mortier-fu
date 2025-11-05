@@ -10,14 +10,9 @@ namespace MortierFu
 {
     public class AugmentSelectionSystem : IGameSystem
     {
-        private class AugmentState // TODO Better rename
-        {
-            public DA_Augment Augment;
-            public bool IsPicked;
-        }
-        
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
+        private List<PlayerManager> _pickers;
         
         private LobbyService _lobbyService;
         private readonly LootTable<DA_Augment> _lootTable;
@@ -29,7 +24,7 @@ namespace MortierFu
         
         private CountdownTimer _augmentTimer;
         
-        public bool IsSelectionOver => _augmentBag.Count(agm => agm.IsPicked) == _playerCount || _augmentTimer.IsFinished; // TODO Refacto player consideration
+        public bool IsSelectionOver => _pickers.Count <= 0 || _augmentTimer.IsFinished;
         
         public AugmentSelectionSystem()
         {
@@ -114,8 +109,15 @@ namespace MortierFu
             _augmentTimer.Dispose();
         }
         
-        public void StartAugmentSelection(float duration)
+        public void StartAugmentSelection(List<PlayerManager> pickers, float duration)
         {
+            if (pickers == null || pickers.Count == 0)
+            {
+                Logs.LogWarning("[AugmentSelectionSystem]: No players provided for augment selection.");
+                return;
+            }
+            
+            _pickers = pickers;
             _augmentTimer ??= new CountdownTimer(duration);
             _augmentTimer.Start();
             
@@ -151,14 +153,25 @@ namespace MortierFu
         {
             if(character == null || augmentIndex < 0 || augmentIndex >= _augmentBag.Count)
                 return false;
-            
+
             var augment = _augmentBag[augmentIndex];
-            if(augment.IsPicked) return false;
-            
+            var picker = character.Owner;
+
+            if (!_pickers.Contains(picker) || augment.IsPicked)
+                return false;
+
             augment.IsPicked = true;
+            _pickers.Remove(picker);
             
             character.AddAugment(augment.Augment);
+
             return true;
+        }
+        
+        private class AugmentState // TODO Better rename
+        {
+            public DA_Augment Augment;
+            public bool IsPicked;
         }
     }
 }
