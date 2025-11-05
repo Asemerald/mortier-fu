@@ -1,5 +1,4 @@
-﻿using System;
-using MortierFu.Shared;
+﻿using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -15,6 +14,7 @@ namespace MortierFu
             // Movement
             public Vector3 StartPos;
             public Vector3 TargetPos;
+            public float Scale;
             // public float Speed;
             public float TravelTime;
             public float GravityScale;
@@ -68,6 +68,8 @@ namespace MortierFu
             _direction = groundDir.normalized;
             ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
+            
+            transform.localScale = Vector3.one * _data.Scale;
         }
         
         void Update()

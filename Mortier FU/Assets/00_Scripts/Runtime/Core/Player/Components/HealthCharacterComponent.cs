@@ -53,6 +53,7 @@ namespace MortierFu
 
         public override void Reset()
         {
+            _maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(_maxHealth);
         }
