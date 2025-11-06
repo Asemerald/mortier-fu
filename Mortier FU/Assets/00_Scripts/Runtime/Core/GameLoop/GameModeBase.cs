@@ -22,6 +22,7 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
+        protected AugmentSelectionSystem _augmentSelectionSys;
         protected CountdownTimer _timer;
         protected BombshellSystem _bombshellSys;
 
@@ -95,17 +96,17 @@ namespace MortierFu
                     while (_timer.IsRunning)
                         yield return 0f;
                     
-                    var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
+                    _augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
                     
                     var augmentPickers = GetAugmentPickers();
-                    system.StartAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+                    _augmentSelectionSys.StartAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
 
                     StartAugmentSelection();
                     
-                    while (!system.IsSelectionOver)
+                    while (!_augmentSelectionSys.IsSelectionOver)
                         yield return 0f;
                     
-                    system.EndAugmentSelection();
+                    _augmentSelectionSys.EndAugmentSelection();
                     EndAugmentSelection();
                 }
             }
@@ -292,13 +293,16 @@ namespace MortierFu
         }
         
         protected virtual void ShowcaseAugments()
-        {
+        { 
+            var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            
             UpdateGameState(GameState.ShowcaseAugments);
             
             _timer.Reset(GameModeData.AugmentShowcaseDuration);
             _timer.Start();
             
             // Link to UI and countdown
+            system.ShowcaseAugments(GameModeData.AugmentShowcaseDuration);
             
             Logs.Log("Showcasing the augments which are going to be available...");
         }
