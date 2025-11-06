@@ -1,10 +1,11 @@
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.AddressableAssets;
+using Random = UnityEngine.Random;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MortierFu.Shared;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -23,7 +24,9 @@ namespace MortierFu
         private const string k_augmentLibLabel = "AugmentLib";
         
         private CountdownTimer _augmentTimer;
-        
+        private CountdownTimer _displayAugmentTimer;
+        private DA_Augment[] _selectedAugments;
+
         public bool IsSelectionOver => _pickers.Count <= 0 || _augmentTimer.IsFinished;
         
         public AugmentSelectionSystem()
@@ -43,7 +46,8 @@ namespace MortierFu
             _playerCount = _lobbyService.GetPlayers().Count;
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
-
+            _selectedAugments = new DA_Augment[_augmentCount];
+            
             await PopulateLootTable();
             await InstantiatePickups();
         }
@@ -107,10 +111,13 @@ namespace MortierFu
             _augmentBag.Clear();
             
             _augmentTimer.Dispose();
+            _displayAugmentTimer.Dispose();
         }
         
         public void StartAugmentSelection(List<PlayerManager> pickers, float duration)
         {
+            _displayAugmentTimer.OnTimerStop -= AugmentShowcaser.Instance.Hide;
+            
             if (pickers == null || pickers.Count == 0)
             {
                 Logs.LogWarning("[AugmentSelectionSystem]: No players provided for augment selection.");
@@ -120,19 +127,12 @@ namespace MortierFu
             _pickers = pickers;
             _augmentTimer ??= new CountdownTimer(duration);
             _augmentTimer.Start();
-            
-            var augments = _lootTable.BatchPull(_augmentCount);
 
-            _augmentBag.Clear();
-            
-            for (var i = 0; i < augments.Length; i++)
+            //_augmentBag.Clear();
+
+            for (var i = 0; i < _selectedAugments.Length; i++)
             {
-                var augment = augments[i];
-                _augmentBag.Add(new AugmentState()
-                {
-                    Augment = augment,
-                    IsPicked = false
-                });
+                var augment = _selectedAugments[i];
 
                 _pickups[i].SetAugmentVisual(augment);
             }
@@ -145,8 +145,32 @@ namespace MortierFu
                 pickup.Hide();
             }
             
+            _selectedAugments = null;
             _augmentBag.Clear();
             _augmentTimer.Stop();
+        }
+
+        public void ShowcaseAugments(float displayDuration)
+        {
+            _displayAugmentTimer ??= new CountdownTimer(displayDuration);
+            _displayAugmentTimer.Start();
+            
+            _displayAugmentTimer.OnTimerStop += AugmentShowcaser.Instance.Hide;
+
+            _selectedAugments = _lootTable.BatchPull(_augmentCount);
+            _augmentBag.Clear();
+            
+            for (var i = 0; i < _selectedAugments.Length; i++)
+            {
+                var augment = _selectedAugments[i];
+                _augmentBag.Add(new AugmentState()
+                {
+                    Augment = augment,
+                    IsPicked = false
+                });
+            }
+            
+            AugmentShowcaser.Instance.Showcase(_augmentBag.Select(a => a.Augment).ToList());
         }
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)
