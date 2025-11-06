@@ -47,7 +47,7 @@ namespace MortierFu
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new DA_Augment[_augmentCount];
-            
+             
             await PopulateLootTable();
             await InstantiatePickups();
         }
