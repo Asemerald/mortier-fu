@@ -4,13 +4,13 @@ namespace MortierFu
 {
     public abstract class AugmentBase : IAugment 
     {
-        protected DA_Augment augmentData;
+        protected SO_Augment augmentData;
         protected PlayerCharacter owner;
         protected SO_CharacterStats stats;
 
         public PlayerCharacter Owner => owner;
         
-        public AugmentBase(DA_Augment augmentData, PlayerCharacter owner)
+        public AugmentBase(SO_Augment augmentData, PlayerCharacter owner)
         {
             this.augmentData = augmentData;
             this.owner = owner;

@@ -23,6 +23,7 @@ namespace MortierFu
         private DeviceService _deviceService;
         private GameInstance _gameInstance;
         private LobbyService _lobbyService;
+        private DiscordService _discordService;
         
 #if UNITY_EDITOR
         [Header("Debug")]
@@ -52,7 +53,18 @@ namespace MortierFu
             
             // Initialise les services de base avant les mods
             yield return _serviceManager.Initialize();
-
+            
+            // Initialise les systèmes de base avant les mods
+            yield return _systemManager.Initialize();
+            
+#if UNITY_EDITOR
+            if (isPortableBootstrap)
+            {
+                _systemManager.CreateAndRegister<AugmentSelectionSystem>();
+                _systemManager.CreateAndRegister<BombshellSystem>();
+                yield return _systemManager.Initialize();
+            }
+#endif
             // --- Load mod resources
             yield return _loaderService.LoadAllModResources();
             
@@ -86,6 +98,7 @@ namespace MortierFu
             _deviceService = new DeviceService();
             _gameInstance = new GameInstance();
             _lobbyService = new LobbyService();
+            _discordService = new DiscordService();
             
             // --- Register services
             _serviceManager.Register(_modService);
@@ -94,6 +107,7 @@ namespace MortierFu
             _serviceManager.Register(_deviceService);
             _serviceManager.Register(_gameInstance);
             _serviceManager.Register(_lobbyService);
+            _serviceManager.Register(_discordService);
             
             return Task.CompletedTask;
         }

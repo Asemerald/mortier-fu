@@ -17,7 +17,6 @@ namespace MortierFu
         [Header("Mortar")]
         [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
-
         
         [Header("Aspect")]
         [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
@@ -95,12 +94,13 @@ namespace MortierFu
         
         public void Reset()
         {
+            gameObject.SetActive(true);
+            
             Health.Reset();
             Controller.Reset();
             Aspect.Reset();
             Mortar.Reset();
             
-            gameObject.SetActive(true);
             _stateMachine.SetState(_locomotionState);
         }
         
@@ -157,7 +157,7 @@ namespace MortierFu
         }
         
         #region Augments
-        public void AddAugment(DA_Augment augmentData)
+        public void AddAugment(SO_Augment augmentData)
         {
             var augmentInstance = AugmentFactory.Create(augmentData, this);
             augmentInstance.Initialize();

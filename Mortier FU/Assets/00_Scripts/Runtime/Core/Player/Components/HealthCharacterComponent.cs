@@ -7,7 +7,7 @@ namespace MortierFu
     {
         /// Sent every time health changes. Provide the amount of change (positive or negative).
         public Action<float> OnHealthChanged;
-        public Action OnDeath;
+        public Action<object> OnDeath;
         
         private int _currentHealth;
         private int _maxHealth;
@@ -29,7 +29,7 @@ namespace MortierFu
             _currentHealth = _maxHealth;
         }
         
-        public void TakeDamage(int amount)
+        public void TakeDamage(int amount, object source)
         {
             // Cannot take damage if already dead
             if (!IsAlive)
@@ -41,7 +41,7 @@ namespace MortierFu
             if (!IsAlive)
             {
                 _currentHealth = 0;
-                OnDeath?.Invoke();
+                OnDeath?.Invoke(source);
             }
         }
         
@@ -53,6 +53,7 @@ namespace MortierFu
 
         public override void Reset()
         {
+            _maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(_maxHealth);
         }

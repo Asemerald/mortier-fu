@@ -18,6 +18,9 @@ namespace MortierFu
         [Header("Mortar Statistics")]
         [field: SerializeField, Tooltip("Damage dealt by a single mortar shot.")]
         public CharacterStat DamageAmount { get; private set; } = new(1.0f);
+
+        [field: SerializeField, Tooltip("Size of the projectile")]
+        public CharacterStat BombshellSize { get; private set; } = new(0.6f);
         
         [field: SerializeField, Tooltip("Radius of the area-of-effect damage.")]
         public CharacterStat DamageRange { get; private set; } = new(2.0f);
@@ -28,8 +31,8 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Maximum effective range of mortar shots.")]
         public CharacterStat ShotRange { get; private set; } = new(20.0f);
         
-        [field: SerializeField, Tooltip("Speed of the projectile after being fired.")]
-        public CharacterStat ProjectileTimeTravel { get; private set; } = new(3.0f);
+        [field: SerializeField, Tooltip("Speed of the bombshell after being fired.")]
+        public CharacterStat BombshellTimeTravel { get; private set; } = new(3.0f);
         
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);
@@ -47,7 +50,7 @@ namespace MortierFu
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
         [field: SerializeField, Tooltip("Duration of the Stun.")]
-        public CharacterStat StunDuration { get; private set; } = new( 0.5f);
+        public CharacterStat StrikeStunDuration { get; private set; } = new( 0.5f);
         
         [field: SerializeField, Tooltip("Amount of bullets each shot will launch.")]
         public CharacterStat BulletNumber { get; private set; } = new( 1.0f);

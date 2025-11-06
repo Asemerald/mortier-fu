@@ -23,6 +23,7 @@ namespace MortierFu
         // Dependencies
         protected LobbyService lobbyService;
         protected CountdownTimer _timer;
+        protected BombshellSystem _bombshellSys;
 
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
@@ -94,11 +95,35 @@ namespace MortierFu
                     while (_timer.IsRunning)
                         yield return 0f;
                     
+                    var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
+                    
+                    var augmentPickers = GetAugmentPickers();
+                    system.StartAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+
                     StartAugmentSelection();
+                    
+                    while (!system.IsSelectionOver)
+                        yield return 0f;
+                    
+                    system.EndAugmentSelection();
+                    EndAugmentSelection();
                 }
             }
 
             EndGame();
+        }
+
+        private List<PlayerManager> GetAugmentPickers()
+        {
+            var pickers = new List<PlayerManager>();
+            foreach (var team in teams)
+            {
+                if(team.Rank == 1) continue;
+                
+                pickers.AddRange(team.Members);
+            }
+            
+            return pickers;
         }
 
         private void SpawnPlayers()
@@ -208,7 +233,7 @@ namespace MortierFu
         protected virtual void EndRound()
         {
             _timer.Stop();
-            //EnablePlayerInputs(false);
+            _bombshellSys.ClearActiveBombshells();
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
 
@@ -282,9 +307,15 @@ namespace MortierFu
         {
             UpdateGameState(GameState.AugmentSelection);
             
-            // Hide previous showcase UI
-            // Spawn augments
+            foreach (var team in teams)
+            {
+                foreach (var member in team.Members)
+                {
+                    member.Character.transform.position = Vector3.up * 3f;
+                }
+            }
             
+            // Hide previous showcase UI            
             EnablePlayerInputs();
             
             Logs.Log("Starting augment selection...");
@@ -297,6 +328,8 @@ namespace MortierFu
             EnablePlayerInputs(false);
 
             // stop selection UI
+            
+            ResetPlayers();
         }
 
         protected virtual void EndGame()
@@ -315,6 +348,7 @@ namespace MortierFu
         {
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             _timer = new CountdownTimer(0f);
             
             if (!IsReady) {
@@ -327,7 +361,19 @@ namespace MortierFu
             var players = lobbyService.GetPlayers();
             for (int i = 0; i < players.Count; i++)
             {
-                var team = new PlayerTeam(i, players[i]);
+                var player = players[i];
+                player.SpawnInGame(Vector3.zero);
+                player.Character.Health.OnDeath += source =>
+                {
+                    player.Metrics.TotalDeaths++;
+                    
+                    if (source is PlayerCharacter killer)
+                    {
+                        OnPlayerKill(player.Character, killer);
+                    }
+                };
+                
+                var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
             
@@ -363,11 +409,10 @@ namespace MortierFu
             return false;
         }
         
-        // TODO: Can be improved ?
-        public virtual void NotifyKillEvent(PlayerCharacter killerPlayerCharacter, PlayerCharacter victimPlayerCharacter)
+        public virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
         {
-            var killer = killerPlayerCharacter.Owner;
-            var victim = victimPlayerCharacter.Owner;
+            var killer = killerCharacter.Owner;
+            var victim = victimCharacter.Owner;
             
             killer.Metrics.RoundKills += 1;
             

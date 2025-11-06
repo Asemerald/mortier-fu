@@ -64,10 +64,19 @@ namespace MortierFu
             //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
         }
 
-        private void OnStartGameClicked()
+        private async void OnStartGameClicked()
         {
-            //LobbyManager.Instance?.TryStartGame();
             SceneManager.LoadScene("GameLoop");
+            
+            // TODO COULD CAUSE ISSUES BECAUSE SCENE LOADS AND AWAKE START AND AFTER SYSTEM INIT
+            
+            //LobbyManager.Instance?.TryStartGame();
+            var systemManager = SystemManager.Instance;
+            systemManager.CreateAndRegister<AugmentSelectionSystem>();
+            systemManager.CreateAndRegister<BombshellSystem>();
+            
+            // TODO think about that UnregisterAndDispose
+            await systemManager.Initialize();
         }
     }
 }
