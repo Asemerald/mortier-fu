@@ -30,7 +30,6 @@ namespace MortierFu
         Round,
         EndRound,
         DisplayScores,
-        ShowcaseAugments,
         AugmentSelection,
         EndAugmentSelection,
         EndGame,
