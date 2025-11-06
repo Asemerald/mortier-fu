@@ -2,14 +2,14 @@
 
 namespace MortierFu.Editor
 {
-    [CustomEditor(typeof(DA_AugmentLibrary), true)]
-    public class DA_AugmentLibraryEditor : UnityEditor.Editor
+    [CustomEditor(typeof(SO_AugmentLibrary), true)]
+    public class AugmentLibraryEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
 
-            var holder = target as DA_AugmentLibrary;
+            var holder = target as SO_AugmentLibrary;
             float totalWeight = 0f;
             
             if (holder && holder.AugmentEntries != null && holder.AugmentEntries.Count > 0)

@@ -73,6 +73,7 @@ namespace MortierFu
             //LobbyManager.Instance?.TryStartGame();
             var systemManager = SystemManager.Instance;
             systemManager.CreateAndRegister<AugmentSelectionSystem>();
+            systemManager.CreateAndRegister<BombshellSystem>();
             
             // TODO think about that UnregisterAndDispose
             await systemManager.Initialize();

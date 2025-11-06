@@ -3,7 +3,7 @@
 namespace MortierFu
 {
     [CreateAssetMenu(fileName = "DA_Augment", menuName = "Mortier Fu/New Augment", order = 1)]
-    public class DA_Augment : ScriptableObject
+    public class SO_Augment : ScriptableObject
     {
         public string Name;
         [TextArea] public string Description;

@@ -11,6 +11,7 @@ namespace MortierFu
         
         private InputAction _aimAction, _shootAction;
         
+        private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootTimer;
         private bool _isAiming;
@@ -42,6 +43,13 @@ namespace MortierFu
             // Find and cache Input Actions
             character.FindInputAction("Aim", out _aimAction);
             character.FindInputAction("Shoot", out _shootAction);
+
+            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            if (_bombshellSys == null)
+            {
+                Logs.LogError("[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
+                return;
+            }
 
             Color playerColor = character.Aspect.PlayerColor;
             AimWidget.Colorize(playerColor);
@@ -83,14 +91,15 @@ namespace MortierFu
                 Owner = character,
                 StartPos = _firePoint.position,
                 TargetPos = AimWidget.transform.position,
-                TravelTime = Stats.ProjectileTimeTravel.Value,
+                TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
                 AoeRange = Stats.DamageRange.Value,
-                Scale = 0.6f * (1 + (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f)
+                Scale = Stats.BombshellSize.Value * (1 + (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f),
             };
             
-            var bombshell = BombshellManager.Instance.RequestBombshell(bombshellData);
+            var bombshell = _bombshellSys.RequestBombshell();
+            bombshell.SetData(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
             _shootTimer.Reset(Stats.FireRate.Value);

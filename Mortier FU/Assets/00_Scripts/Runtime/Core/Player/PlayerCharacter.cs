@@ -157,7 +157,7 @@ namespace MortierFu
         }
         
         #region Augments
-        public void AddAugment(DA_Augment augmentData)
+        public void AddAugment(SO_Augment augmentData)
         {
             var augmentInstance = AugmentFactory.Create(augmentData, this);
             augmentInstance.Initialize();

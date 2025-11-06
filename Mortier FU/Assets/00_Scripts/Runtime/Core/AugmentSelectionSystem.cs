@@ -15,7 +15,7 @@ namespace MortierFu
         private List<PlayerManager> _pickers;
         
         private LobbyService _lobbyService;
-        private readonly LootTable<DA_Augment> _lootTable;
+        private readonly LootTable<SO_Augment> _lootTable;
 
         private int _playerCount;
         private int _augmentCount;
@@ -34,7 +34,7 @@ namespace MortierFu
                 RemoveOnPull = false // TODO Swap
             };
             
-            _lootTable = new LootTable<DA_Augment>();
+            _lootTable = new LootTable<SO_Augment>();
         }
         
         public async Task OnInitialize()
@@ -51,7 +51,7 @@ namespace MortierFu
         private async Task PopulateLootTable()
         {
             // Load with addressable all augment libraries.
-            var handle = Addressables.LoadAssetsAsync<DA_AugmentLibrary>(k_augmentLibLabel);
+            var handle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
             await handle.Task;
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
@@ -170,7 +170,7 @@ namespace MortierFu
         
         private class AugmentState // TODO Better rename
         {
-            public DA_Augment Augment;
+            public SO_Augment Augment;
             public bool IsPicked;
         }
     }

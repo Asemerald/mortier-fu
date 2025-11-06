@@ -2,7 +2,7 @@ namespace MortierFu.Stats
 {
     public class AGM_HealthPack : AugmentBase
     {
-        public AGM_HealthPack(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_HealthPack(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

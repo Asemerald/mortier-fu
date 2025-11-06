@@ -8,7 +8,7 @@ public class VehiculeDamage : MonoBehaviour
     {
         if (collision.gameObject.TryGetComponent(out PlayerCharacter character))
         {
-            character.Health.TakeDamage(999);
+            character.Health.TakeDamage(999, gameObject);
         }
     }
 }

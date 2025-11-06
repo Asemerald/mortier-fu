@@ -19,7 +19,7 @@ namespace MortierFu
             _index = augmentIndex;
         }
         
-        public void SetAugmentVisual(DA_Augment augment)
+        public void SetAugmentVisual(SO_Augment augment)
         {
             _augmentNameText.text = augment != null ? augment.Name : "None";
             _augmentIconImage.sprite = augment != null ? augment.Icon : null;

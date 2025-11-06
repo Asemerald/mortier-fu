@@ -2,7 +2,7 @@ namespace MortierFu.Stats
 {
     public class AGM_BigGuy : AugmentBase
     {
-        public AGM_BigGuy(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_BigGuy(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

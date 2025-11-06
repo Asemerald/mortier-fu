@@ -23,6 +23,7 @@ namespace MortierFu
         // Dependencies
         protected LobbyService lobbyService;
         protected CountdownTimer _timer;
+        protected BombshellSystem _bombshellSys;
 
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
@@ -232,6 +233,7 @@ namespace MortierFu
         protected virtual void EndRound()
         {
             _timer.Stop();
+            _bombshellSys.ClearActiveBombshells();
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
 
@@ -346,6 +348,7 @@ namespace MortierFu
         {
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             _timer = new CountdownTimer(0f);
             
             if (!IsReady) {

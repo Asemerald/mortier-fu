@@ -2,7 +2,7 @@ namespace MortierFu.Stats
 {
     public class AGM_FastStrike : AugmentBase
     {
-        public AGM_FastStrike(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_FastStrike(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

@@ -2,7 +2,7 @@ namespace MortierFu.Stats
 {
     public class AGM_LuckyLuck : AugmentBase
     {
-        public AGM_LuckyLuck(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_LuckyLuck(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

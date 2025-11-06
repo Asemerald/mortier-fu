@@ -2,7 +2,7 @@
 {
     public class AGM_FastReload : AugmentBase
     {
-        public AGM_FastReload(DA_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_FastReload(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()

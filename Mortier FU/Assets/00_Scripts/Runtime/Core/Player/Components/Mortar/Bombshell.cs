@@ -18,6 +18,7 @@ namespace MortierFu
             public Vector3 TargetPos;
             public float Scale;
             // public float Speed;
+            public float Height;
             public float TravelTime;
             public float GravityScale;
         
@@ -26,7 +27,7 @@ namespace MortierFu
             public float AoeRange;
         }
         
-        // TODO: Temporary to see the curves
+        // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
         [SerializeField] private TrailRenderer _trail;
 
         private Data _data;
@@ -37,7 +38,6 @@ namespace MortierFu
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
-        private bool _exploded; // Temp fix
 
         private BombshellSystem _system;
         private Rigidbody _rb;
@@ -56,20 +56,22 @@ namespace MortierFu
         {
             _data = data;
             _t = 0.0f;
-            _exploded = false;
 
-            //Change k_height to be link with projectile travel time
-            /*const*/ float k_height = _data.TravelTime * 8;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
             _direction = groundDir.normalized;
-            ComputePathWithHeight(_data.TargetPos, k_height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
+            ComputePathWithHeight(_data.TargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
             
             transform.localScale = Vector3.one * _data.Scale;
             
             Timing.RunCoroutine(Test()); // TODO: Can be improved
+        }
+
+        public void ReturnToPool()
+        {
+            _system.ReleaseBombshell(this);
         }
         
         private IEnumerator<float> Test()
@@ -93,9 +95,7 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
-            if (_exploded) return;
-            _exploded = true;
-            // Notify impact & recycle the bombshell
+            // Notify impact to the system
             _system.NotifyImpact(this);
         }
 
@@ -143,12 +143,6 @@ namespace MortierFu
         {
             _trail.transform.SetParent(null);
             Destroy(_trail.gameObject, 0.6f);
-        }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(_data.StartPos + _data.TargetPos, 0.2f);
         }
     }
 }

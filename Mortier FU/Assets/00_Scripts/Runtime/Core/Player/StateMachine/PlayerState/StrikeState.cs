@@ -74,11 +74,7 @@ namespace MortierFu
 
                 if (hit.TryGetComponent(out Bombshell bombshell))
                 {
-                    if (BombshellManager.Instance != null)
-                        BombshellManager.Instance.RecycleBombshell(bombshell);
-                    else
-                        Logs.LogWarning("No BombshellManager instance available to recycle bombshell.");
-
+                    bombshell.ReturnToPool();
                     continue;
                 }
                 
@@ -100,10 +96,8 @@ namespace MortierFu
                 if (other == character) continue;
 
                 int strikeDamage = Mathf.RoundToInt(character.CharacterStats.StrikeDamage.Value);
-                other.Health.TakeDamage(strikeDamage);
+                other.Health.TakeDamage(strikeDamage, character);
                 other.ReceiveStun(character.CharacterStats.StrikeStunDuration.Value);
-                
-                
             }
         }
     }

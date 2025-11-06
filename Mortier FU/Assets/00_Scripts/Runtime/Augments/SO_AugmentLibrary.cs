@@ -8,8 +8,8 @@ namespace MortierFu
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [CreateAssetMenu(fileName = "DA_AugmentLibrary", menuName = "Mortier Fu/New Augment Library")]
-    public class DA_AugmentLibrary : ScriptableObject
+    public class SO_AugmentLibrary : ScriptableObject
     {
-        public List<LootTable<DA_Augment>.LootTableEntry> AugmentEntries = new();
+        public List<LootTable<SO_Augment>.LootTableEntry> AugmentEntries = new();
     }
 }
