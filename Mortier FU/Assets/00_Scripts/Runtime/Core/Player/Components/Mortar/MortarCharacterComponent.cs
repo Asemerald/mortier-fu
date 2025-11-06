@@ -98,8 +98,7 @@ namespace MortierFu
                 Scale = Stats.BombshellSize.Value * (1 + (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f),
             };
             
-            var bombshell = _bombshellSys.RequestBombshell();
-            bombshell.SetData(bombshellData);
+            var bombshell = _bombshellSys.RequestBombshell(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
             _shootTimer.Reset(Stats.FireRate.Value);

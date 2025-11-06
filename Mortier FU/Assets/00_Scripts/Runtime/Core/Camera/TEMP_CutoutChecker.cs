@@ -20,8 +20,6 @@ public class TEMP_CutoutChecker : MonoBehaviour
         //Does the ray intersects with the mesh?
         if (Physics.Raycast(_camera.transform.position, (transform.position - _camera.transform.position).normalized, out hit, 1000))
         {
-            Logs.Log(hit.transform.name);
-            
             if (hit.transform != transform.parent.parent)
             {
                 if (transform.localScale == Vector3.zero)

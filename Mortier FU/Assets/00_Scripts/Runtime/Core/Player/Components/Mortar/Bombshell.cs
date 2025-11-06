@@ -31,13 +31,14 @@ namespace MortierFu
         [SerializeField] private TrailRenderer _trail;
 
         private Data _data;
-        
-        private float _t = -1.0f;
+
+        private float _t;
         private float _initialSpeed;
         private Vector3 _direction;
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
+        private bool _exploded;
 
         private BombshellSystem _system;
         private Rigidbody _rb;
@@ -52,11 +53,14 @@ namespace MortierFu
             _rb = GetComponent<Rigidbody>();
         }
         
+        private StopwatchTimer timer;
         public void SetData(Data data)
         {
             _data = data;
             _t = 0.0f;
+            _exploded = false;
 
+            transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
@@ -65,7 +69,11 @@ namespace MortierFu
             _timeFactor = _travelTime / _data.TravelTime;
             
             transform.localScale = Vector3.one * _data.Scale;
+
+            timer ??= new StopwatchTimer(0f);
+            timer.Start();
             
+            _trail.Clear();
             Timing.RunCoroutine(Test()); // TODO: Can be improved
         }
 
@@ -84,7 +92,7 @@ namespace MortierFu
             else Logs.LogWarning("No FX Handler");
         }
         
-        void Update()
+        void FixedUpdate()
         {
             //_t += Time.deltaTime * _data.Speed * 0.1f;
             _t += Time.deltaTime * _timeFactor;
@@ -95,6 +103,9 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
+            if (_exploded) return;
+            _exploded = true;
+            
             // Notify impact to the system
             _system.NotifyImpact(this);
         }

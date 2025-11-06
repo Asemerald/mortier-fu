@@ -61,6 +61,7 @@ namespace MortierFu
             if (isPortableBootstrap)
             {
                 _systemManager.CreateAndRegister<AugmentSelectionSystem>();
+                _systemManager.CreateAndRegister<BombshellSystem>();
                 yield return _systemManager.Initialize();
             }
 #endif

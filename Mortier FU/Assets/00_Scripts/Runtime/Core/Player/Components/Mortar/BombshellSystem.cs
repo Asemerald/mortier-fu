@@ -16,7 +16,7 @@ namespace MortierFu
         
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
-        private const int k_defaultCapacity = 10;
+        private const int k_defaultCapacity = 30;
         private const int k_maxSize = 10000;
         
         // Track active bombshells
@@ -28,10 +28,12 @@ namespace MortierFu
         private const int k_maxImpactTargets = 50;
         
         public SO_BombshellSettings Settings => _settingsHandle.Result;
-        
-        public Bombshell RequestBombshell()
+
+        public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
+            bombshellData.Height = Settings.BombshellHeight;
+            bombshell.SetData(bombshellData);
             return bombshell;
         }
 
@@ -102,6 +104,7 @@ namespace MortierFu
             var go = Object.Instantiate(_prefabHandle.Result, _bombshellParent);
             var bombshell = go.GetComponent<Bombshell>();
             
+            bombshell.Initialize(this);
             go.SetActive(false);
             
             return bombshell;
@@ -123,7 +126,10 @@ namespace MortierFu
 
         private void OnDestroyBombshell(Bombshell bombshell)
         {
-            Object.Destroy(bombshell.gameObject);
+            if (bombshell && bombshell.gameObject)
+            {
+                Object.Destroy(bombshell.gameObject);
+            }
         }
         
         #endregion
@@ -136,7 +142,10 @@ namespace MortierFu
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                if (Settings.EnableDebug)
+                {
+                    Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                }
                 return;
             }
             
@@ -146,7 +155,10 @@ namespace MortierFu
             
             if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                if (Settings.EnableDebug)
+                {
+                    Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                }
                 return;
             }
             
