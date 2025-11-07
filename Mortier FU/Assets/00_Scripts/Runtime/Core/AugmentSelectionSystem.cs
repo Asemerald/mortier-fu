@@ -154,13 +154,8 @@ namespace MortierFu
 
             await Task.Delay(TimeSpan.FromSeconds(2f));
             
-            var gmh = Object.FindFirstObjectByType<GameModeHolder>(); // TODO: ca pue sa mere
-            if (gmh == null)
-            {
-                Logs.LogError("[AugmentSelectionSystem]: Could not find GameModeHolder in the scene.");
-                return;
-            }
-            gmh.Get().EnablePlayerInputs();
+            var gm = IGameMode.current as GameModeBase;
+            gm?.EnablePlayerInputs();
             
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
@@ -175,7 +170,6 @@ namespace MortierFu
             
             _selectedAugments = null;
             _augmentBag.Clear();
-            //_augmentTimer.Stop(); // Should not be necessary to check
             _augmentTimer = null;
         }
 
