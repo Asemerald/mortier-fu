@@ -1,43 +1,98 @@
-﻿using MortierFu.Shared;
-using TMPro;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using MEC;
+using MortierFu.Shared;
 
 namespace MortierFu
 {
     public class GameplayInfoUI : MonoBehaviour
     {
         [Header("References")] 
+        [SerializeField] private GameObject _gameplayInfoPanel;
         [SerializeField] private TextMeshProUGUI _countdownText;
         [SerializeField] private TextMeshProUGUI _roundText;
-        [SerializeField] private ScorePanel _scorePanel;
-
-        public ScorePanel ScorePanel => _scorePanel;
-        private IGameMode _gm;
+        [SerializeField] private Transform _teamInfoParent;
+        [SerializeField] private GameObject _teamInfoPrefab;
+        [SerializeField] private List<TextMeshProUGUI> _teamInfoText;
         
-        public void BindToGameMode(IGameMode gameMode)
+        private GameModeBase _gm;
+
+        private void Start()
         {
-            if (gameMode == null)
+            _gm = IGameMode.current as GameModeBase;
+            _gm.OnRoundStarted += OnRoundStarted; // No unscubscription
+            
+            Initialise();
+        }
+        
+        private void OnRoundStarted(int currentRound)
+        {
+            UpdateRoundText(currentRound);
+            UpdatePlayerScores();
+            Timing.RunCoroutine(HandleCountdown());
+        }
+
+        private IEnumerator<float> HandleCountdown()
+        {
+            ShowCountdown();
+            float countdownTime;
+            do
             {
-                Logs.LogWarning("[GameplayInfoUI]: Trying to bind to a null GameMode.");
+                countdownTime = _gm.CountdownRemainingTime;
+                UpdateCountdownText(Mathf.FloorToInt(countdownTime)); 
+                yield return 0f;
+            } while (countdownTime > 0f);
+            
+            UpdateCountdownText(0);
+            HideCountdown();
+        }
+
+        private void Initialise()
+        {
+            HideCountdown();
+            PopulateTeamInfo();
+        }
+
+        private void PopulateTeamInfo()
+        {
+            if (_gm == null || _gm.Teams == null)
+            {
+                Logs.LogError("[GameplayInfoUI] GameMode or Teams not initialized.");
                 return;
             }
-            
-            // Unsubscribe
-            if (_gm != null)
+
+            for (int i = 0; i < _gm.Teams.Count; i++)
             {
-                _gm.OnRoundStarted -= UpdateRoundText;
+                var iconGO = Instantiate(_teamInfoPrefab, _teamInfoParent);
+                var text = iconGO.GetComponentInChildren<TextMeshProUGUI>();
+                
+                if (text != null)
+                {
+                    text.text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
+                }
+                
+                _teamInfoText.Add(text);
             }
-            
-            _gm = gameMode;
-            
-            // Subscribe
-            _gm.OnRoundStarted += UpdateRoundText;
-            UpdateRoundText(_gm.CurrentRoundCount);
         }
 
-        private void UpdateRoundText(int currentRound)
+        private void UpdatePlayerScores()
         {
-            _roundText.text = $"Round #{currentRound}";
+            for (int i = 0; i < _gm.Teams.Count; i++)
+            {
+                if (i < _teamInfoText.Count)
+                {
+                    _teamInfoText[i].text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
+                }
+            }
         }
+        
+        private void UpdateRoundText(int currentRound) => _roundText.text = $"Round #{currentRound}";
+
+        private void UpdateCountdownText(int timeRemaining) => _countdownText.text = timeRemaining <= 0 ? "Fight!" : $"{timeRemaining}";
+        
+        private void HideCountdown() => _gameplayInfoPanel.SetActive(false);
+
+        private void ShowCountdown() => _gameplayInfoPanel.SetActive(true);
     }
 }

@@ -5,6 +5,8 @@ namespace MortierFu
 {
     public interface IGameMode : IDisposable
     {
+        public static IGameMode current { get; protected set; }
+        
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)

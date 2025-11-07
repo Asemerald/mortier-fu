@@ -16,6 +16,7 @@ namespace MortierFu
 
         public float AugmentShowcaseDuration = 20f;
         public float AugmentSelectionDuration = 15;
+        public float RoundStartCountdown = 4f;
         public float DisplayScoresDuration = 6f;
     }
 }
