@@ -1,10 +1,12 @@
+using System;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -14,17 +16,21 @@ namespace MortierFu
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
         
+        private AugmentShowcaser _augmentShowcaser;
+        
         private LobbyService _lobbyService;
         private readonly LootTable<SO_Augment> _lootTable;
 
         private int _playerCount;
         private int _augmentCount;
+        private bool _showcaseInProgress;
         
         private const string k_augmentLibLabel = "AugmentLib";
         
         private CountdownTimer _augmentTimer;
-        
-        public bool IsSelectionOver => _pickers.Count <= 0 || _augmentTimer.IsFinished;
+        private SO_Augment[] _selectedAugments;
+
+        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
         
         public AugmentSelectionSystem()
         {
@@ -43,9 +49,12 @@ namespace MortierFu
             _playerCount = _lobbyService.GetPlayers().Count;
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
-
+            _selectedAugments = new SO_Augment[_augmentCount];
+             
             await PopulateLootTable();
             await InstantiatePickups();
+            
+            _augmentShowcaser = new AugmentShowcaser(_pickups.AsReadOnly());
         }
 
         private async Task PopulateLootTable()
@@ -78,9 +87,7 @@ namespace MortierFu
             
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pos = (Random.insideUnitSphere.With(y: 0).normalized * 10f).With(y: 0.85f);
-                
-                var pickupHandle = SystemManager.Config.AugmentPickupPrefab.InstantiateAsync(pos, Quaternion.identity, pickupParent);
+                var pickupHandle = SystemManager.Config.AugmentPickupPrefab.InstantiateAsync(pickupParent);
                 await pickupHandle.Task;
                 
                 if(pickupHandle.Status != AsyncOperationStatus.Succeeded)
@@ -109,7 +116,7 @@ namespace MortierFu
             _augmentTimer.Dispose();
         }
         
-        public void StartAugmentSelection(List<PlayerManager> pickers, float duration)
+        public async Task HandleAugmentSelection(List<PlayerManager> pickers, float duration)
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -118,24 +125,45 @@ namespace MortierFu
             }
             
             _pickers = pickers;
-            _augmentTimer ??= new CountdownTimer(duration);
-            _augmentTimer.Start();
             
-            var augments = _lootTable.BatchPull(_augmentCount);
-
+            _selectedAugments = _lootTable.BatchPull(_augmentCount);
             _augmentBag.Clear();
             
-            for (var i = 0; i < augments.Length; i++)
+            for (var i = 0; i < _selectedAugments.Length; i++)
             {
-                var augment = augments[i];
+                var augment = _selectedAugments[i];
                 _augmentBag.Add(new AugmentState()
                 {
                     Augment = augment,
                     IsPicked = false
                 });
-
+                
                 _pickups[i].SetAugmentVisual(augment);
             }
+            
+            var positions = new List<Vector3>(_augmentCount);
+            for (int i = 0; i < _augmentCount; i++)
+            {
+                var pos = (Random.insideUnitSphere.With(y: 0).normalized * 10f).With(y: 0.85f);
+                positions.Add(pos);
+            }
+
+            _showcaseInProgress = true;
+            await _augmentShowcaser.Showcase(positions);
+            _showcaseInProgress = false;
+
+            await Task.Delay(TimeSpan.FromSeconds(2f));
+            
+            var gmh = Object.FindFirstObjectByType<GameModeHolder>(); // TODO: ca pue sa mere
+            if (gmh == null)
+            {
+                Logs.LogError("[AugmentSelectionSystem]: Could not find GameModeHolder in the scene.");
+                return;
+            }
+            gmh.Get().EnablePlayerInputs();
+            
+            _augmentTimer = new CountdownTimer(duration);
+            _augmentTimer.Start();
         }
 
         public void EndAugmentSelection()
@@ -145,8 +173,10 @@ namespace MortierFu
                 pickup.Hide();
             }
             
+            _selectedAugments = null;
             _augmentBag.Clear();
-            _augmentTimer.Stop();
+            //_augmentTimer.Stop(); // Should not be necessary to check
+            _augmentTimer = null;
         }
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)
@@ -168,7 +198,7 @@ namespace MortierFu
             return true;
         }
         
-        private class AugmentState // TODO Better rename
+        public class AugmentState // TODO Better rename
         {
             public SO_Augment Augment;
             public bool IsPicked;

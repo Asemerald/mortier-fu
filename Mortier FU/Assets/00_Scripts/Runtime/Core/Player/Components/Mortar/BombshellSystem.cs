@@ -90,10 +90,12 @@ namespace MortierFu
         public void ClearActiveBombshells()
         {
             if (_active.Count <= 0) return;
-
-            foreach (var bombshell in _active)
+            
+            // Release all active bombshells, this remove them from hash set so must not foreach
+            var activeBombshells = new List<Bombshell>(_active);
+            for (int i = 0; i < activeBombshells.Count; i++)
             {
-                ReleaseBombshell(bombshell);
+                ReleaseBombshell(activeBombshells[i]);
             }
         }
         

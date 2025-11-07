@@ -22,6 +22,7 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
+        protected AugmentSelectionSystem _augmentSelectionSys;
         protected CountdownTimer _timer;
         protected BombshellSystem _bombshellSys;
 
@@ -90,22 +91,16 @@ namespace MortierFu
                 }
                 else // Augment selection
                 {
-                    UpdateGameState(GameState.ShowcaseAugments);
-                    ShowcaseAugments();
-                    while (_timer.IsRunning)
-                        yield return 0f;
-                    
-                    var system = SystemManager.Instance.Get<AugmentSelectionSystem>();
-                    
-                    var augmentPickers = GetAugmentPickers();
-                    system.StartAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
-
+                    UpdateGameState(GameState.AugmentSelection);
                     StartAugmentSelection();
                     
-                    while (!system.IsSelectionOver)
+                    var augmentPickers = GetAugmentPickers();
+                    _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+                    
+                    while (!_augmentSelectionSys.IsSelectionOver)
                         yield return 0f;
                     
-                    system.EndAugmentSelection();
+                    _augmentSelectionSys.EndAugmentSelection();
                     EndAugmentSelection();
                 }
             }
@@ -141,7 +136,7 @@ namespace MortierFu
             }
         }
 
-        private void EnablePlayerInputs(bool enabled = true)
+        public void EnablePlayerInputs(bool enabled = true)
         {
             foreach (var team in teams)
             {
@@ -291,18 +286,6 @@ namespace MortierFu
             // Hide UI
         }
         
-        protected virtual void ShowcaseAugments()
-        {
-            UpdateGameState(GameState.ShowcaseAugments);
-            
-            _timer.Reset(GameModeData.AugmentShowcaseDuration);
-            _timer.Start();
-            
-            // Link to UI and countdown
-            
-            Logs.Log("Showcasing the augments which are going to be available...");
-        }
-        
         protected virtual void StartAugmentSelection()
         {
             UpdateGameState(GameState.AugmentSelection);
@@ -316,7 +299,7 @@ namespace MortierFu
             }
             
             // Hide previous showcase UI            
-            EnablePlayerInputs();
+            EnablePlayerInputs(false);
             
             Logs.Log("Starting augment selection...");
         }
@@ -348,7 +331,10 @@ namespace MortierFu
         {
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            
+            _augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            
             _timer = new CountdownTimer(0f);
             
             if (!IsReady) {
