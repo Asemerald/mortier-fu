@@ -37,7 +37,7 @@ public class TEMP_CameraShake : MonoBehaviour
 
     public void CallCameraShake(float aoeRange, float power, float travelTime, float delay = 0)
     {
-        float intensity = Mathf.Clamp((aoeRange * power * travelTime) /30, 5f, 1000f);
+        float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 5f, 100);
         float time = intensity * 0.07f;
         //Logs.Log($"intensity : {intensity} / time : {time}");
         StartCoroutine(ShakeCamera(intensity, time, intensity, time/2));

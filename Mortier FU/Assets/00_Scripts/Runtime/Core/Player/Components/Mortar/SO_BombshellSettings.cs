@@ -9,6 +9,8 @@ namespace MortierFu
         [Header("Parameters")]
         [Tooltip("Determine if the players can damage themselves with their own bombshells.")]
         public bool AllowSelfDamage = true;
+        [Tooltip("Determine if the bombshells of the same player can collide together.")]
+        public bool DisableBombshellSelfCollision = true;
         public float BombshellHeight = 8f;
 
         [Header("References")]

@@ -18,6 +18,7 @@ namespace MortierFu
 
         protected int currentRound;
         protected int currentRank;
+        protected bool oneTeamStanding;
         protected GameState currentState;
 
         // Dependencies
@@ -70,9 +71,21 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
+                UpdateGameState(GameState.AugmentSelection);
+                StartAugmentSelection();
+                    
+                var augmentPickers = GetAugmentPickers();
+                _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+                    
+                while (!_augmentSelectionSys.IsSelectionOver)
+                    yield return 0f;
+                    
+                _augmentSelectionSys.EndAugmentSelection();
+                EndAugmentSelection();
+                
                 StartRound();
-
-                while (!OneTeamStanding())
+                
+                while (!oneTeamStanding)
                     yield return 0f;
                 
                 UpdateGameState(GameState.EndRound);
@@ -89,20 +102,6 @@ namespace MortierFu
                     Logs.Log($"Game Over! Team {victor.Index} wins!");
                     UpdateGameState(GameState.EndGame);
                 }
-                else // Augment selection
-                {
-                    UpdateGameState(GameState.AugmentSelection);
-                    StartAugmentSelection();
-                    
-                    var augmentPickers = GetAugmentPickers();
-                    _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
-                    
-                    while (!_augmentSelectionSys.IsSelectionOver)
-                        yield return 0f;
-                    
-                    _augmentSelectionSys.EndAugmentSelection();
-                    EndAugmentSelection();
-                }
             }
 
             EndGame();
@@ -116,6 +115,11 @@ namespace MortierFu
                 if(team.Rank == 1) continue;
                 
                 pickers.AddRange(team.Members);
+            }
+
+            if (pickers.Count == 0)
+            {
+                Logs.LogWarning("Found no pickers for this augment selection phase.");
             }
             
             return pickers;
@@ -147,44 +151,6 @@ namespace MortierFu
             }
         }
         
-        protected virtual bool OneTeamStanding()
-        {
-            int aliveTeam = 0;
-            PlayerTeam roundVictor = null;
-            
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    if (!member.IsInGame || member.Character == null) continue;
-                    
-                    if (member.Character.Health.IsAlive)
-                    {
-                        aliveTeam++;
-                        if (aliveTeam > 1) return false;
-                        roundVictor = team;
-                        break;
-                    }
-                }
-            }
-
-            if (aliveTeam != 1)
-            {
-                Logs.LogError("[GameModeBase] OneTeamStanding called but no team is standing!");
-                return false;
-            }
-
-            if (roundVictor != null)
-            {
-                roundVictor.Rank = 1;
-            } 
-            else { 
-                Logs.LogError("[GameModeBase] OneTeamStanding called but roundVictor is null!");
-            }
-
-            return true;
-        }
-
         protected virtual bool AllPlayersReady()
         {
             // TODO: Implement player ready check
@@ -208,6 +174,7 @@ namespace MortierFu
 
             currentRound++;
             currentRank = teams.Count;
+            oneTeamStanding = false;
             
             SpawnPlayers();
             EnablePlayerInputs();
@@ -219,6 +186,8 @@ namespace MortierFu
                 {
                     member.Metrics.ResetRoundMetrics();
                 }
+
+                team.Rank = -1;
             }
             
             OnRoundStarted?.Invoke(currentRound);
@@ -394,17 +363,20 @@ namespace MortierFu
             victor = null;
             return false;
         }
-        
+
         public virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
         {
             var killer = killerCharacter.Owner;
             var victim = victimCharacter.Owner;
-            
-            killer.Metrics.RoundKills += 1;
-            
+
+            if (killer != victim)
+            {
+                killer.Metrics.RoundKills += 1;
+            }
+
             // TODO: Can be improved
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(victim));
-            if(victimTeam == null) 
+            if (victimTeam == null)
             {
                 Logs.LogError("[GameModeBase] Victim's team not found!");
                 return;
@@ -415,7 +387,33 @@ namespace MortierFu
                 victimTeam.Rank = currentRank;
                 currentRank--;
             }
-            
+
+            // Check if there is one team standing
+            int aliveTeamIndex = -1;
+            for (int i = 0; i < teams.Count; i++)
+            {
+                PlayerTeam team = teams[i];
+                if (team.Members.Any(m => m.Character.Health.IsAlive))
+                {
+                    if (aliveTeamIndex == -1)
+                    {
+                        aliveTeamIndex = i;
+                    }
+                    else
+                    {
+                        aliveTeamIndex = -1;
+                        break;
+                    }
+                }
+            }
+
+            // Set the rank of the winning team to 1 if one.
+            if (aliveTeamIndex != -1)
+            {
+                teams[aliveTeamIndex].Rank = 1;
+                oneTeamStanding = true;
+            }
+
             OnPlayerKilled?.Invoke(killer, victim);
         }
     }

@@ -57,14 +57,6 @@ namespace MortierFu
             // Initialise les systèmes de base avant les mods
             yield return _systemManager.Initialize();
             
-#if UNITY_EDITOR
-            if (isPortableBootstrap)
-            {
-                _systemManager.CreateAndRegister<AugmentSelectionSystem>();
-                _systemManager.CreateAndRegister<BombshellSystem>();
-                yield return _systemManager.Initialize();
-            }
-#endif
             // --- Load mod resources
             yield return _loaderService.LoadAllModResources();
             

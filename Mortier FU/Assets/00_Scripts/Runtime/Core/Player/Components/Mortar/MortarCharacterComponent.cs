@@ -66,6 +66,10 @@ namespace MortierFu
         public override void Reset()
         {
             _shootTimer?.Stop();
+            
+            float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
+            float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
+            AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
             AimWidget.Hide();
         }
         
@@ -78,13 +82,13 @@ namespace MortierFu
         public void HandleAimMovement()
         {
             _shootStrategy?.Update();
-            
-            AimWidget.transform.localScale = Vector3.one * (Stats.DamageRange.Value * 2);
         }
         
         public void Shoot()
         {
             if (_shootTimer.IsRunning) return;
+
+            float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
             
             Bombshell.Data bombshellData = new Bombshell.Data
             {
@@ -94,8 +98,8 @@ namespace MortierFu
                 TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
-                AoeRange = Stats.DamageRange.Value,
-                Scale = Stats.BombshellSize.Value * (1 + (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f),
+                Scale =  Stats.BombshellSize.Value * (1 + damageScale),
+                AoeRange = Stats.DamageRange.Value + damageScale * 0.7f
             };
             
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);

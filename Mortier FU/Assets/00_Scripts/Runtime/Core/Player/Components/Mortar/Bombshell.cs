@@ -53,7 +53,6 @@ namespace MortierFu
             _rb = GetComponent<Rigidbody>();
         }
         
-        private StopwatchTimer timer;
         public void SetData(Data data)
         {
             _data = data;
@@ -63,18 +62,15 @@ namespace MortierFu
             transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
-            _data.TargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
+            Vector3 yTargetPos =  new Vector3(groundDir.magnitude, toTarget.y, 0);
             _direction = groundDir.normalized;
-            ComputePathWithHeight(_data.TargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
+            ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
             
             transform.localScale = Vector3.one * _data.Scale;
 
-            timer ??= new StopwatchTimer(0f);
-            timer.Start();
-            
             _trail.Clear();
-            Timing.RunCoroutine(Test()); // TODO: Can be improved
+            Timing.RunCoroutine(ImpactAreaVFX()); // TODO: Can be improved
         }
 
         public void ReturnToPool()
@@ -82,9 +78,10 @@ namespace MortierFu
             _system.ReleaseBombshell(this);
         }
         
-        private IEnumerator<float> Test()
+        private IEnumerator<float> ImpactAreaVFX()
         {
-            yield return Timing.WaitForSeconds(_travelTime - 0.6f);
+            yield return Timing.WaitForSeconds(Mathf.Max(0f, _travelTime / _timeFactor - 0.6f));
+            
             if (TEMP_FXHandler.Instance)
             {
                 TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
@@ -103,7 +100,13 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
-            if (_exploded) return;
+            if (_exploded)
+                return;
+            
+            // Cost-efficient, could cause problem in a later stage
+            if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
+                return;
+            
             _exploded = true;
             
             // Notify impact to the system
@@ -149,11 +152,10 @@ namespace MortierFu
             return start + dir * x + Vector3.up * y;
         }
 
-        // TODO: Remove this, trail view purpose only
-        private void OnDestroy()
+        void OnDrawGizmos()
         {
-            _trail.transform.SetParent(null);
-            Destroy(_trail.gameObject, 0.6f);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(_data.TargetPos, 0.3f);
         }
     }
 }

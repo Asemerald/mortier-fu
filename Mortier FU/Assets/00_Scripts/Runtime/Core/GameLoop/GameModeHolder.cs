@@ -26,10 +26,14 @@ namespace MortierFu
         
 #if UNITY_EDITOR
         bool _initialized = false;
-        private void Update()
+        private async void Update()
         {
             if (Input.GetKeyDown(KeyCode.L) && !_initialized)
             {
+                SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
+                SystemManager.Instance.CreateAndRegister<BombshellSystem>();
+                await SystemManager.Instance.Initialize();
+                
                 _gm.Initialize();
                 _gm.StartGame();
                 _initialized = true;
