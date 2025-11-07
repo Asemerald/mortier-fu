@@ -7,7 +7,7 @@ namespace MortierFu
         [SerializeField] private SO_GameModeData gameModeData;
         private GameModeBase _gm;
 
-        void Start()
+        void Awake()
         {
             _gm = new GM_FFA();
             _gm.GameModeData = gameModeData;
@@ -19,11 +19,6 @@ namespace MortierFu
             _gm.StartGame();
         }
 
-        public GameModeBase Get()
-        {
-            return _gm;
-        }
-        
 #if UNITY_EDITOR
         bool _initialized = false;
         private void Update()

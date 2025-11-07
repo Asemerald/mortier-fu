@@ -23,8 +23,8 @@ namespace MortierFu
         // Dependencies
         protected LobbyService lobbyService;
         protected AugmentSelectionSystem _augmentSelectionSys;
-        protected CountdownTimer _timer;
         protected BombshellSystem _bombshellSys;
+        protected CountdownTimer _timer;
 
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
@@ -49,6 +49,8 @@ namespace MortierFu
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
 
+        public float CountdownRemainingTime => _timer.CurrentTime;
+        
         public virtual void StartGame()
         {
             if (!IsReady) {
@@ -210,8 +212,7 @@ namespace MortierFu
             currentRank = teams.Count;
             
             SpawnPlayers();
-            EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = true;
+            EnablePlayerInputs(false);
 
             foreach (var team in teams)
             {
@@ -220,10 +221,27 @@ namespace MortierFu
                     member.Metrics.ResetRoundMetrics();
                 }
             }
+
+            HandleCountdown();
             
             OnRoundStarted?.Invoke(currentRound);
             Logs.Log($"Round #{currentRound} is starting...");
         }
+
+        protected void HandleCountdown()
+        {
+            _timer.Reset(GameModeData.RoundStartCountdown - 0.01f);
+            _timer.OnTimerStop += HandleEndOfCountdown;
+            _timer.Start();
+        }
+        
+        protected void HandleEndOfCountdown()
+        {
+            _timer.OnTimerStop -= HandleEndOfCountdown;
+            EnablePlayerInputs();
+            PlayerCharacter.AllowGameplayActions = true;
+        }
+
 
         protected virtual void EndRound()
         {
@@ -329,6 +347,8 @@ namespace MortierFu
         
         public virtual void Initialize()
         {
+            IGameMode.current = this;
+            
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
             
