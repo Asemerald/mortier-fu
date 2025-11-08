@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace MortierFu
 {
@@ -7,7 +9,7 @@ namespace MortierFu
         [SerializeField] private SO_GameModeData gameModeData;
         private GameModeBase _gm;
 
-        void Awake()
+        async void Awake()
         {
             _gm = new GM_FFA();
             _gm.GameModeData = gameModeData;
@@ -16,6 +18,7 @@ namespace MortierFu
             if (initializer != null && initializer.isPortableBootstrap) return;
 #endif
             _gm.Initialize();
+            await Task.Delay(TimeSpan.FromSeconds(1));
             _gm.StartGame();
         }
 

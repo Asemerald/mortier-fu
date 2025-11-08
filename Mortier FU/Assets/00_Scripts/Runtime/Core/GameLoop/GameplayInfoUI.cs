@@ -21,9 +21,10 @@ namespace MortierFu
         private void Start()
         {
             _gm = IGameMode.current as GameModeBase;
+            Logs.Log("LINKED");
             _gm.OnRoundStarted += OnRoundStarted; // No unscubscription
             
-            Initialise();
+            Initialize();
         }
         
         private void OnRoundStarted(int currentRound)
@@ -48,7 +49,7 @@ namespace MortierFu
             HideCountdown();
         }
 
-        private void Initialise()
+        private void Initialize()
         {
             HideCountdown();
             PopulateTeamInfo();

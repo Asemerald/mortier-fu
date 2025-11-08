@@ -344,7 +344,7 @@ namespace MortierFu
                     
                     if (source is PlayerCharacter killer)
                     {
-                        OnPlayerKill(player.Character, killer);
+                        OnPlayerKill(killer, player.Character);
                     }
                 };
                 
