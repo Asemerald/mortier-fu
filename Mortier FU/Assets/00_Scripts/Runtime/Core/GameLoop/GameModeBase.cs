@@ -148,7 +148,8 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    member.PlayerInput.SwitchCurrentActionMap(enabled ? k_gameplayActionMap : k_uiActionMap);
+                    member.PlayerInput.SwitchCurrentActionMap(enabled ? k_gameplayActionMap : k_uiActionMap); // Utiliser ça et faire un helper qu'on met ici pour vérifier
+                    // si c'est joueur 0 ou pas.
                 }
             }
         }

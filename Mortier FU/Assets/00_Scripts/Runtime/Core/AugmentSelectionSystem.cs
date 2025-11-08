@@ -181,7 +181,7 @@ namespace MortierFu
             await _augmentShowcaser.Showcase(positions);
             _showcaseInProgress = false;
 
-            await Task.Delay(TimeSpan.FromSeconds(Settings.EnablePlayerInputDelay));
+            await Task.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = IGameMode.current as GameModeBase;
             gm?.EnablePlayerInputs();
