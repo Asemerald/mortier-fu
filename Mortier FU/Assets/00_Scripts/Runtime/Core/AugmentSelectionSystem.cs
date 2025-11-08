@@ -1,22 +1,27 @@
-using System;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
+using System;
 
 namespace MortierFu
 {
     public class AugmentSelectionSystem : IGameSystem
     {
+        private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle; 
+        private AsyncOperationHandle<GameObject> _prefabHandle;
+        
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
         
         private AugmentShowcaser _augmentShowcaser;
+        
+        private Transform _pickupParent;
         
         private LobbyService _lobbyService;
         private readonly LootTable<SO_Augment> _lootTable;
@@ -32,6 +37,8 @@ namespace MortierFu
 
         public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
         
+        public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
+        
         public AugmentSelectionSystem()
         {
             var config = new LootTableConfig
@@ -45,6 +52,22 @@ namespace MortierFu
         
         public async Task OnInitialize()
         {
+            // Load the system settings
+            _settingsHandle = SystemManager.Config.AugmentSelectionSettings.LoadAssetAsync();
+            await _settingsHandle.Task;
+
+            if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                if (Settings.EnableDebug)
+                {
+                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading settings with Addressables. Error: " + _prefabHandle.OperationException.Message);
+                }
+                return;
+            }
+            
+            _pickupParent = new GameObject("Bombshells").transform;
+            _pickupParent.position = Vector3.down * 50;
+            
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _playerCount = _lobbyService.GetPlayers().Count;
             _augmentCount = _playerCount + 1;
@@ -54,7 +77,7 @@ namespace MortierFu
             await PopulateLootTable();
             await InstantiatePickups();
             
-            _augmentShowcaser = new AugmentShowcaser(_pickups.AsReadOnly());
+            _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());
         }
 
         private async Task PopulateLootTable()
@@ -81,32 +104,33 @@ namespace MortierFu
         
         private async Task InstantiatePickups()
         {
-            // Load
+            // Load the augment pickup prefab
+            _prefabHandle = Settings.AugmentPickupPrefab.LoadAssetAsync(); 
+            await _prefabHandle.Task;
+            
+            if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                if (Settings.EnableDebug)
+                {
+                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading AugmentPickup prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                }
+                return;
+            }
             
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
-            var pickupParent = new GameObject("AugmentPickups").transform;
-            pickupParent.position = Vector3.down * 50;
-            
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pickupHandle = SystemManager.Config.AugmentPickupPrefab.InstantiateAsync(pickupParent);
-                await pickupHandle.Task;
-                
-                if(pickupHandle.Status != AsyncOperationStatus.Succeeded)
-                {
-                    Logs.LogError($"Failed to instantiate augment pickup prefab: {pickupHandle.OperationException.Message}");
-                    continue;
-                }
-                
-                var pickupGO = pickupHandle.Result;
-                
+                var pickupGO = Object.Instantiate(_prefabHandle.Result, _pickupParent);
                 var pickup = pickupGO.GetComponent<AugmentPickup>();
+                
                 pickup.Initialize(this, i);
                 pickup.Hide();
                 
                 _pickups.Add(pickup);
             }
+            
+            Addressables.Release(_prefabHandle);
         }
         
         public bool IsInitialized { get; set; }
@@ -117,6 +141,8 @@ namespace MortierFu
             _augmentBag.Clear();
             
             _augmentTimer.Dispose();
+            
+            Addressables.Release(_settingsHandle);
         }
         
         public async Task HandleAugmentSelection(List<PlayerManager> pickers, float duration)
@@ -155,7 +181,7 @@ namespace MortierFu
             await _augmentShowcaser.Showcase(positions);
             _showcaseInProgress = false;
 
-            await Task.Delay(TimeSpan.FromSeconds(2f));
+            await Task.Delay(TimeSpan.FromSeconds(Settings.EnablePlayerInputDelay));
             
             var gm = IGameMode.current as GameModeBase;
             gm?.EnablePlayerInputs();
