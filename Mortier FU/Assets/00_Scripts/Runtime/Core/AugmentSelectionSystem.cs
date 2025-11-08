@@ -84,6 +84,7 @@ namespace MortierFu
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
             var pickupParent = new GameObject("AugmentPickups").transform;
+            pickupParent.position = Vector3.down * 50;
             
             for (int i = 0; i < _augmentCount; i++)
             {
