@@ -11,7 +11,7 @@ namespace MortierFu
     public class BombshellSystem : IGameSystem
     {
         // Load bombshell prefab through this opHandle
-        private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle;
+        private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle; 
         private AsyncOperationHandle<GameObject> _prefabHandle;
         
         private IObjectPool<Bombshell> _pool;
@@ -139,14 +139,14 @@ namespace MortierFu
         public async Task OnInitialize()
         {
             // Load the system settings
-            _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync<SO_BombshellSettings>();
+            _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync();
             await _settingsHandle.Task;
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {
                 if (Settings.EnableDebug)
                 {
-                    Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
+                    Logs.LogError("[BombshellManager]: Failed while loading settings with Addressables. Error: " + _prefabHandle.OperationException.Message);
                 }
                 return;
             }

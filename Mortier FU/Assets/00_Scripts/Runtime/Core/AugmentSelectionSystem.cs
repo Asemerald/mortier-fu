@@ -81,6 +81,8 @@ namespace MortierFu
         
         private async Task InstantiatePickups()
         {
+            // Load
+            
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
             var pickupParent = new GameObject("AugmentPickups").transform;
