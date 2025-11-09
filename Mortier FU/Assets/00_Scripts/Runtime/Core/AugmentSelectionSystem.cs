@@ -65,7 +65,7 @@ namespace MortierFu
                 return;
             }
             
-            _pickupParent = new GameObject("Bombshells").transform;
+            _pickupParent = new GameObject("AugmentPickups").transform;
             _pickupParent.position = Vector3.down * 50;
             
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
