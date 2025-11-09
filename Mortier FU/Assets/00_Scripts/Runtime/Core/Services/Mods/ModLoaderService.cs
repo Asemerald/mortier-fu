@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using FMODUnity;
 
@@ -15,17 +14,18 @@ namespace MortierFu.Services
 
         public float Progress { get; private set; }
 
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
             modService = ServiceManager.Instance.Get<ModService>();
-            return Task.CompletedTask;
+
+            return UniTask.CompletedTask;
         }
 
         public void Tick() { }
         public bool IsInitialized { get; set; }
         public void Dispose() { }
 
-        public IEnumerator LoadAllModResources()
+        public async UniTask LoadAllModResources()
         {
             Progress = 0f;
             var mods = modService.AllMods.FindAll(m => m.isEnabled);
@@ -33,13 +33,13 @@ namespace MortierFu.Services
             for (int i = 0; i < mods.Count; i++)
             {
                 var mod = mods[i];
-                yield return LoadBundles(mod);
-                yield return LoadFmodBanks(mod);
+                await LoadBundles(mod);
+                await LoadFmodBanks(mod);
                 Progress = (i + 1f) / mods.Count;
             }
         }
 
-        private IEnumerator LoadBundles(ModInfo mod)
+        private async UniTask LoadBundles(ModInfo mod)
         {
             foreach (var bundleName in mod.manifest.assetBundles)
             {
@@ -48,14 +48,14 @@ namespace MortierFu.Services
                     continue;
 
                 var req = AssetBundle.LoadFromFileAsync(bundlePath);
-                yield return req;
+                await req;
 
                 if (req.assetBundle != null)
                     loadedBundles.Add(req.assetBundle);
             }
         }
 
-        private IEnumerator LoadFmodBanks(ModInfo mod)
+        private async UniTask LoadFmodBanks(ModInfo mod)
         {
             foreach (var bankFile in mod.manifest.fmodBanks)
             {
@@ -63,13 +63,11 @@ namespace MortierFu.Services
                 if (!File.Exists(bankPath))
                     continue;
 
-                byte[] bankBytes = File.ReadAllBytes(bankPath);
+                byte[] bankBytes = await File.ReadAllBytesAsync(bankPath); // Changed that to be async. Antoine
                 var result = RuntimeManager.StudioSystem.loadBankMemory(bankBytes, FMOD.Studio.LOAD_BANK_FLAGS.NORMAL, out var bank);
                 if (result == FMOD.RESULT.OK)
                     loadedBanks.Add(bank);
             }
-
-            yield return null;
         }
     }
 }

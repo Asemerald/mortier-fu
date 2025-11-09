@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MEC;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -70,7 +70,8 @@ namespace MortierFu
             transform.localScale = Vector3.one * _data.Scale;
 
             _trail.Clear();
-            Timing.RunCoroutine(ImpactAreaVFX()); // TODO: Can be improved
+
+            HandleImpactAreaVFX().Forget();
         }
 
         public void ReturnToPool()
@@ -78,9 +79,10 @@ namespace MortierFu
             _system.ReleaseBombshell(this);
         }
         
-        private IEnumerator<float> ImpactAreaVFX()
+        private async UniTaskVoid HandleImpactAreaVFX()
         {
-            yield return Timing.WaitForSeconds(Mathf.Max(0f, _travelTime / _timeFactor - 0.6f));
+            float delay = Mathf.Max(0f, _travelTime / _timeFactor - 0.6f);
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
             
             if (TEMP_FXHandler.Instance)
             {

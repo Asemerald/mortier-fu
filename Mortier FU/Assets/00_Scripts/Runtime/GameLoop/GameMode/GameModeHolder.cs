@@ -12,7 +12,6 @@ namespace MortierFu
         async void Awake()
         {
             _gm = new GM_FFA();
-            _gm.GameModeData = gameModeData;
 #if UNITY_EDITOR
             GameInitializer initializer = FindFirstObjectByType<GameInitializer>();
             if (initializer != null && initializer.isPortableBootstrap) return;
@@ -30,6 +29,7 @@ namespace MortierFu
             {
                 SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
                 SystemManager.Instance.CreateAndRegister<BombshellSystem>();
+                SystemManager.Instance.CreateAndRegister<LevelSystem>();
                 await SystemManager.Instance.Initialize();
                 
                 _gm.Initialize();

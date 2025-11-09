@@ -4,9 +4,11 @@ using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using System;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -50,7 +52,7 @@ namespace MortierFu
             _lootTable = new LootTable<SO_Augment>();
         }
         
-        public async Task OnInitialize()
+        public async UniTask OnInitialize()
         {
             // Load the system settings
             _settingsHandle = SystemManager.Config.AugmentSelectionSettings.LoadAssetAsync();
@@ -73,18 +75,18 @@ namespace MortierFu
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
-             
+
             await PopulateLootTable();
             await InstantiatePickups();
             
             _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());
         }
 
-        private async Task PopulateLootTable()
+        private async UniTask PopulateLootTable()
         {
             // Load with addressable all augment libraries.
             var handle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
-            await handle.Task;
+            await handle;
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -102,11 +104,11 @@ namespace MortierFu
             Logs.Log($"Successfully populate the augment loot table with {_lootTable.TotalWeight} total weight.");
         }
         
-        private async Task InstantiatePickups()
+        private async UniTask InstantiatePickups()
         {
             // Load the augment pickup prefab
             _prefabHandle = Settings.AugmentPickupPrefab.LoadAssetAsync(); 
-            await _prefabHandle.Task;
+            await _prefabHandle;
             
             if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -145,7 +147,7 @@ namespace MortierFu
             Addressables.Release(_settingsHandle);
         }
         
-        public async Task HandleAugmentSelection(List<PlayerManager> pickers, float duration)
+        public async UniTask HandleAugmentSelection(List<PlayerManager> pickers, float duration)
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -183,7 +185,7 @@ namespace MortierFu
 
             await Task.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
-            var gm = IGameMode.current as GameModeBase;
+            var gm = GameService.CurrentGameMode as GameModeBase;
             gm?.EnablePlayerInputs();
             
             _augmentTimer = new CountdownTimer(duration);
