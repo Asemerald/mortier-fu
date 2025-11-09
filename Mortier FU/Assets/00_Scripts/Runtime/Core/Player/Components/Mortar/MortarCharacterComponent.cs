@@ -1,5 +1,6 @@
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -33,8 +34,8 @@ namespace MortierFu
                 Logs.LogError("[MortarCharacterComponent]: FirePoint transform is null!");
                 return;
             }
-            
-            AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable ?
+
+            AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable?
             _firePoint = firePoint;
         }
 
@@ -60,7 +61,7 @@ namespace MortierFu
             _shootStrategy.Initialize();
             _shootAction.Disable();
             
-            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1);
+            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1); // TODO better when refacto CameraHandler
         }
 
         public override void Reset()
