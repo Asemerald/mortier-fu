@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using MortierFu.Services;
+using MortierFu.Shared;
 using NaughtyAttributes;
 
 namespace MortierFu
@@ -23,7 +22,7 @@ namespace MortierFu
         private AudioService _audioService;
         private DeviceService _deviceService;
         private ConfirmationService _confirmationService;
-        private GameInstance _gameInstance;
+        private GameService _gameService;
         private LobbyService _lobbyService;
         private DiscordService _discordService;
         
@@ -36,7 +35,7 @@ namespace MortierFu
 
         private void Awake()
         {
-            StartCoroutine(InitializeRoutine());
+            InitializeAsync();
             DontDestroyOnLoad(gameObject);
         }
 
@@ -46,51 +45,58 @@ namespace MortierFu
             _systemManager?.Tick();
         }
 
-        private IEnumerator InitializeRoutine()
+        private async UniTask InitializeAsync()
         {
             _serviceManager = new ServiceManager(this);
             _systemManager = new SystemManager(this);
-            
-            yield return InitializeGameService();
+
+            await InitializeGameService();
             
             // Initialise les services de base avant les mods
-            yield return _serviceManager.Initialize();
+            await _serviceManager.Initialize();
             
             // Initialise les systèmes de base avant les mods
-            yield return _systemManager.Initialize();
+            await _systemManager.Initialize();
             
             // --- Load mod resources
-            yield return _loaderService.LoadAllModResources();
+            await _loaderService.LoadAllModResources();
             
             // --- Load GameConfig banks
-            yield return _audioService.LoadBanks(config.fmodBanks);
+            await _audioService.LoadBanks(config.fmodBanks);
             
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
-            yield return _audioService.LoadBanks(_modService.GetAllModFmodBanks());
+            await _audioService.LoadBanks(_modService.GetAllModFmodBanks());
             
 #if UNITY_EDITOR
             // --- Check for missing services (only in editor)
-            yield return _serviceManager.CheckForMissingServices<IGameService>();
+            await _serviceManager.CheckForMissingServices<IGameService>();
             
             if (isPortableBootstrap)
             {
                 // Stay in current Scene
-                yield break;
+                return;
             }
 #endif
             // --- Load MainMenu Scene
-            yield return SceneManager.LoadSceneAsync(scene);
+            var sceneHandle = SceneManager.LoadSceneAsync(scene);
+            if (sceneHandle == null)
+            {
+                Logs.LogError($"Couldn't load {scene} !");
+                return;
+            }
+            
+            await sceneHandle.ToUniTask();
         }
 
 
-        private Task InitializeGameService()
+        private UniTask InitializeGameService()
         {
             // --- Instantiate core services
             _modService = new ModService();
             _loaderService = new ModLoaderService();
             _audioService = new AudioService();
             _deviceService = new DeviceService();
-            _gameInstance = new GameInstance();
+            _gameService = new GameService();
             _lobbyService = new LobbyService();
             _discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
@@ -100,12 +106,12 @@ namespace MortierFu
             _serviceManager.Register(_loaderService);
             _serviceManager.Register(_audioService);
             _serviceManager.Register(_deviceService);
-            _serviceManager.Register(_gameInstance);
+            _serviceManager.Register(_gameService);
             _serviceManager.Register(_lobbyService);
             _serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
             
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         private void OnDestroy()

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.SceneManagement;
 
