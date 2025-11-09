@@ -23,9 +23,10 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
-        protected AugmentSelectionSystem _augmentSelectionSys;
-        protected BombshellSystem _bombshellSys;
-        protected CountdownTimer _timer;
+        protected ConfirmationService confirmationService;
+        protected AugmentSelectionSystem augmentSelectionSys;
+        protected BombshellSystem bombshellSys;
+        protected CountdownTimer timer;
 
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
@@ -50,7 +51,7 @@ namespace MortierFu
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
 
-        public float CountdownRemainingTime => _timer.CurrentTime;
+        public float CountdownRemainingTime => timer.CurrentTime;
         
         public virtual void StartGame()
         {
@@ -77,12 +78,12 @@ namespace MortierFu
                 StartAugmentSelection();
                     
                 var augmentPickers = GetAugmentPickers();
-                _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+                augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
                     
-                while (!_augmentSelectionSys.IsSelectionOver)
+                while (!augmentSelectionSys.IsSelectionOver)
                     yield return 0f;
                     
-                _augmentSelectionSys.EndAugmentSelection();
+                augmentSelectionSys.EndAugmentSelection();
                 EndAugmentSelection();
                 
                 StartRound();
@@ -95,8 +96,7 @@ namespace MortierFu
 
                 UpdateGameState(GameState.DisplayScores);
                 DisplayScores();
-                while (_timer.IsRunning)
-                    yield return 0f;
+                
                 HideScores();
             
                 if (IsGameOver(out PlayerTeam victor))
@@ -200,14 +200,14 @@ namespace MortierFu
 
         protected void HandleCountdown()
         {
-            _timer.Reset(GameModeData.RoundStartCountdown - 0.01f);
-            _timer.OnTimerStop += HandleEndOfCountdown;
-            _timer.Start();
+            timer.Reset(GameModeData.RoundStartCountdown - 0.01f);
+            timer.OnTimerStop += HandleEndOfCountdown;
+            timer.Start();
         }
         
         protected void HandleEndOfCountdown()
         {
-            _timer.OnTimerStop -= HandleEndOfCountdown;
+            timer.OnTimerStop -= HandleEndOfCountdown;
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
         }
@@ -215,11 +215,12 @@ namespace MortierFu
 
         protected virtual void EndRound()
         {
-            _timer.Stop();
-            _bombshellSys.ClearActiveBombshells();
+            timer.Stop();
+            bombshellSys.ClearActiveBombshells();
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
-
+            EnablePlayerInputs(false);
+            
             EvaluateScores();
             
             OnRoundEnded?.Invoke(currentRound);
@@ -253,9 +254,6 @@ namespace MortierFu
         {
             UpdateGameState(GameState.DisplayScores);
             
-            _timer.Reset(GameModeData.DisplayScoresDuration);
-            _timer.Start();
-            
             // Update UI Score Panel
             // Link countdown timer
             
@@ -269,7 +267,7 @@ namespace MortierFu
 
         protected virtual void HideScores()
         {
-            _timer.Stop();
+            timer.Stop();
             
             // Hide UI
         }
@@ -321,11 +319,12 @@ namespace MortierFu
             
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             
-            _augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             
-            _timer = new CountdownTimer(0f);
+            timer = new CountdownTimer(0f);
             
             if (!IsReady) {
                 Logs.LogWarning("Invalid number of players for this game mode.");
@@ -362,7 +361,7 @@ namespace MortierFu
         public virtual void Dispose()
         {
             teams.Clear();
-            _timer.Dispose();
+            timer.Dispose();
         }
 
         /// <summary>
