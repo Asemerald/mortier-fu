@@ -21,8 +21,19 @@ namespace MortierFu
         private void Start()
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
-            _gm.OnRoundStarted += OnRoundStarted; // No unscubscription
+            if (_gm == null)
+            {
+                Logs.LogWarning("Game mode not found !");
+                return;
+            }
             
+            _gm.OnGameStarted += OnGameStarted;
+            _gm.OnRoundStarted += OnRoundStarted; // No unscubscription
+        }
+
+        private void OnGameStarted()
+        {
+            _gm.OnGameStarted -= OnGameStarted;
             Initialize();
         }
         

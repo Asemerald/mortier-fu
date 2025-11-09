@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using MortierFu.Services;
@@ -35,7 +35,7 @@ namespace MortierFu
 
         private void Awake()
         {
-            InitializeAsync();
+            InitializeAsync().Forget();
             DontDestroyOnLoad(gameObject);
         }
 
@@ -45,7 +45,7 @@ namespace MortierFu
             _systemManager?.Tick();
         }
 
-        private async UniTask InitializeAsync()
+        private async UniTaskVoid InitializeAsync()
         {
             _serviceManager = new ServiceManager(this);
             _systemManager = new SystemManager(this);

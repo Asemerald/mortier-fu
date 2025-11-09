@@ -57,6 +57,7 @@ namespace MortierFu
             await SystemManager.Instance.Initialize();
 
             // Start the game mode
+            _currentGameMode.StartGame();
         }
         
         public void Dispose()
