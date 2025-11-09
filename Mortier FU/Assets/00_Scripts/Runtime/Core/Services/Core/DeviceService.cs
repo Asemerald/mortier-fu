@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
@@ -23,10 +24,10 @@ namespace MortierFu
         public event Action<int, InputDevice> OnDeviceDisconnected;
         public event Action<int, InputDevice> OnDeviceReconnected;
         
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
             InputSystem.onDeviceChange += HandleDeviceChange;
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         public bool IsInitialized { get; set; }

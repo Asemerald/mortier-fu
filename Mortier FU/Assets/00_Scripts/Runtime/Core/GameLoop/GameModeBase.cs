@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using Random = UnityEngine.Random;
-using MEC;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
     public abstract class GameModeBase : IGameMode {
-        // Config
-        public SO_GameModeData GameModeData;
-
         protected List<PlayerTeam> teams;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
@@ -28,6 +27,9 @@ namespace MortierFu
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
 
+        private AsyncOperationHandle<SO_GameModeData> _gameModeDataHandle;
+
+        public virtual SO_GameModeData GameModeData => _gameModeDataHandle.Result;
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
 
@@ -61,13 +63,16 @@ namespace MortierFu
                 return;
             }
             
+            _augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            
             Logs.Log("Starting the game...");
             currentRound = 0;
-            Timing.RunCoroutine(GameplayCoroutine());
+            GameplayCoroutine().Forget();
         }
         
         // TODO: Maybe it is valuable to ask for player 1 input to proceed to each step for fluidity
-        protected virtual IEnumerator<float> GameplayCoroutine()
+        protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
             OnGameStarted?.Invoke();
@@ -78,18 +83,18 @@ namespace MortierFu
                 StartAugmentSelection();
                     
                 var augmentPickers = GetAugmentPickers();
-                augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
-                    
-                while (!augmentSelectionSys.IsSelectionOver)
-                    yield return 0f;
+                await _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+
+                while (!_augmentSelectionSys.IsSelectionOver)
+                    await UniTask.Yield();
                     
                 augmentSelectionSys.EndAugmentSelection();
                 EndAugmentSelection();
                 
                 StartRound();
-                
+
                 while (!oneTeamStanding)
-                    yield return 0f;
+                    await UniTask.Yield();
                 
                 UpdateGameState(GameState.EndRound);
                 EndRound();
@@ -315,14 +320,13 @@ namespace MortierFu
         
         public virtual void Initialize()
         {
-            IGameMode.current = this;
-            
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
             confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             
-            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            // Load configuration
+            _gameModeDataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");
+            // TODO: LOAD HERE
             
             timer = new CountdownTimer(0f);
             

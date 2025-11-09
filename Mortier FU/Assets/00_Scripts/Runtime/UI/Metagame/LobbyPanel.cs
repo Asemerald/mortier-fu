@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using MortierFu.Shared;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -16,7 +16,14 @@ namespace MortierFu
         [Header("Customization")]
         [SerializeField] private GameObject[] customizationSlots;
 
-
+        private GameService _gameService;
+        
+        void Awake()
+        {
+            // Resolve dependencies
+            _gameService = ServiceManager.Instance.Get<GameService>();
+        }
+        
         private void Start()
         {
             Hide();
@@ -64,19 +71,14 @@ namespace MortierFu
             //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
         }
 
-        private async void OnStartGameClicked()
+        private void OnStartGameClicked()
         {
-            SceneManager.LoadScene("GameLoop");
+            // When game mode is selected
+            _gameService.InitializeGameMode<GM_FFA>();
             
-            // TODO COULD CAUSE ISSUES BECAUSE SCENE LOADS AND AWAKE START AND AFTER SYSTEM INIT
-            
-            //LobbyManager.Instance?.TryStartGame();
-            var systemManager = SystemManager.Instance;
-            systemManager.CreateAndRegister<AugmentSelectionSystem>();
-            systemManager.CreateAndRegister<BombshellSystem>();
-            
-            // TODO think about that UnregisterAndDispose
-            await systemManager.Initialize();
+            // Should handle game mode teams
+
+            _gameService.ExecuteGameplayPipeline();
         }
     }
 }

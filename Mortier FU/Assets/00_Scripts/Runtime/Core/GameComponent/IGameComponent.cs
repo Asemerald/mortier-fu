@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
-using MortierFu.Shared;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu
 {
@@ -12,15 +11,15 @@ namespace MortierFu
         /// <summary>
         /// Method to call to initialize the service
         /// </summary>
-        async Task Initialize()
+        async UniTask Initialize()
         {
-            if(IsInitialized) return;
+            if (IsInitialized) return;
             
             IsInitialized = true;
             await OnInitialize();
         }
 
-        Task OnInitialize();
+        UniTask OnInitialize();
 
         /// <summary>
         ///  Method to call every frame to update the service

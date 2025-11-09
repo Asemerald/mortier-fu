@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu;
 using Discord.Sdk;
@@ -36,7 +38,7 @@ public class DiscordService : IGameService
     }
 
 
-    public Task OnInitialize()
+    public UniTask OnInitialize()
     {
         _client = new Client();
         _client.AddLogCallback(OnLog, LoggingSeverity.Error);
@@ -52,19 +54,19 @@ public class DiscordService : IGameService
             {
                 Debug.Log("[DiscordService] Using saved access token.");
                 _client.UpdateToken(AuthorizationTokenType.Bearer, saved.accessToken, (_) => _client.Connect());
-                return Task.CompletedTask;
+                return UniTask.CompletedTask;
             }
 
             // ✅ Token expiré ? On rafraîchit
             Debug.Log("[DiscordService] Refreshing token...");
             RefreshToken(saved.refreshToken);
 
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         // ✅ Première fois → OAuth flow classique
         StartOAuthFlow();
-        return Task.CompletedTask;
+        return UniTask.CompletedTask;
     }
     
     private void RefreshToken(string refreshToken)
