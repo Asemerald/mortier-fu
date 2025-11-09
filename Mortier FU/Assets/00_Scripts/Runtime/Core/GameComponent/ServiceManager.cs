@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 
 namespace MortierFu
@@ -17,13 +17,17 @@ namespace MortierFu
             GameInitializer = gameInitializer;
         }
         
-        public async Task Initialize()
+        public async UniTask Initialize()
         {
             Instance = this;
             
             try
             {
-                foreach (var system in _components.Values) await system.Initialize();
+                foreach (var system in _components.Values)
+                {
+                    await system.Initialize();
+                }
+                
                 Logs.Log($"[GameSystems] Initialized {_components.Count} services.");
             }
             catch (Exception e)
@@ -53,7 +57,7 @@ namespace MortierFu
         ///  If provided, only types within this namespace (or its sub-namespaces) are checked.
         /// </param>
         /// </summary>
-        public Task CheckForMissingServices<T> (Assembly assembly = null, string namespaceFilter = null) where T : class, IGameComponent
+        public UniTask CheckForMissingServices<T> (Assembly assembly = null, string namespaceFilter = null) where T : class, IGameComponent
         {
             assembly ??= Assembly.GetExecutingAssembly();
 
@@ -71,7 +75,7 @@ namespace MortierFu
                     Logs.LogWarning($"[ServiceManager] Missing service of type {type.FullName}");
                 }
             }
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 #endif
     }

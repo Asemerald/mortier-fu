@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -23,12 +24,12 @@ namespace MortierFu
                 Directory.CreateDirectory(modsFolder);
         }
 
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
             ScanMods();
             LoadMods();
-            
-            return Task.CompletedTask;
+
+            return UniTask.CompletedTask;
         }
 
         public void Tick()
