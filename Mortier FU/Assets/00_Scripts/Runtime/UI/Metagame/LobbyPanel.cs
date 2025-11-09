@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine.InputSystem;
@@ -71,14 +72,16 @@ namespace MortierFu
             //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
         }
 
-        private void OnStartGameClicked()
+        private void OnStartGameClicked() => StartGame().Forget();
+        
+        private async UniTask StartGame()
         {
             // When game mode is selected
-            _gameService.InitializeGameMode<GM_FFA>();
+            await _gameService.InitializeGameMode<GM_FFA>();
             
             // Should handle game mode teams
 
-            _gameService.ExecuteGameplayPipeline();
+            _gameService.ExecuteGameplayPipeline().Forget();
         }
     }
 }
