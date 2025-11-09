@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu 
 {
@@ -49,7 +50,7 @@ namespace MortierFu
         /// <summary>
         /// Initialization method
         /// </summary>
-        public void Initialize();
+        public UniTask Initialize();
 
         /// <summary>
         /// Called every frame

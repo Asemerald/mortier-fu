@@ -1,7 +1,6 @@
+using System;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
