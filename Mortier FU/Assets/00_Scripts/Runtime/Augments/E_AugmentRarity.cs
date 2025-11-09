@@ -1,6 +1,6 @@
 ﻿namespace MortierFu
 {
-    public enum AugmentRarity
+    public enum E_AugmentRarity
     {
         Common,
         Rare,

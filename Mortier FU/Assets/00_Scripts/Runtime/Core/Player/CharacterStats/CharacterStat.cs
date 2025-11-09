@@ -80,22 +80,22 @@ namespace MortierFu {
                 var mod = statModifiers[i];
 
                 switch (mod.Type) {
-                    case StatModType.Flat:
+                    case E_StatModType.Flat:
                     {
                         finalValue += statModifiers[i].Value;
                         break;
                     }
-                    case StatModType.PercentAdd:
+                    case E_StatModType.PercentAdd:
                     {
                         sumPercentAdd += mod.Value;
                         
-                        if(i + 1 >= statModifiers.Count || statModifiers[i + 1].Type != StatModType.PercentAdd) {
+                        if(i + 1 >= statModifiers.Count || statModifiers[i + 1].Type != E_StatModType.PercentAdd) {
                             finalValue *= 1 + sumPercentAdd;
                             sumPercentAdd = 0;
                         }
                         break;
                     }
-                    case StatModType.PercentMult:
+                    case E_StatModType.PercentMult:
                     {
                         finalValue *= 1 + mod.Value;
                         break;

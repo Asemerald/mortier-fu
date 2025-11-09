@@ -7,7 +7,7 @@ namespace MortierFu.Stats
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(-0.3f, StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(new StatModifier(-0.3f, E_StatModType.PercentMult, this));
             // TODO Trouver une solution plus propre pour éviter d'hardset
             stats.MaxHealth.BaseValue = 2;
         }

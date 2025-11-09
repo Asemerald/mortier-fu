@@ -7,7 +7,7 @@ namespace MortierFu
     {
         public string Name;
         [TextArea] public string Description;
-        public AugmentRarity Rarity;
+        public E_AugmentRarity Rarity;
         public Sprite Icon;
         public Color BgColor;
         

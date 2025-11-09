@@ -7,8 +7,8 @@ namespace MortierFu.Stats
 
         public override void Initialize()
         {
-            stats.StrikeStunDuration.AddModifier(new StatModifier(0.2f, StatModType.PercentMult, this));
-            stats.StrikeCooldown.AddModifier(new StatModifier(0.5f, StatModType.PercentMult, this));
+            stats.StrikeStunDuration.AddModifier(new StatModifier(0.2f, E_StatModType.PercentMult, this));
+            stats.StrikeCooldown.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
         }
         
         public override void DeInitialize()

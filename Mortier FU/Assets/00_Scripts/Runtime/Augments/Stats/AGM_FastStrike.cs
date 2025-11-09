@@ -7,7 +7,7 @@ namespace MortierFu.Stats
 
         public override void Initialize()
         {
-            stats.StrikeCooldown.AddModifier(new StatModifier(-0.15f, StatModType.PercentMult, this));
+            stats.StrikeCooldown.AddModifier(new StatModifier(-0.15f, E_StatModType.PercentMult, this));
         }
         
         public override void DeInitialize()

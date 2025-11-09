@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace MortierFu {
-    public enum StatModType {
+    public enum E_StatModType {
         Flat = 100,
         PercentAdd = 200,
         PercentMult = 300
@@ -10,13 +10,13 @@ namespace MortierFu {
     
     public readonly struct StatModifier : IEquatable<StatModifier> {
         public readonly float Value;
-        public readonly StatModType Type;
+        public readonly E_StatModType Type;
         public readonly int Order;
         public readonly object Source;
 
         //readonly int hashCode;
         
-        StatModifier(float value, StatModType type, int order, object source) {
+        StatModifier(float value, E_StatModType type, int order, object source) {
             Value = value;
             Type = type;
             Order = order;
@@ -24,11 +24,11 @@ namespace MortierFu {
             //hashCode = HashCode.Combine(Value, Type, Order, Source);
         }
 
-        public StatModifier(float value, StatModType type) : this(value, type, (int)type, null) { }
+        public StatModifier(float value, E_StatModType type) : this(value, type, (int)type, null) { }
 
-        public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
+        public StatModifier(float value, E_StatModType type, int order) : this(value, type, order, null) { }
 
-        public StatModifier(float value, StatModType type, object source) : this(value, type, (int)type, source) { }
+        public StatModifier(float value, E_StatModType type, object source) : this(value, type, (int)type, source) { }
         
         public bool Equals(StatModifier other) {
             return Mathf.Approximately(Value, other.Value) && Type == other.Type && Order == other.Order && Source == other.Source;

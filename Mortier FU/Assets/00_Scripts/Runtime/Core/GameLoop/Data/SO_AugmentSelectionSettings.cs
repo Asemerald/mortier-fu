@@ -16,9 +16,6 @@ namespace MortierFu
         [Tooltip("Time it takes for each card to scale up from zero when the showcase starts.")]
         public float CardPopInDuration = 1.3f;
 
-        [Tooltip("Pause between the showcase ending and moving the cards to their level positions.")]
-        public float MoveCardsToTargetDelay = 2f;
-
         [Tooltip("Delay before restoring player input after all animations have finished.")]
         public float PlayerInputReenableDelay = 2f;
 
