@@ -65,9 +65,32 @@ namespace MortierFu
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             
-            Logs.Log("Starting the game...");
+            teams = new List<PlayerTeam>();
+            Teams = teams.AsReadOnly();
+            
+            var players = lobbyService.GetPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+                player.SpawnInGame(Vector3.zero);
+                player.Character.Health.OnDeath += source =>
+                {
+                    player.Metrics.TotalDeaths++;
+                    
+                    if (source is PlayerCharacter killer)
+                    {
+                        OnPlayerKill(killer, player.Character);
+                    }
+                };
+                
+                var team = new PlayerTeam(i, player);
+                teams.Add(team);
+            }
+            
             currentRound = 0;
+
             GameplayCoroutine().Forget();
+            Logs.Log("Starting the game...");
         }
         
         // TODO: Maybe it is valuable to ask for player 1 input to proceed to each step for fluidity
@@ -80,7 +103,7 @@ namespace MortierFu
             {
                 UpdateGameState(GameState.AugmentSelection);
                 StartAugmentSelection();
-                    
+                
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
 
@@ -327,32 +350,6 @@ namespace MortierFu
             await _gameModeDataHandle;
             
             timer = new CountdownTimer(0f);
-            
-            if (!IsReady) {
-                Logs.LogWarning("Invalid number of players for this game mode.");
-            }
-            
-            teams = new List<PlayerTeam>();
-            Teams = teams.AsReadOnly();
-            
-            var players = lobbyService.GetPlayers();
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-                player.SpawnInGame(Vector3.zero);
-                player.Character.Health.OnDeath += source =>
-                {
-                    player.Metrics.TotalDeaths++;
-                    
-                    if (source is PlayerCharacter killer)
-                    {
-                        OnPlayerKill(killer, player.Character);
-                    }
-                };
-                
-                var team = new PlayerTeam(i, player);
-                teams.Add(team);
-            }
             
             Logs.Log("Game mode initialized successfully.");
         }
