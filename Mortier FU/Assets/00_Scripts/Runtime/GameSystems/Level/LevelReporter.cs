@@ -11,11 +11,8 @@ namespace MortierFu
         public Transform[] SpawnPoints;
         public Transform[] AugmentPoints;
 
-        async void Start()
+        void Awake()
         {
-            // Await one frame
-            await Task.Delay(200);
-            
             var levelSystem = SystemManager.Instance.Get<LevelSystem>();
             if (levelSystem == null)
             {

@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -23,6 +24,7 @@ namespace MortierFu
         // Dependencies
         protected LobbyService lobbyService;
         protected AugmentSelectionSystem augmentSelectionSys;
+        protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
 
@@ -54,16 +56,15 @@ namespace MortierFu
 
         public float CountdownRemainingTime => timer.CurrentTime;
         
-        public virtual void StartGame()
+        public virtual async UniTask StartGame()
         {
-            if (!IsReady) {
-                Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
-                StartRound();
-                return;
-            }
-            
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
+            // TODO: Move scene loading to its own service and load and unload maps each round
+            var mapHandle = SceneManager.LoadSceneAsync("Map 01", LoadSceneMode.Additive);
+            await mapHandle.ToUniTask();
             
             teams = new List<PlayerTeam>();
             Teams = teams.AsReadOnly();
@@ -85,6 +86,12 @@ namespace MortierFu
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
+            }
+            
+            if (!IsReady) {
+                Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
+                StartRound();
+                return;
             }
             
             currentRound = 0;
@@ -156,15 +163,20 @@ namespace MortierFu
 
         private void SpawnPlayers()
         {
-            // TODO: Choose spawn position based on a level script
+            bool opposite = currentRound % 2 == 0;
+            int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
             
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    Vector3 spawnPosition = Random.insideUnitSphere.With(y: 1f).normalized * 10;
-                    member.SpawnInGame(spawnPosition);
-                    member.Character.transform.position = spawnPosition;
+                    var spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
+                    member.SpawnInGame(spawnPoint.position);
+                    member.Character.transform.position = spawnPoint.position;
+                    if (opposite)
+                        spawnIndex--;
+                    else 
+                        spawnIndex++;
                 }
             }
         }
