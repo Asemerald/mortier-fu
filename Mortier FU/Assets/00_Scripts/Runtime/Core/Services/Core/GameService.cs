@@ -57,7 +57,9 @@ namespace MortierFu
             await SystemManager.Instance.Initialize();
 
             // Start the game mode
-            _currentGameMode.StartGame();
+            await _currentGameMode.StartGame();
+            
+            Logs.Log("Gameplay pipeline done !");
         }
         
         public void Dispose()

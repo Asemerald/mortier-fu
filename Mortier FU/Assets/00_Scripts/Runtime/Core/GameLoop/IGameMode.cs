@@ -55,7 +55,7 @@ namespace MortierFu
         /// <summary>
         /// Start the game and the gameplay loop
         /// </summary>
-        public void StartGame();
+        public UniTask StartGame();
         
         /// <summary>
         /// Called every frame
