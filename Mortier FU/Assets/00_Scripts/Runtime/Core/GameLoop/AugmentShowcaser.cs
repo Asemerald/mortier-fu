@@ -13,13 +13,18 @@ namespace MortierFu
     public class AugmentShowcaser : IDisposable
     {
         private readonly ReadOnlyCollection<AugmentPickup> _pickups;
+        private readonly ConfirmationService _confirmationService;
         private readonly AugmentSelectionSystem _system;
+        
         private Camera _cam;
 
         public AugmentShowcaser (AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> augments)
         {
             _pickups = augments;
             _system = system;
+           
+            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
+            
             _cam = Camera.main;
         }
 
@@ -43,7 +48,8 @@ namespace MortierFu
                 await Task.Delay(TimeSpan.FromSeconds(0.05f));
             }
             
-            await Task.Delay(TimeSpan.FromSeconds(_system.Settings.MoveCardsToTargetDelay));
+            await Task.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
+            await _confirmationService.WaitUntilAllConfirmed();
 
             if (_pickups.Count != positions.Count)
             {
@@ -61,7 +67,7 @@ namespace MortierFu
                         pickup.SetFaceCameraEnabled(false);
                         pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                     });
-                
+
                 await Task.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
         }

@@ -21,6 +21,7 @@ namespace MortierFu
         private ModLoaderService _loaderService;
         private AudioService _audioService;
         private DeviceService _deviceService;
+        private ConfirmationService _confirmationService;
         private GameInstance _gameInstance;
         private LobbyService _lobbyService;
         private DiscordService _discordService;
@@ -91,6 +92,7 @@ namespace MortierFu
             _gameInstance = new GameInstance();
             _lobbyService = new LobbyService();
             _discordService = new DiscordService();
+            _confirmationService = new ConfirmationService();
             
             // --- Register services
             _serviceManager.Register(_modService);
@@ -100,6 +102,7 @@ namespace MortierFu
             _serviceManager.Register(_gameInstance);
             _serviceManager.Register(_lobbyService);
             _serviceManager.Register(_discordService);
+            _serviceManager.Register(_confirmationService);
             
             return Task.CompletedTask;
         }

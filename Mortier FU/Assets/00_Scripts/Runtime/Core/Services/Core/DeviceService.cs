@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
 
@@ -153,9 +153,14 @@ namespace MortierFu
         public bool TryGetDevice(int playerIndex, out InputDevice device)
             => _playerDevices.TryGetValue(playerIndex, out device);
 
-        public bool TryGetPlayerIndex(InputDevice device, out int playerIndex)
+        public bool TryGetPlayerIndex(InputDevice device, out int playerIndex) 
             => _deviceToPlayer.TryGetValue(device, out playerIndex);
+        
+        public bool TryGetPlayerInput(int playerIndex, out PlayerInput playerInput)
+            => _playerInputs.TryGetValue(playerIndex, out playerInput);
 
+        public List<PlayerInput> GetAllPlayerInputs() => new (_playerInputs.Values);
+        
         #endregion
     }
 }
