@@ -167,7 +167,7 @@ namespace MortierFu
             }
             
             _bombshellParent = new GameObject("Bombshells").transform;
-
+            
             _active = new HashSet<Bombshell>();
             _pool = new ObjectPool<Bombshell>(
                 OnCreateBombshell,
