@@ -22,7 +22,6 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
-        protected ConfirmationService confirmationService;
         protected AugmentSelectionSystem augmentSelectionSys;
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
@@ -63,8 +62,8 @@ namespace MortierFu
                 return;
             }
             
-            _augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             
             Logs.Log("Starting the game...");
             currentRound = 0;
@@ -83,9 +82,9 @@ namespace MortierFu
                 StartAugmentSelection();
                     
                 var augmentPickers = GetAugmentPickers();
-                await _augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
 
-                while (!_augmentSelectionSys.IsSelectionOver)
+                while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();
                     
                 augmentSelectionSys.EndAugmentSelection();
@@ -318,15 +317,14 @@ namespace MortierFu
             OnGameStateChanged?.Invoke(newState);
         }
         
-        public virtual void Initialize()
+        public virtual async UniTask Initialize()
         {
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             
             // Load configuration
             _gameModeDataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");
-            // TODO: LOAD HERE
+            await _gameModeDataHandle;
             
             timer = new CountdownTimer(0f);
             
@@ -364,6 +362,8 @@ namespace MortierFu
         
         public virtual void Dispose()
         {
+            Addressables.Release(_gameModeDataHandle);
+            
             teams.Clear();
             timer.Dispose();
         }
