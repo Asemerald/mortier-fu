@@ -24,10 +24,10 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public void InitializeGameMode<T>() where T : class, IGameMode, new()
+        public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
         {
-            _currentGameMode = new T();
-            _currentGameMode.Initialize();
+            _currentGameMode = new T(); 
+            await _currentGameMode.Initialize();
         }
 
         public async UniTaskVoid ExecuteGameplayPipeline()
