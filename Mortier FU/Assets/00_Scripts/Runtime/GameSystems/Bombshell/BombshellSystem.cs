@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -136,11 +136,11 @@ namespace MortierFu
         
         #endregion
         
-        public async Task OnInitialize()
+        public async UniTask OnInitialize()
         {
             // Load the system settings
             _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync();
-            await _settingsHandle.Task;
+            await _settingsHandle;
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -153,7 +153,7 @@ namespace MortierFu
             
             // Load the bombshell prefab
             _prefabHandle = Settings.BombshellPrefab.LoadAssetAsync(); 
-            await _prefabHandle.Task;
+            await _prefabHandle;
             
             if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
             {

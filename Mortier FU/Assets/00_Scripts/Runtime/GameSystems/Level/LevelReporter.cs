@@ -1,8 +1,9 @@
-﻿using MortierFu.Shared;
+﻿using System.Threading.Tasks;
+using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 
-namespace MortierFu.GameSystems
+namespace MortierFu
 {
     public class LevelReporter : MonoBehaviour
     {
@@ -10,8 +11,11 @@ namespace MortierFu.GameSystems
         public Transform[] SpawnPoints;
         public Transform[] AugmentPoints;
 
-        void Awake()
+        async void Start()
         {
+            // Await one frame
+            await Task.Delay(200);
+            
             var levelSystem = SystemManager.Instance.Get<LevelSystem>();
             if (levelSystem == null)
             {

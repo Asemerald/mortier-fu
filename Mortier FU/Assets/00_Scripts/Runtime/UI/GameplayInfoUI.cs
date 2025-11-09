@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TMPro;
-using MEC;
 using MortierFu.Shared;
 
 namespace MortierFu
@@ -20,8 +20,7 @@ namespace MortierFu
 
         private void Start()
         {
-            _gm = IGameMode.current as GameModeBase;
-            Logs.Log("LINKED");
+            _gm = GameService.CurrentGameMode as GameModeBase;
             _gm.OnRoundStarted += OnRoundStarted; // No unscubscription
             
             Initialize();
@@ -31,18 +30,18 @@ namespace MortierFu
         {
             UpdateRoundText(currentRound);
             UpdatePlayerScores();
-            Timing.RunCoroutine(HandleCountdown());
+            HandleCountdown().Forget();
         }
 
-        private IEnumerator<float> HandleCountdown()
+        private async UniTaskVoid HandleCountdown()
         {
             ShowCountdown();
             float countdownTime;
             do
             {
                 countdownTime = _gm.CountdownRemainingTime;
-                UpdateCountdownText(Mathf.FloorToInt(countdownTime)); 
-                yield return 0f;
+                UpdateCountdownText(Mathf.FloorToInt(countdownTime));
+                await UniTask.Yield();
             } while (countdownTime > 0f);
             
             UpdateCountdownText(0);

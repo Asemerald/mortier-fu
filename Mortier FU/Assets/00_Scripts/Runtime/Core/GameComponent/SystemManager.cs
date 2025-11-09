@@ -1,6 +1,6 @@
 ﻿using MortierFu.Shared;
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu
 {
@@ -18,7 +18,7 @@ namespace MortierFu
         public static SO_GameConfig Config => Instance.GameInitializer.config;
         
         // Initialize all uninitialized registered systems
-        public async Task Initialize() 
+        public async UniTask Initialize() 
         {
             Instance = this;
             

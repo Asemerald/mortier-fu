@@ -3,10 +3,20 @@ using System.Collections.ObjectModel;
 
 namespace MortierFu 
 {
+    public enum GameState
+    {
+        Lobby,
+        StartGame,
+        Round,
+        EndRound,
+        DisplayScores,
+        AugmentSelection,
+        EndAugmentSelection,
+        EndGame,
+    }
+    
     public interface IGameMode : IDisposable
     {
-        public static IGameMode current { get; protected set; }
-        
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
