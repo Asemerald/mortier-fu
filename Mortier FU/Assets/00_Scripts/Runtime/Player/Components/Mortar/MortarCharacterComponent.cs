@@ -74,6 +74,7 @@ namespace MortierFu
             float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
             AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
             AimWidget.Hide();
+            AimWidget.SetRelativePosition(Vector3.zero);
             
             IsShooting = false;
         }
