@@ -133,9 +133,9 @@ public class DiscordService : IGameService
             activity.AddButton(button);
             _client.UpdateRichPresence(activity, (ClientResult result) => {
                 if (result.Successful()) {
-                    Debug.Log("Rich presence updated!");
+                    Logs.Log("Rich presence updated!");
                 } else {
-                    Debug.LogError("Failed to update rich presence");
+                    Logs.LogError("Failed to update rich presence");
                 }
             });
     }
@@ -195,5 +195,7 @@ public class DiscordService : IGameService
     public void Dispose()
     {
         _client.Dispose();
+        _client.Disconnect();
     }
+    
 }

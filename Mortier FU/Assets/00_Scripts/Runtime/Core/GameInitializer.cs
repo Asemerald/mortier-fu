@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -105,6 +106,12 @@ namespace MortierFu
             _serviceManager.Register(_confirmationService);
             
             return Task.CompletedTask;
+        }
+
+        private void OnDestroy()
+        {
+            _serviceManager?.Dispose();
+            _systemManager?.Dispose();
         }
     }
 }
