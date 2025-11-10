@@ -121,16 +121,10 @@ public class DiscordService : IGameService
 
     private void ClientReady()
     {
-            Debug.Log($"Friend Count: {_client.GetRelationships().Count()}");
-
-            ActivityButton button = new ActivityButton();
-            button.SetLabel("Jsp quoi mettre la");
-            button.SetUrl("https://www.github.com/Asemerald/mortier-fu");
+            Logs.Log("[DiscordService] Client is ready!");
             Activity activity = new Activity();
-            activity.SetType(ActivityTypes.Competing);
-            activity.SetState("In Competitive Match");
-            activity.SetDetails("Rank: Diamond II");
-            activity.AddButton(button);
+            activity.SetType(ActivityTypes.Playing);
+            activity.SetState("Soon sur steam la famille");
             _client.UpdateRichPresence(activity, (ClientResult result) => {
                 if (result.Successful()) {
                     Logs.Log("Rich presence updated!");
@@ -194,8 +188,8 @@ public class DiscordService : IGameService
 
     public void Dispose()
     {
-        _client.Dispose();
         _client.Disconnect();
+        _client.Dispose();
     }
     
 }
