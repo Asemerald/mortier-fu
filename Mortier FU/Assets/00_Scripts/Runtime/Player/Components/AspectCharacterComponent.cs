@@ -22,7 +22,9 @@ namespace MortierFu {
             int index = character.Owner.PlayerIndex;
             PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);
             
-            if (character.TryGetComponent(out Renderer renderer)) {
+            // TODO: Upgrade
+            var renderer = character.GetComponentInChildren<Renderer>();
+            if (renderer != null) {
                 renderer.material.color = PlayerColor;
             }
         }
