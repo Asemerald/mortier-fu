@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using MortierFu.Shared;
+﻿using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 
@@ -9,6 +8,9 @@ namespace MortierFu
     {
         [Header("Level Design")]
         public Transform[] SpawnPoints;
+        [Space]
+        [SerializeField] private bool _isAugmentMap = false;
+        [ShowIf("_isAugmentMap")]
         public Transform[] AugmentPoints;
 
         void Awake()
@@ -96,7 +98,7 @@ namespace MortierFu
                 }
             }
 
-            if (AugmentPoints != null && AugmentPoints.Length > 0)
+            if (_isAugmentMap && AugmentPoints != null && AugmentPoints.Length > 0)
             {
                 Gizmos.color = _augmentPointColor;
                 foreach (var augmentPoint in AugmentPoints)
