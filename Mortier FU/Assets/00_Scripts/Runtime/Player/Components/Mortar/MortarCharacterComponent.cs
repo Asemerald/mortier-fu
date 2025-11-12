@@ -105,7 +105,8 @@ namespace MortierFu
                 GravityScale = 1.0f,
                 Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
                 Scale =  Stats.BombshellSize.Value * (1 + damageScale),
-                AoeRange = Stats.DamageRange.Value + damageScale * 0.7f
+                AoeRange = Stats.DamageRange.Value + damageScale * 0.7f,
+                Bounces = Mathf.RoundToInt(Stats.BulletBounces.Value)
             };
             
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);

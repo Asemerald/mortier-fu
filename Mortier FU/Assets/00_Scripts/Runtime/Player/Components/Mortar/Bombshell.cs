@@ -25,6 +25,7 @@ namespace MortierFu
             // Damage
             public int Damage;
             public float AoeRange;
+            public int Bounces;
         }
         
         // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
@@ -42,6 +43,7 @@ namespace MortierFu
 
         private BombshellSystem _system;
         private Rigidbody _rb;
+        private Collider _col;
 
         public PlayerCharacter Owner => _data.Owner;
         public int Damage => _data.Damage;
@@ -51,6 +53,7 @@ namespace MortierFu
         {
             _system = system;
             _rb = GetComponent<Rigidbody>();
+            _col = GetComponent<Collider>();
         }
         
         public void SetData(Data data)
@@ -100,19 +103,39 @@ namespace MortierFu
             _rb.MovePosition(newPos);
         }
 
-        void OnTriggerEnter(Collider other)
+        void OnTriggerEnter(Collider other) 
         {
-            if (_exploded)
-                return;
+            if (_exploded) return;
             
             // Cost-efficient, could cause problem in a later stage
             if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
                 return;
             
-            _exploded = true;
-            
             // Notify impact to the system
             _system.NotifyImpact(this);
+            
+            // Handle bounces
+            if (_data.Bounces > 0) {
+                _data.Bounces--;
+
+                // Loose 20% of speed
+                _initialSpeed *= 1f;
+                _data.StartPos = transform.position;
+                _t = 0f;
+            } else {
+                ReturnToPool();
+                _exploded = true;
+            }
+            
+            // Ignore that same collider for a bit to prevent multiple collision calls for the same collider.
+            TemporaryDisableCollider(other).Forget();
+        }
+
+        private async UniTaskVoid TemporaryDisableCollider(Collider other) {
+            const float k_collisionIgnoreDuration = 0.1f;
+            Physics.IgnoreCollision(_col, other, true);
+            await UniTask.Delay(TimeSpan.FromSeconds(k_collisionIgnoreDuration));
+            Physics.IgnoreCollision(_col, other, false);
         }
 
         /// <summary>
