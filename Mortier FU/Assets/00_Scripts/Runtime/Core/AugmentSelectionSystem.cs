@@ -140,7 +140,7 @@ namespace MortierFu
             _pickups.Clear();
             _augmentBag.Clear();
             
-            _augmentTimer.Dispose();
+            _augmentTimer?.Dispose();
             
             Addressables.Release(_settingsHandle);
         }
