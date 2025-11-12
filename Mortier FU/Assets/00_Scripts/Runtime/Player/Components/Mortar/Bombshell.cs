@@ -39,7 +39,7 @@ namespace MortierFu
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
-        private bool _impactThisFrame;
+        private CountdownTimer _impactDebounceTimer;
 
         private BombshellSystem _system;
         private Rigidbody _rb;
@@ -54,13 +54,14 @@ namespace MortierFu
             _system = system;
             _rb = GetComponent<Rigidbody>();
             _col = GetComponent<Collider>();
+            _impactDebounceTimer = new CountdownTimer(0.1f);
         }
         
         public void SetData(Data data)
         {
             _data = data;
             _t = 0.0f;
-            _impactThisFrame = false;
+            _impactDebounceTimer.Stop();
 
             transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
@@ -74,7 +75,7 @@ namespace MortierFu
 
             _trail.Clear();
             
-            HandleImpactAreaVFX();
+            HandleImpactAreaVFX().Forget();
         }
 
         public void ReturnToPool()
@@ -83,8 +84,6 @@ namespace MortierFu
         }
         
         void FixedUpdate() {
-            _impactThisFrame = false;
-            
             //_t += Time.deltaTime * _data.Speed * 0.1f;
             _t += Time.deltaTime * _timeFactor;
 
@@ -94,13 +93,13 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other) 
         {
-            if (_impactThisFrame) return;
+            if (_impactDebounceTimer.IsRunning) return;
             
             // Cost-efficient, could cause problem in a later stage
             if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
                 return;
-            
-            _impactThisFrame = true;
+
+            _impactDebounceTimer.Start();
             
             // Notify impact to the system
             _system.NotifyImpact(this);
@@ -114,12 +113,15 @@ namespace MortierFu
                     other.transform.position, other.transform.rotation, out var dir, out var distance);
                 
                 if (overlapped) {
-                    _rb.MovePosition(_rb.position + dir * distance * 3);
+                    _rb.MovePosition(_rb.position + dir * distance);
                 }
                 
-                // Loose 20% of speed
                 _data.StartPos = transform.position;
-                _initialSpeed *= 0.85f;
+                // 1. Either treat initial speed or travel time, first one makes loss of height !
+                // _initialSpeed *= 0.9f; // Loose 10% of speed
+                // OR
+                _data.TravelTime *= 0.9f;
+                _timeFactor = _travelTime / _data.TravelTime;
                 _t = 0f;
                 
             } else {
