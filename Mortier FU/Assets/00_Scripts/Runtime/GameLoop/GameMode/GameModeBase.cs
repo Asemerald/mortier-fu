@@ -237,7 +237,7 @@ namespace MortierFu
         protected void HandleCountdown() {
             float duration = GameModeData.RoundStartCountdown;
             #if UNITY_EDITOR
-            duration /= 4f;
+            duration *= 0.25f;
             #endif
             timer.Reset(duration - 0.01f);
             timer.OnTimerStop += HandleEndOfCountdown;
