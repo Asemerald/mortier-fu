@@ -1,6 +1,5 @@
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -56,7 +55,8 @@ namespace MortierFu
 
             Color playerColor = character.Aspect.PlayerColor;
             AimWidget.Colorize(playerColor);
-
+            ResetAimWidget();
+            
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
             _shootCooldownTimer = new CountdownTimer(Stats.FireRate.Value);
             
@@ -70,15 +70,19 @@ namespace MortierFu
         {
             _shootCooldownTimer?.Stop();
             
+            _shootTimer?.Stop();
+            ResetAimWidget();
+
+            AimWidget.SetRelativePosition(Vector3.zero);
+        }
+
+        private void ResetAimWidget() {
             float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
             float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
             AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
             AimWidget.Hide();
-            AimWidget.SetRelativePosition(Vector3.zero);
-            
-            IsShooting = false;
         }
-        
+
         public override void Dispose()
         {
             _shootCooldownTimer.Dispose();
