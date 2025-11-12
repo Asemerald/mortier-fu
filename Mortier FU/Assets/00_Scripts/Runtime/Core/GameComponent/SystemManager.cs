@@ -15,7 +15,7 @@ namespace MortierFu
             GameInitializer = gameInitializer;
         }
         
-        public static GameConfig Config => Instance.GameInitializer.config;
+        public static SO_GameConfig Config => Instance.GameInitializer.config;
         
         // Initialize all uninitialized registered systems
         public async Task Initialize() 

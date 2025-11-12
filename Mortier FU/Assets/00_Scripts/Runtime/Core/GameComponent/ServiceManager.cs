@@ -40,7 +40,7 @@ namespace MortierFu
             }
         }
         
-        public static GameConfig Config => Instance.GameInitializer.config;
+        public static SO_GameConfig Config => Instance.GameInitializer.config;
         
 #if UNITY_EDITOR
         /// <summary>
