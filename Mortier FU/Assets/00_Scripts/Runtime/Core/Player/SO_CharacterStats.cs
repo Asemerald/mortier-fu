@@ -12,6 +12,12 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Base movement speed in units per second.")]
         public CharacterStat MoveSpeed { get; private set; } = new(5.0f);
         
+        [field: SerializeField, Tooltip("Base acceleration.")]
+        public CharacterStat Accel { get; private set; } = new(8.0f);
+        
+        [field: SerializeField, Tooltip("Base deceleration.")]
+        public CharacterStat Decel { get; private set; } = new(6.0f);
+        
         [field: SerializeField, Tooltip("Scale applied to the player avatar.")]
         public CharacterStat AvatarSize { get; private set; } = new(1.0f);
         
