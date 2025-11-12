@@ -18,9 +18,9 @@ namespace MortierFu
         
         private Camera _cam;
 
-        public AugmentShowcaser (AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> augments)
+        public AugmentShowcaser (AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> pickups)
         {
-            _pickups = augments;
+            _pickups = pickups;
             _system = system;
            
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
@@ -33,7 +33,7 @@ namespace MortierFu
             await Task.Delay(TimeSpan.FromSeconds(_system.Settings.ShowcaseStartDelay));
             
             float step = _system.Settings.DisplayedCardScale * 2f + _system.Settings.CardSpacing;
-            Vector3 origin = _cam.transform.position + _cam.transform.forward * 5f - _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
+            Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f - _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
             
             for (int i = 0; i < _pickups.Count; i++)
             {

@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -20,11 +19,12 @@ namespace MortierFu
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
         
+        private LobbyService _lobbyService;
         private AugmentShowcaser _augmentShowcaser;
+        private LevelSystem _levelSystem;
         
         private Transform _pickupParent;
         
-        private LobbyService _lobbyService;
         private readonly LootTable<SO_Augment> _lootTable;
 
         private int _playerCount;
@@ -70,6 +70,7 @@ namespace MortierFu
             _pickupParent.position = Vector3.down * 50;
             
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _playerCount = _lobbyService.GetPlayers().Count;
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
@@ -174,7 +175,7 @@ namespace MortierFu
             var positions = new List<Vector3>(_augmentCount);
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pos = (Random.insideUnitSphere.With(y: 0).normalized * 10f).With(y: 0.85f);
+                var pos = _levelSystem.GetAugmentLocation(i).position;
                 positions.Add(pos);
             }
 

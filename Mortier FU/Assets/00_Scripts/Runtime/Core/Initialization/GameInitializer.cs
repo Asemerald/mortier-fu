@@ -14,7 +14,7 @@ namespace MortierFu
         
         [Expandable]
         public SO_GameConfig config;
-
+        
         private ServiceManager _serviceManager;
         private SystemManager _systemManager;
         private ModService _modService;
@@ -25,6 +25,7 @@ namespace MortierFu
         private GameService _gameService;
         private LobbyService _lobbyService;
         private DiscordService _discordService;
+        private SceneService _sceneService;
         
 #if UNITY_EDITOR
         [Header("Debug")]
@@ -36,7 +37,6 @@ namespace MortierFu
         private void Awake()
         {
             InitializeAsync().Forget();
-            DontDestroyOnLoad(gameObject);
         }
 
         private void Update()
@@ -78,7 +78,7 @@ namespace MortierFu
             }
 #endif
             // --- Load MainMenu Scene
-            var sceneHandle = SceneManager.LoadSceneAsync(scene);
+            var sceneHandle = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
             if (sceneHandle == null)
             {
                 Logs.LogError($"Couldn't load {scene} !");
@@ -86,6 +86,14 @@ namespace MortierFu
             }
             
             await sceneHandle.ToUniTask();
+
+            Scene activeScene = SceneManager.GetSceneByName(scene);
+            if (activeScene.IsValid())
+            {
+                SceneManager.SetActiveScene(activeScene);
+            }
+            
+            _sceneService.HideLoadingScreen();
         }
 
 
@@ -100,6 +108,7 @@ namespace MortierFu
             _lobbyService = new LobbyService();
             _discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
+            _sceneService = new SceneService();
             
             // --- Register services
             _serviceManager.Register(_modService);
@@ -110,6 +119,7 @@ namespace MortierFu
             _serviceManager.Register(_lobbyService);
             _serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
+            _serviceManager.Register(_sceneService);
             
             return UniTask.CompletedTask;
         }

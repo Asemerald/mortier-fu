@@ -7,6 +7,9 @@ namespace MortierFu
     public class GameService : IGameService
     {
         private IGameMode _currentGameMode;
+        private SceneService _sceneService;
+        
+        private const string k_mainMenuScene = "MainMenu";
         private const string k_gameplayScene = "Gameplay";
 
         /// Kinda expansive, should cache the result if used multiple time per case.
@@ -21,6 +24,7 @@ namespace MortierFu
         
         public UniTask OnInitialize()
         {
+            _sceneService = ServiceManager.Instance.Get<SceneService>();
             return UniTask.CompletedTask;
         }
 
@@ -38,16 +42,13 @@ namespace MortierFu
                 return;
             }
             
-            // Load gameplay scene
-            var sceneHandle = SceneManager.LoadSceneAsync(k_gameplayScene);
-            if (sceneHandle == null)
-            {
-                Logs.LogError($"Failed to load the gameplay scene {k_gameplayScene}");
-                return;
-            }
+            _sceneService.ShowLoadingScreen();
             
-            sceneHandle.allowSceneActivation = true;
-            await sceneHandle;
+            // Unload main menu scene
+            await _sceneService.UnloadScene(k_mainMenuScene);
+            
+            // Load gameplay scene
+            await _sceneService.LoadScene(k_gameplayScene, true);
 
             // Register all game systems
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
@@ -58,6 +59,8 @@ namespace MortierFu
 
             // Start the game mode
             await _currentGameMode.StartGame();
+
+            _sceneService.HideLoadingScreen();
             
             Logs.Log("Gameplay pipeline done !");
         }

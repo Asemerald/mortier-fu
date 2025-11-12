@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using Random = UnityEngine.Random;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -23,6 +23,7 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
+        protected SceneService sceneService;
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
@@ -61,15 +62,14 @@ namespace MortierFu
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
-            
-            // TODO: Move scene loading to its own service and load and unload maps each round
-            var mapHandle = SceneManager.LoadSceneAsync("Map 01", LoadSceneMode.Additive);
-            await mapHandle.ToUniTask();
+
+            await sceneService.LoadScene("Map 01");
             
             teams = new List<PlayerTeam>();
             Teams = teams.AsReadOnly();
             
             var players = lobbyService.GetPlayers();
+            
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
@@ -315,13 +315,7 @@ namespace MortierFu
         {
             UpdateGameState(GameState.AugmentSelection);
             
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.transform.position = Vector3.up * 3f;
-                }
-            }
+            SpawnPlayers();
             
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
@@ -356,6 +350,7 @@ namespace MortierFu
         {
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            sceneService = ServiceManager.Instance.Get<SceneService>();
             
             // Load configuration
             _gameModeDataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");

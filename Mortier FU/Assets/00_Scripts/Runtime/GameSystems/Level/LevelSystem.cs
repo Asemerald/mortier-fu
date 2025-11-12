@@ -75,7 +75,7 @@ namespace MortierFu
                 return FallbackTransform;
             }
             
-            return BoundReporter.SpawnPoints[index];
+            return BoundReporter.AugmentPoints[index];
         }
         
         public async UniTask OnInitialize()
