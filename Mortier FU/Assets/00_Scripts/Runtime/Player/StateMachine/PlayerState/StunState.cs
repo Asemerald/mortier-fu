@@ -1,17 +1,20 @@
 using MortierFu.Shared;
+using UnityEngine;
 
 namespace MortierFu
 {
     public class StunState : BaseState
     {
         private CountdownTimer _stunTimer;
-        
-        public bool IsActive => _stunTimer.IsRunning;
 
-        public StunState(PlayerCharacter character) : base(character)
+        public StunState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
             _stunTimer = new CountdownTimer(0f);
         }
+
+        public bool IsActive => _stunTimer.IsRunning;
+
+      
         
         public void ReceiveStun(float duration)
         {

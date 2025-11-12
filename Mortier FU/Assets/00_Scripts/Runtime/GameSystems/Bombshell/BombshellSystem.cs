@@ -49,7 +49,9 @@ namespace MortierFu
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
-                if(hit.TryGetComponent(out PlayerCharacter character)) {
+                if(hit.attachedRigidbody == null) continue;
+                
+                if(hit.attachedRigidbody.TryGetComponent(out PlayerCharacter character)) {
                     // Prevent self-damage
                     if(!Settings.AllowSelfDamage && character == bombshell.Owner) 
                         continue; 
@@ -65,7 +67,7 @@ namespace MortierFu
                     }
                 }
                 // temp check for breakable object
-                else if (hit.TryGetComponent(out Breakable breakableObject))
+                else if (hit.attachedRigidbody.TryGetComponent(out Breakable breakableObject))
                 {
                     breakableObject.DestroyObject(0);
                 }

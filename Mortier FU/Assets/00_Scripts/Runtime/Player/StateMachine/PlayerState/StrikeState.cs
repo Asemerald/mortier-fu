@@ -11,16 +11,17 @@ namespace MortierFu
         private CountdownTimer _strikeCooldownTimer;
         private CountdownTimer _strikeTriggerTimer;
 
+        public StrikeState(PlayerCharacter character, Animator animator) : base(character, animator)
+        {
+            _strikeCooldownTimer = new CountdownTimer(0f);
+            _strikeTriggerTimer = new CountdownTimer(0f);
+        }
+
         public bool InCooldown => _strikeCooldownTimer.IsRunning;
         public bool IsFinished => _strikeTriggerTimer.IsFinished;
         
         public float StrikeCooldownProgress => _strikeCooldownTimer.Progress;
         
-        public StrikeState(PlayerCharacter character) : base(character)
-        {
-            _strikeCooldownTimer = new CountdownTimer(0f);
-            _strikeTriggerTimer = new CountdownTimer(0f);
-        }
         
         public override void OnEnter()
         {
