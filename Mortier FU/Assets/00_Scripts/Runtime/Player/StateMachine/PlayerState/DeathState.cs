@@ -1,11 +1,13 @@
 using MortierFu.Shared;
+using UnityEngine;
 
 namespace MortierFu
 {
     public class DeathState : BaseState
     {
-        public DeathState(PlayerCharacter character) : base(character) {}
-        
+        public DeathState(PlayerCharacter character, Animator animator) : base(character, animator)
+        { }
+
         public override void OnEnter()
         {
             if(debug) Logs.Log("Entering Death State");
