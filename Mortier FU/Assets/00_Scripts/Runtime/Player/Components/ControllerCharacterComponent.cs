@@ -61,13 +61,28 @@ namespace MortierFu
             var horizontal = _moveAction.ReadValue<Vector2>().x;
             var vertical = _moveAction.ReadValue<Vector2>().y;
             
-            _moveDirection = new Vector2(horizontal, vertical).normalized * (Stats.MoveSpeed.Value * factor);
+            var targetDirection = (new Vector2(horizontal, vertical)).normalized;
+            var targetSpeed = Stats.MoveSpeed.Value * factor;
 
-            var lookDir = new Vector3(horizontal, 0f, vertical);
+            // On veut atteindre cette vitesse finale
+            var targetVelocity = targetDirection * targetSpeed;
+
+            // Accélération ou décélération selon si on bouge ou non
+            float rate = (targetDirection.sqrMagnitude > 0.01f) ? Stats.Accel.Value : Stats.Decel.Value;
+
+            // Applique Interpolation douce (lissage)
+            _moveDirection = Vector2.Lerp(_moveDirection, targetVelocity, Time.deltaTime * rate);
             
-            if (lookDir.sqrMagnitude > 0.001f)
+
+            var velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
+            
+            if (velocity3D.sqrMagnitude > 0.001f)
             {
-                character.transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+                character.transform.rotation = Quaternion.Slerp(
+                    character.transform.rotation,
+                    Quaternion.LookRotation(velocity3D.normalized, Vector3.up),
+                    Time.deltaTime * 10f // vitesse de rotation fluide
+                );
             }
         }
         
