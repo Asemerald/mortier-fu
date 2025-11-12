@@ -49,7 +49,7 @@ namespace MortierFu
             
             // Load gameplay scene
             await _sceneService.LoadScene(k_gameplayScene, true);
-
+            
             // Register all game systems
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();

@@ -4,13 +4,14 @@ using UnityEngine.SceneManagement;
 using MortierFu.Services;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using UnityEngine.Serialization;
 
 namespace MortierFu
 {
     public class GameInitializer : MonoBehaviour
     {
-        [Header("Scene to load after init")]
-        public string scene = "MainMenu";
+        [FormerlySerializedAs("scene")] [Header("Scene to load after init")]
+        public string sceneName = "MainMenu";
         
         [Expandable]
         public SO_GameConfig config;
@@ -78,20 +79,7 @@ namespace MortierFu
             }
 #endif
             // --- Load MainMenu Scene
-            var sceneHandle = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
-            if (sceneHandle == null)
-            {
-                Logs.LogError($"Couldn't load {scene} !");
-                return;
-            }
-            
-            await sceneHandle.ToUniTask();
-
-            Scene activeScene = SceneManager.GetSceneByName(scene);
-            if (activeScene.IsValid())
-            {
-                SceneManager.SetActiveScene(activeScene);
-            }
+            await _sceneService.LoadScene(sceneName);
             
             _sceneService.HideLoadingScreen();
         }
