@@ -51,6 +51,9 @@ namespace MortierFu
             do
             {
                 countdownTime = _gm.CountdownRemainingTime;
+                #if UNITY_EDITOR
+                countdownTime *= 4f;
+                #endif
                 UpdateCountdownText(Mathf.FloorToInt(countdownTime));
                 await UniTask.Yield();
             } while (countdownTime > 0f);
