@@ -4,11 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -41,9 +39,10 @@ namespace MortierFu
                 return players.Count >= MinPlayerCount && players.Count <= MaxPlayerCount;
             }
         }
-
-        public int CurrentRoundCount => currentRound;
+        
         public GameState CurrentState => currentState;
+        public int CurrentRoundCount => currentRound;
+        public float CountdownRemainingTime => timer.CurrentTime;
         
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
@@ -54,8 +53,6 @@ namespace MortierFu
 
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
-
-        public float CountdownRemainingTime => timer.CurrentTime;
         
         public virtual async UniTask StartGame()
         {
@@ -237,9 +234,12 @@ namespace MortierFu
             Logs.Log($"Round #{currentRound} is starting...");
         }
 
-        protected void HandleCountdown()
-        {
-            timer.Reset(GameModeData.RoundStartCountdown - 0.01f);
+        protected void HandleCountdown() {
+            float duration = GameModeData.RoundStartCountdown;
+            #if UNITY_EDITOR
+            duration *= 0.25f;
+            #endif
+            timer.Reset(duration - 0.01f);
             timer.OnTimerStop += HandleEndOfCountdown;
             timer.Start();
         }
@@ -250,7 +250,6 @@ namespace MortierFu
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
         }
-
 
         protected virtual void EndRound()
         {
