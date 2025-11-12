@@ -10,7 +10,6 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            character.Mortar.BeginAiming();
             if(debug)
                 Logs.Log("Entering Aim State", character.gameObject);
             
@@ -30,7 +29,6 @@ namespace MortierFu
 
         public override void OnExit()
         {
-            character.Mortar.EndAiming();
             if(debug)
                 Logs.Log("Exiting Aim State");
         }

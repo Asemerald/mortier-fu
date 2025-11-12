@@ -14,10 +14,12 @@ namespace MortierFu
         
         private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
-        private CountdownTimer _shootTimer;
+        private CountdownTimer _shootCooldownTimer;
         private bool _isAiming;
 
-        public bool CanShoot => !_shootTimer.IsRunning;
+        public bool CanShoot => !_shootCooldownTimer.IsRunning;
+
+        public bool IsShooting { get; private set; }
 
         public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab, Transform firePoint) : base(character)
         {
@@ -44,7 +46,7 @@ namespace MortierFu
             // Find and cache Input Actions
             character.FindInputAction("Aim", out _aimAction);
             character.FindInputAction("Shoot", out _shootAction);
-
+            
             _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             if (_bombshellSys == null)
             {
@@ -56,7 +58,7 @@ namespace MortierFu
             AimWidget.Colorize(playerColor);
 
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
-            _shootTimer = new CountdownTimer(Stats.FireRate.Value);
+            _shootCooldownTimer = new CountdownTimer(Stats.FireRate.Value);
             
             _shootStrategy.Initialize();
             _shootAction.Disable();
@@ -66,17 +68,19 @@ namespace MortierFu
 
         public override void Reset()
         {
-            _shootTimer?.Stop();
+            _shootCooldownTimer?.Stop();
             
             float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
             float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
             AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
             AimWidget.Hide();
+            
+            IsShooting = false;
         }
         
         public override void Dispose()
         {
-            _shootTimer.Dispose();
+            _shootCooldownTimer.Dispose();
             _shootStrategy?.DeInitialize();
         }
 
@@ -87,7 +91,7 @@ namespace MortierFu
         
         public void Shoot()
         {
-            if (_shootTimer.IsRunning) return;
+            if (_shootCooldownTimer.IsRunning) return;
 
             float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
             
@@ -106,19 +110,25 @@ namespace MortierFu
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);
             
             // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
-            _shootTimer.Reset(Stats.FireRate.Value);
-            _shootTimer.Start();
+            _shootCooldownTimer.Reset(Stats.FireRate.Value);
+            _shootCooldownTimer.Start();
+            
+            IsShooting = true;
         }
+        
+        public void StopShooting() => IsShooting = false;
 
-        public void BeginAiming()
+        public void BeginAiming(InputAction.CallbackContext ctx)
         { 
+            Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
         }
 
-        public void EndAiming()
+        public void EndAiming(InputAction.CallbackContext ctx)
         {
+            Logs.Log("[MortarCharacterComponent]: End Aiming");
             AimWidget.Hide();
             _shootStrategy?.EndAiming();
             _shootAction.Disable();
