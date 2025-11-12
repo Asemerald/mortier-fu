@@ -39,7 +39,7 @@ namespace MortierFu
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
-        private bool _exploded;
+        private bool _impactThisFrame;
 
         private BombshellSystem _system;
         private Rigidbody _rb;
@@ -60,7 +60,7 @@ namespace MortierFu
         {
             _data = data;
             _t = 0.0f;
-            _exploded = false;
+            _impactThisFrame = false;
 
             transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
@@ -73,8 +73,8 @@ namespace MortierFu
             transform.localScale = Vector3.one * _data.Scale;
 
             _trail.Clear();
-
-            HandleImpactAreaVFX().Forget();
+            
+            HandleImpactAreaVFX();
         }
 
         public void ReturnToPool()
@@ -82,20 +82,9 @@ namespace MortierFu
             _system.ReleaseBombshell(this);
         }
         
-        private async UniTaskVoid HandleImpactAreaVFX()
-        {
-            float delay = Mathf.Max(0f, _travelTime / _timeFactor - 0.6f);
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        void FixedUpdate() {
+            _impactThisFrame = false;
             
-            if (TEMP_FXHandler.Instance)
-            {
-                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
-            }
-            else Logs.LogWarning("No FX Handler");
-        }
-        
-        void FixedUpdate()
-        {
             //_t += Time.deltaTime * _data.Speed * 0.1f;
             _t += Time.deltaTime * _timeFactor;
 
@@ -105,11 +94,13 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other) 
         {
-            if (_exploded) return;
+            if (_impactThisFrame) return;
             
             // Cost-efficient, could cause problem in a later stage
             if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
                 return;
+            
+            _impactThisFrame = true;
             
             // Notify impact to the system
             _system.NotifyImpact(this);
@@ -118,24 +109,34 @@ namespace MortierFu
             if (_data.Bounces > 0) {
                 _data.Bounces--;
 
+                // Resolve collision
+                bool overlapped = Physics.ComputePenetration(_col, transform.position, transform.rotation, other,
+                    other.transform.position, other.transform.rotation, out var dir, out var distance);
+                
+                if (overlapped) {
+                    _rb.MovePosition(_rb.position + dir * distance * 3);
+                }
+                
                 // Loose 20% of speed
-                _initialSpeed *= 1f;
                 _data.StartPos = transform.position;
+                _initialSpeed *= 0.85f;
                 _t = 0f;
+                
             } else {
                 ReturnToPool();
-                _exploded = true;
             }
-            
-            // Ignore that same collider for a bit to prevent multiple collision calls for the same collider.
-            TemporaryDisableCollider(other).Forget();
         }
-
-        private async UniTaskVoid TemporaryDisableCollider(Collider other) {
-            const float k_collisionIgnoreDuration = 0.1f;
-            Physics.IgnoreCollision(_col, other, true);
-            await UniTask.Delay(TimeSpan.FromSeconds(k_collisionIgnoreDuration));
-            Physics.IgnoreCollision(_col, other, false);
+        
+        private async UniTask HandleImpactAreaVFX()
+        {
+            float delay = Mathf.Max(0f, _travelTime / _timeFactor - 0.6f);
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            
+            if (TEMP_FXHandler.Instance)
+            {
+                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
+            }
+            else Logs.LogWarning("No FX Handler");
         }
 
         /// <summary>
