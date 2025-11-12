@@ -21,8 +21,9 @@ namespace MortierFu
         [Header("Aspect")]
         [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
         [SerializeField] private Color _characterColorConfig = Color.white;
-        
-        [Header("References")]
+
+        [Header("References")] 
+        [SerializeField] private Animator _animator;
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         
         private StateMachine _stateMachine;
@@ -46,6 +47,8 @@ namespace MortierFu
         private StunState _stunState;
         private StrikeState _strikeState;
 
+        private readonly int _speedHash = Animator.StringToHash("Speed");
+        
         public PlayerInput PlayerInput => Owner?.PlayerInput;
 
         public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
@@ -116,11 +119,11 @@ namespace MortierFu
             _stateMachine = new StateMachine();
             
             // Declare States
-            _locomotionState = new LocomotionState(this);
-            var aimState = new AimState(this);
-            _stunState = new StunState(this);
-            _strikeState = new StrikeState(this);
-            var deathState = new DeathState(this);
+            _locomotionState = new LocomotionState(this, _animator);
+            var aimState = new AimState(this, _animator);
+            _stunState = new StunState(this, _animator);
+            _strikeState = new StrikeState(this, _animator);
+            var deathState = new DeathState(this, _animator);
             
             // Define transitions
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
@@ -181,6 +184,8 @@ namespace MortierFu
             Controller.Update();
             Aspect.Update();
             Mortar.Update();
+            
+            UpdateAnimator();
         }
 
         private void FixedUpdate()
@@ -209,6 +214,11 @@ namespace MortierFu
             Mortar?.OnDrawGizmosSelected();
         }
         #endregion
+        
+        private void UpdateAnimator()
+        {
+            _animator.SetFloat(_speedHash, Controller.SpeedRatio);
+        }
         
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
         

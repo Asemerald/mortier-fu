@@ -14,6 +14,8 @@ namespace MortierFu
         
         private InputAction _moveAction;
 
+        public float SpeedRatio => Mathf.Clamp01(rigidbody.linearVelocity.magnitude / Stats.MoveSpeed.Value); 
+        
         public ControllerCharacterComponent(PlayerCharacter character) : base(character)
         {
             if (character == null) return;

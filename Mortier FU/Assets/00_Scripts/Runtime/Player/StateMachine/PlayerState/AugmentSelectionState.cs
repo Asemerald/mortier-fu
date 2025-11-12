@@ -1,6 +1,7 @@
     using MortierFu.Shared;
+    using UnityEngine;
 
-namespace MortierFu
+    namespace MortierFu
 {
     
     // Il faudra faire en sorte qu'on puisse passer dans cet état uniquement lorsque nous sommes dans la sélection des augments.
@@ -13,8 +14,9 @@ namespace MortierFu
     
     public class AugmentSelectionState : BaseState
     {
-        public AugmentSelectionState(PlayerCharacter character) : base(character) {}
-        
+        public AugmentSelectionState(PlayerCharacter character, Animator animator) : base(character, animator) 
+        { }
+
         public override void OnEnter()
         {
             if(debug)
