@@ -50,8 +50,24 @@ namespace MortierFu
         private Collider _col;
 
         public PlayerCharacter Owner => _data.Owner;
-        public int Damage => _data.Damage;
-        public float AoeRange => _data.AoeRange;
+        
+        #region API // TODO: This can be improved to faciliate alteration of Bombshell behaviours in augments and mods
+        public int Damage
+        {
+            get => _data.Damage;
+            set => _data.Damage = value;
+        }
+        public float AoeRange
+        {
+            get => _data.AoeRange;
+            set => _data.AoeRange = value;
+        }
+        public int Bounces
+        {
+            get => _data.Bounces;
+            set => _data.Bounces = value;
+        }
+        #endregion
         
         public void Initialize(BombshellSystem system)
         {
@@ -80,7 +96,7 @@ namespace MortierFu
             
             HandleImpactAreaVFX().Forget();
         }
-
+        
         public void ReturnToPool()
         {
             _system.ReleaseBombshell(this);
