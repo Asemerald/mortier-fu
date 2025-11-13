@@ -30,8 +30,6 @@ public static class DebugSceneMenuGenerator
         if (!Directory.Exists(generatedFolder))
             Directory.CreateDirectory(generatedFolder);
 
-        // c'est ici que la magie opère 
-        // jrigole ta grand mere c'est un enfer 
         var sb = new StringBuilder();
         sb.AppendLine("#if UNITY_EDITOR");
         sb.AppendLine("using UnityEditor;");
@@ -42,7 +40,7 @@ public static class DebugSceneMenuGenerator
         sb.AppendLine("{");
         sb.AppendLine($"    private const string PREF_KEY = \"{PREF_KEY}\";");
         sb.AppendLine();
-        sb.AppendLine();
+
         // --- Toutes les scènes du Build Settings ---
         int sceneCount = SceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < sceneCount; i++)
@@ -50,25 +48,38 @@ public static class DebugSceneMenuGenerator
             string path = SceneUtility.GetScenePathByBuildIndex(i);
             string name = Path.GetFileNameWithoutExtension(path);
             string safeMethodName = MakeSafeName(name);
+            string escapedName = EscapeForCSharpLiteral(name);
+            string escapedMenu = EscapeForMenu(name);
 
-            // Select method
-            sb.AppendLine($"    [MenuItem(\"DEBUG/Scenes/{EscapeForMenu(name)}\", false, {i + 1})]");
+            sb.AppendLine($"    [MenuItem(\"DEBUG/Scenes/{escapedMenu}\", false, {i + 1})]");
             sb.AppendLine($"    private static void Select_{safeMethodName}()");
             sb.AppendLine("    {");
-            sb.AppendLine($"        EditorPrefs.SetString(PREF_KEY, \"{EscapeForCSharpLiteral(name)}\");");
-            sb.AppendLine($"        Logs.Log(\"[DebugSceneMenu] Debug scene set to: {EscapeForCSharpLiteral(name)}\");");
+            sb.AppendLine($"        string current = EditorPrefs.GetString(PREF_KEY, \"\");");
+            sb.AppendLine($"        if (current == \"{escapedName}\")");
+            sb.AppendLine("        {");
+            sb.AppendLine("            // Uncheck: clear pref");
+            sb.AppendLine("            EditorPrefs.DeleteKey(PREF_KEY);");
+            sb.AppendLine("            Logs.Log($\"[DebugSceneMenu] Unselected debug scene: {current}\");");
+            sb.AppendLine("        }");
+            sb.AppendLine("        else");
+            sb.AppendLine("        {");
+            sb.AppendLine($"            EditorPrefs.SetString(PREF_KEY, \"{escapedName}\");");
+            sb.AppendLine($"            Logs.Log(\"[DebugSceneMenu] Debug scene set to: {escapedName}\");");
+            sb.AppendLine("        }");
             sb.AppendLine("    }");
             sb.AppendLine();
 
-            // Validate method (pour cocher la scène)
-            sb.AppendLine($"    [MenuItem(\"DEBUG/Scenes/{EscapeForMenu(name)}\", true)]");
+            // Validate pour cocher la scène sélectionnée
+            sb.AppendLine($"    [MenuItem(\"DEBUG/Scenes/{escapedMenu}\", true)]");
             sb.AppendLine($"    private static bool Validate_{safeMethodName}()");
             sb.AppendLine("    {");
-            sb.AppendLine($"        Menu.SetChecked(\"DEBUG/Scenes/{EscapeForMenu(name)}\", EditorPrefs.GetString(PREF_KEY, \"\") == \"{EscapeForCSharpLiteral(name)}\");");
+            sb.AppendLine($"        bool isActive = EditorPrefs.GetString(PREF_KEY, \"\") == \"{escapedName}\";");
+            sb.AppendLine($"        Menu.SetChecked(\"DEBUG/Scenes/{escapedMenu}\", isActive);");
             sb.AppendLine("        return true;");
             sb.AppendLine("    }");
             sb.AppendLine();
         }
+
         sb.AppendLine("}");
         sb.AppendLine("#endif");
 

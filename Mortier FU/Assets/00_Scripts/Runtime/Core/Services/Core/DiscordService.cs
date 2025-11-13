@@ -52,7 +52,7 @@ public class DiscordService : IGameService
             // ✅ Token valide ? On l'utilise directement
             if (now < saved.expiresAt)
             {
-                Debug.Log("[DiscordService] Using saved access token.");
+                Logs.Log("[DiscordService] Using saved access token.");
                 _client.UpdateToken(AuthorizationTokenType.Bearer, saved.accessToken, (_) => _client.Connect());
                 return UniTask.CompletedTask;
             }
