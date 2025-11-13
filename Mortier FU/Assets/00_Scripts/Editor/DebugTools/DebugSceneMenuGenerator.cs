@@ -42,23 +42,7 @@ public static class DebugSceneMenuGenerator
         sb.AppendLine("{");
         sb.AppendLine($"    private const string PREF_KEY = \"{PREF_KEY}\";");
         sb.AppendLine();
-
-        // --- None ---
-        sb.AppendLine("    [MenuItem(\"DEBUG/Scenes/None\", false, 0)]");
-        sb.AppendLine("    private static void Select_None()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        EditorPrefs.DeleteKey(PREF_KEY);");
-        sb.AppendLine("        Logs.Log(\"[DebugSceneMenu] Cleared debug scene selection.\");");
-        sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine("    [MenuItem(\"DEBUG/Scenes/None\", true)]");
-        sb.AppendLine("    private static bool Validate_None()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        Menu.SetChecked(\"DEBUG/Scenes/None\", string.IsNullOrEmpty(EditorPrefs.GetString(PREF_KEY, \"\")));");
-        sb.AppendLine("        return true;");
-        sb.AppendLine("    }");
-        sb.AppendLine();
-
         // --- Toutes les scènes du Build Settings ---
         int sceneCount = SceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < sceneCount; i++)
@@ -85,18 +69,6 @@ public static class DebugSceneMenuGenerator
             sb.AppendLine("    }");
             sb.AppendLine();
         }
-
-        // --- Utilitaire pour afficher la scène actuelle ---
-        sb.AppendLine("    [MenuItem(\"DEBUG/Scenes/Show Current\", false, 1000)]");
-        sb.AppendLine("    private static void ShowCurrent()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        string cur = EditorPrefs.GetString(PREF_KEY, \"\");");
-        sb.AppendLine("        if (string.IsNullOrEmpty(cur))");
-        sb.AppendLine("            EditorUtility.DisplayDialog(\"Debug Scene\", \"No debug scene selected.\", \"OK\");");
-        sb.AppendLine("        else");
-        sb.AppendLine("            EditorUtility.DisplayDialog(\"Debug Scene\", $\"Current debug scene:\\n{cur}\", \"OK\");");
-        sb.AppendLine("    }");
-
         sb.AppendLine("}");
         sb.AppendLine("#endif");
 
