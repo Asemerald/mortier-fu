@@ -163,8 +163,7 @@ namespace MortierFu
             {
                 pickup.Hide();
             }
-            
-            _selectedAugments = null;
+
             _augmentBag.Clear();
             _augmentTimer = null;
         }
