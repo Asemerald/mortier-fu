@@ -7,7 +7,7 @@ namespace MortierFu
         protected readonly PlayerCharacter character;
         protected readonly Animator animator;
 
-        protected bool debug = false;
+        protected bool debug = true;
         
         protected static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
         protected static readonly int ShootHash = Animator.StringToHash("Shoot");
