@@ -6,7 +6,7 @@ using System;
 
 // Code from git-amend "Learn to Build an Advanced Event Bus | Unity Architecture".
 
-namespace MortierFU
+namespace MortierFu
 {
     /// <summary>
     /// Contains methods and properties related to event buses and event types in the Unity application.
