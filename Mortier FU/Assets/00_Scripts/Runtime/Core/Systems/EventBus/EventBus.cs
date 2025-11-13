@@ -3,7 +3,7 @@ using MortierFu.Shared;
 
 // Code from git-amend "Learn to Build an Advanced Event Bus | Unity Architecture".
 
-namespace  MortierFU
+namespace  MortierFu
 {
     public static class EventBus<T> where T : IEvent {
         static readonly HashSet<IEventBinding<T>> _bindings = new HashSet<IEventBinding<T>>();

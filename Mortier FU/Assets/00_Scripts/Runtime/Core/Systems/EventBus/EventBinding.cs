@@ -2,7 +2,7 @@
 
 // Code from git-amend "Learn to Build an Advanced Event Bus | Unity Architecture".
 
-namespace MortierFU
+namespace MortierFu
 {
     internal interface IEventBinding<T> {
         public Action<T> OnEvent { get; set; }

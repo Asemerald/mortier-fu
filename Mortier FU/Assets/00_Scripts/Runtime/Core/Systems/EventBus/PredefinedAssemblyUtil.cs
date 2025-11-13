@@ -4,7 +4,7 @@ using System;
 
 // Code from git-amend "Learn to Build an Advanced Event Bus | Unity Architecture".
 
-namespace MortierFU
+namespace MortierFu
 {
     public static class PredefinedAssemblyUtil
     {
