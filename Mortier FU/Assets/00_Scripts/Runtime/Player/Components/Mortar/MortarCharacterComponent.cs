@@ -70,7 +70,6 @@ namespace MortierFu
         {
             _shootCooldownTimer?.Stop();
             
-            _shootTimer?.Stop();
             ResetAimWidget();
 
             AimWidget.SetRelativePosition(Vector3.zero);
