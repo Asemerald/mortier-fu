@@ -1,7 +1,9 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEditor;
 using UnityEngine;
+using MathUtils = MortierFu.Shared.MathUtils;
 
 namespace MortierFu
 {
@@ -36,6 +38,7 @@ namespace MortierFu
         private float _t;
         private float _initialSpeed;
         private Vector3 _direction;
+        private Vector3 _velocity;
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
@@ -63,7 +66,6 @@ namespace MortierFu
             _t = 0.0f;
             _impactDebounceTimer.Stop();
 
-            transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             Vector3 yTargetPos =  new Vector3(groundDir.magnitude, toTarget.y, 0);
@@ -71,6 +73,8 @@ namespace MortierFu
             ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
             
+            _rb.MovePosition(_data.StartPos);
+            _rb.MoveRotation(transform.rotation = Quaternion.LookRotation(_direction, Vector3.up));
             transform.localScale = Vector3.one * _data.Scale;
 
             _trail.Clear();
@@ -88,6 +92,14 @@ namespace MortierFu
             _t += Time.deltaTime * _timeFactor;
 
             Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
+            _velocity = (newPos - _rb.position) / Time.deltaTime;
+
+            if (_velocity.sqrMagnitude > 0.001f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
+                _rb.MoveRotation(targetRot);
+            }
+            
             _rb.MovePosition(newPos);
         }
 
