@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -26,6 +27,9 @@ namespace MortierFu
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
+        
+        //TODO adapt to multiple Scenes 
+        private string defaultScene = "Map 01";
 
         private AsyncOperationHandle<SO_GameModeData> _gameModeDataHandle;
 
@@ -59,8 +63,10 @@ namespace MortierFu
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
-
-            await sceneService.LoadScene("Map 01");
+            
+            // Load the game scene, it can be overridden in debug via a EditorPref
+            string sceneToLoad = GetDebugSceneOrDefault();
+            await sceneService.LoadScene(sceneToLoad);
             
             teams = new List<PlayerTeam>();
             Teams = teams.AsReadOnly();
@@ -444,5 +450,22 @@ namespace MortierFu
 
             OnPlayerKilled?.Invoke(killer, victim);
         }
+        
+        #region Debug
+        
+        private string GetDebugSceneOrDefault()
+        {
+#if UNITY_EDITOR
+            string debugScene = EditorPrefs.GetString("DebugSceneName", "");
+            if (!string.IsNullOrEmpty(debugScene))
+            {
+                Debug.Log($"[DEBUG] Loading debug scene: {debugScene}");
+                return debugScene;
+            }
+#endif
+            return defaultScene;
+        }
+    
+        #endregion
     }
 }

@@ -203,7 +203,7 @@ namespace Tayx.Graphy.Audio
 
             UpdateParameters();
 
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
         #endregion

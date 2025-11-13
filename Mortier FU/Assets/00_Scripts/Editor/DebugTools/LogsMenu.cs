@@ -1,7 +1,7 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using MortierFu.Shared;
+using UnityEditor;
 
-namespace MortierFu.Shared.Editor
+namespace MortierFu.Editor
 {
     [InitializeOnLoad]
     public static class LogsMenu
