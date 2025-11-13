@@ -6,10 +6,9 @@ namespace MortierFu
     /// <summary>
     /// Used to serialize in the inspector and feed the loot table entries.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     [CreateAssetMenu(fileName = "DA_AugmentLibrary", menuName = "Mortier Fu/New Augment Library")]
     public class SO_AugmentLibrary : ScriptableObject
     {
-        public List<LootTable<SO_Augment>.LootTableEntry> AugmentEntries = new();
+        public List<SO_Augment> Augments = new();
     }
 }

@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
+
     public class AugmentSelectionSystem : IGameSystem
     {
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle; 
@@ -20,18 +21,15 @@ namespace MortierFu
         private List<PlayerManager> _pickers;
         
         private LobbyService _lobbyService;
-        private AugmentShowcaser _augmentShowcaser;
         private LevelSystem _levelSystem;
+        private AugmentProviderSystem _augmentProviderSys;
+        private AugmentShowcaser _augmentShowcaser;
         
         private Transform _pickupParent;
         
-        private readonly LootTable<SO_Augment> _lootTable;
-
         private int _playerCount;
         private int _augmentCount;
         private bool _showcaseInProgress;
-        
-        private const string k_augmentLibLabel = "AugmentLib";
         
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
@@ -39,17 +37,6 @@ namespace MortierFu
         public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
         
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
-        
-        public AugmentSelectionSystem()
-        {
-            var config = new LootTableConfig
-            {
-                AllowDuplicates = false,
-                RemoveOnPull = false // TODO Swap
-            };
-            
-            _lootTable = new LootTable<SO_Augment>();
-        }
         
         public async UniTask OnInitialize()
         {
@@ -61,7 +48,7 @@ namespace MortierFu
             {
                 if (Settings.EnableDebug)
                 {
-                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading settings with Addressables. Error: " + _prefabHandle.OperationException.Message);
+                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading settings with Addressables. Error: " + _settingsHandle.OperationException.Message);
                 }
                 return;
             }
@@ -71,37 +58,15 @@ namespace MortierFu
             
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            _augmentProviderSys = SystemManager.Instance.Get<AugmentProviderSystem>();
             _playerCount = _lobbyService.GetPlayers().Count;
             _augmentCount = _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
-
-            await PopulateLootTable();
+            
             await InstantiatePickups();
             
             _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());
-        }
-
-        private async UniTask PopulateLootTable()
-        {
-            // Load with addressable all augment libraries.
-            var handle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
-            await handle;
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Logs.LogWarning($"Error occurred while loading Augment libs: {handle.OperationException.Message}");
-                return;
-            }
-            
-            var libs = handle.Result; 
-            foreach (var lib in libs)
-            {
-                _lootTable.PopulateLootBag(lib.AugmentEntries);
-                Logs.Log($"Successfully included augments from the following augment library: {lib.name}");
-            }
-            
-            Logs.Log($"Successfully populate the augment loot table with {_lootTable.TotalWeight} total weight.");
         }
         
         private async UniTask InstantiatePickups()
@@ -156,8 +121,8 @@ namespace MortierFu
             }
             
             _pickers = pickers;
-            
-            _selectedAugments = _lootTable.BatchPull(_augmentCount);
+
+            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments);
             _augmentBag.Clear();
             
             for (var i = 0; i < _selectedAugments.Length; i++)

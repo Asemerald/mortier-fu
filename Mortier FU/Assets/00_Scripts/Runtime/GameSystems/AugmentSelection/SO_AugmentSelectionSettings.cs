@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    [CreateAssetMenu(fileName = "DA_AugmentSelectionSettings", menuName = "Mortier Fu/Settings/AugmentSelection")]
+    [CreateAssetMenu(fileName = "DA_AugmentSelectionSettings", menuName = "Mortier Fu/Settings/Augment Selection")]
     public class SO_AugmentSelectionSettings : SO_SystemSettings
     {
         [Header("Timing")]
