@@ -2,13 +2,11 @@
 
 namespace MortierFU
 {
-    public interface IEvent {}
-    
-    public struct TestEvent : IEvent { }
+    public interface IEvent 
+    { }
     
     public class Events : IEvent{ }
 
     public struct TriggerEvent : IEvent
-    {
-    }
+    { }
 }
