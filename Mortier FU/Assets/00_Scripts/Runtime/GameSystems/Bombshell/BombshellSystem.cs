@@ -142,7 +142,7 @@ namespace MortierFu
         {
             // Load the system settings
             _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync();
-            await _settingsHandle.Task;
+            
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -152,6 +152,8 @@ namespace MortierFu
                 }
                 return;
             }
+            
+            await _settingsHandle.Task;
             
             // Load the bombshell prefab
             _prefabHandle = Settings.BombshellPrefab.LoadAssetAsync(); 
