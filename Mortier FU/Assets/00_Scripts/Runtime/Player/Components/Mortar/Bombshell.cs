@@ -32,6 +32,7 @@ namespace MortierFu
         
         // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
         [SerializeField] private TrailRenderer _trail;
+        [SerializeField] private ParticleSystem _smokeParticles;
 
         private Data _data;
 
@@ -83,6 +84,21 @@ namespace MortierFu
         public void ReturnToPool()
         {
             _system.ReleaseBombshell(this);
+        }
+
+        public void OnGet()
+        {
+            _smokeParticles.transform.SetParent(transform);
+            _smokeParticles.Play();
+            
+            // TODO: This still causes some artifacts of the travel from old to new position
+            _trail.Clear();
+        }
+        
+        public void OnRelease()
+        {
+            _smokeParticles.transform.SetParent(null);
+            _smokeParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
         }
         
         void FixedUpdate() {

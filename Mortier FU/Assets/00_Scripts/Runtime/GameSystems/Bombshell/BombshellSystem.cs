@@ -115,12 +115,14 @@ namespace MortierFu
         private void OnGetBombshell(Bombshell bombshell)
         {
             bombshell.gameObject.SetActive(true);
+            bombshell.OnGet();
             
             _active.Add(bombshell);
         }
 
         private void OnReleaseBombshell(Bombshell bombshell)
         {
+            bombshell.OnRelease();
             bombshell.gameObject.SetActive(false);
             
             _active.Remove(bombshell);
