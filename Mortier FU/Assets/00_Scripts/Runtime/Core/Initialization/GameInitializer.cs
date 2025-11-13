@@ -79,7 +79,7 @@ namespace MortierFu
             }
 #endif
             // --- Load MainMenu Scene
-            await _sceneService.LoadScene(sceneName);
+            await _sceneService.LoadScene(sceneName, true);
             
             _sceneService.HideLoadingScreen();
         }

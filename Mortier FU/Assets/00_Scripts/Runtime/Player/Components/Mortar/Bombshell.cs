@@ -72,12 +72,10 @@ namespace MortierFu
             _direction = groundDir.normalized;
             ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
-            
-            _rb.position = _data.StartPos;
-            _rb.rotation = Quaternion.LookRotation(_direction, Vector3.up);
-            transform.localScale = Vector3.one * _data.Scale;
 
-            _trail.Clear();
+            transform.position = _data.StartPos;
+            transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
+            transform.localScale = Vector3.one * _data.Scale;
             
             HandleImpactAreaVFX().Forget();
         }
