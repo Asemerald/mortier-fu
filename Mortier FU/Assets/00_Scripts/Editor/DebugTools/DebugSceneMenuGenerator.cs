@@ -6,7 +6,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[InitializeOnLoad]
 public static class DebugSceneMenuGenerator
 {
     private const string generatedFolder = "Assets/00_Scripts/Editor/Generated";
