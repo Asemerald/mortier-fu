@@ -7,12 +7,12 @@ namespace MortierFu.Stats
 
         public override void Initialize()
         {
-            stats.DamageAmount.AddModifier(new StatModifier(1, E_StatModType.Flat, this));
+            stats.BombshellDamage.AddModifier(new StatModifier(1, E_StatModType.Flat, this));
         }
         
         public override void Dispose()
         {
-            stats.DamageAmount.RemoveAllModifiersFromSource(this);
+            stats.BombshellDamage.RemoveAllModifiersFromSource(this);
         }
     }
 }

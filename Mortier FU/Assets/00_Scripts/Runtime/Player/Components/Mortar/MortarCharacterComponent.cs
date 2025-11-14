@@ -81,7 +81,7 @@ namespace MortierFu
         }
         
         private void ResetAimWidget() {
-            float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
+            float damageScale = (Stats.BombshellDamage.Value * Stats.BombshellDamage.Value / 10) * 0.2f;
             float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
             AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
             AimWidget.SetRelativePosition(Vector3.zero);
@@ -104,7 +104,7 @@ namespace MortierFu
         {
             if (_shootCooldownTimer.IsRunning) return;
 
-            float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
+            float damageScale = (Stats.BombshellDamage.Value * Stats.BombshellDamage.Value / 10) * 0.2f;
             
             Bombshell.Data bombshellData = new Bombshell.Data
             {
@@ -113,7 +113,7 @@ namespace MortierFu
                 TargetPos = AimWidget.transform.position,
                 TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
-                Damage = Mathf.RoundToInt(Stats.DamageAmount.Value),
+                Damage = Mathf.RoundToInt(Stats.BombshellDamage.Value),
                 Scale =  Stats.BombshellSize.Value * (1 + damageScale),
                 AoeRange = Stats.DamageRange.Value + damageScale * 0.7f,
                 Bounces = Mathf.RoundToInt(Stats.BulletBounces.Value)
