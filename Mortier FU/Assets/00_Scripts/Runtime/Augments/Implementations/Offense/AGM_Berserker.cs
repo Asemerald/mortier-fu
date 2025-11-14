@@ -9,12 +9,12 @@
 
         protected override void OnEnterThreshold()
         {
-            stats.DamageAmount.AddModifier(new StatModifier(2f, E_StatModType.Flat, this));
+            stats.BombshellDamage.AddModifier(new StatModifier(2f, E_StatModType.Flat, this));
         }
 
         protected override void OnExitThreshold()
         {
-            stats.DamageAmount.RemoveAllModifiersFromSource(this);
+            stats.BombshellDamage.RemoveAllModifiersFromSource(this);
         }
 
         public override void Dispose()
