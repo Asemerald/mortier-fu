@@ -10,9 +10,8 @@ namespace MortierFu
 {
     public class BombshellSystem : IGameSystem
     {
-        // Load bombshell prefab through this opHandle
-        private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle; 
-        private AsyncOperationHandle<GameObject> _prefabHandle;
+        public SO_BombshellSettings Settings { get; private set; }
+        private GameObject _bombshellPrefab;
         
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
@@ -27,8 +26,6 @@ namespace MortierFu
 
         private const int k_maxImpactTargets = 50;
         
-        public SO_BombshellSettings Settings => _settingsHandle.Result;
-
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
@@ -103,7 +100,7 @@ namespace MortierFu
         
         private Bombshell OnCreateBombshell()
         {
-            var go = Object.Instantiate(_prefabHandle.Result, _bombshellParent);
+            var go = Object.Instantiate(_bombshellPrefab, _bombshellParent);
             var bombshell = go.GetComponent<Bombshell>();
             
             bombshell.Initialize(this);
@@ -141,32 +138,12 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings
-            _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync();
-            await _settingsHandle;
-
-            if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                if (Settings.EnableDebug)
-                {
-                    Logs.LogError("[BombshellManager]: Failed while loading settings with Addressables. Error: " + _prefabHandle.OperationException.Message);
-                }
-                return;
-            }
+            var settingsRef = SystemManager.Config.BombshellSettings;
+            Settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            if (Settings == null) return;
             
-            await _settingsHandle.Task;
-            
-            // Load the bombshell prefab
-            _prefabHandle = Settings.BombshellPrefab.LoadAssetAsync(); 
-            await _prefabHandle;
-            
-            if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                if (Settings.EnableDebug)
-                {
-                    Logs.LogError("[BombshellManager]: Failed while loading Bombshell prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
-                }
-                return;
-            }
+            _bombshellPrefab = await AddressablesHelpers.LazyLoadAsset(Settings.BombshellPrefab);
+            if (_bombshellPrefab == null) return;
             
             _bombshellParent = new GameObject("Bombshells").transform;
             
@@ -188,9 +165,6 @@ namespace MortierFu
         {
             _pool.Clear();
             _active.Clear();
-            
-            Addressables.Release(_settingsHandle);
-            Addressables.Release(_prefabHandle);
         }
         
         public bool IsInitialized { get; set; }

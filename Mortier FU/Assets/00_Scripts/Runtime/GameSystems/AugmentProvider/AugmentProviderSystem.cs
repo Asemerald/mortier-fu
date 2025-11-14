@@ -16,12 +16,9 @@ namespace MortierFu
         private LootTable<E_AugmentRarity> _rarityTable;
         private Dictionary<E_AugmentRarity, List<SO_Augment>> _augmentsPerRarity;
         public ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>> AugmentsPerRarity;
-        
-        private AsyncOperationHandle<SO_AugmentProviderSettings> _settingsHandle;
+        private SO_AugmentProviderSettings _settings;
         
         private const string k_augmentLibLabel = "AugmentLib";        
-        
-        public SO_AugmentProviderSettings Settings => _settingsHandle.Result;
         
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
@@ -42,7 +39,7 @@ namespace MortierFu
                 var pulledAugment = augments[randIndex];
                 
                 // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
-                if (!Settings.AllowCopiesInBatch)
+                if (!_settings.AllowCopiesInBatch)
                 {
                     int lastIndex = augments.Count - 1;
                     augments[randIndex] = augments[lastIndex];
@@ -52,7 +49,7 @@ namespace MortierFu
                 outAugments[i] = pulledAugment;
             }
 
-            if (!Settings.AllowCopiesInBatch)
+            if (!_settings.AllowCopiesInBatch)
             {
                 // Restore all pulled augments to their list
                 foreach (var augment in outAugments)
@@ -66,18 +63,10 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings
-            _settingsHandle = SystemManager.Config.AugmentProviderSettings.LoadAssetAsync();
-            await _settingsHandle;
-
-            if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                if (Settings.EnableDebug)
-                {
-                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading settings with Addressables. Error: " + _settingsHandle.OperationException.Message);
-                }
-                return;
-            }
-
+            var settingsRef = SystemManager.Config.AugmentProviderSettings;
+            _settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            if (_settings == null) return;
+            
             // Create the loot table
             var config = new LootTableConfig()
             {
@@ -87,8 +76,8 @@ namespace MortierFu
             _rarityTable = new LootTable<E_AugmentRarity>(config);
             
             // Load all the rarity drop rates into the rarity loot table
-            _rarityTable.PopulateLootBag(Settings.RarityDropRates);
-            if(Settings.EnableDebug)
+            _rarityTable.PopulateLootBag(_settings.RarityDropRates);
+            if(_settings.EnableDebug)
                 Logs.Log($"Successfully populate the augment rarity loot table with {_rarityTable.TotalWeight} total weight.");
             
             await PopulateAugmentDictionary();
@@ -108,7 +97,9 @@ namespace MortierFu
             _augmentsPerRarity = new Dictionary<E_AugmentRarity, List<SO_Augment>>();
             AugmentsPerRarity = new ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>>(_augmentsPerRarity);
 
-            var libs = handle.Result; 
+            var libs = handle.Result;
+            Addressables.Release(handle);
+            
             foreach (var lib in libs)
             {
                 foreach (var augment in lib.Augments)
@@ -117,8 +108,6 @@ namespace MortierFu
                 }
                 Logs.Log($"Successfully included augments from the following augment library: {lib.name}");
             }
-            
-            Addressables.Release(handle);
         }
         
         private void AddAugmentInDictionary(SO_Augment augment)
@@ -133,9 +122,7 @@ namespace MortierFu
         }
 
         public void Dispose()
-        {
-            Addressables.Release(_settingsHandle);
-        }
+        { }
         
         public bool IsInitialized { get; set; }
     }

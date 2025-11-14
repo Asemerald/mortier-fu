@@ -13,8 +13,7 @@ namespace MortierFu
 
     public class AugmentSelectionSystem : IGameSystem
     {
-        private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle; 
-        private AsyncOperationHandle<GameObject> _prefabHandle;
+        public SO_AugmentSelectionSettings Settings { get; private set; }
         
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
@@ -36,22 +35,11 @@ namespace MortierFu
 
         public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
         
-        public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
-        
         public async UniTask OnInitialize()
         {
-            // Load the system settings
-            _settingsHandle = SystemManager.Config.AugmentSelectionSettings.LoadAssetAsync();
-            await _settingsHandle.Task;
-
-            if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                if (Settings.EnableDebug)
-                {
-                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading settings with Addressables. Error: " + _settingsHandle.OperationException.Message);
-                }
-                return;
-            }
+            var settingsRef = SystemManager.Config.AugmentSelectionSettings;
+            Settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            if (Settings == null) return;
             
             _pickupParent = new GameObject("AugmentPickups").transform;
             _pickupParent.position = Vector3.down * 50;
@@ -72,23 +60,14 @@ namespace MortierFu
         private async UniTask InstantiatePickups()
         {
             // Load the augment pickup prefab
-            _prefabHandle = Settings.AugmentPickupPrefab.LoadAssetAsync(); 
-            await _prefabHandle;
-            
-            if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                if (Settings.EnableDebug)
-                {
-                    Logs.LogError("[AugmentSelectionSystem]: Failed while loading AugmentPickup prefab through Addressables. Error: " + _prefabHandle.OperationException.Message);
-                }
-                return;
-            }
+            var pickupPrefab = await AddressablesHelpers.LazyLoadAsset(Settings.AugmentPickupPrefab);
+            if (pickupPrefab == null) return;
             
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pickupGO = Object.Instantiate(_prefabHandle.Result, _pickupParent);
+                var pickupGO = Object.Instantiate(pickupPrefab, _pickupParent);
                 var pickup = pickupGO.GetComponent<AugmentPickup>();
                 
                 pickup.Initialize(this, i);
@@ -96,8 +75,6 @@ namespace MortierFu
                 
                 _pickups.Add(pickup);
             }
-            
-            Addressables.Release(_prefabHandle);
         }
         
         public bool IsInitialized { get; set; }
@@ -108,8 +85,6 @@ namespace MortierFu
             _augmentBag.Clear();
             
             _augmentTimer?.Dispose();
-            
-            Addressables.Release(_settingsHandle);
         }
         
         public async UniTask HandleAugmentSelection(List<PlayerManager> pickers, float duration)
