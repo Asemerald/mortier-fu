@@ -13,5 +13,10 @@ namespace MortierFu
         {
             gameObject.SetActive(false);
         }
+        
+        public bool IsVisible()
+        {
+            return gameObject.activeSelf;
+        }
     }
 }

@@ -1,7 +1,9 @@
+using System;
 using MortierFu;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -23,15 +25,18 @@ namespace MortierFu
     
         [field: Header("Lobby References")]
         [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
-    
-    
-    
+        
         private EventSystem _eventSystem;
+        
+        private PlayerActionInput _playerActions; 
     
         private void Awake()
         {
             CheckReferences();
             CheckActivePanels();
+            
+            // Create PlayerActionInput and enable Menu action map
+            _playerActions = new PlayerActionInput();
         }
     
         private void Start()
@@ -43,7 +48,50 @@ namespace MortierFu
             }
         
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            
+           
+
         }
+
+        private void OnEnable()
+        {
+            _playerActions.UI.Enable();
+            _playerActions.UI.Cancel.performed += OnCancel;
+        }
+        
+        private void OnDisable()
+        {
+            _playerActions.UI.Disable();
+            _playerActions.UI.Cancel.performed -= OnCancel;
+        }
+
+        public void OnCancel(InputAction.CallbackContext context)
+        {
+            Logs.Log("[MenuManager]: OnCancel triggered.");
+            if (!context.performed) return; 
+
+            // Hide Current Panel and go back to Main Menu
+            if (SettingsPanel.IsVisible()) 
+            {
+                SettingsPanel.Hide();
+                MainMenuPanel.Show();
+                _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
+            }
+            else if (CreditsPanel.IsVisible())
+            {
+                CreditsPanel.Hide();
+                MainMenuPanel.Show();
+                _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
+            }
+            else if (LobbyPanel.IsVisible())
+            {
+                LobbyPanel.Hide();
+                MainMenuPanel.Show();
+                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            }
+        }
+        
+        
     
         private void CheckReferences()
         {
