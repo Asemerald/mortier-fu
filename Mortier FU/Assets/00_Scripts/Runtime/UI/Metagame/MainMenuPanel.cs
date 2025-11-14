@@ -8,17 +8,17 @@ namespace MortierFu
     public class MainMenuPanel : UIPanel
     {
         [Header("Panels")]
-        [SerializeField] private GameObject mainMenuPanel;
-        [SerializeField] private GameObject lobbyPanel;
-        [SerializeField] private GameObject settingsPanel;
-        [SerializeField] private GameObject creditsPanel;
+        [SerializeField] private MainMenuPanel mainMenuPanel;
+        [SerializeField] private LobbyPanel lobbyPanel;
+        [SerializeField] private SettingsPanel settingsPanel;
+        [SerializeField] private CreditsPanel creditsPanel;
         [SerializeField] private GameObject quitConfirmationPanel;
     
         [Header("Buttons")]
         [SerializeField] private Button playButton;
-        [SerializeField] private GameObject settingsButton;
-        [SerializeField] private GameObject creditsButton;
-        [SerializeField] private GameObject quitButton;
+        [SerializeField] private Button settingsButton;
+        [SerializeField] private Button creditsButton;
+        [SerializeField] private Button quitButton;
     
         private void Start()
         {
@@ -29,11 +29,35 @@ namespace MortierFu
         private void InitializeButtons()
         {
             playButton.onClick.AddListener(OpenLobbyPanel);
+            settingsButton.onClick.AddListener(OpenSettingsPanel);
+            creditsButton.onClick.AddListener(OpenCreditsPanel);
+            quitButton.onClick.AddListener(OpenQuitConfirmationPanel);
         }
+        
+        
         private void OpenLobbyPanel()
         {
             Hide();
-            lobbyPanel.SetActive(true);
+            lobbyPanel.Show();
+        }
+        private void OpenSettingsPanel()
+        {
+            Hide();
+            settingsPanel.Show();
+        }
+        private void OpenCreditsPanel()
+        {
+            Hide();
+            creditsPanel.Show();
+        }
+        private void OpenQuitConfirmationPanel()
+        {
+            Hide();
+            quitConfirmationPanel.SetActive(true);
+        }
+        private void OnDestroy()
+        {
+            playButton.onClick.RemoveListener(OpenLobbyPanel);
         }
     }
 }
