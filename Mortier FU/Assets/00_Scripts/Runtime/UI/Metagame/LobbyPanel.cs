@@ -11,7 +11,7 @@ using UnityEditor;
 
 namespace MortierFu
 {
-    public class LobbyPanel : MonoBehaviour
+    public class LobbyPanel : UIPanel
     {
         [Header("Player Slots Reference")]
         [SerializeField] private GameObject[] playerSlots;
@@ -48,16 +48,6 @@ namespace MortierFu
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
-        }
-
-        private void Show()
-        {
-            gameObject.SetActive(true);
-        }
-
-        private void Hide()
-        {
-            gameObject.SetActive(false);
         }
 
         public void UpdateSlots(List<PlayerInput> joinedPlayers)

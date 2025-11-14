@@ -33,10 +33,20 @@ namespace MortierFu
         private void OnPlayerLeft(PlayerInput playerInput)
         {
             Logs.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
-
             var deviceService = ServiceManager.Instance.Get<DeviceService>();
             deviceService?.UnregisterPlayerInput(playerInput);
-            
         }
+
+        // TODO Make join manual or smth 
+        /*public void OnSubmit(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) return;
+            
+            if (PlayerInputManager.playerCount < PlayerInputManager.maxPlayerCount)
+            {
+                PlayerInputManager.JoinPlayerFromActionIfNotAlreadyJoined(ctx);
+                Logs.Log("[PlayerInputBridge] JoinPlayer called.");
+            }
+        }*/
     }
 }

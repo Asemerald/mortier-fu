@@ -2,21 +2,11 @@
 
 namespace MortierFu
 {
-    public class SettingsPanel : MonoBehaviour
+    public class SettingsPanel : UIPanel
     {
         private void Start()
         {
             Hide();
-        }
-    
-        public void Show()
-        {
-            gameObject.SetActive(true);
-        }
-    
-        public void Hide()
-        {
-            gameObject.SetActive(false);
         }
     }
 }
