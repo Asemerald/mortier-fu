@@ -8,6 +8,10 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace MortierFu
 {
     public class LevelSystem : IGameSystem
@@ -37,24 +41,28 @@ namespace MortierFu
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap(false);
             
-            #if UNITY_EDITOR
-            string sceneKey = PlayerPrefs.GetString("DebugSceneName", "");
-            if (!string.IsNullOrEmpty(sceneKey))
-            {
-                _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
-                
-                if(_settings.EnableDebug)
-                    Logs.Log($"[LevelSystem]: Enforce the use of the following scene: {sceneKey}");
-                
-                await _mapHandle;
-                return;
-            }
-            #endif
+            // TODO: REQUIRE FIX BECAUSE ADDRESSABLES DON'T FIND LOCATION FOR SCENE NAME
+            // #if UNITY_EDITOR
+            // string sceneKey = EditorPrefs.GetString("DebugSceneName", "");
+            // if (!string.IsNullOrEmpty(sceneKey))
+            // {
+            //     _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
+            //     await _mapHandle;
+            //     
+            //     if(_settings.EnableDebug)
+            //         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
+            //     
+            //     return;
+            // }
+            // #endif
             
             var map = _mapLocations.RandomElement();
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
 
             await _mapHandle;
+            
+            if(_settings.EnableDebug)
+                Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
         }
         
         private async UniTask UnloadCurrentMap(bool releaseHandle)
