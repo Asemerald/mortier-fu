@@ -10,7 +10,7 @@ namespace MortierFu.Stats
             stats.DamageAmount.AddModifier(new StatModifier(1, E_StatModType.Flat, this));
         }
         
-        public override void DeInitialize()
+        public override void Dispose()
         {
             stats.DamageAmount.RemoveAllModifiersFromSource(this);
         }

@@ -11,7 +11,7 @@ namespace MortierFu.Stats
             stats.StrikeCooldown.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
         }
         
-        public override void DeInitialize()
+        public override void Dispose()
         {
             stats.StrikeStunDuration.RemoveAllModifiersFromSource(this);
             stats.StrikeCooldown.RemoveAllModifiersFromSource(this);

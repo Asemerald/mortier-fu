@@ -10,7 +10,7 @@ namespace MortierFu.Stats
             stats.MaxHealth.AddModifier(new StatModifier(1.0f, E_StatModType.Flat, this));
         }
         
-        public override void DeInitialize()
+        public override void Dispose()
         {
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
         }

@@ -12,7 +12,7 @@ namespace MortierFu.Stats
             stats.MaxHealth.BaseValue = 2;
         }
         
-        public override void DeInitialize()
+        public override void Dispose()
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
             // TODO Trouver une solution plus propre pour éviter d'hardset
