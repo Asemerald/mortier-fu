@@ -131,9 +131,11 @@ namespace MortierFu
             // Then add this augment
             _augmentsPerRarity[augmentRarity].Add(augment);
         }
-     
+
         public void Dispose()
-        { }
+        {
+            Addressables.Release(_settingsHandle);
+        }
         
         public bool IsInitialized { get; set; }
     }

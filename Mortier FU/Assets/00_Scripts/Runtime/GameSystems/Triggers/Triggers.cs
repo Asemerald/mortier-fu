@@ -3,11 +3,12 @@ namespace MortierFu
     public interface ITrigger : IEvent
     { }
     
-    public struct TriggerBombshellBounce : ITrigger
+    public struct TriggerHealthChanged : ITrigger
     {
-        public Bombshell bombshell;
+        public PlayerCharacter Character;
+        public float PreviousHealth;
+        public float NewHealth;
+        public float MaxHealth;
+        public float Delta;
     }
-    
-    public struct TriggerAiming : ITrigger
-    { }
 }

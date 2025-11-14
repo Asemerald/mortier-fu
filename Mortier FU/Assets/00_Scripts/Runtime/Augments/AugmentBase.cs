@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace MortierFu
+﻿namespace MortierFu
 {
     public abstract class AugmentBase : IAugment 
     {
@@ -20,22 +18,10 @@ namespace MortierFu
         public virtual void Initialize() 
         { }
 
-        public virtual void DeInitialize()
+        public virtual void Reset()
         { }
 
-        public virtual void OnRoundStart(int roundIndex)
-        { }
-
-        public virtual void OnShoot(Vector3 targetPos)
-        { }
-
-        public virtual void OnImpact(Vector3 impactPos)
-        { }
-
-        public virtual void OnKill(PlayerCharacter killedPlayerCharacter)
-        { }
-
-        public virtual void OnDeath()
+        public virtual void Dispose()
         { }
     }
 }

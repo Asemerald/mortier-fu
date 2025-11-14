@@ -10,7 +10,7 @@
             stats.FireRate.AddModifier(new StatModifier(-0.15f, E_StatModType.PercentMult, this));
         }
         
-        public override void DeInitialize()
+        public override void Dispose()
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
         }

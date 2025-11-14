@@ -35,8 +35,18 @@ namespace MortierFu
             if (!IsAlive)
                 return;
             
+            int previousHealth = _currentHealth;
             _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth));
             OnHealthChanged?.Invoke(-amount);
+            
+            EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
+            {
+                Character =  Character,
+                PreviousHealth = previousHealth,
+                NewHealth = _currentHealth,
+                MaxHealth = _maxHealth,
+                Delta = -amount
+            });
             
             if (!IsAlive)
             {
@@ -47,8 +57,17 @@ namespace MortierFu
         
         public void Heal(float amount)
         {
+            int previousHealth = _currentHealth;
             _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth));
             OnHealthChanged?.Invoke(amount);
+            
+            EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
+            {
+                Character =  Character,
+                PreviousHealth = previousHealth,
+                NewHealth = _currentHealth,
+                Delta = amount
+            });
         }
 
         public override void Reset()
