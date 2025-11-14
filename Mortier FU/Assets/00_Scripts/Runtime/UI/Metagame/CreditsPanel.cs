@@ -2,21 +2,11 @@
 
 namespace MortierFu
 {
-    public class CreditsPanel : MonoBehaviour
+    public class CreditsPanel : UIPanel
     {
         private void Start()
         {
             Hide();
-        }
-    
-        public void Show()
-        {
-            gameObject.SetActive(true);
-        }
-    
-        public void Hide()
-        {
-            gameObject.SetActive(false);
         }
     }
 }

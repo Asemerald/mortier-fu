@@ -249,7 +249,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInputManager
   m_NotificationBehavior: 0
-  m_MaxPlayerCount: -1
+  m_MaxPlayerCount: 4
   m_AllowJoining: 1
   m_JoinBehavior: 0
   m_PlayerJoinedEvent:
@@ -261,7 +261,7 @@ MonoBehaviour:
   m_JoinAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Join
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 0bc88bcf-2008-4201-a1ee-9291c42abf70
@@ -2256,6 +2256,7 @@ GameObject:
   - component: {fileID: 736130396}
   - component: {fileID: 736130395}
   - component: {fileID: 736130394}
+  - component: {fileID: 736130398}
   m_Layer: 5
   m_Name: PlayButton
   m_TagString: Untagged
@@ -2364,6 +2365,28 @@ RectTransform:
   m_AnchoredPosition: {x: -636, y: -128}
   m_SizeDelta: {x: 173, y: 62}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!95 &736130398
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 736130393}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fcbeaf126554f2b4aaff71fe9461c8c1, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &839180564
 GameObject:
   m_ObjectHideFlags: 0
@@ -4087,6 +4110,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   <MainMenuPanel>k__BackingField: {fileID: 1163620011}
+  <PlayButton>k__BackingField: {fileID: 736130394}
+  <SettingsButton>k__BackingField: {fileID: 405811383}
+  <CreditsButton>k__BackingField: {fileID: 551016699}
+  <QuitButton>k__BackingField: {fileID: 859457054}
   <SettingsPanel>k__BackingField: {fileID: 1488956645}
   <CreditsPanel>k__BackingField: {fileID: 514514708}
   <LobbyPanel>k__BackingField: {fileID: 1725973106}
