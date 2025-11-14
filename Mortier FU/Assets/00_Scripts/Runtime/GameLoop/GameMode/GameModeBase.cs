@@ -1,18 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using Random = UnityEngine.Random;
-using MEC;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
     public abstract class GameModeBase : IGameMode {
-        // Config
-        public SO_GameModeData GameModeData;
-
         protected List<PlayerTeam> teams;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
@@ -23,11 +22,18 @@ namespace MortierFu
 
         // Dependencies
         protected LobbyService lobbyService;
-        protected ConfirmationService confirmationService;
+        protected SceneService sceneService;
         protected AugmentSelectionSystem augmentSelectionSys;
+        protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
+        
+        //TODO adapt to multiple Scenes 
+        private string defaultScene = "Map 01";
 
+        private AsyncOperationHandle<SO_GameModeData> _gameModeDataHandle;
+
+        public virtual SO_GameModeData GameModeData => _gameModeDataHandle.Result;
         public virtual int MinPlayerCount => GameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => GameModeData.MaxPlayerCount;
 
@@ -37,9 +43,10 @@ namespace MortierFu
                 return players.Count >= MinPlayerCount && players.Count <= MaxPlayerCount;
             }
         }
-
-        public int CurrentRoundCount => currentRound;
+        
         public GameState CurrentState => currentState;
+        public int CurrentRoundCount => currentRound;
+        public float CountdownRemainingTime => timer.CurrentTime;
         
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
@@ -50,24 +57,54 @@ namespace MortierFu
 
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
-
-        public float CountdownRemainingTime => timer.CurrentTime;
         
-        public virtual void StartGame()
+        public virtual async UniTask StartGame()
         {
+            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
+            // Load the game scene, it can be overridden in debug via a EditorPref
+            string sceneToLoad = GetDebugSceneOrDefault();
+            await sceneService.LoadScene(sceneToLoad);
+            
+            teams = new List<PlayerTeam>();
+            Teams = teams.AsReadOnly();
+            
+            var players = lobbyService.GetPlayers();
+            
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+                player.SpawnInGame(Vector3.zero);
+                player.Character.Health.OnDeath += source =>
+                {
+                    player.Metrics.TotalDeaths++;
+                    
+                    if (source is PlayerCharacter killer)
+                    {
+                        OnPlayerKill(killer, player.Character);
+                    }
+                };
+                
+                var team = new PlayerTeam(i, player);
+                teams.Add(team);
+            }
+            
             if (!IsReady) {
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
                 StartRound();
                 return;
             }
             
-            Logs.Log("Starting the game...");
             currentRound = 0;
-            Timing.RunCoroutine(GameplayCoroutine());
+
+            GameplayCoroutine().Forget();
+            Logs.Log("Starting the game...");
         }
         
         // TODO: Maybe it is valuable to ask for player 1 input to proceed to each step for fluidity
-        protected virtual IEnumerator<float> GameplayCoroutine()
+        protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
             OnGameStarted?.Invoke();
@@ -76,20 +113,20 @@ namespace MortierFu
             {
                 UpdateGameState(GameState.AugmentSelection);
                 StartAugmentSelection();
-                    
+                
                 var augmentPickers = GetAugmentPickers();
-                augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
-                    
+                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, GameModeData.AugmentSelectionDuration);
+
                 while (!augmentSelectionSys.IsSelectionOver)
-                    yield return 0f;
+                    await UniTask.Yield();
                     
                 augmentSelectionSys.EndAugmentSelection();
                 EndAugmentSelection();
                 
                 StartRound();
-                
+
                 while (!oneTeamStanding)
-                    yield return 0f;
+                    await UniTask.Yield();
                 
                 UpdateGameState(GameState.EndRound);
                 EndRound();
@@ -129,15 +166,20 @@ namespace MortierFu
 
         private void SpawnPlayers()
         {
-            // TODO: Choose spawn position based on a level script
+            bool opposite = currentRound % 2 == 0;
+            int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
             
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    Vector3 spawnPosition = Random.insideUnitSphere.With(y: 1f).normalized * 10;
-                    member.SpawnInGame(spawnPosition);
-                    member.Character.transform.position = spawnPosition;
+                    var spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
+                    member.SpawnInGame(spawnPoint.position);
+                    member.Character.transform.position = spawnPoint.position;
+                    if (opposite)
+                        spawnIndex--;
+                    else 
+                        spawnIndex++;
                 }
             }
         }
@@ -198,9 +240,13 @@ namespace MortierFu
             Logs.Log($"Round #{currentRound} is starting...");
         }
 
-        protected void HandleCountdown()
-        {
-            timer.Reset(GameModeData.RoundStartCountdown - 0.01f);
+        protected void HandleCountdown() {
+            float duration = GameModeData.RoundStartCountdown;
+            #if UNITY_EDITOR
+            duration *= 0.25f;
+            #endif
+            
+            timer.Reset(duration - 0.01f);
             timer.OnTimerStop += HandleEndOfCountdown;
             timer.Start();
         }
@@ -211,7 +257,6 @@ namespace MortierFu
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
         }
-
 
         protected virtual void EndRound()
         {
@@ -276,13 +321,7 @@ namespace MortierFu
         {
             UpdateGameState(GameState.AugmentSelection);
             
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.transform.position = Vector3.up * 3f;
-                }
-            }
+            SpawnPlayers();
             
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
@@ -313,44 +352,17 @@ namespace MortierFu
             OnGameStateChanged?.Invoke(newState);
         }
         
-        public virtual void Initialize()
+        public virtual async UniTask Initialize()
         {
-            IGameMode.current = this;
-            
             // Resolve Dependencies
             lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
+            sceneService = ServiceManager.Instance.Get<SceneService>();
             
-            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            // Load configuration
+            _gameModeDataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");
+            await _gameModeDataHandle;
             
             timer = new CountdownTimer(0f);
-            
-            if (!IsReady) {
-                Logs.LogWarning("Invalid number of players for this game mode.");
-            }
-            
-            teams = new List<PlayerTeam>();
-            Teams = teams.AsReadOnly();
-            
-            var players = lobbyService.GetPlayers();
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-                player.SpawnInGame(Vector3.zero);
-                player.Character.Health.OnDeath += source =>
-                {
-                    player.Metrics.TotalDeaths++;
-                    
-                    if (source is PlayerCharacter killer)
-                    {
-                        OnPlayerKill(killer, player.Character);
-                    }
-                };
-                
-                var team = new PlayerTeam(i, player);
-                teams.Add(team);
-            }
             
             Logs.Log("Game mode initialized successfully.");
         }
@@ -360,6 +372,8 @@ namespace MortierFu
         
         public virtual void Dispose()
         {
+            Addressables.Release(_gameModeDataHandle);
+            
             teams.Clear();
             timer.Dispose();
         }
@@ -436,5 +450,22 @@ namespace MortierFu
 
             OnPlayerKilled?.Invoke(killer, victim);
         }
+        
+        #region Debug
+        
+        private string GetDebugSceneOrDefault()
+        {
+#if UNITY_EDITOR
+            string debugScene = EditorPrefs.GetString("DebugSceneName", "");
+            if (!string.IsNullOrEmpty(debugScene))
+            {
+                Debug.Log($"[DEBUG] Loading debug scene: {debugScene}");
+                return debugScene;
+            }
+#endif
+            return defaultScene;
+        }
+    
+        #endregion
     }
 }

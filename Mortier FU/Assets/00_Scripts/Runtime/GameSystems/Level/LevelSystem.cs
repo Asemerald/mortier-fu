@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace MortierFu.GameSystems
+namespace MortierFu
 {
     public class LevelSystem : IGameSystem
     {
@@ -74,14 +75,14 @@ namespace MortierFu.GameSystems
                 return FallbackTransform;
             }
             
-            return BoundReporter.SpawnPoints[index];
+            return BoundReporter.AugmentPoints[index];
         }
         
-        public async Task OnInitialize()
+        public async UniTask OnInitialize()
         {
             // Load the system settings
             _settingsHandle = SystemManager.Config.LevelSettings.LoadAssetAsync();
-            await _settingsHandle.Task;
+            await _settingsHandle;
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {

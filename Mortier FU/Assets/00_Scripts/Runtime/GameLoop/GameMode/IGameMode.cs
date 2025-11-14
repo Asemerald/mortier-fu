@@ -1,12 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu 
 {
+    public enum GameState
+    {
+        Lobby,
+        StartGame,
+        Round,
+        EndRound,
+        DisplayScores,
+        AugmentSelection,
+        EndAugmentSelection,
+        EndGame,
+    }
+    
     public interface IGameMode : IDisposable
     {
-        public static IGameMode current { get; protected set; }
-        
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
@@ -39,8 +50,13 @@ namespace MortierFu
         /// <summary>
         /// Initialization method
         /// </summary>
-        public void Initialize();
+        public UniTask Initialize();
 
+        /// <summary>
+        /// Start the game and the gameplay loop
+        /// </summary>
+        public UniTask StartGame();
+        
         /// <summary>
         /// Called every frame
         /// </summary>

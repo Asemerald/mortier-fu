@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine;
 
 namespace MortierFu
 {
@@ -68,9 +67,9 @@ namespace MortierFu
 
         public IReadOnlyList<PlayerManager> GetPlayers() => _players.AsReadOnly();
 
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         public bool IsInitialized { get; set; }

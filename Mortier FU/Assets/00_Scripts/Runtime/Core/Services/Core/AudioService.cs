@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using FMODUnity;
 using MortierFu.Shared;
 using UnityEngine.AddressableAssets;
@@ -16,14 +15,16 @@ namespace MortierFu
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
 
-        public IEnumerator LoadBanks(AssetReference[] banksToLoad)
+        public async UniTask LoadBanks(AssetReference[] banksToLoad)
         {
             foreach (var bankRef in banksToLoad)
             {
                 bool loaded = false;
                 RuntimeManager.LoadBank(bankRef, true, () => { loaded = true; });
 
-                while (!loaded) yield return null;
+                while (!loaded) 
+                    await UniTask.Yield();
+                
                 //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef.Asset.name}");
                 Banks.Add(bankRef);
             }
@@ -43,9 +44,9 @@ namespace MortierFu
             Banks.Clear();
         }
 
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         public bool IsInitialized { get; set; }

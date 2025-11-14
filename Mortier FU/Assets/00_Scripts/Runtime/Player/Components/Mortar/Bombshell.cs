@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
-using MEC;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEditor;
 using UnityEngine;
+using MathUtils = MortierFu.Shared.MathUtils;
 
 namespace MortierFu
 {
@@ -25,23 +27,27 @@ namespace MortierFu
             // Damage
             public int Damage;
             public float AoeRange;
+            public int Bounces;
         }
         
         // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
         [SerializeField] private TrailRenderer _trail;
+        [SerializeField] private ParticleSystem _smokeParticles;
 
         private Data _data;
 
         private float _t;
         private float _initialSpeed;
         private Vector3 _direction;
+        private Vector3 _velocity;
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
-        private bool _exploded;
+        private CountdownTimer _impactDebounceTimer;
 
         private BombshellSystem _system;
         private Rigidbody _rb;
+        private Collider _col;
 
         public PlayerCharacter Owner => _data.Owner;
         public int Damage => _data.Damage;
@@ -51,66 +57,114 @@ namespace MortierFu
         {
             _system = system;
             _rb = GetComponent<Rigidbody>();
+            _col = GetComponent<Collider>();
+            _impactDebounceTimer = new CountdownTimer(0.1f);
         }
         
         public void SetData(Data data)
         {
             _data = data;
             _t = 0.0f;
-            _exploded = false;
+            _impactDebounceTimer.Stop();
 
-            transform.position = _data.StartPos;
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             Vector3 yTargetPos =  new Vector3(groundDir.magnitude, toTarget.y, 0);
             _direction = groundDir.normalized;
             ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
-            
-            transform.localScale = Vector3.one * _data.Scale;
 
-            _trail.Clear();
-            Timing.RunCoroutine(ImpactAreaVFX()); // TODO: Can be improved
+            transform.position = _data.StartPos;
+            transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
+            transform.localScale = Vector3.one * _data.Scale;
+            
+            HandleImpactAreaVFX().Forget();
         }
 
         public void ReturnToPool()
         {
             _system.ReleaseBombshell(this);
         }
-        
-        private IEnumerator<float> ImpactAreaVFX()
+
+        public void OnGet()
         {
-            yield return Timing.WaitForSeconds(Mathf.Max(0f, _travelTime / _timeFactor - 0.6f));
+            _smokeParticles.transform.SetParent(transform);
+            _smokeParticles.Play();
+            
+            // TODO: This still causes some artifacts of the travel from old to new position
+            _trail.Clear();
+        }
+        
+        public void OnRelease()
+        {
+            _smokeParticles.transform.SetParent(null);
+            _smokeParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+        
+        void FixedUpdate() {
+            //_t += Time.deltaTime * _data.Speed * 0.1f;
+            _t += Time.deltaTime * _timeFactor;
+
+            Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
+            _velocity = (newPos - _rb.position) / Time.deltaTime;
+
+            if (_velocity.sqrMagnitude > 0.001f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
+                _rb.MoveRotation(targetRot);
+            }
+            
+            _rb.MovePosition(newPos);
+        }
+
+        void OnTriggerEnter(Collider other) 
+        {
+            if (_impactDebounceTimer.IsRunning) return;
+            
+            // Cost-efficient, could cause problem in a later stage
+            if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
+                return;
+
+            _impactDebounceTimer.Start();
+            
+            // Notify impact to the system
+            _system.NotifyImpact(this);
+            
+            // Handle bounces
+            if (_data.Bounces > 0) {
+                _data.Bounces--;
+
+                // Resolve collision
+                bool overlapped = Physics.ComputePenetration(_col, transform.position, transform.rotation, other,
+                    other.transform.position, other.transform.rotation, out var dir, out var distance);
+                
+                if (overlapped) {
+                    _rb.MovePosition(_rb.position + dir * distance);
+                }
+                
+                _data.StartPos = transform.position;
+                // 1. Either treat initial speed or travel time, first one makes loss of height !
+                // _initialSpeed *= 0.9f; // Loose 10% of speed
+                // OR
+                _data.TravelTime *= 0.9f;
+                _timeFactor = _travelTime / _data.TravelTime;
+                _t = 0f;
+                
+            } else {
+                ReturnToPool();
+            }
+        }
+        
+        private async UniTask HandleImpactAreaVFX()
+        {
+            float delay = Mathf.Max(0f, _travelTime / _timeFactor - 0.6f);
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
             
             if (TEMP_FXHandler.Instance)
             {
                 TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
-        }
-        
-        void FixedUpdate()
-        {
-            //_t += Time.deltaTime * _data.Speed * 0.1f;
-            _t += Time.deltaTime * _timeFactor;
-
-            Vector3 newPos = ComputePositionAtTime(_data.StartPos, _direction, _angle, _initialSpeed, _data.GravityScale, _t);
-            _rb.MovePosition(newPos);
-        }
-
-        void OnTriggerEnter(Collider other)
-        {
-            if (_exploded)
-                return;
-            
-            // Cost-efficient, could cause problem in a later stage
-            if (_system.Settings.DisableBombshellSelfCollision && other.TryGetComponent(out Bombshell bombshell) && bombshell.Owner == Owner)
-                return;
-            
-            _exploded = true;
-            
-            // Notify impact to the system
-            _system.NotifyImpact(this);
         }
 
         /// <summary>

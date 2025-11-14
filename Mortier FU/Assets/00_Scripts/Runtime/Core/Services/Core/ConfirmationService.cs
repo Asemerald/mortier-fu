@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.InputSystem;
 
@@ -18,10 +19,10 @@ namespace MortierFu
             _players = new List<PlayerManager>();
         }
         
-        public Task OnInitialize()
+        public UniTask OnInitialize()
         {
             _deviceService = ServiceManager.Instance.Get<DeviceService>();
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         public async Task WaitUntilHostConfirmed()

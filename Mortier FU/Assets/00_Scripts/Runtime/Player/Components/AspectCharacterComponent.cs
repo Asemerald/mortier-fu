@@ -21,11 +21,17 @@ namespace MortierFu {
             // Retrieve this player's index
             int index = character.Owner.PlayerIndex;
             PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);
-            
-            // TODO: Upgrade
-            var renderer = character.GetComponentInChildren<Renderer>();
-            if (renderer != null) {
-                renderer.material.color = PlayerColor;
+
+            var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>();
+            if (renderers.Length > 0)
+            {
+                var matInstance = new Material(renderers[0].material.shader);
+                matInstance.color = PlayerColor;
+                
+                foreach (var rend in renderers)
+                {
+                    rend.material = matInstance;
+                }
             }
         }
         

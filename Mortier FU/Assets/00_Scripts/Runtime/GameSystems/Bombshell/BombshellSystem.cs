@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -85,8 +85,6 @@ namespace MortierFu
                 TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, 20 + bombshell.Damage * 10, bombshell.Owner.CharacterStats.BombshellTimeTravel.Value);
             }
             else Logs.LogWarning("No CameraShake");
-            
-            ReleaseBombshell(bombshell);
         }
 
         public void ClearActiveBombshells()
@@ -117,12 +115,14 @@ namespace MortierFu
         private void OnGetBombshell(Bombshell bombshell)
         {
             bombshell.gameObject.SetActive(true);
+            bombshell.OnGet();
             
             _active.Add(bombshell);
         }
 
         private void OnReleaseBombshell(Bombshell bombshell)
         {
+            bombshell.OnRelease();
             bombshell.gameObject.SetActive(false);
             
             _active.Remove(bombshell);
@@ -138,11 +138,11 @@ namespace MortierFu
         
         #endregion
         
-        public async Task OnInitialize()
+        public async UniTask OnInitialize()
         {
             // Load the system settings
             _settingsHandle = SystemManager.Config.BombshellSettings.LoadAssetAsync();
-            await _settingsHandle.Task;
+            await _settingsHandle;
 
             if (_settingsHandle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -153,9 +153,11 @@ namespace MortierFu
                 return;
             }
             
+            await _settingsHandle.Task;
+            
             // Load the bombshell prefab
             _prefabHandle = Settings.BombshellPrefab.LoadAssetAsync(); 
-            await _prefabHandle.Task;
+            await _prefabHandle;
             
             if (_prefabHandle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -167,7 +169,7 @@ namespace MortierFu
             }
             
             _bombshellParent = new GameObject("Bombshells").transform;
-
+            
             _active = new HashSet<Bombshell>();
             _pool = new ObjectPool<Bombshell>(
                 OnCreateBombshell,
