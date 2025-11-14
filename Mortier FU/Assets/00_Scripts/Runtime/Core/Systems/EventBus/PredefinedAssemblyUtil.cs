@@ -14,7 +14,7 @@ namespace MortierFu
             for (int i = 0; i < assembly.Length; i++)
             {
                 Type type = assembly[i];
-                if (type != interfaceType && interfaceType.IsAssignableFrom(type))
+                if (type != interfaceType && interfaceType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
                 {
                     types.Add(type);
                 }
