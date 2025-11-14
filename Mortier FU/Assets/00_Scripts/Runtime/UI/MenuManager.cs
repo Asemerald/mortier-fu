@@ -31,6 +31,7 @@ namespace MortierFu
         private void Awake()
         {
             CheckReferences();
+            CheckActivePanels();
         }
     
         private void Start()
@@ -61,6 +62,28 @@ namespace MortierFu
             if (LobbyPanel == null)
             {
                 Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
+            }
+        }
+
+        private void CheckActivePanels()
+        {
+            if (!MainMenuPanel.isActiveAndEnabled)
+            {
+                Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
+            }
+            if (!SettingsPanel.isActiveAndEnabled)
+            {
+                Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
+            }
+
+            if (!CreditsPanel.isActiveAndEnabled)
+            {
+                Logs.LogWarning("[MenuManager]: CreditsPanel is not active!", this);
+            }
+
+            if (!LobbyPanel.isActiveAndEnabled)
+            {
+                Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
             }
         }
     }
