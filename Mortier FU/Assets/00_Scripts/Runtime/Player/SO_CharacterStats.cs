@@ -23,7 +23,7 @@ namespace MortierFu
         
         [Header("Mortar Statistics")]
         [field: SerializeField, Tooltip("Damage dealt by a single mortar shot.")]
-        public CharacterStat DamageAmount { get; private set; } = new(1.0f);
+        public CharacterStat BombshellDamage { get; private set; } = new(1.0f);
 
         [field: SerializeField, Tooltip("Size of the projectile")]
         public CharacterStat BombshellSize { get; private set; } = new(0.6f);

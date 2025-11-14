@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -63,6 +64,8 @@ namespace MortierFu
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             var processedRoots = new HashSet<GameObject>();
+            var hitCharacters = new HashSet<PlayerCharacter>();
+            var blockedBombshells = new HashSet<Bombshell>();
             
             for (var i = 0; i < count; i++)
             {
@@ -75,7 +78,9 @@ namespace MortierFu
 
                 if (hit.TryGetComponent(out Bombshell bombshell))
                 {
+                    blockedBombshells.Add(bombshell);
                     bombshell.ReturnToPool();
+
                     continue;
                 }
                 
@@ -96,9 +101,29 @@ namespace MortierFu
                 if (other == null) continue;
                 if (other == character) continue;
 
+                hitCharacters.Add(other);
+                
                 int strikeDamage = Mathf.RoundToInt(character.CharacterStats.StrikeDamage.Value);
                 other.Health.TakeDamage(strikeDamage, character);
                 other.ReceiveStun(character.CharacterStats.StrikeStunDuration.Value);
+            }
+
+            if (hitCharacters.Count > 0)
+            {
+                EventBus<TriggerStrikeHit>.Raise(new TriggerStrikeHit()
+                {
+                    Character =  character,
+                    HitCharacters = hitCharacters.ToArray(),
+                });   
+            }
+
+            if (blockedBombshells.Count > 0)
+            {
+                EventBus<TriggerStrikeHitBombshell>.Raise(new TriggerStrikeHitBombshell()
+                {
+                    Character = character,
+                    HitBombshells = blockedBombshells.ToArray(),
+                });
             }
         }
     }

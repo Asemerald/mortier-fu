@@ -1,0 +1,24 @@
+﻿namespace MortierFu.Stats
+{
+    public class AGM_TsarBomba : AugmentBase
+    {
+        public AGM_TsarBomba(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        { }
+
+        public override void Initialize()
+        {
+            stats.DamageRange.AddModifier(new StatModifier(3f, E_StatModType.PercentMult, this));
+            stats.BombshellDamage.AddModifier(new StatModifier(1f, E_StatModType.Flat, this));
+            stats.FireRate.AddModifier(new StatModifier(1.5f, E_StatModType.PercentMult, this));
+            //stats.BulletSpeed.AddModifier(new StatModifier(1.5f, E_StatModType.PercentMult, this));
+        }
+        
+        public override void Dispose()
+        {
+            stats.DamageRange.RemoveAllModifiersFromSource(this);
+            stats.BombshellDamage.RemoveAllModifiersFromSource(this);
+            stats.FireRate.RemoveAllModifiersFromSource(this);
+            //stats.BulletSpeed.RemoveAllModifiersFromSource(this);
+        }
+    }
+}

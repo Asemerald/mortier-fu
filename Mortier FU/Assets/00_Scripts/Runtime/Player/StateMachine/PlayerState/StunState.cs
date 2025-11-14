@@ -30,6 +30,7 @@ namespace MortierFu
         {
             character.Controller.ResetVelocity();
             
+            
             if(debug)
                 Logs.Log("Entering Stun State");
         }
