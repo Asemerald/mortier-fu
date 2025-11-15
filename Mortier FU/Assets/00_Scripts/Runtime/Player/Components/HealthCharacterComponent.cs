@@ -1,4 +1,5 @@
 using System;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -82,7 +83,11 @@ namespace MortierFu
             int maxDelta = newMaxHealth - _maxHealth;
 
             _maxHealth += maxDelta;
-            _currentHealth += maxDelta;
+            if (maxDelta > 0) {
+                _currentHealth += maxDelta;
+            }
+            
+            Logs.Log("Health changed and added " + maxDelta);
         }
 
         public override void Dispose() {
