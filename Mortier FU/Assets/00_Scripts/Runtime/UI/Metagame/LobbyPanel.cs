@@ -75,6 +75,7 @@ namespace MortierFu
         
         private async UniTask StartGame()
         {
+            Logs.Log("[LobbyPanel]: Start Game button clicked.");
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
             

@@ -48,9 +48,6 @@ namespace MortierFu
             }
         
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-            
-           
-
         }
 
         private void OnEnable()
