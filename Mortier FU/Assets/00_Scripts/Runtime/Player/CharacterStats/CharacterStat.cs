@@ -8,7 +8,7 @@ namespace MortierFu {
     public class CharacterStat {
         public event Action OnDirtyUpdated;
 
-        protected float baseValue;
+        [SerializeField] protected float baseValue;
         public float BaseValue {
             get => baseValue;
             set {
