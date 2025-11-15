@@ -483,16 +483,16 @@ namespace HierarchyDesigner
                     DrawPresetCreatorTab();
                     break;
                 case CurrentWindow.GeneralSettings:
-                    DrawGeneralSettingsTab();
+                    DrawGeneral_settingsTab();
                     break;
                 case CurrentWindow.DesignSettings:
-                    DrawDesignSettingsTab();
+                    DrawDesign_settingsTab();
                     break;
                 case CurrentWindow.ShortcutSettings:
-                    DrawShortcutSettingsTab();
+                    DrawShortcut_settingsTab();
                     break;
                 case CurrentWindow.AdvancedSettings:
-                    DrawAdvancedSettingsTab();
+                    DrawAdvanced_settingsTab();
                     break;
             }
             #endregion
@@ -2418,7 +2418,7 @@ namespace HierarchyDesigner
         #endregion
 
         #region General Settings
-        private void DrawGeneralSettingsTab()
+        private void DrawGeneral_settingsTab()
         {
             #region Body
             generalSettingsMainScroll = EditorGUILayout.BeginScrollView(generalSettingsMainScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -2605,7 +2605,7 @@ namespace HierarchyDesigner
         #endregion
 
         #region Design Settings
-        private void DrawDesignSettingsTab()
+        private void DrawDesign_settingsTab()
         {
             #region Body
             designSettingsMainScroll = EditorGUILayout.BeginScrollView(designSettingsMainScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -2871,7 +2871,7 @@ namespace HierarchyDesigner
         #endregion
 
         #region Shortcut Settings
-        private void DrawShortcutSettingsTab()
+        private void DrawShortcut_settingsTab()
         {
             #region Body
             shortcutSettingsMainScroll = EditorGUILayout.BeginScrollView(shortcutSettingsMainScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -2977,7 +2977,7 @@ namespace HierarchyDesigner
         #endregion
 
         #region Advanced Settings
-        private void DrawAdvancedSettingsTab()
+        private void DrawAdvanced_settingsTab()
         {
             #region Body
             advancedSettingsMainScroll = EditorGUILayout.BeginScrollView(advancedSettingsMainScroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));

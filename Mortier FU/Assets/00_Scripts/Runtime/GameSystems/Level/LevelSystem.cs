@@ -28,10 +28,10 @@ namespace MortierFu
         public async UniTask LoadAugmentMap()
         {
             await FinishUnfinishedBusiness();
-            await UnloadCurrentMap(true);
+            await UnloadCurrentMap();
 
             object augmentMapKey = _settings.AugmentMapScene.RuntimeKey;
-            _mapHandle = Addressables.LoadSceneAsync(augmentMapKey, LoadSceneMode.Additive);
+            _mapHandle = Addressables.LoadSceneAsync(augmentMapKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
             
             await _mapHandle;
         }
@@ -39,25 +39,32 @@ namespace MortierFu
         public async UniTask LoadGameplayMap()
         {
             await FinishUnfinishedBusiness();
-            await UnloadCurrentMap(false);
+            await UnloadCurrentMap();
             
-            // TODO: REQUIRE FIX BECAUSE ADDRESSABLES DON'T FIND LOCATION FOR SCENE NAME
-            // #if UNITY_EDITOR
-            // string sceneKey = EditorPrefs.GetString("DebugSceneName", "");
-            // if (!string.IsNullOrEmpty(sceneKey))
-            // {
-            //     _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
-            //     await _mapHandle;
-            //     
-            //     if(_settings.EnableDebug)
-            //         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
-            //     
-            //     return;
-            // }
-            // #endif
+            #if UNITY_EDITOR
+            string sceneKey = EditorPrefs.GetString("OverrideMapAddress", "");
+            if (!string.IsNullOrEmpty(sceneKey)) {
+                var locations = await Addressables.LoadResourceLocationsAsync(sceneKey);
+                if (locations.Count > 0) {
+                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+                    await _mapHandle;
+                
+                    if(_settings.EnableDebug)
+                        Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
+                
+                    return;
+                }
+                else 
+                {
+                    if(_settings.EnableDebug)
+                        Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
+                }
+
+            }
+            #endif
             
             var map = _mapLocations.RandomElement();
-            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
+            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
 
             await _mapHandle;
             
@@ -65,12 +72,11 @@ namespace MortierFu
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
         }
         
-        private async UniTask UnloadCurrentMap(bool releaseHandle)
+        private async UniTask UnloadCurrentMap()
         {
             if (!_mapHandle.IsValid()) return;
 
-            await Addressables.UnloadSceneAsync(_mapHandle, autoReleaseHandle: releaseHandle);
-            
+            await Addressables.UnloadSceneAsync(_mapHandle);
             _mapHandle = default;
         }
 
