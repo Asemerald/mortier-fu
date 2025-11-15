@@ -25,7 +25,7 @@ namespace MortierFu
                 while (!loaded) 
                     await UniTask.Yield();
                 
-                Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef.Asset.name}");
+                //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef.Asset.name}");
                 Banks.Add(bankRef);
             }
         }
