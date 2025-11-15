@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MortierFu
 {
@@ -29,6 +32,12 @@ namespace MortierFu
         {
             Hide();
             UpdateSlots(new List<PlayerInput>());
+            
+#if UNITY_EDITOR
+            if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
+                StartGame().Forget();
+            }
+#endif
         }
 
         private void OnEnable()
