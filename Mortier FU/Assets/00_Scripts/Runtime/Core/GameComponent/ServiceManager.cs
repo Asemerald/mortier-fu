@@ -28,17 +28,17 @@ namespace MortierFu
                     await system.Initialize();
                 }
                 
-                Logs.Log($"[GameSystems] Initialized {_components.Count} services.");
+                Logs.Log($"[ServiceManager] Initialized {_components.Count} services.");
             }
             catch (Exception e)
             {
                 // Debug wich system failed to initialize
-                Logs.LogError($"[GameSystems] Initialization failed: {e.Message}");
+                Logs.LogError($"[ServiceManager] Initialization failed: {e.Message}");
                 foreach (var system in _components)
                     if (system.Value == null)
-                        Logs.LogError($"[GameSystems] System {system.Key.Name} is null.");
+                        Logs.LogError($"[ServiceManager] System {system.Key.Name} is null.");
                     else
-                        Logs.Log($"[GameSystems] System {system.Key.Name} initialized successfully.");
+                        Logs.Log($"[ServiceManager] System {system.Key.Name} initialized successfully.");
 
                 throw;
             }
