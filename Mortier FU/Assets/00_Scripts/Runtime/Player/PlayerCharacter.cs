@@ -82,12 +82,11 @@ namespace MortierFu
             InitStateMachine();
         }
 
-        void Start()
-        {
+        void Start() {
             // Find and cache Input Actions
             FindInputAction("Strike", out _strikeAction);
             FindInputAction("ToggleAim", out _toggleAimAction);
-            
+
             // Initialize character components
             Health.Initialize();
             Controller.Initialize();

@@ -6,7 +6,16 @@ using UnityEngine;
 namespace MortierFu {
     [Serializable]
     public class CharacterStat {
-        public float BaseValue;
+        public event Action OnDirtyUpdated;
+
+        protected float baseValue;
+        public float BaseValue {
+            get => baseValue;
+            set {
+                baseValue = value;
+                OnDirtyUpdated?.Invoke();
+            }
+        }
 
         public virtual float Value {
             get {
@@ -30,7 +39,7 @@ namespace MortierFu {
         readonly Comparison<StatModifier> _comparison;
         readonly Predicate<StatModifier> _predicate;
         object _sourceToRemove; 
-
+        
         public CharacterStat() {
             statModifiers = new List<StatModifier>();
             StatModifiers = statModifiers.AsReadOnly();
@@ -46,11 +55,13 @@ namespace MortierFu {
             isDirty = true;
             statModifiers.Add(mod);
             statModifiers.Sort(CompareModifierOrder);
+            OnDirtyUpdated?.Invoke();
         }
         
         public virtual bool RemoveModifier(StatModifier mod) {
             if (statModifiers.Remove(mod)) {
                 isDirty = true;
+                OnDirtyUpdated?.Invoke();
                 return true;                
             }
 
@@ -64,6 +75,7 @@ namespace MortierFu {
             
             if (numRemovals > 0) {
                 isDirty = true;
+                OnDirtyUpdated?.Invoke();
                 return true;
             }
 

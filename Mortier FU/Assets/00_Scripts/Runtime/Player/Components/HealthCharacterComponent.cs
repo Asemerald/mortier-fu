@@ -23,10 +23,9 @@ namespace MortierFu
             _currentHealth = 1;
         }
 
-        public override void Initialize()
-        {
-            _maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
-            _currentHealth = _maxHealth;
+        public override void Initialize() {
+            Stats.MaxHealth.OnDirtyUpdated += UpdateHealth;
+            UpdateHealth();
         }
         
         public void TakeDamage(int amount, object source)
@@ -77,7 +76,17 @@ namespace MortierFu
             OnHealthChanged?.Invoke(_maxHealth);
         }
 
-        public override void Dispose()
-        { }
+        void UpdateHealth() {
+            // Calculate the difference between the old max health and the new max health
+            int newMaxHealth = Math.Max(1, Mathf.RoundToInt(Stats.MaxHealth.Value));
+            int maxDelta = newMaxHealth - _maxHealth;
+
+            _maxHealth += maxDelta;
+            _currentHealth += maxDelta;
+        }
+
+        public override void Dispose() {
+            Stats.MaxHealth.OnDirtyUpdated -= UpdateHealth;
+        }
     }
 }
