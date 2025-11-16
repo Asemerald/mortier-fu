@@ -59,11 +59,10 @@ namespace MortierFu
             
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
             _shootCooldownTimer = new CountdownTimer(Stats.FireRate.Value);
+            Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
             
             _shootStrategy.Initialize();
             _shootAction.Disable();
-
-            Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
             
             // TODO better when refacto CameraHandler
             Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1); 

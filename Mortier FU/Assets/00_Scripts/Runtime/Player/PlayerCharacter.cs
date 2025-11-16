@@ -112,6 +112,8 @@ namespace MortierFu
         }
         
         void OnDestroy() {
+            _stateMachine.Dispose();
+
             Health.Dispose();
             Controller.Dispose();
             Aspect.Dispose();
