@@ -12,7 +12,7 @@ namespace MortierFu
         protected const float k_minAimInputLength = 0.0001f;
         protected const float k_aimDeadZone = 0.2f;
 
-        protected SO_CharacterStats CharacterStats => mortar.Character.CharacterStats;
+        protected SO_CharacterStats CharacterStats => mortar.Character.Stats;
         
         protected MortarShootStrategy(MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction)
         {

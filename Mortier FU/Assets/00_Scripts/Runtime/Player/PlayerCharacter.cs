@@ -38,7 +38,7 @@ namespace MortierFu
         public MortarCharacterComponent Mortar { get; private set; }
         
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
-        public SO_CharacterStats CharacterStats { get; private set; }
+        public SO_CharacterStats Stats { get; private set; }
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
@@ -73,7 +73,7 @@ namespace MortierFu
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
             
             // Create a unique instance of CharacterData for this character
-            CharacterStats = Instantiate(_characterStatsTemplate);
+            Stats = Instantiate(_characterStatsTemplate);
             
             // Handle augments
             _augments = new List<IAugment>();
@@ -105,6 +105,8 @@ namespace MortierFu
             Controller.Reset();
             Aspect.Reset();
             Mortar.Reset();
+
+            _strikeState.Reset();
             
             _stateMachine.SetState(_locomotionState);
         }
@@ -237,7 +239,7 @@ namespace MortierFu
         
 #if UNITY_EDITOR
         // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
-        private bool ShouldShowStats => CharacterStats != null;
+        private bool ShouldShowStats => Stats != null;
 #endif
     }
 }

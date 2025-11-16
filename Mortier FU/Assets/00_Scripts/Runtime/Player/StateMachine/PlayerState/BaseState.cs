@@ -27,5 +27,7 @@ namespace MortierFu
         public virtual void FixedUpdate() {}
 
         public virtual void OnExit() {}
+
+        public virtual void Dispose() {}
     }    
 }

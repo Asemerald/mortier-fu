@@ -1,6 +1,8 @@
+using System;
+
 namespace MortierFu
 {
-    public interface IState
+    public interface IState : IDisposable
     {
         void OnEnter();
         void Update();

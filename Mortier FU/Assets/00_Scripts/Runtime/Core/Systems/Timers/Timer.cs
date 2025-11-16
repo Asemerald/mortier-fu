@@ -10,7 +10,6 @@ namespace MortierFu {
         public float CurrentTime { get; protected set; }
         public bool IsRunning { get; private set; }
 
-
         public virtual float Progress => InitialTime == 0f ? 0 : Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
         
         public Action OnTimerStart = delegate { };
@@ -49,7 +48,7 @@ namespace MortierFu {
             InitialTime = newTime;
             Reset();
         }
-
+        
         bool _disposed;
 
         ~Timer() {

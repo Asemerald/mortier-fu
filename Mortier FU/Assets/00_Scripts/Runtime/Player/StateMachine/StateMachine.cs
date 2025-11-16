@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MortierFu
 {
-    public class StateMachine
+    public class StateMachine : IDisposable
     {
         private StateNode _current;
         private Dictionary<Type, StateNode> _nodes = new();
@@ -31,6 +31,16 @@ namespace MortierFu
             _current.State?.OnEnter();
         }
 
+        public void Dispose() {
+            foreach (var node in _nodes.Values) {
+                node.State.Dispose();
+            }
+
+            _nodes.Clear();
+            _anyTransitions.Clear();
+            _current = null;
+        }
+        
         void ChangeState(IState state)
         {
             if (state == _current.State) return;

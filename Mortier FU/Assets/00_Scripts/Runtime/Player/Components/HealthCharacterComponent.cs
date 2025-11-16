@@ -78,16 +78,21 @@ namespace MortierFu
         }
 
         void UpdateHealth() {
-            // Calculate the difference between the old max health and the new max health
             int newMaxHealth = Math.Max(1, Mathf.RoundToInt(Stats.MaxHealth.Value));
-            int maxDelta = newMaxHealth - _maxHealth;
-
-            _maxHealth += maxDelta;
-            if (maxDelta > 0) {
-                _currentHealth += maxDelta;
-            }
             
-            Logs.Log("Health changed and added " + maxDelta);
+            // Calculate gain or loss in max health
+            int delta = newMaxHealth - _maxHealth;
+
+            _maxHealth = newMaxHealth;
+
+            // If max health increased, add the same amount to current health
+            if (delta > 0)
+            {
+                _currentHealth += delta;
+            }
+
+            // Always clamp to ensure we stay inside valid bounds
+            _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
         }
 
         public override void Dispose() {

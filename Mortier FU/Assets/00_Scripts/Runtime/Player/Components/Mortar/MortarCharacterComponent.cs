@@ -62,8 +62,11 @@ namespace MortierFu
             
             _shootStrategy.Initialize();
             _shootAction.Disable();
+
+            Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
             
-            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1); // TODO better when refacto CameraHandler
+            // TODO better when refacto CameraHandler
+            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1); 
         }
 
         public override void Reset()
@@ -71,19 +74,24 @@ namespace MortierFu
             _shootCooldownTimer?.Stop();
             
             ResetAimWidget();
-
-            AimWidget.SetRelativePosition(Vector3.zero);
         }
 
+        private void UpdateFireRate() {
+            float fireRate = Stats.FireRate.Value;
+            _shootCooldownTimer.DynamicUpdate(fireRate);
+        }
+        
         private void ResetAimWidget() {
             float damageScale = (Stats.DamageAmount.Value * Stats.DamageAmount.Value / 10) * 0.2f;
             float aoeRange = Stats.DamageRange.Value + damageScale * 0.7f;
             AimWidget.transform.localScale = Vector3.one * (aoeRange * 2f);   
+            AimWidget.SetRelativePosition(Vector3.zero);
             AimWidget.Hide();
         }
 
-        public override void Dispose()
-        {
+        public override void Dispose() {
+            Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
+            
             _shootCooldownTimer.Dispose();
             _shootStrategy?.DeInitialize();
         }
@@ -114,8 +122,6 @@ namespace MortierFu
             
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);
             
-            // Reevaluates the attack speed every time we shoot. Not dynamic, could be improved ?
-            _shootCooldownTimer.Reset(Stats.FireRate.Value);
             _shootCooldownTimer.Start();
             
             IsShooting = true;

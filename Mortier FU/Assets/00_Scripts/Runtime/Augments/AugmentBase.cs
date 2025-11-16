@@ -12,7 +12,7 @@
         {
             this.augmentData = augmentData;
             this.owner = owner;
-            this.stats = owner.CharacterStats;
+            this.stats = owner.Stats;
         }
         
         public virtual void Initialize() 

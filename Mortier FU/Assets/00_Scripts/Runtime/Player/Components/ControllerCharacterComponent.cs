@@ -30,15 +30,17 @@ namespace MortierFu
         public override void Initialize()
         {
             character.FindInputAction("Move", out _moveAction);
-            
+
+            Stats.AvatarSize.OnDirtyUpdated += UpdateAvatarSize;
             UpdateAvatarSize();
         }
 
         public override void Reset()
         { }
 
-        public override void Dispose()
-        { }
+        public override void Dispose() {
+            Stats.AvatarSize.OnDirtyUpdated -= UpdateAvatarSize;
+        }
         
         public override void Update()
         { }
@@ -75,7 +77,6 @@ namespace MortierFu
             // Applique Interpolation douce (lissage)
             _moveDirection = Vector2.Lerp(_moveDirection, targetVelocity, Time.deltaTime * rate);
             
-
             var velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
             
             if (velocity3D.sqrMagnitude > 0.001f)

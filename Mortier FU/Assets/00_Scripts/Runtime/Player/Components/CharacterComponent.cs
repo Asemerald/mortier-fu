@@ -8,7 +8,7 @@ namespace MortierFu {
 
         public PlayerCharacter Character => character;
         public PlayerInput PlayerInput => character.PlayerInput;
-        public SO_CharacterStats Stats => character.CharacterStats;
+        public SO_CharacterStats Stats => character.Stats;
         
         protected CharacterComponent(PlayerCharacter character) {
             if (character == null) {
