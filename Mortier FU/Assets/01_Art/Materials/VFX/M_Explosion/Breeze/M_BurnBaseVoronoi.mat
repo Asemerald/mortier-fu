@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_DotsAlphaSpikes
+  m_Name: M_BurnBaseVoronoi
   m_Shader: {fileID: -6465566751694194690, guid: 200fb838b46eca44794fe9b2f049e907, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -70,7 +70,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Main_Texture:
-        m_Texture: {fileID: 2800000, guid: 768311a826d506845b83d81a84c3fa49, type: 3}
+        m_Texture: {fileID: 2800000, guid: 43aeedc2256732945bb9f4080795248d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -118,7 +118,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2D:
-        m_Texture: {fileID: 2800000, guid: 307a566865b90cc4f82d4f1de61e34dd, type: 3}
+        m_Texture: {fileID: 2800000, guid: 668041989c25c83478ce3135f48b54c5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_16e525eb69db4b56a69fa19e24095f59_Out_0_Texture2D:
@@ -134,7 +134,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2D_1:
-        m_Texture: {fileID: 2800000, guid: 768311a826d506845b83d81a84c3fa49, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -161,7 +161,7 @@ Material:
     - _Boolean_Color_Fill_1: 1
     - _Boolean_Color_Fill_2: 0
     - _Boolean_Dots: 0
-    - _Boolean_Dots_Alpha: 0
+    - _Boolean_Dots_Alpha: 1
     - _Boolean_Faded: 1
     - _Boolean_Voronoi_mouvment: 1
     - _BumpScale: 1
@@ -194,13 +194,13 @@ Material:
     - _Smoothness_Fade_Edge_01: 1
     - _Smoothness_Fade_Edge_02: 0.28
     - _SpecularHighlights: 1
-    - _Speed_Flames: 0.84
+    - _Speed_Flames: 1.23
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _Value_Fade: 0.17
     - _Visibility_Pattern: 0
-    - _Voronoi_Value_Alpha: 0.61
+    - _Voronoi_Value_Alpha: 0.78
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
@@ -210,23 +210,23 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color_1: {r: 1, g: 0.9880785, b: 0, a: 0}
-    - _Color_2: {r: 1, g: 0.77412665, b: 0, a: 0}
+    - _Color_1: {r: 1, g: 1, b: 1, a: 0}
+    - _Color_2: {r: 1, g: 0, b: 0, a: 0}
     - _Color_Gradient: {r: 0.9568626, g: 0.32277676, b: 0, a: 1}
-    - _Dots_Tilings: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _Dots_Tilings: {r: 1, g: 1, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Main_Color: {r: 0.9568626, g: 0.8098167, b: 0, a: 1}
     - _Pattern_Color: {r: 1, g: 0.8546668, b: 0, a: 0}
     - _Pattern_Tilings: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Speed_and_Direction: {r: -1, g: 0, b: 0, a: 0}
-    - _Speed_direction: {r: 1, g: 0, b: 0, a: 0}
-    - _Tiling: {r: 1.21, g: 2.44, b: 0, a: 0}
+    - _Speed_direction: {r: 13.45, g: 0, b: 0, a: 0}
+    - _Tiling: {r: -3.94, g: 1, b: 0, a: 0}
     - _Tiling_Spikes: {r: 1, g: 1, b: 0, a: 0}
     - _Tilingee: {r: -1, g: 1, b: 0, a: 0}
-    - _Vector2: {r: 6.83, g: 0.5, b: 0, a: 0}
-    - _Voronoi_Color_01: {r: 1, g: 0.6353447, b: 0.07058823, a: 0}
-    - _Voronoi_Color_02: {r: 1, g: 0.31840813, b: 0, a: 0}
-    - _tiling: {r: 2.59, g: 5, b: 0, a: 0}
+    - _Vector2: {r: 0.77, g: 0.5, b: 0, a: 0}
+    - _Voronoi_Color_01: {r: 0.09803921, g: 1, b: 0.81849796, a: 0}
+    - _Voronoi_Color_02: {r: 0, g: 1, b: 0.17274189, a: 0}
+    - _tiling: {r: -6.06, g: 0.36, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
