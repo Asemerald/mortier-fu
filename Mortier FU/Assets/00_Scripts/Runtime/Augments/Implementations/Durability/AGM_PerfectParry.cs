@@ -20,7 +20,7 @@ namespace MortierFu.Stats
         {
             if (evt.Character != owner) return;
 
-            stats.MaxHealth.AddModifier(new StatModifier(1.0f, E_StatModType.Flat, this)); // Le reset du character...
+            stats.MaxHealth.AddModifier(new StatModifier(1.0f, E_StatModType.Flat, this));
             evt.Character.Health.Heal(1);
         }
         
