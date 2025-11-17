@@ -72,19 +72,23 @@ namespace MortierFu
 
         public override void Reset()
         {
-            _maxHealth = Mathf.RoundToInt(Stats.MaxHealth.Value);
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(_maxHealth);
+
+            int max = 10;
+            int current = 10;
+            
         }
 
         void UpdateHealth() {
             int newMaxHealth = Math.Max(1, Mathf.RoundToInt(Stats.MaxHealth.Value));
+            Logs.Log("New Max Health: " + newMaxHealth);
             
             // Calculate gain or loss in max health
             int delta = newMaxHealth - _maxHealth;
-
+            
             _maxHealth = newMaxHealth;
-
+            
             // If max health increased, add the same amount to current health
             if (delta > 0)
             {
@@ -92,7 +96,7 @@ namespace MortierFu
             }
 
             // Always clamp to ensure we stay inside valid bounds
-            _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
+            _currentHealth = Math.Clamp(_currentHealth, 0, _maxHealth);
         }
 
         public override void Dispose() {
