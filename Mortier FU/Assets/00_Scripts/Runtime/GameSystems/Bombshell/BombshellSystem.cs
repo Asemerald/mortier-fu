@@ -44,6 +44,7 @@ namespace MortierFu
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
 
+            
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
