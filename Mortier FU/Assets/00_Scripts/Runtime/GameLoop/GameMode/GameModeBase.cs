@@ -15,6 +15,9 @@ namespace MortierFu
         protected List<PlayerTeam> teams;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
+        protected List<PlayerCharacter> alivePlayers;
+        public ReadOnlyCollection<PlayerCharacter> AlivePlayers;
+        
         protected int currentRound;
         protected int currentRank;
         protected bool oneTeamStanding;
@@ -68,6 +71,9 @@ namespace MortierFu
             teams = new List<PlayerTeam>();
             Teams = teams.AsReadOnly();
 
+            alivePlayers = new List<PlayerCharacter>();
+            AlivePlayers = new ReadOnlyCollection<PlayerCharacter>(alivePlayers);
+
             var players = lobbyService.GetPlayers();
 
             for (int i = 0; i < players.Count; i++)
@@ -76,6 +82,7 @@ namespace MortierFu
                 player.SpawnInGame(Vector3.zero);
                 player.Character.Health.OnDeath += source => {
                     player.Metrics.TotalDeaths++;
+                    alivePlayers.Remove(player.Character);
 
                     if (source is PlayerCharacter killer)
                     {
@@ -231,6 +238,7 @@ namespace MortierFu
                 foreach (var member in team.Members)
                 {
                     member.Metrics.ResetRoundMetrics();
+                    alivePlayers.Add(member.Character);
                 }
 
                 team.Rank = -1;
@@ -268,7 +276,8 @@ namespace MortierFu
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
-
+            alivePlayers.Clear();
+            
             EvaluateScores();
 
             OnRoundEnded?.Invoke(currentRound);

@@ -16,6 +16,11 @@ namespace MortierFu
             Members = members ??  new List<PlayerManager>();
             Score = 0;
             Rank = -1;
+
+            foreach (var member in Members)
+            {
+                member.JoinTeam(this);
+            }
         }
         
         public PlayerTeam(int index, PlayerManager member) : this(index, new List<PlayerManager> { member }) { }

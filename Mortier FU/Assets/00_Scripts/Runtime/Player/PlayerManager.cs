@@ -10,6 +10,7 @@ namespace MortierFu
         [Tooltip("Prefab du personnage à instancier en jeu.")]
         public GameObject playerInGamePrefab;
 
+        public PlayerTeam Team { get; private set; }
         public PlayerMetrics Metrics;
         private PlayerInput _playerInput;
         private GameObject _inGameCharacter;
@@ -89,6 +90,22 @@ namespace MortierFu
             }
 
             _isInGame = false;
+        }
+
+        public void JoinTeam(PlayerTeam team) => Team = team;
+
+        public void LeaveTeam()
+        {
+            if (Team == null)
+            {
+                Logs.LogError("Trying to remove a player from his team although he is not part of any team !");
+                return;
+            }
+            
+            if (!Team.Members.Remove(this))
+                Logs.LogWarning("Trying to remove a player from a team where he isn't part of !");
+
+            Team = null;
         }
     }
 }
