@@ -322,6 +322,7 @@ namespace MortierFu
             _stormInstance?.Stop();
             
             ResetPlayers();
+            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
             alivePlayers.Clear();
