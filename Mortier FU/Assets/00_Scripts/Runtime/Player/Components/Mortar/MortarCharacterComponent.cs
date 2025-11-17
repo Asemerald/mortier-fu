@@ -1,6 +1,8 @@
+using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -113,7 +115,7 @@ namespace MortierFu
                 TargetPos = AimWidget.transform.position,
                 TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
-                Damage = Mathf.RoundToInt(Stats.BombshellDamage.Value),
+                Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
                 Scale =  Stats.BombshellSize.Value * (1 + damageScale),
                 AoeRange = Stats.DamageRange.Value + damageScale * 0.7f,
                 Bounces = Mathf.RoundToInt(Stats.BulletBounces.Value)

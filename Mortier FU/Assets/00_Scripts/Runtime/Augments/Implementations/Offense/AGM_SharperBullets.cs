@@ -1,8 +1,8 @@
 namespace MortierFu.Stats
 {
-    public class AGM_BiggerBullets : AugmentBase
+    public class AGM_SharperBullets : AugmentBase
     {
-        public AGM_BiggerBullets(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_SharperBullets(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
         { }
 
         public override void Initialize()
