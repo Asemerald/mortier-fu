@@ -104,6 +104,11 @@ namespace MortierFu
         {
             if (_shootCooldownTimer.IsRunning) return;
 
+            EventBus<TriggerShootBombshell>.Raise(new TriggerShootBombshell()
+            {
+                Character =  character,
+            });
+            
             float damageScale = (Stats.BombshellDamage.Value * Stats.BombshellDamage.Value / 10) * 0.2f;
             
             Bombshell.Data bombshellData = new Bombshell.Data

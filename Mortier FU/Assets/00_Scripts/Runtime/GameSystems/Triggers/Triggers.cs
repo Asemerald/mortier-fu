@@ -16,9 +16,11 @@ namespace MortierFu
     
     public struct TriggerFullCharged : ITrigger // TODO
     { }
-    
-    public struct TriggerShootBombshell : ITrigger // TODO
-    { }
+
+    public struct TriggerShootBombshell : ITrigger // Check
+    {
+        public PlayerCharacter Character;
+    }
     
     public struct TriggerBombshellLanded : ITrigger // TODO
     { }
@@ -42,6 +44,11 @@ namespace MortierFu
         public float NewHealth;
         public float MaxHealth;
         public float Delta;
+    }
+    
+    public struct TriggerStrike : ITrigger // Check
+    {
+        public PlayerCharacter Character;
     }
     
     public struct TriggerStrikeHit : ITrigger // Check
