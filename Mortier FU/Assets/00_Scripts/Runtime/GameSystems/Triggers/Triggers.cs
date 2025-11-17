@@ -56,11 +56,16 @@ namespace MortierFu
         public Bombshell[] HitBombshells;
     }
     
-    public struct TriggerStopMoved : ITrigger // TODO
+    public struct TriggerStartMoved : ITrigger // TODO
     { }
     
-    public struct TriggerGetStrike : ITrigger // TODO
+    public struct TriggerStopMoved : ITrigger // TODO
     { }
+
+    public struct TriggerGetStrike : ITrigger // Check
+    {
+        public PlayerCharacter Character;
+    }
     
     public struct TriggerEndRound : ITrigger // Check
     { }

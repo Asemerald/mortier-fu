@@ -28,6 +28,11 @@ namespace MortierFu
         {
             character.Controller.ResetVelocity();
             
+            EventBus<TriggerGetStrike>.Raise(new TriggerGetStrike()
+            {
+                Character = character,
+            });
+            
             if(debug)
                 Logs.Log("Entering Stun State");
         }
