@@ -44,8 +44,6 @@ namespace MortierFu
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
 
-            bool isPlayer = false;
-            
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
@@ -64,7 +62,6 @@ namespace MortierFu
                     if(!character.Health.IsAlive)
                         continue;
 
-                    isPlayer = true;
                     hitCharacters.Add(character);
 
                     character.Health.TakeDamage(bombshell.Damage, bombshell.Owner);
@@ -103,7 +100,7 @@ namespace MortierFu
                 });
             }
 
-            if(!isPlayer)
+            if (hits.Count > 0)
             {
                 EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
                 {

@@ -319,7 +319,11 @@ namespace MortierFu
             timer.Stop();
             
             bombshellSys.ClearActiveBombshells();
-            _stormInstance?.Stop();
+
+            if (_stormInstance)
+            { 
+                _stormInstance.Stop();
+            }
             
             ResetPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
