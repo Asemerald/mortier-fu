@@ -43,7 +43,6 @@ namespace MortierFu
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
-
             
             for (int i = 0; i < numHits; i++)
             {
