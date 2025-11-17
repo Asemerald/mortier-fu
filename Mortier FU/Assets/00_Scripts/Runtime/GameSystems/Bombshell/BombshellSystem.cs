@@ -105,7 +105,7 @@ namespace MortierFu
 
             if(!isPlayer)
             {
-                EventBus<TriggerBombshellImpacted>.Raise(new TriggerBombshellImpacted()
+                EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
                 {
                     Bombshell = bombshell,
                     Hits = hits.ToArray(),

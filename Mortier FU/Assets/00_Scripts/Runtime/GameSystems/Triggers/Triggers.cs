@@ -20,15 +20,10 @@ namespace MortierFu
     public struct TriggerShootBombshell : ITrigger // Check
     {
         public PlayerCharacter Character;
+        public Bombshell Bombshell;
     }
-    
-    public struct TriggerBombshellStartLanded : ITrigger // TODO
-    { }
-    
-    public struct TriggerBombshellStopLanded : ITrigger // TODO
-    { }
 
-    public struct TriggerBombshellImpacted : ITrigger // Check
+    public struct TriggerBombshellImpact : ITrigger // Check
     {
         public Bombshell Bombshell;
         public GameObject[] Hits;
@@ -66,10 +61,10 @@ namespace MortierFu
         public Bombshell[] HitBombshells;
     }
     
-    public struct TriggerStartMoved : ITrigger // TODO
+    public struct TriggerStartMoving : ITrigger // TODO
     { }
     
-    public struct TriggerStopMoved : ITrigger // TODO
+    public struct TriggerStopMoving : ITrigger // TODO
     { }
 
     public struct TriggerGetStrike : ITrigger // Check
