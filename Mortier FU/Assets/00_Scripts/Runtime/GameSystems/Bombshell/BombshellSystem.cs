@@ -1,10 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -42,6 +41,7 @@ namespace MortierFu
         public void NotifyImpact(Bombshell bombshell)
         {
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
+            var hitCharacters = new HashSet<PlayerCharacter>();
             
             for (int i = 0; i < numHits; i++)
             {
@@ -55,6 +55,8 @@ namespace MortierFu
                     
                     if(!character.Health.IsAlive)
                         continue;
+
+                    hitCharacters.Add(character);
                     
                     character.Health.TakeDamage(bombshell.Damage, bombshell.Owner);
                     
@@ -82,6 +84,15 @@ namespace MortierFu
                 TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, 20 + bombshell.Damage * 10, bombshell.Owner.Stats.BombshellTimeTravel.Value);
             }
             else Logs.LogWarning("No CameraShake");
+            
+            if (hitCharacters.Count > 0)
+            {
+                EventBus<TriggerHit>.Raise(new TriggerHit()
+                {
+                    Bombshell = bombshell,
+                    HitCharacters = hitCharacters.ToArray(),
+                });
+            }
         }
 
         public void ClearActiveBombshells()

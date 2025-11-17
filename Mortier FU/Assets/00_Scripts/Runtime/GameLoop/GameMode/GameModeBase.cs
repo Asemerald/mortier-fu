@@ -266,6 +266,7 @@ namespace MortierFu
             timer.Stop();
             bombshellSys.ClearActiveBombshells();
             ResetPlayers();
+            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
 
