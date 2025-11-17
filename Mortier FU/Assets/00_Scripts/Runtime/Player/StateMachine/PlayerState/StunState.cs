@@ -13,8 +13,6 @@ namespace MortierFu
         }
 
         public bool IsActive => _stunTimer.IsRunning;
-
-      
         
         public void ReceiveStun(float duration)
         {
@@ -29,7 +27,6 @@ namespace MortierFu
         public override void OnEnter()
         {
             character.Controller.ResetVelocity();
-            
             
             if(debug)
                 Logs.Log("Entering Stun State");
