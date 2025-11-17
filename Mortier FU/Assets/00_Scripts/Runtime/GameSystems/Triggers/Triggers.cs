@@ -22,7 +22,10 @@ namespace MortierFu
         public PlayerCharacter Character;
     }
     
-    public struct TriggerBombshellLanded : ITrigger // TODO
+    public struct TriggerBombshellStartLanded : ITrigger // TODO
+    { }
+    
+    public struct TriggerBombshellStopLanded : ITrigger // TODO
     { }
 
     public struct TriggerBombshellImpacted : ITrigger // Check
