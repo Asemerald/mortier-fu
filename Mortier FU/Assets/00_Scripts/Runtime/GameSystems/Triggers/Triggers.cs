@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace MortierFu
 {
     public interface ITrigger : IEvent
@@ -21,9 +23,10 @@ namespace MortierFu
     public struct TriggerBombshellLanded : ITrigger // TODO
     { }
 
-    public struct TriggerBombshellImpacted : ITrigger // TODO
+    public struct TriggerBombshellImpacted : ITrigger // Check
     {
         public Bombshell Bombshell;
+        public GameObject[] Hits;
     }
 
     public struct TriggerHit : ITrigger // Check
