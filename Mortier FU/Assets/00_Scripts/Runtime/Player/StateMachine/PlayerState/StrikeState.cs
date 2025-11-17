@@ -31,6 +31,11 @@ namespace MortierFu
         {
             _strikeCooldownTimer.Start();
             _strikeTriggerTimer.Start();
+
+            EventBus<TriggerStrike>.Raise(new TriggerStrike()
+            {
+                Character =  character,
+            });
             
             TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.StrikeRadius.Value);
             if(debug)
