@@ -1,8 +1,8 @@
+using PrimeTween;
 using UnityEngine;
 
 namespace MortierFu
 {
-
     public class ACT_Storm : MonoBehaviour
     {
         public Vector3 Eye
@@ -11,6 +11,7 @@ namespace MortierFu
             set => transform.position = value;
         }
 
+        private float _currentRadius;
         private SO_StormSettings _settings;
         private FrequencyTimer _damageTimer;
         
@@ -23,10 +24,18 @@ namespace MortierFu
             _settings = settings;
             
             Eye = eye;
-
+            _currentRadius = _settings.MaxRadius;
+            
+            float duration = (_settings.MaxRadius - _settings.MinRadius) / _settings.ShrinkSpeed;
+            Tween.Custom(_settings.MaxRadius, _settings.MinRadius, duration, OnRadiusShrink);
+            
             _damageTimer = new FrequencyTimer(settings.TicksPerSecond);
             _damageTimer.OnTick += DamagePlayers;
             _damageTimer.Start();
+        }
+        private void OnRadiusShrink(float radius)
+        {
+            _currentRadius = radius;
         }
 
         public void Stop()
@@ -41,8 +50,15 @@ namespace MortierFu
 
             foreach (var player in alivePlayers)
             {
+                if (IsInBounds(player)) continue;
                 player.Health.TakeDamage(_settings.DamageAmount, this);
             }
+        }
+
+        private bool IsInBounds(PlayerCharacter character)
+        {
+            float sqrDist = (Eye - character.transform.position).sqrMagnitude;
+            return sqrDist < _currentRadius * _currentRadius;
         }
     
         void OnDestroy()
