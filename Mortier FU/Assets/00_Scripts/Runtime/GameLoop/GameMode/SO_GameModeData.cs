@@ -18,5 +18,7 @@ namespace MortierFu
         public float AugmentSelectionDuration = 15;
         public float RoundStartCountdown = 4f;
         public float DisplayScoresDuration = 6f;
+
+        public float StormSpawnTime = 30;
     }
 }

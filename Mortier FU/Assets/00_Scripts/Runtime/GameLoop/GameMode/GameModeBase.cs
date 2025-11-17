@@ -7,6 +7,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -31,10 +32,10 @@ namespace MortierFu
         protected BombshellSystem bombshellSys;
         protected CountdownTimer timer;
 
-        //TODO adapt to multiple Scenes 
-        private string defaultScene = "Map 01";
+        protected ACT_Storm _stormInstance;
 
         private SO_GameModeData _gameModeData;
+        private SO_StormSettings _stormSettings;
 
         public virtual int MinPlayerCount => _gameModeData.MinPlayerCount;
         public virtual int MaxPlayerCount => _gameModeData.MaxPlayerCount;
@@ -87,6 +88,45 @@ namespace MortierFu
                     if (source is PlayerCharacter killer)
                     {
                         OnPlayerKill(killer, player.Character);
+                    }
+                    
+                    var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
+                    if (victimTeam == null)
+                    {
+                        Logs.LogError("[GameModeBase] Victim's team not found!");
+                        return;
+                    }
+
+                    if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
+                    {
+                        victimTeam.Rank = currentRank;
+                        currentRank--;
+                    }
+
+                    // Check if there is one team standing
+                    int aliveTeamIndex = -1;
+                    for (int i = 0; i < teams.Count; i++)
+                    {
+                        PlayerTeam team = teams[i];
+                        if (team.Members.Any(m => m.Character.Health.IsAlive))
+                        {
+                            if (aliveTeamIndex == -1)
+                            {
+                                aliveTeamIndex = i;
+                            }
+                            else
+                            {
+                                aliveTeamIndex = -1;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Set the rank of the winning team to 1 if one.
+                    if (aliveTeamIndex != -1)
+                    {
+                        teams[aliveTeamIndex].Rank = 1;
+                        oneTeamStanding = true;
                     }
                 };
 
@@ -245,9 +285,6 @@ namespace MortierFu
             }
 
             HandleCountdown();
-
-            OnRoundStarted?.Invoke(currentRound);
-            Logs.Log($"Round #{currentRound} is starting...");
         }
 
         protected void HandleCountdown()
@@ -267,12 +304,23 @@ namespace MortierFu
             timer.OnTimerStop -= HandleEndOfCountdown;
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
+            
+            OnRoundStarted?.Invoke(currentRound);
+            Logs.Log($"Round #{currentRound} is starting...");
+            
+            timer.Reset(_gameModeData.StormSpawnTime);
+            timer.OnTimerStop += SpawnStorm;
+            timer.Start();
         }
 
         protected virtual void EndRound()
         {
+            timer.OnTimerStop -= SpawnStorm;
             timer.Stop();
+            
             bombshellSys.ClearActiveBombshells();
+            _stormInstance?.Stop();
+            
             ResetPlayers();
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
@@ -284,6 +332,20 @@ namespace MortierFu
             Logs.Log("Round ended.");
         }
 
+        private void SpawnStorm() => SpawnStormTask().Forget();
+        
+        protected virtual async UniTaskVoid SpawnStormTask()
+        {
+            var stormPrefab = await AddressablesHelpers.LazyLoadAsset(_stormSettings.StormPrefab);
+            if (stormPrefab == null) return;
+            
+            var stormGO = Object.Instantiate(stormPrefab);
+            _stormInstance = stormGO.GetComponent<ACT_Storm>();
+            _stormInstance.Initialize(Vector3.zero, _stormSettings);
+            
+            Logs.Log("Storm instantiated !");
+        }
+        
         protected virtual void EvaluateScores()
         {
             foreach (var team in teams)
@@ -383,14 +445,18 @@ namespace MortierFu
             _gameModeData = dataHandle.Result;
             Addressables.Release(dataHandle);
 
+            // Load Storm settings
+            var stormSettingsRef = SystemManager.Config.StormSettings;
+            _stormSettings = await AddressablesHelpers.LazyLoadAsset(stormSettingsRef);
+            if (_stormSettings == null) return;
+            
             timer = new CountdownTimer(0f);
 
             Logs.Log("Game mode initialized successfully.");
         }
 
         public virtual void Update()
-        {
-        }
+        { }
 
         public virtual void Dispose()
         {
@@ -426,46 +492,6 @@ namespace MortierFu
             if (killer != victim)
             {
                 killer.Metrics.RoundKills += 1;
-            }
-
-            // TODO: Can be improved
-            var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(victim));
-            if (victimTeam == null)
-            {
-                Logs.LogError("[GameModeBase] Victim's team not found!");
-                return;
-            }
-
-            if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
-            {
-                victimTeam.Rank = currentRank;
-                currentRank--;
-            }
-
-            // Check if there is one team standing
-            int aliveTeamIndex = -1;
-            for (int i = 0; i < teams.Count; i++)
-            {
-                PlayerTeam team = teams[i];
-                if (team.Members.Any(m => m.Character.Health.IsAlive))
-                {
-                    if (aliveTeamIndex == -1)
-                    {
-                        aliveTeamIndex = i;
-                    }
-                    else
-                    {
-                        aliveTeamIndex = -1;
-                        break;
-                    }
-                }
-            }
-
-            // Set the rank of the winning team to 1 if one.
-            if (aliveTeamIndex != -1)
-            {
-                teams[aliveTeamIndex].Rank = 1;
-                oneTeamStanding = true;
             }
 
             OnPlayerKilled?.Invoke(killer, victim);

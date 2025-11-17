@@ -3,7 +3,7 @@ using UnityEngine.AddressableAssets;
 
 namespace MortierFu
 {
-    [CreateAssetMenu(fileName = "DA_StormSettings", menuName = "Mortier Fu/Actors/Storm Settings")]
+    [CreateAssetMenu(fileName = "DA_StormSettings", menuName = "Mortier Fu/Settings/Storm")]
     public class SO_StormSettings : ScriptableObject
     {
         [Header("Settings")]

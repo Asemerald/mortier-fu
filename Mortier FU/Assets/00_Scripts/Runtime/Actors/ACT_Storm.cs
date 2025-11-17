@@ -1,3 +1,5 @@
+using System;
+using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 
@@ -33,9 +35,11 @@ namespace MortierFu
             _damageTimer.OnTick += DamagePlayers;
             _damageTimer.Start();
         }
+        
         private void OnRadiusShrink(float radius)
         {
             _currentRadius = radius;
+            Logs.Log("Current radius: " + _currentRadius);
         }
 
         public void Stop()
@@ -48,8 +52,9 @@ namespace MortierFu
         {
             var alivePlayers = _gm.AlivePlayers;
 
-            foreach (var player in alivePlayers)
+            for (int i = alivePlayers.Count - 1; i >= 0; i--)
             {
+                PlayerCharacter player = alivePlayers[i];
                 if (IsInBounds(player)) continue;
                 player.Health.TakeDamage(_settings.DamageAmount, this);
             }
@@ -64,6 +69,12 @@ namespace MortierFu
         void OnDestroy()
         {
             _damageTimer.Dispose();
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.mediumPurple;
+            Gizmos.DrawWireSphere(Eye, _currentRadius);
         }
     }
 }
