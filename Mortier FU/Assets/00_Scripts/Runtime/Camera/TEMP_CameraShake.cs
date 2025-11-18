@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using MortierFu.Shared;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -37,9 +35,8 @@ public class TEMP_CameraShake : MonoBehaviour
 
     public void CallCameraShake(float aoeRange, float power, float travelTime, float delay = 0)
     {
-        float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 5f, 100);
+        float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 5f, 10f);
         float time = intensity * 0.07f;
-        //Logs.Log($"intensity : {intensity} / time : {time}");
         StartCoroutine(ShakeCamera(intensity, time, intensity, time/2));
     }
     

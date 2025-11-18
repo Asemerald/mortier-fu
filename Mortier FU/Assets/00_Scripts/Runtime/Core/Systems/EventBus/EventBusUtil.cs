@@ -68,7 +68,7 @@ namespace MortierFu
             {
                 var busType = typedef.MakeGenericType(eventType);
                 eventBusTypes.Add(busType);
-                Logs.Log($"[EventBusUtil] Initialized EventBus for event type: {eventType.Name}");
+                //Logs.Log($"[EventBusUtil] Initialized EventBus for event type: {eventType.Name}");
             }
             
             return eventBusTypes;
@@ -79,7 +79,7 @@ namespace MortierFu
         /// </summary>
         public static void ClearAllBuses()
         {
-            Logs.Log("[EventBusUtil] ClearAllBuses");
+            //Logs.Log("[EventBusUtil] ClearAllBuses");
             for (int i = 0; i < EventBusTypes.Count; i++)
             {
                 var busType = EventBusTypes[i];
