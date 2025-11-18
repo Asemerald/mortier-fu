@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -40,22 +41,31 @@ namespace MortierFu
         public void NotifyImpact(Bombshell bombshell)
         {
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
+            var hitCharacters = new HashSet<PlayerCharacter>();
+            var hits = new HashSet<GameObject>();
             
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
-                if(hit.attachedRigidbody == null) continue;
-                
+
+                if (hit.attachedRigidbody == null)
+                {
+                    hits.Add(hit.gameObject);
+                    continue;
+                }
+
                 if(hit.attachedRigidbody.TryGetComponent(out PlayerCharacter character)) {
                     // Prevent self-damage
                     if(!Settings.AllowSelfDamage && character == bombshell.Owner) 
                         continue; 
-                    
+
                     if(!character.Health.IsAlive)
                         continue;
-                    
+
+                    hitCharacters.Add(character);
+
                     character.Health.TakeDamage(bombshell.Damage, bombshell.Owner);
-                    
+
                     if (Settings.EnableDebug)
                     {
                         Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
@@ -67,7 +77,7 @@ namespace MortierFu
                     breakableObject.DestroyObject(0);
                 }
             }
-            
+
             //GAMEFEEL CALLS
             if (TEMP_FXHandler.Instance)
             {
@@ -80,6 +90,24 @@ namespace MortierFu
                 TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, 20 + bombshell.Damage * 10, bombshell.Owner.Stats.BombshellTimeTravel.Value);
             }
             else Logs.LogWarning("No CameraShake");
+
+            if (hitCharacters.Count > 0)
+            {
+                EventBus<TriggerHit>.Raise(new TriggerHit()
+                {
+                    Bombshell = bombshell,
+                    HitCharacters = hitCharacters.ToArray(),
+                });
+            }
+
+            if (hits.Count > 0)
+            {
+                EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
+                {
+                    Bombshell = bombshell,
+                    Hits = hits.ToArray(),
+                });
+            }
         }
 
         public void ClearActiveBombshells()

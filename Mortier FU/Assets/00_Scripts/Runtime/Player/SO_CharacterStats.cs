@@ -29,13 +29,10 @@ namespace MortierFu
         public CharacterStat BombshellSize { get; private set; } = new(0.6f);
         
         [field: SerializeField, Tooltip("Radius of the area-of-effect damage.")]
-        public CharacterStat DamageRange { get; private set; } = new(2.0f);
+        public CharacterStat BombshellImpactRadius { get; private set; } = new(2.0f);
         
         [field: SerializeField, Tooltip("Amount of bullets each shot will launch.")]
-        public CharacterStat BulletNumber { get; private set; } = new( 1.0f);
-        
-        [field: SerializeField, Tooltip("Amount of bullets each shot will launch.")]
-        public CharacterStat BulletBounces { get; private set; } = new( 0.0f);
+        public CharacterStat BombshellBounces { get; private set; } = new( 0.0f);
         
         [field: SerializeField, Tooltip("Cooldown between each shot.")]
         public CharacterStat FireRate { get; private set; } = new(2.0f);
@@ -58,7 +55,7 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
         public CharacterStat StrikeCooldown { get; private set; } = new( 2.0f);
         
-        [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
+        [field: SerializeField, Tooltip("Radius of the Strike attack.")]
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
         [field: SerializeField, Tooltip("Duration of the Stun.")]

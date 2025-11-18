@@ -7,7 +7,7 @@
 
         public override void Initialize()
         {
-            stats.DamageRange.AddModifier(new StatModifier(3f, E_StatModType.PercentMult, this));
+            stats.BombshellImpactRadius.AddModifier(new StatModifier(3f, E_StatModType.PercentMult, this));
             stats.BombshellDamage.AddModifier(new StatModifier(1f, E_StatModType.Flat, this));
             stats.FireRate.AddModifier(new StatModifier(1.5f, E_StatModType.PercentMult, this));
             stats.BombshellTimeTravel.AddModifier(new StatModifier(1.5f, E_StatModType.PercentMult, this));
@@ -15,7 +15,7 @@
         
         public override void Dispose()
         {
-            stats.DamageRange.RemoveAllModifiersFromSource(this);
+            stats.BombshellImpactRadius.RemoveAllModifiersFromSource(this);
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.FireRate.RemoveAllModifiersFromSource(this);
             stats.BombshellTimeTravel.RemoveAllModifiersFromSource(this);

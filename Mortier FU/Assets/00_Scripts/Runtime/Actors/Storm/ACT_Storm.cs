@@ -39,7 +39,6 @@ namespace MortierFu
         private void OnRadiusShrink(float radius)
         {
             _currentRadius = radius;
-            Logs.Log("Current radius: " + _currentRadius);
         }
 
         public void Stop()

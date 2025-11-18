@@ -1,36 +1,41 @@
+using UnityEngine;
+
 namespace MortierFu
 {
     public interface ITrigger : IEvent
     { }
     
-    public struct TriggerStartAimed: ITrigger
+    public struct TriggerStartAimed: ITrigger // TODO
     { }
     
-    public struct TriggerStopAimed : ITrigger
+    public struct TriggerStopAimed : ITrigger // TODO
     { }
     
-    public struct TriggerStackCharged : ITrigger
+    public struct TriggerStackCharged : ITrigger // TODO
     { }
     
-    public struct TriggerFullCharged : ITrigger
-    { }
-    
-    public struct TriggerShootBombshell : ITrigger
-    { }
-    
-    public struct TriggerBombshellLanded : ITrigger
-    { }
-    
-    public struct TriggerBombshellImpacted : ITrigger
+    public struct TriggerFullCharged : ITrigger // TODO
     { }
 
-    public struct TriggerHit : ITrigger
+    public struct TriggerShootBombshell : ITrigger // Check
+    {
+        public PlayerCharacter Character;
+        public Bombshell Bombshell;
+    }
+
+    public struct TriggerBombshellImpact : ITrigger // Check
+    {
+        public Bombshell Bombshell;
+        public GameObject[] Hits;
+    }
+
+    public struct TriggerHit : ITrigger // Check
     {
         public Bombshell Bombshell;
         public PlayerCharacter[] HitCharacters;
     }
     
-    public struct TriggerHealthChanged : ITrigger
+    public struct TriggerHealthChanged : ITrigger // Check
     {
         public PlayerCharacter Character;
         public float PreviousHealth;
@@ -39,21 +44,34 @@ namespace MortierFu
         public float Delta;
     }
     
-    public struct TriggerStrikeHit : ITrigger
+    public struct TriggerStrike : ITrigger // Check
+    {
+        public PlayerCharacter Character;
+    }
+    
+    public struct TriggerStrikeHit : ITrigger // Check
     {
         public PlayerCharacter Character;
         public PlayerCharacter[] HitCharacters;
     }
 
-    public struct TriggerStrikeHitBombshell : ITrigger
+    public struct TriggerStrikeHitBombshell : ITrigger // Check
     {
         public PlayerCharacter Character;
         public Bombshell[] HitBombshells;
     }
     
-    public struct TriggerStopMoved : ITrigger
+    public struct TriggerStartMoving : ITrigger // TODO
     { }
     
-    public struct TriggerGetStrike : ITrigger
+    public struct TriggerStopMoving : ITrigger // TODO
+    { }
+
+    public struct TriggerGetStrike : ITrigger // Check
+    {
+        public PlayerCharacter Character;
+    }
+    
+    public struct TriggerEndRound : ITrigger // Check
     { }
 }
