@@ -72,9 +72,9 @@ namespace MortierFu
                     }
                 }
                 // temp check for breakable object
-                else if (hit.attachedRigidbody.TryGetComponent(out Breakable breakableObject))
+                else if (hit.attachedRigidbody.TryGetComponent(out IInteractable interactable) && interactable.IsBombshellInteractable)
                 {
-                    breakableObject.DestroyObject(0);
+                    interactable.Interact();
                 }
             }
 

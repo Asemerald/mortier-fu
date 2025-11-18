@@ -1,51 +1,56 @@
-using System.Collections;
-using NUnit.Framework.Constraints;
+using System;
 using UnityEngine;
 
-public class Movable : MonoBehaviour
+namespace MortierFu
 {
-    public bool isAutomatic = true;
-    public bool isPlatform = false;
-    public Transform target;
-    public GameObject platform;
-    public float speed;
-    private Vector3 startingPoint;
-    private bool canMove = true;
-    public float waitTime = 1.5f;
-
-    private bool hasbeenActivated =false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class Movable : MonoBehaviour, IInteractable
     {
-        startingPoint = platform.transform.position;
-        target.GetComponent<MeshRenderer>().enabled = false;
+        [SerializeField] private bool _isAutomatic = true;
+        [SerializeField] private Transform _target;
+        [SerializeField] private float _speed;
         
-    }
+        private Vector3 _startingPoint;
+        private Vector3 _targetPoint;
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (target != null & isAutomatic & canMove || hasbeenActivated & target != null & !isAutomatic)
+        private bool _isActivated = false;
+    
+        void Start()
         {
-            platform.transform.position = Vector3.MoveTowards(platform.transform.position, target.position, speed/1000);
-            if ( platform.transform.position == target.position)
-            {
-                (target.position,startingPoint) = (startingPoint,target.position);
-                hasbeenActivated = false;
-                StartCoroutine(Wait());
-            }
+            _startingPoint = transform.position;
+            _targetPoint = _target.position;
         }
-    }
 
-    public void InteratableMove()
-    {
-        hasbeenActivated = true;
-    }
+        void Update()
+        {
+            if (!_target || (!_isAutomatic && !_isActivated)) return;
+            
+            transform.position = Vector3.MoveTowards(transform.position, _targetPoint, _speed/1000);
+            
+            if (transform.position != _targetPoint) return;
+            (_targetPoint,_startingPoint) = (_startingPoint,_targetPoint);
+            _isActivated = false;
+        }
+        
+        private void OnCollisionEnter(Collision other)
+        {
+            if (!other.gameObject.TryGetComponent(out PlayerCharacter character)) return;
+            
+            character.transform.SetParent(gameObject.transform);
+        }
 
-    private IEnumerator Wait()
-    {
-        canMove = !canMove;
-        yield return new WaitForSeconds(waitTime);
-        canMove = !canMove;
+        private void OnCollisionExit(Collision other)
+        {
+            if (!other.gameObject.TryGetComponent(out PlayerCharacter character)) return;
+            
+            character.transform.SetParent(null);
+        }
+
+        public void Interact()
+        {
+            _isActivated = true;
+        }
+
+        public bool IsStrikeInteractable => true;
+        public bool IsBombshellInteractable => false;
     }
 }
