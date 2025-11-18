@@ -917,6 +917,7 @@ GameObject:
   - component: {fileID: 1737984795}
   - component: {fileID: 1737984794}
   - component: {fileID: 1737984793}
+  - component: {fileID: 1737984797}
   m_Layer: 6
   m_Name: Ground
   m_TagString: Untagged
@@ -939,7 +940,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1016,6 +1017,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1737984797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737984791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd992bb27af89f7448dbee687fb95319, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::DeathZone
 --- !u!1 &1762869511
 GameObject:
   m_ObjectHideFlags: 0
