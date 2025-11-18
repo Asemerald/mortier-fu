@@ -1,8 +1,5 @@
 using System;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -111,19 +108,16 @@ namespace MortierFu
                 
                 _pickups[i].SetAugmentVisual(augment);
             }
-            
-            var positions = new List<Vector3>(_augmentCount);
-            for (int i = 0; i < _augmentCount; i++)
-            {
-                var pos = _levelSystem.GetAugmentLocation(i).position;
-                positions.Add(pos);
-            }
+
+            var augmentPivot = _levelSystem.GetAugmentPivot();
+            var augmentPoints = new Vector3[_augmentCount];
+            _levelSystem.PopulateAugmentPoints(augmentPoints);
 
             _showcaseInProgress = true;
-            await _augmentShowcaser.Showcase(positions);
+            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints);
             _showcaseInProgress = false;
 
-            await Task.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
             gm?.EnablePlayerInputs();
@@ -139,6 +133,8 @@ namespace MortierFu
                 pickup.Hide();
             }
 
+            _augmentShowcaser.StopShowcase();
+            
             _augmentBag.Clear();
             _augmentTimer = null;
         }
