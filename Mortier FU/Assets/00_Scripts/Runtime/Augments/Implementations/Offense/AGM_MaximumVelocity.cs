@@ -1,14 +1,21 @@
-﻿namespace MortierFu.Stats
+﻿namespace MortierFu
 {
     public class AGM_MaximumVelocity : AugmentBase
     {
-        public AGM_MaximumVelocity(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod BombshellTimeTravelMod;
+            public AugmentStatMod FireRateMod;
+        }
+        
+        public AGM_MaximumVelocity(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.BombshellTimeTravel.AddModifier(new StatModifier(-0.5f, E_StatModType.PercentMult, this));
-            stats.FireRate.AddModifier(new StatModifier(-0.1f, E_StatModType.PercentMult, this));
+            stats.BombshellTimeTravel.AddModifier(db.MaximumVelocityParams.BombshellTimeTravelMod.ToMod(this));
+            stats.FireRate.AddModifier(db.MaximumVelocityParams.FireRateMod.ToMod(this));
         }
             
         public override void Dispose()

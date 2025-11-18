@@ -1,15 +1,23 @@
-﻿namespace MortierFu.Stats
+﻿namespace MortierFu
 {
     public class AGM_BigBullets : AugmentBase
     {
-        public AGM_BigBullets(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod FireRateMod;
+            public AugmentStatMod BombshellDamageMod;
+            public AugmentStatMod BombshellImpactRadiusMod;
+        }
+        
+        public AGM_BigBullets(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
         
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(0.4f, E_StatModType.PercentMult, this));
-            stats.BombshellDamage.AddModifier(new StatModifier(1f, E_StatModType.Flat, this));
-            stats.BombshellImpactRadius.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(db.BigBulletsParams.FireRateMod.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.BigBulletsParams.BombshellDamageMod.ToMod(this));
+            stats.BombshellImpactRadius.AddModifier(db.BigBulletsParams.BombshellImpactRadiusMod.ToMod(this));
         }
         
         public override void Dispose()

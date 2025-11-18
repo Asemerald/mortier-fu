@@ -1,14 +1,21 @@
-﻿namespace MortierFu.Stats
+﻿namespace MortierFu
 {
     public class AGM_Ballista : AugmentBase
     {
-        public AGM_Ballista(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod FireRateMod;
+            public AugmentStatMod BombshellDamageMod;
+        }
+        
+        public AGM_Ballista(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
         
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(-0.8f, E_StatModType.PercentMult, this));
-            stats.BombshellDamage.AddModifier(new StatModifier(-2.0f, E_StatModType.Flat, this));
+            stats.FireRate.AddModifier(db.BallistaParams.FireRateMod.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.BallistaParams.BombshellDamageMod.ToMod(this));
         }
         
         public override void Dispose()

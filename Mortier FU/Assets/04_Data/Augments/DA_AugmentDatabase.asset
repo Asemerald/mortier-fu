@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93aa8299289940bf990805337ab6889b, type: 3}
+  m_Name: DA_AugmentDatabase
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_AugmentDatabase
+  BigGuyParams:
+    MaxHealthMod:
+      Value: 3
+      ModType: 100
+    FireRateMod:
+      Value: 0.5
+      ModType: 200
+  HealthPackParams:
+    MaxHealthMod:
+      Value: 1
+      ModType: 100
+  BallistaParams:
+    FireRateMod:
+      Value: -0.6
+      ModType: 200
+    BombshellDamageMod:
+      Value: -2
+      ModType: 100
+  BerserkerParams:
+    HealthThreshold: 0.5
+    BombshellDamageMod:
+      Value: 2
+      ModType: 100
+  BigBulletsParams:
+    FireRateMod:
+      Value: 0.4
+      ModType: 200
+    BombshellDamageMod:
+      Value: 1
+      ModType: 100
+    BombshellImpactRadiusMod:
+      Value: 0.5
+      ModType: 200
+  ConfidenceParams:
+    BombshellDamageMod:
+      Value: 2
+      ModType: 100
+    BombshellTimeTravelMod:
+      Value: 1
+      ModType: 200
+  FastReloadParams:
+    FireRateMod:
+      Value: -0.15
+      ModType: 200
+  LuckyLuckParams:
+    FireRateMod:
+      Value: -0.3
+      ModType: 200
+    BaseValueSet: 2
+  MaximumVelocityParams:
+    BombshellTimeTravelMod:
+      Value: -0.5
+      ModType: 200
+    FireRateMod:
+      Value: -0.1
+      ModType: 200
+  SharperBulletsParams:
+    BombshellDamageMod:
+      Value: 1
+      ModType: 100
+  TsarBombaParams:
+    BombshellImpactRadius:
+      Value: 1.5
+      ModType: 200
+    BombshellDamageMod:
+      Value: 1
+      ModType: 100
+    FireRateMod:
+      Value: 1.2
+      ModType: 200
+    BombshellTimeTravelMod:
+      Value: 2
+      ModType: 200
+  BigStrikeParams:
+    StrikeStunDurationMod:
+      Value: 0.2
+      ModType: 200
+    StrikeCooldownMod:
+      Value: 0.5
+      ModType: 200
+  FastStrikeParams:
+    StrikeCooldownMod:
+      Value: -0.15
+      ModType: 200
+  PerfectParryParams:
+    StrikeCooldownMod:
+      Value: -0.1
+      ModType: 200
+    MaxHealthMod:
+      Value: -2
+      ModType: 100
+    ParryMaxHealthGain:
+      Value: 1
+      ModType: 100

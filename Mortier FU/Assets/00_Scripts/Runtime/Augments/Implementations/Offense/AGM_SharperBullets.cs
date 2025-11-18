@@ -1,13 +1,19 @@
-namespace MortierFu.Stats
+namespace MortierFu
 {
     public class AGM_SharperBullets : AugmentBase
     {
-        public AGM_SharperBullets(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod BombshellDamageMod;
+        }
+        
+        public AGM_SharperBullets(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.BombshellDamage.AddModifier(new StatModifier(1, E_StatModType.Flat, this));
+            stats.BombshellDamage.AddModifier(db.SharperBulletsParams.BombshellDamageMod.ToMod(this));
         }
         
         public override void Dispose()

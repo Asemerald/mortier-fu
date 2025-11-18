@@ -177,7 +177,7 @@ namespace MortierFu
         #region Augments
         public void AddAugment(SO_Augment augmentData)
         {
-            var augmentInstance = AugmentFactory.Create(augmentData, this);
+            var augmentInstance = AugmentFactory.Create(augmentData, this, SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
             augmentInstance.Initialize();
             _augments.Add(augmentInstance);
         }

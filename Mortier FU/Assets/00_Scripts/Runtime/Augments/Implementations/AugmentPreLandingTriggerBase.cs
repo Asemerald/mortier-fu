@@ -5,7 +5,7 @@
         private EventBinding<TriggerShootBombshell> _shootBombshellBinding;
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
         
-        protected AugmentPreLandingTriggerBase(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        protected AugmentPreLandingTriggerBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
         
         public override void Initialize()

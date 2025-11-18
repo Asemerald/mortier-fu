@@ -7,7 +7,7 @@
         protected abstract float HealthThreshold { get; }
         protected bool IsActive { get; private set; }
 
-        protected AugmentHealthThresholdBase(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        protected AugmentHealthThresholdBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
         
         public override void Initialize()

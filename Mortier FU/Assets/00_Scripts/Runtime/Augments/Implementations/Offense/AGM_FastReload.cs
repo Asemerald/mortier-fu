@@ -1,13 +1,19 @@
-﻿namespace MortierFu.Stats
+﻿namespace MortierFu
 {
     public class AGM_FastReload : AugmentBase
     {
-        public AGM_FastReload(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod FireRateMod;
+        }
+        
+        public AGM_FastReload(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(-0.15f, E_StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(db.FastReloadParams.FireRateMod.ToMod(this));
         }
         
         public override void Dispose()

@@ -1,22 +1,29 @@
-namespace MortierFu.Stats
+namespace MortierFu
 {
     public class AGM_LuckyLuck : AugmentBase
     {
-        public AGM_LuckyLuck(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod FireRateMod;
+            public int BaseValueSet;
+        }
+        
+        public AGM_LuckyLuck(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(-0.3f, E_StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(db.LuckyLuckParams.FireRateMod.ToMod(this));
             // TODO Trouver une solution plus propre pour éviter d'hardset
-            stats.MaxHealth.BaseValue = 2;
+            stats.MaxHealth.BaseValue = db.LuckyLuckParams.BaseValueSet;
         }
         
         public override void Dispose()
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
             // TODO Trouver une solution plus propre pour éviter d'hardset
-            stats.MaxHealth.BaseValue = 4;
+            stats.MaxHealth.BaseValue = 3;
         }
     }
 }

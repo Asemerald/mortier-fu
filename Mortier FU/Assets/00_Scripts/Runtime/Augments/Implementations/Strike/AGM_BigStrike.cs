@@ -1,14 +1,21 @@
-namespace MortierFu.Stats
+namespace MortierFu
 {
     public class AGM_BigStrike : AugmentBase
     {
-        public AGM_BigStrike(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod StrikeStunDurationMod;
+            public AugmentStatMod StrikeCooldownMod;
+        }
+        
+        public AGM_BigStrike(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.StrikeStunDuration.AddModifier(new StatModifier(0.2f, E_StatModType.PercentMult, this));
-            stats.StrikeCooldown.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
+            stats.StrikeStunDuration.AddModifier(db.BigStrikeParams.StrikeStunDurationMod.ToMod(this));
+            stats.StrikeCooldown.AddModifier(db.BigStrikeParams.StrikeCooldownMod.ToMod(this));
         }
         
         public override void Dispose()

@@ -1,15 +1,23 @@
-﻿namespace MortierFu
+﻿using UnityEngine;
+namespace MortierFu
 {
     public class AGM_Berserker : AugmentHealthThresholdBase
     {
-        public AGM_Berserker(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        [System.Serializable]
+        public struct Params
+        {
+            [Range(0f, 1f)] public float HealthThreshold;
+            public AugmentStatMod BombshellDamageMod;
+        }
+        
+        public AGM_Berserker(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
-        protected override float HealthThreshold => 0.5f;
+        protected override float HealthThreshold => db.BerserkerParams.HealthThreshold;
 
         protected override void OnEnterThreshold()
         {
-            stats.BombshellDamage.AddModifier(new StatModifier(2f, E_StatModType.Flat, this));
+            stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageMod.ToMod(this));
         }
 
         protected override void OnExitThreshold()
