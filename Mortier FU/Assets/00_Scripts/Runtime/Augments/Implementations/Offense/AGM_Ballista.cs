@@ -1,4 +1,4 @@
-﻿namespace MortierFu
+namespace MortierFu
 {
     public class AGM_Ballista : AugmentBase
     {
