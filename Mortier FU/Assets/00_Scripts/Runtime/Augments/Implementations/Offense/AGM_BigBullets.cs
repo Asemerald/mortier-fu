@@ -9,14 +9,14 @@
         {
             stats.FireRate.AddModifier(new StatModifier(0.4f, E_StatModType.PercentMult, this));
             stats.BombshellDamage.AddModifier(new StatModifier(1f, E_StatModType.Flat, this));
-            stats.DamageRange.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
+            stats.BombshellImpactRadius.AddModifier(new StatModifier(0.5f, E_StatModType.PercentMult, this));
         }
         
         public override void Dispose()
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
-            stats.DamageRange.RemoveAllModifiersFromSource(this);
+            stats.BombshellImpactRadius.RemoveAllModifiersFromSource(this);
         }
     }
 }
