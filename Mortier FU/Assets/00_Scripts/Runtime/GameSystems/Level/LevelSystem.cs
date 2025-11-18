@@ -23,7 +23,7 @@ namespace MortierFu
         // Used to track and unload the current loaded map
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
-        private const string k_gameplayMapLabel = "GameplayMap";
+        private const string k_arenaMapsLabel = "ArenaMaps";
 
         public async UniTask LoadAugmentMap()
         {
@@ -150,7 +150,7 @@ namespace MortierFu
         
         private async UniTask LoadAllMaps()
         {
-            var handle = Addressables.LoadResourceLocationsAsync(k_gameplayMapLabel, typeof(SceneInstance));
+            var handle = Addressables.LoadResourceLocationsAsync(k_arenaMapsLabel, typeof(SceneInstance));
             try
             {
                 await handle;
