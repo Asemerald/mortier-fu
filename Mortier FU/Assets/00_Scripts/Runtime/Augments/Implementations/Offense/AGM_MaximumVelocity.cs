@@ -7,8 +7,8 @@
 
         public override void Initialize()
         {
-            stats.BombshellTimeTravel.AddModifier(new StatModifier(-0.5f, E_StatModType.PercentMult, this));
-            stats.FireRate.AddModifier(new StatModifier(-0.1f, E_StatModType.PercentMult, this));
+            stats.BombshellTimeTravel.AddModifier(new StatModifier(-0.5f, E_StatModType.PercentAdd, this));
+            stats.FireRate.AddModifier(new StatModifier(-0.1f, E_StatModType.PercentAdd, this));
         }
             
         public override void Dispose()

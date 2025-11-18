@@ -16,7 +16,7 @@ namespace MortierFu.Stats
             _endRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
             
-            stats.StrikeCooldown.AddModifier(new StatModifier(-0.1f, E_StatModType.PercentMult, this));
+            stats.StrikeCooldown.AddModifier(new StatModifier(-0.1f, E_StatModType.PercentAdd, this));
             stats.MaxHealth.AddModifier(new StatModifier(-2.0f, E_StatModType.Flat, this));
         }
         

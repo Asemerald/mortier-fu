@@ -7,7 +7,7 @@
         
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(new StatModifier(-0.8f, E_StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(new StatModifier(-0.8f, E_StatModType.PercentAdd, this));
             stats.BombshellDamage.AddModifier(new StatModifier(-2.0f, E_StatModType.Flat, this));
         }
         
