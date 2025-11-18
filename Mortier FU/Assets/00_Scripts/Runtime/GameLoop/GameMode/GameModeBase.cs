@@ -218,7 +218,7 @@ namespace MortierFu
             bool opposite = currentRound % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
 
-            foreach (var team in teams)
+            foreach (var team in teams.OrderByDescending(t => t.Rank))
             {
                 foreach (var member in team.Members)
                 {

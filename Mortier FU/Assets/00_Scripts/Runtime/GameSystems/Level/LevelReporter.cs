@@ -11,7 +11,8 @@ namespace MortierFu
         [Space]
         [SerializeField] private bool _isAugmentMap = false;
         [ShowIf("_isAugmentMap")]
-        public Transform[] AugmentPoints;
+        public Transform AugmentPivot;
+        public float Radius = 4f;
 
         void Awake()
         {
@@ -30,6 +31,7 @@ namespace MortierFu
         
         [Header("Debugging")]
         [SerializeField] private bool _enableDebug = true;
+        [SerializeField] private Color _winnerSpawnColor = Color.yellow;
         [SerializeField] private Color _spawnPointColor = Color.dodgerBlue;
         [SerializeField] private Color _augmentPointColor = Color.softRed;
         [SerializeField] private float _widgetSize = 0.1f;
@@ -38,7 +40,7 @@ namespace MortierFu
         private void AutoPopulate()
         {
             SpawnPoints = null;
-            AugmentPoints = null;
+            AugmentPivot = null;
             
             var spawnPoints = transform.Find("Spawn Points");
             if (spawnPoints != null)
@@ -61,25 +63,9 @@ namespace MortierFu
                 Logs.LogWarning("Couldn't find Spawn Points in the child hierarchy.");
             }
             
-            var augmentPoints = transform.Find("Augment Points");
-            if (augmentPoints != null)
+            AugmentPivot = transform.Find("Augment Pivot");
+            if (AugmentPivot == null)
             {
-                if (augmentPoints.childCount > 0)
-                {
-                    AugmentPoints = new Transform[augmentPoints.childCount];
-                    for (int i = 0; i < augmentPoints.childCount; i++)
-                    {
-                        AugmentPoints[i] = augmentPoints.GetChild(i);
-                    }
-                
-                    Logs.Log("Successfully populated the augment points.");
-                }
-                else
-                {
-                    Logs.LogWarning("Found no augment points in the parent holder.");
-                }
-            }
-            else {
                 Logs.LogWarning("Couldn't find Augment Points in the child hierarchy.");
             }
         }
@@ -90,22 +76,20 @@ namespace MortierFu
             
             if (SpawnPoints != null && SpawnPoints.Length > 0)
             {
-                Gizmos.color = _spawnPointColor;
-                foreach (var spawnPoint in SpawnPoints)
+                for (var i = 0; i < SpawnPoints.Length; i++)
                 {
+                    Gizmos.color = i == 0 ? _winnerSpawnColor : _spawnPointColor;
+                
+                    var spawnPoint = SpawnPoints[i];
                     if (spawnPoint == null) continue;
                     Gizmos.DrawSphere(spawnPoint.position, _widgetSize);
                 }
             }
 
-            if (_isAugmentMap && AugmentPoints != null && AugmentPoints.Length > 0)
+            if (_isAugmentMap && AugmentPivot != null)
             {
                 Gizmos.color = _augmentPointColor;
-                foreach (var augmentPoint in AugmentPoints)
-                {
-                    if (augmentPoint == null) continue; 
-                    Gizmos.DrawSphere(augmentPoint.position, _widgetSize);
-                }   
+                Gizmos.DrawWireSphere(AugmentPivot.position, Radius);
             }
         }
         #endif

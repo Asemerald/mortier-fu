@@ -95,20 +95,27 @@ namespace MortierFu
             return BoundReporter.SpawnPoints[index];
         }
 
-        public Transform GetAugmentLocation(int index)
+        public void PopulateAugmentPoints(Vector3[] outPoints)
         {
             if (BoundReporter == null)
-                return FallbackTransform;
-
-            if (index < 0 || index >= BoundReporter.AugmentPoints.Length)
             {
-                if(_settings.EnableDebug) 
-                    Logs.LogWarning("[LevelSystem]: Trying to get an augment point which is out of range of the provided list of augment points by the level reporter !");
-                return FallbackTransform;
+                for (int i = 0; i < outPoints.Length; i++)
+                {
+                    outPoints[i] = Vector3.zero;
+                    return;
+                }
             }
-            
-            return BoundReporter.AugmentPoints[index];
+
+            var pivot = BoundReporter.AugmentPivot ?? FallbackTransform;
+            for (int i = 0; i < outPoints.Length; i++)
+            {
+                float angle = i * Mathf.PI * 2f / outPoints.Length;
+                Vector3 point = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * BoundReporter.Radius;
+                outPoints[i] = pivot.position + point;
+            }
         }
+        
+        public Transform GetAugmentPivot() => BoundReporter != null ? BoundReporter.AugmentPivot ?? FallbackTransform : FallbackTransform;
         
         public void BindReporter(LevelReporter reporter)
         {
