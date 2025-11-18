@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -139,10 +137,10 @@ namespace MortierFu
         {
             // Load the system settings
             var settingsRef = SystemManager.Config.BombshellSettings;
-            Settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (Settings == null) return;
             
-            _bombshellPrefab = await AddressablesHelpers.LazyLoadAsset(Settings.BombshellPrefab);
+            _bombshellPrefab = await AddressablesUtils.LazyLoadAsset(Settings.BombshellPrefab);
             if (_bombshellPrefab == null) return;
             
             _bombshellParent = new GameObject("Bombshells").transform;

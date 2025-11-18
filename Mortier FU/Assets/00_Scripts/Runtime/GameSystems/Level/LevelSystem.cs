@@ -204,7 +204,7 @@ namespace MortierFu
         {
             // Load the system settings
             var settingsRef = SystemManager.Config.LevelSettings;
-            _settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            _settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (_settings == null) return;
 
             await LoadAllMaps();

@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace MortierFu
+namespace MortierFu.Shared
 {
-    public static class AddressablesHelpers
+    public static class AddressablesUtils
     {
         public static async UniTask<T> LazyLoadAsset<T>(AssetReferenceT<T> assetRef) where T : Object
         {

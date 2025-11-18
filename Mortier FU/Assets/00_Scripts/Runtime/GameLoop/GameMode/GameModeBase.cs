@@ -336,7 +336,7 @@ namespace MortierFu
         
         protected virtual async UniTaskVoid SpawnStormTask()
         {
-            var stormPrefab = await AddressablesHelpers.LazyLoadAsset(_stormSettings.StormPrefab);
+            var stormPrefab = await AddressablesUtils.LazyLoadAsset(_stormSettings.StormPrefab);
             if (stormPrefab == null) return;
             
             var stormGO = Object.Instantiate(stormPrefab);
@@ -447,7 +447,7 @@ namespace MortierFu
 
             // Load Storm settings
             var stormSettingsRef = SystemManager.Config.StormSettings;
-            _stormSettings = await AddressablesHelpers.LazyLoadAsset(stormSettingsRef);
+            _stormSettings = await AddressablesUtils.LazyLoadAsset(stormSettingsRef);
             if (_stormSettings == null) return;
             
             timer = new CountdownTimer(0f);

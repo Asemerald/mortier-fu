@@ -1,6 +1,4 @@
 using System;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -38,7 +36,7 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             var settingsRef = SystemManager.Config.AugmentSelectionSettings;
-            Settings = await AddressablesHelpers.LazyLoadAsset(settingsRef);
+            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (Settings == null) return;
             
             _pickupParent = new GameObject("AugmentPickups").transform;
@@ -60,7 +58,7 @@ namespace MortierFu
         private async UniTask InstantiatePickups()
         {
             // Load the augment pickup prefab
-            var pickupPrefab = await AddressablesHelpers.LazyLoadAsset(Settings.AugmentPickupPrefab);
+            var pickupPrefab = await AddressablesUtils.LazyLoadAsset(Settings.AugmentPickupPrefab);
             if (pickupPrefab == null) return;
             
             _pickups = new  List<AugmentPickup>(_augmentCount);
