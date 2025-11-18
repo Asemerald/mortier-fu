@@ -84,6 +84,13 @@ namespace MortierFu
                  
                 var root = hit.transform.root.gameObject;
                  
+                // TEMP ajout breakable
+                if (hit.TryGetComponent(out IInteractable interactable) && interactable.IsStrikeInteractable)
+                {
+                    interactable.Interact();
+                    continue;
+                }
+                
                 if (!processedRoots.Add(root)) continue;
 
                 if (hit.TryGetComponent(out Bombshell bombshell))
@@ -91,19 +98,6 @@ namespace MortierFu
                     blockedBombshells.Add(bombshell);
                     bombshell.ReturnToPool();
 
-                    continue;
-                }
-                
-                // TEMP ajout breakable
-                if (hit.TryGetComponent(out Breakable breakable))
-                {
-                    breakable.DestroyObject(1);
-                    continue;
-                }
-                // TEMP ajout Moveable
-                if (hit.TryGetComponent(out Movable movable))
-                {
-                    movable.InteratableMove();
                     continue;
                 }
 

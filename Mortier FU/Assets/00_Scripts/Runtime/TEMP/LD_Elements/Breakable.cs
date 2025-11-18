@@ -1,26 +1,33 @@
-using System;
-using MortierFu;
+using MortierFu.Shared;
 using UnityEngine;
 
-public class Breakable : MonoBehaviour
+namespace MortierFu
 {
-    [SerializeField] private bool isBombshellBreakable =true;
-    [SerializeField] private bool isStrikeBreakable =true;
-    public bool canprotect = false;
-    [SerializeField] private int life = 1;
-    [SerializeField] private Material mat;
-    public void DestroyObject(int index)
+    public class Breakable : MonoBehaviour, IInteractable
     {
-        if (isStrikeBreakable & index==1 || isBombshellBreakable & index ==0)
+        [SerializeField] private int life = 1;
+        [SerializeField] private Material _mat;
+    
+        private MeshRenderer _meshRenderer;
+
+        private void Awake()
+        {
+            _meshRenderer = GetComponentInChildren<MeshRenderer>();
+        }
+
+        public void Interact()
         {
             life--;
             if (life <= 0)
-            {
-                Destroy(gameObject);
+            { 
+                Destroy(gameObject); 
                 return;
             }
-            gameObject.GetComponent<MeshRenderer>().material = mat;
-            
+        
+            if(_mat) _meshRenderer.material = _mat;
         }
-    }
+
+        public bool IsStrikeInteractable => true;
+        public bool IsBombshellInteractable => true;
+    }   
 }
