@@ -74,15 +74,10 @@ namespace MortierFu
         {
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(_maxHealth);
-
-            int max = 10;
-            int current = 10;
-            
         }
 
         void UpdateHealth() {
             int newMaxHealth = Math.Max(1, Mathf.RoundToInt(Stats.MaxHealth.Value));
-            Logs.Log("New Max Health: " + newMaxHealth);
             
             // Calculate gain or loss in max health
             int delta = newMaxHealth - _maxHealth;
