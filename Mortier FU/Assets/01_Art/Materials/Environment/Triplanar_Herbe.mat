@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7017918218595575447
+--- !u!114 &-986552730235827986
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Palmier_feuiles
-  m_Shader: {fileID: -6465566751694194690, guid: f41e976ab0d555b4f94e67fef8726e89, type: 3}
+  m_Name: Triplanar_Herbe
+  m_Shader: {fileID: -6465566751694194690, guid: a4700f2a17d48d04990730ddcf53ffec, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -46,7 +46,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RGBAMask:
-        m_Texture: {fileID: 2800000, guid: 85f8ddb8d603433409b48aa6990feace, type: 3}
+        m_Texture: {fileID: 2800000, guid: 5ffc58b6d2b937e4f852b0f15a271d92, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -63,26 +63,20 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Contrast: 1
-    - _Contrast_A: 1
-    - _Contrast_B: 1.05
-    - _Contrast_G: 0.51
-    - _Contrast_R: 0.64
+    - _Contrast: 0
     - _Metallic: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Roughness: 1
-    - _Saturation: 1
-    - _Saturation_A: 1
-    - _Saturation_B: 0.8
-    - _Saturation_G: 1
-    - _Saturation_R: 1
+    - _Saturation: 0
+    - _Tiling: 0.32
     - _UseAlpha: 0
+    - _UseRGBAMask: 1
     m_Colors:
-    - _Color: {r: 0.5566038, g: 0.513034, b: 0.375445, a: 1}
-    - _Color_A: {r: 0.9056604, g: 0.53068185, b: 0.36311856, a: 1}
-    - _Color_B: {r: 0.19195323, g: 0.2735849, b: 0.10194909, a: 1}
-    - _Color_G: {r: 0, g: 0.084905684, b: 0.010028225, a: 1}
-    - _Color_R: {r: 0.43908978, g: 0.4811321, b: 0.093049124, a: 1}
+    - _Color: {r: 0.15482208, g: 0.3301887, b: 0.13861695, a: 1}
+    - _Color_A: {r: 0, g: 0, b: 0, a: 1}
+    - _Color_B: {r: 0.1289706, g: 0.16981131, b: 0, a: 1}
+    - _Color_G: {r: 0.8396226, g: 0.8396226, b: 0.38416696, a: 1}
+    - _Color_R: {r: 0.30581608, g: 0.5377358, b: 0.22067462, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
