@@ -1919,7 +1919,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 4921
+  m_VersionIndex: 4930
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -2932,7 +2932,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1067
+  m_VersionIndex: 1076
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -4574,7 +4574,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1582
+  m_VersionIndex: 1591
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -4709,7 +4709,7 @@ Transform:
   m_GameObject: {fileID: 6822578971985096814}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16, y: 0, z: -2.5}
+  m_LocalPosition: {x: -16, y: 0.5, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4740,7 +4740,7 @@ Transform:
   m_GameObject: {fileID: 7589758650697470865}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16, y: 0, z: 7.5}
+  m_LocalPosition: {x: -16, y: 0.5, z: 7.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4771,7 +4771,7 @@ Transform:
   m_GameObject: {fileID: 8274162418581839087}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16, y: 0, z: 2.5}
+  m_LocalPosition: {x: -16, y: 0.5, z: 2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4802,7 +4802,7 @@ Transform:
   m_GameObject: {fileID: 8481701009729321654}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6016,7 +6016,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1901
+  m_VersionIndex: 1910
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -6138,6 +6138,7 @@ GameObject:
   - component: {fileID: 8761996401792640809}
   - component: {fileID: 3997262345461418821}
   - component: {fileID: 2281854435296466}
+  - component: {fileID: 1654964523000195238}
   m_Layer: 6
   m_Name: Rotator
   m_TagString: Untagged
@@ -7438,7 +7439,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1484
+  m_VersionIndex: 1493
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -7561,6 +7562,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::Rotator
   speed: 12
+--- !u!114 &1654964523000195238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9177691027356306618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85479fdcdb1ebde43a605f8987fd9c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SnapPlayer
 --- !u!1001 &1839025895826417637
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7836,6 +7849,10 @@ PrefabInstance:
     - target: {fileID: 3862948409411120684, guid: 540253403287db544bc299cbf112c5c8, type: 3}
       propertyPath: m_LocalPosition.x
       value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 3862948409411120684, guid: 540253403287db544bc299cbf112c5c8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3862948409411120684, guid: 540253403287db544bc299cbf112c5c8, type: 3}
       propertyPath: m_LocalPosition.z

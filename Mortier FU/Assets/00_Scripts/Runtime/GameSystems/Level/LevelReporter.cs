@@ -14,7 +14,6 @@ namespace MortierFu
         private void AutoPopulate()
         {
             SpawnPoints = null;
-            AugmentPivot = null;
             
             var spawnPoints = transform.Find("Spawn Points");
             if (spawnPoints != null)
