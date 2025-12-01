@@ -18,31 +18,22 @@ namespace MortierFu
     {
         private SO_LevelSettings _settings;
         
-        private List<IResourceLocation> _mapLocations;
+        private List<IResourceLocation> _arenaMapLocations;
+        private List<IResourceLocation> _raceMapLocations;
         
         // Used to track and unload the current loaded map
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
         private const string k_arenaMapsLabel = "ArenaMaps";
+        private const string k_raceMapsLabel = "RaceMaps";
 
         public async UniTask LoadRaceMap()
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
 
-            object raceMapKey = _settings.RaceMapScene.RuntimeKey;
-            _mapHandle = Addressables.LoadSceneAsync(raceMapKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
-            
-            await _mapHandle;
-        }
-
-        public async UniTask LoadGameplayMap()
-        {
-            await FinishUnfinishedBusiness();
-            await UnloadCurrentMap();
-            
             #if UNITY_EDITOR
-            string sceneKey = EditorPrefs.GetString("OverrideMapAddress", "");
+            string sceneKey = EditorPrefs.GetString("OverrideRaceMapAddress", "");
             if (!string.IsNullOrEmpty(sceneKey)) {
                 var locations = await Addressables.LoadResourceLocationsAsync(sceneKey);
                 if (locations.Count > 0) {
@@ -63,9 +54,44 @@ namespace MortierFu
             }
             #endif
             
-            var map = _mapLocations.RandomElement();
+            var map = _raceMapLocations.RandomElement();
+            
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+            await _mapHandle;
+            
+            if(_settings.EnableDebug)
+                Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
+        }
 
+        public async UniTask LoadArenaMap()
+        {
+            await FinishUnfinishedBusiness();
+            await UnloadCurrentMap();
+            
+            #if UNITY_EDITOR
+            string sceneKey = EditorPrefs.GetString("OverrideArenaMapAddress", "");
+            if (!string.IsNullOrEmpty(sceneKey)) {
+                var locations = await Addressables.LoadResourceLocationsAsync(sceneKey);
+                if (locations.Count > 0) {
+                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+                    await _mapHandle;
+                
+                    if(_settings.EnableDebug)
+                        Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
+                
+                    return;
+                }
+                else 
+                {
+                    if(_settings.EnableDebug)
+                        Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
+                }
+            }
+            #endif
+            
+            var map = _arenaMapLocations.RandomElement();
+            
+            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
             
             if(_settings.EnableDebug)
@@ -148,7 +174,6 @@ namespace MortierFu
         
         private async UniTask FinishUnfinishedBusiness()
         {
-
             // Finish unfinished business
             if (_mapHandle.IsValid() && !_mapHandle.IsDone)
             {
@@ -161,25 +186,27 @@ namespace MortierFu
                 }
             }
         }
-        
-        private async UniTask LoadAllMaps()
+
+        private async UniTask<List<IResourceLocation>> LoadMapsByLabel(string label)
         {
-            var handle = Addressables.LoadResourceLocationsAsync(k_arenaMapsLabel, typeof(SceneInstance));
+            var handle = Addressables.LoadResourceLocationsAsync(label, typeof(SceneInstance));
             try
             {
                 await handle;
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Logs.Log($"[LevelSystem]: Failed to load the maps. Issued: {handle.OperationException.Message}");
-                    return;
+                    Logs.Log($"[LevelSystem]: Failed to load the arena maps. Issued: {handle.OperationException.Message}");
+                    return null;
                 }
 
-                _mapLocations = new List<IResourceLocation>(handle.Result);
+                var operations = new List<IResourceLocation>(handle.Result);
                 
                 if (_settings.EnableDebug)
-                    Logs.Log($"Successfully loaded {_mapLocations.Count} maps resource locations.");
-                
+                    Logs.Log($"Successfully loaded {operations.Count} maps resource locations.");
+
+                return operations;
+
             } finally
             {
                 Addressables.Release(handle);
@@ -228,12 +255,13 @@ namespace MortierFu
             _settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (_settings == null) return;
 
-            await LoadAllMaps();
+            _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
+            _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
         }
 
         public void Dispose()
         {
-            _mapLocations.Clear();
+            _arenaMapLocations.Clear();
         }
         
         public bool IsInitialized { get; set; }

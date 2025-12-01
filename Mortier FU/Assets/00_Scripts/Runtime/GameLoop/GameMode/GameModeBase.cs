@@ -137,7 +137,7 @@ namespace MortierFu
             if (!IsReady)
             {
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
-                await levelSystem.LoadGameplayMap();
+                await levelSystem.LoadArenaMap();
                 StartRound();
                 return;
             }
@@ -171,7 +171,7 @@ namespace MortierFu
                 augmentSelectionSys.EndRace();
                 EndRace();
                 
-                await levelSystem.LoadGameplayMap();
+                await levelSystem.LoadArenaMap();
 
                 StartRound();
 
