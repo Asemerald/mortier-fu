@@ -30,6 +30,7 @@ namespace MortierFu
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
+        protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
         protected ACT_Storm _stormInstance;
@@ -67,6 +68,7 @@ namespace MortierFu
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -84,7 +86,8 @@ namespace MortierFu
                 player.Character.Health.OnDeath += source => {
                     player.Metrics.TotalDeaths++;
                     alivePlayers.Remove(player.Character);
-
+                    cameraSystem.Controller.RemoveTarget(player.transform);
+                    
                     if (source is PlayerCharacter killer)
                     {
                         OnPlayerKill(killer, player.Character);
@@ -271,6 +274,9 @@ namespace MortierFu
             currentRank = teams.Count;
             oneTeamStanding = false;
 
+            SpawnPlayers();
+            EnablePlayerInputs(false);
+            
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
@@ -285,6 +291,9 @@ namespace MortierFu
             SpawnPlayers();
             EnablePlayerInputs(false);
 
+            var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
+            cameraSystem.Controller.PopulateTargetGroup(groupMembers);
+            
             HandleCountdown();
         }
 
@@ -399,8 +408,11 @@ namespace MortierFu
 
         protected virtual void StartRace()
         {
-            UpdateGameState(GameState.RaceInProgress);
-
+            UpdateGameState(GameState.AugmentSelection);
+            
+            cameraSystem.Controller.ClearTargetGroupMember();
+            cameraSystem.Controller.ResetCameraInstant();
+            // Faire une fonction pour placer la cam et qu'elle ne bouge plus.
             SpawnPlayers();
 
             // Hide previous showcase UI            

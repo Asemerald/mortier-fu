@@ -73,8 +73,6 @@ namespace MortierFu
             
             _shootStrategy.Initialize();
             _shootAction.Disable();
-            
-            _cameraSystem.Controller.AddTarget(character.transform, 1, 1);
         }
 
         public override void Reset()
