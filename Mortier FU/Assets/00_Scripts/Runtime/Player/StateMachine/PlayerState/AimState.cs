@@ -14,6 +14,8 @@ namespace MortierFu
                 Logs.Log("Entering Aim State", character.gameObject);
             
             animator.CrossFade(LocomotionHash, k_crossFadeDuration);
+
+            character.Mortar.BeginAiming();
         }
 
         public override void Update()
@@ -31,6 +33,8 @@ namespace MortierFu
         {
             if(debug)
                 Logs.Log("Exiting Aim State");
+
+            character.Mortar.EndAiming();
         }
     }
 }

@@ -137,7 +137,7 @@ namespace MortierFu
         
         public void StopShooting() => IsShooting = false;
 
-        public void BeginAiming(InputAction.CallbackContext ctx)
+        public void BeginAiming()
         { 
             Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();
@@ -145,7 +145,7 @@ namespace MortierFu
             _shootAction.Enable();
         }
 
-        public void EndAiming(InputAction.CallbackContext ctx)
+        public void EndAiming()
         {
             Logs.Log("[MortarCharacterComponent]: End Aiming");
             AimWidget.Hide();

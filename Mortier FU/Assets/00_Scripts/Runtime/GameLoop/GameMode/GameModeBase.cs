@@ -344,7 +344,6 @@ namespace MortierFu
             EvaluateScores();
 
             OnRoundEnded?.Invoke(currentRound);
-            Logs.Log("Round ended.");
         }
 
         private void SpawnStorm() => SpawnStormTask().Forget();
@@ -417,6 +416,7 @@ namespace MortierFu
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
+            PlayerCharacter.AllowGameplayActions = false;
 
             Logs.Log("Starting augment selection...");
         }

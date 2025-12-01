@@ -92,9 +92,6 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
-
-            _toggleAimAction.started += Mortar.BeginAiming;
-            _toggleAimAction.canceled += Mortar.EndAiming;
         }
         
         public void Reset()
@@ -121,12 +118,6 @@ namespace MortierFu
             Controller.Dispose();
             Aspect.Dispose();
             Mortar.Dispose();
-
-            if (_toggleAimAction != null && Mortar != null)
-            {
-                _toggleAimAction.started -= Mortar.BeginAiming;
-                _toggleAimAction.canceled -= Mortar.EndAiming;
-            }
         }
 
         private void InitStateMachine()
@@ -147,9 +138,9 @@ namespace MortierFu
             At(_locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
-            At(aimState, shootState, new FuncPredicate(() => Mortar.IsShooting));
-            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished));
+            At(aimState, _strikeState, new GameplayFuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
+            At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
+            At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));

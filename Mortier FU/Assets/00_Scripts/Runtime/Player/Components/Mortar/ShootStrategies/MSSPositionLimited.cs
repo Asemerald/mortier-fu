@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Numerics;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
@@ -64,6 +67,10 @@ namespace MortierFu
         public override void BeginAiming()
         {
             _enableShoot = false;
+            
+            Vector2 aimInput = aimAction.ReadValue<Vector2>();
+            Vector3 newPos = Vector3.ClampMagnitude(new Vector3(aimInput.x, 0.0f, aimInput.y) * CharacterStats.ShotRange.Value, CharacterStats.ShotRange.Value);
+            aimWidget.SetRelativePosition(newPos);
         }
     }
 }
