@@ -19,6 +19,7 @@ namespace MortierFu
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
         public AGM_TsarBomba.Params TsarBombaParams;
+        public AGM_Bouncy.Params BouncyParams;
         
         [Header("Strike")]
         public AGM_BigStrike.Params BigStrikeParams;
