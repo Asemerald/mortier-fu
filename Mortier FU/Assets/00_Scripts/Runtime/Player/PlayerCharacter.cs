@@ -92,6 +92,9 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
+
+            _toggleAimAction.started += Mortar.BeginAiming;
+            _toggleAimAction.canceled += Mortar.EndAiming;
         }
         
         public void Reset()
@@ -118,6 +121,12 @@ namespace MortierFu
             Controller.Dispose();
             Aspect.Dispose();
             Mortar.Dispose();
+            
+            if (_toggleAimAction != null && Mortar != null)
+            {
+                _toggleAimAction.started -= Mortar.BeginAiming;
+                _toggleAimAction.canceled -= Mortar.EndAiming;
+            }
         }
 
         private void InitStateMachine()

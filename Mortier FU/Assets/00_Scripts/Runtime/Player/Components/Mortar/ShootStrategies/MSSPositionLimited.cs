@@ -61,7 +61,6 @@ namespace MortierFu
             {
                 _enableShoot = false;
             }
-            
         }
 
         public override void BeginAiming()
