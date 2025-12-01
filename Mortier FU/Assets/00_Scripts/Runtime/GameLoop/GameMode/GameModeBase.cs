@@ -408,7 +408,7 @@ namespace MortierFu
 
         protected virtual void StartRace()
         {
-            UpdateGameState(GameState.AugmentSelection);
+            UpdateGameState(GameState.RaceInProgress);
             
             cameraSystem.Controller.ClearTargetGroupMember();
             cameraSystem.Controller.ResetCameraInstant();
