@@ -99,6 +99,9 @@ namespace MortierFu
         
         public void Reset()
         {
+            // Reset the parent if it was held by an actor
+            transform.SetParent(null);
+            
             gameObject.SetActive(true);
             
             Health.Reset();

@@ -17,7 +17,6 @@ namespace MortierFu
         private readonly AugmentSelectionSystem _system;
         
         private Transform[] _augmentPoints;
-        private Tween _spinTween;
         
         private Camera _cam;
 
@@ -68,6 +67,7 @@ namespace MortierFu
                 
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
+                augmentPoint.position = augmentPoints[i];
                 _augmentPoints[i] = augmentPoint;
                 
                 pickup.transform.SetParent(_augmentPoints[i]);
@@ -82,24 +82,16 @@ namespace MortierFu
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
-            
-            _spinTween = Tween.RotationAtSpeed(pivot, Vector3.up * 360f, 2f, Ease.Linear, -1, CycleMode.Incremental);
         }
         
         public void StopShowcase()
         {
-            foreach (var pickup in _pickups)
-            {
-                pickup.transform.SetParent(null);
-            }
+            _system.RestorePickupParent();
 
             for (int i = _augmentPoints.Length - 1; i >= 0; i--)
             {
                 Object.Destroy(_augmentPoints[i].gameObject);
             }
-            
-            _spinTween.Stop();
-            _spinTween = default;
         }
 
         public void Dispose()
