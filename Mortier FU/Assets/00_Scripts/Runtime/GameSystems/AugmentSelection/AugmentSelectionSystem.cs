@@ -126,7 +126,7 @@ namespace MortierFu
             _augmentTimer.Start();
         }
 
-        public void EndAugmentSelection()
+        public void EndRace()
         {
             foreach (var pickup in _pickups)
             {
@@ -137,6 +137,15 @@ namespace MortierFu
             
             _augmentBag.Clear();
             _augmentTimer = null;
+        }
+        
+        public void RestorePickupParent()
+        {
+            for (int i = 0; i < _pickups.Count; i++)
+            {
+                var pickup = _pickups[i];
+                pickup.transform.SetParent(_pickupParent);
+            }
         }
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)

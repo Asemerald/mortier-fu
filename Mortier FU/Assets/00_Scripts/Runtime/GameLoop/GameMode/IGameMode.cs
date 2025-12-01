@@ -11,8 +11,8 @@ namespace MortierFu
         Round,
         EndRound,
         DisplayScores,
-        AugmentSelection,
-        EndAugmentSelection,
+        RaceInProgress,
+        EndingRace,
         EndGame,
     }
     

@@ -156,10 +156,11 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
-                await levelSystem.LoadAugmentMap();
+                ResetPlayers();
+                await levelSystem.LoadRaceMap();
 
-                UpdateGameState(GameState.AugmentSelection);
-                StartAugmentSelection();
+                UpdateGameState(GameState.RaceInProgress);
+                StartRace();
 
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
@@ -167,9 +168,9 @@ namespace MortierFu
                 while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();
 
-                augmentSelectionSys.EndAugmentSelection();
-                EndAugmentSelection();
-
+                augmentSelectionSys.EndRace();
+                EndRace();
+                
                 await levelSystem.LoadGameplayMap();
 
                 StartRound();
@@ -222,7 +223,7 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    var spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
+                    var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1 ? levelSystem.GetWinnerSpawnPoint() : levelSystem.GetSpawnPoint(spawnIndex);
                     member.SpawnInGame(spawnPoint.position);
                     member.Character.transform.position = spawnPoint.position;
                     if (opposite)
@@ -270,9 +271,6 @@ namespace MortierFu
             currentRank = teams.Count;
             oneTeamStanding = false;
 
-            SpawnPlayers();
-            EnablePlayerInputs(false);
-
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
@@ -283,6 +281,9 @@ namespace MortierFu
 
                 team.Rank = -1;
             }
+            
+            SpawnPlayers();
+            EnablePlayerInputs(false);
 
             HandleCountdown();
         }
@@ -396,9 +397,9 @@ namespace MortierFu
             // Hide UI
         }
 
-        protected virtual void StartAugmentSelection()
+        protected virtual void StartRace()
         {
-            UpdateGameState(GameState.AugmentSelection);
+            UpdateGameState(GameState.RaceInProgress);
 
             SpawnPlayers();
 
@@ -408,9 +409,9 @@ namespace MortierFu
             Logs.Log("Starting augment selection...");
         }
 
-        protected virtual void EndAugmentSelection()
+        protected virtual void EndRace()
         {
-            UpdateGameState(GameState.EndAugmentSelection);
+            UpdateGameState(GameState.EndingRace);
 
             EnablePlayerInputs(false);
 

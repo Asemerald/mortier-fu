@@ -25,13 +25,13 @@ namespace MortierFu
 
         private const string k_arenaMapsLabel = "ArenaMaps";
 
-        public async UniTask LoadAugmentMap()
+        public async UniTask LoadRaceMap()
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
 
-            object augmentMapKey = _settings.AugmentMapScene.RuntimeKey;
-            _mapHandle = Addressables.LoadSceneAsync(augmentMapKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
+            object raceMapKey = _settings.RaceMapScene.RuntimeKey;
+            _mapHandle = Addressables.LoadSceneAsync(raceMapKey, LoadSceneMode.Additive, SceneReleaseMode.OnlyReleaseSceneOnHandleRelease);
             
             await _mapHandle;
         }
@@ -80,6 +80,22 @@ namespace MortierFu
             _mapHandle = default;
         }
 
+        public bool IsRaceMap()
+        {
+            if (BoundReporter == null)
+                return false;
+            
+            return BoundReporter.IsRaceMap;
+        }
+        
+        public Transform GetWinnerSpawnPoint()
+        {
+            if (BoundReporter == null)
+                return FallbackTransform;
+
+            return BoundReporter.WinnerSpawnPoint ?? FallbackTransform;
+        }
+        
         public Transform GetSpawnPoint(int index)
         {
             if (BoundReporter == null)
@@ -102,16 +118,14 @@ namespace MortierFu
                 for (int i = 0; i < outPoints.Length; i++)
                 {
                     outPoints[i] = Vector3.zero;
-                    return;
                 }
-            }
 
-            var pivot = BoundReporter.AugmentPivot ?? FallbackTransform;
+                return;
+            }
+            
             for (int i = 0; i < outPoints.Length; i++)
             {
-                float angle = i * Mathf.PI * 2f / outPoints.Length;
-                Vector3 point = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * BoundReporter.Radius;
-                outPoints[i] = pivot.position + point;
+                outPoints[i] = BoundReporter.GetAugmentPoint(outPoints.Length, i);
             }
         }
         
