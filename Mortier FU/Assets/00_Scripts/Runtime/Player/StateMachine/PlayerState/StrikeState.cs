@@ -63,7 +63,10 @@ namespace MortierFu
         }
 
         public void Reset() {
+            _strikeCooldownTimer.Reset();
             _strikeCooldownTimer.Stop();
+            
+            _strikeTriggerTimer.Reset();
             _strikeTriggerTimer.Stop();
         }
         
