@@ -66,8 +66,7 @@ namespace MortierFu
             _shootStrategy.Initialize();
             _shootAction.Disable();
             
-            // TODO better when refacto CameraHandler
-            Object.FindFirstObjectByType<TEMP_CameraHandler>()._targetGroup.AddMember(character.transform, 1, 1); 
+            SystemManager.Instance.Get<CameraSystem>().Controller.AddTarget(character.transform, 1, 1);
         }
 
         public override void Reset()

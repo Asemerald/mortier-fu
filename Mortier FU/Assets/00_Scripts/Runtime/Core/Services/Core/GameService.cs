@@ -55,6 +55,7 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
+            SystemManager.Instance.CreateAndRegister<CameraSystem>();
 
             await SystemManager.Instance.Initialize();
 

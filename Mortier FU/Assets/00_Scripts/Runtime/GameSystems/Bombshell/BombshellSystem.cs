@@ -85,10 +85,11 @@ namespace MortierFu
             }
             else Logs.LogWarning("No FX Handler");
 
-            if (TEMP_CameraShake.Instance)
+            if (SystemManager.Instance.Get<CameraSystem>() != null)
             {
-                TEMP_CameraShake.Instance.CallCameraShake(bombshell.AoeRange, 20 + bombshell.Damage * 10, bombshell.Owner.Stats.BombshellTimeTravel.Value);
+                SystemManager.Instance.Get<CameraSystem>().Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10, bombshell.Owner.Stats.BombshellTimeTravel.Value);
             }
+            
             else Logs.LogWarning("No CameraShake");
 
             if (hitCharacters.Count > 0)

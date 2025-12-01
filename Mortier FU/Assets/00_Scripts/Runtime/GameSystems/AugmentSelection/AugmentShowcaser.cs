@@ -43,7 +43,7 @@ namespace MortierFu
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
                 
-                Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale,_system.Settings.CardPopInDuration, Ease.OutBounce);
+                await Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale,_system.Settings.CardPopInDuration, Ease.OutBounce);
                 
                 await Task.Delay(TimeSpan.FromSeconds(0.05f));
             }
@@ -61,7 +61,7 @@ namespace MortierFu
             {
                 var pickup = _pickups[i];
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                Tween.Position(pickup.transform, positions[i].Add(y: i * 0.06f), duration, Ease.InOutQuad)
+                await Tween.Position(pickup.transform, positions[i].Add(y: i * 0.06f), duration, Ease.InOutQuad)
                     .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
                     {
                         pickup.SetFaceCameraEnabled(false);

@@ -397,7 +397,7 @@ Transform:
   m_GameObject: {fileID: 3392041852622911767}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.5}
+  m_LocalPosition: {x: 0, y: -30, z: 15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -471,7 +471,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::TEMP_CameraShake
   cinemachineCamera: {fileID: 783346269155377468}
-  addedFOV: 0
 --- !u!114 &2950798803157038725
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -484,9 +483,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce9953e137159714f82d722b20a31299, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::TEMP_CameraHandler
-  cinemachineCamera: {fileID: 783346269155377468}
+  _cinemachineCamera: {fileID: 783346269155377468}
   _targetGroup: {fileID: 4839283198232207134}
-  _target: {fileID: 1364309725040297222}
+  _shakeController: {fileID: 8569257766003188856}
+  _virtualTarget: {fileID: 7857176679031138130}
 --- !u!1 &5124277856500845316
 GameObject:
   m_ObjectHideFlags: 0
@@ -497,8 +497,8 @@ GameObject:
   m_Component:
   - component: {fileID: 506038622316776210}
   - component: {fileID: 783346269155377468}
-  - component: {fileID: 3989323269039836567}
   - component: {fileID: 5453816315036645476}
+  - component: {fileID: 3989323269039836567}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -564,23 +564,6 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!114 &3989323269039836567
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5124277856500845316}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBasicMultiChannelPerlin
-  NoiseProfile: {fileID: 11400000, guid: 69ce8388f6785dd4c8c39915efece2f4, type: 2}
-  PivotOffset: {x: 0, y: 0, z: 0}
-  AmplitudeGain: 1
-  FrequencyGain: 8
-  m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!114 &5453816315036645476
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -600,3 +583,20 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: -14.6, y: 31.2, z: -22.3}
+--- !u!114 &3989323269039836567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5124277856500845316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBasicMultiChannelPerlin
+  NoiseProfile: {fileID: 11400000, guid: 69ce8388f6785dd4c8c39915efece2f4, type: 2}
+  PivotOffset: {x: 0, y: 0, z: 0}
+  AmplitudeGain: 1
+  FrequencyGain: 8
+  m_NoiseOffsets: {x: 0, y: 0, z: 0}
