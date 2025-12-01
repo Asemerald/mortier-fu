@@ -16,6 +16,7 @@ namespace MortierFu
         private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootCooldownTimer;
+        private CameraSystem _cameraSystem;
         private bool _isAiming;
 
         public bool CanShoot => !_shootCooldownTimer.IsRunning;
@@ -37,7 +38,7 @@ namespace MortierFu
                 Logs.LogError("[MortarCharacterComponent]: FirePoint transform is null!");
                 return;
             }
-
+            
             AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable?
             _firePoint = firePoint;
         }
@@ -54,6 +55,13 @@ namespace MortierFu
                 Logs.LogError("[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
                 return;
             }
+            
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            if (_cameraSystem == null)
+            {
+                Logs.LogError("[MortarCharacterComponent]: Could not get the camera system from the system manager !");
+                return;  
+            }
 
             Color playerColor = character.Aspect.PlayerColor;
             AimWidget.Colorize(playerColor);
@@ -66,7 +74,7 @@ namespace MortierFu
             _shootStrategy.Initialize();
             _shootAction.Disable();
             
-            SystemManager.Instance.Get<CameraSystem>().Controller.AddTarget(character.transform, 1, 1);
+            _cameraSystem.Controller.AddTarget(character.transform, 1, 1);
         }
 
         public override void Reset()
