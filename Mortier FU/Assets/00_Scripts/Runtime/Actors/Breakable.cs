@@ -1,11 +1,10 @@
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
 {
     public class Breakable : MonoBehaviour, IInteractable
     {
-        [SerializeField] private int life = 1;
+        [SerializeField] private int _life = 1;
         [SerializeField] private Material _mat;
     
         private MeshRenderer _meshRenderer;
@@ -17,8 +16,8 @@ namespace MortierFu
 
         public void Interact()
         {
-            life--;
-            if (life <= 0)
+            _life--;
+            if (_life <= 0)
             { 
                 Destroy(gameObject); 
                 return;
