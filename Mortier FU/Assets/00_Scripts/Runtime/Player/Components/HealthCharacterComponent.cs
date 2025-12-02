@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -29,7 +30,7 @@ namespace MortierFu
             UpdateHealth();
         }
         
-        public void TakeDamage(int amount, object source)
+        public void TakeDamage(int amount, object source, bool isLethal = false)
         {
             // Cannot take damage if already dead
             if (!IsAlive)
@@ -54,6 +55,8 @@ namespace MortierFu
                 OnDeath?.Invoke(source);
             }
         }
+        
+        public void TakeLethalDamage(object source) => TakeDamage(_currentHealth, source, true);
         
         public void Heal(float amount)
         {
