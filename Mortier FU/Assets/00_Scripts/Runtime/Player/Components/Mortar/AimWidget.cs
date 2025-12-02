@@ -1,5 +1,4 @@
-﻿using System;
-using MortierFu.Shared;
+﻿using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 
