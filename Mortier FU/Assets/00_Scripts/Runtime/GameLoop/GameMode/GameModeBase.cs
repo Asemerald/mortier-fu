@@ -151,7 +151,6 @@ namespace MortierFu
             Logs.Log("Starting the game...");
         }
 
-        // TODO: Maybe it is valuable to ask for player 1 input to proceed to each step for fluidity
         protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
@@ -159,11 +158,12 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
-                ResetPlayers();
                 await levelSystem.LoadRaceMap();
 
                 UpdateGameState(GameState.RaceInProgress);
                 StartRace();
+                
+                Debug.Log(teams[0].Members[0].transform.position);
 
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
@@ -228,7 +228,6 @@ namespace MortierFu
                 {
                     var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1 ? levelSystem.GetWinnerSpawnPoint() : levelSystem.GetSpawnPoint(spawnIndex);
                     member.SpawnInGame(spawnPoint.position);
-                    member.Character.transform.position = spawnPoint.position;
                     if (opposite)
                         spawnIndex--;
                     else
@@ -273,10 +272,11 @@ namespace MortierFu
             currentRound++;
             currentRank = teams.Count;
             oneTeamStanding = false;
-
+            
+            ResetPlayers();
             SpawnPlayers();
             EnablePlayerInputs(false);
-            
+
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
@@ -287,9 +287,6 @@ namespace MortierFu
 
                 team.Rank = -1;
             }
-            
-            SpawnPlayers();
-            EnablePlayerInputs(false);
 
             var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
             cameraSystem.Controller.PopulateTargetGroup(groupMembers);
@@ -411,7 +408,7 @@ namespace MortierFu
             
             cameraSystem.Controller.ClearTargetGroupMember();
             cameraSystem.Controller.ResetCameraInstant();
-            // Faire une fonction pour placer la cam et qu'elle ne bouge plus.
+            
             SpawnPlayers();
 
             // Hide previous showcase UI            
