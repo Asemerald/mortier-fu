@@ -1,4 +1,3 @@
-using MortierFu.Shared;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -12,32 +11,18 @@ namespace MortierFu
         [SerializeField] private CameraShakeController _shakeController;
         [SerializeField] private Transform _virtualTarget;
 
-        [Header("Zoom settings")]
-        [SerializeField] private float _minOrthoSize = 15f;
-        [SerializeField] private float _maxOrthoSize = 25f;
-        [SerializeField] private float _minFov = 50f;
-        [SerializeField] private float _maxFov = 70f;
-        [SerializeField] private float _minPlayersExtent = 5f;
-        [SerializeField] private float _maxPlayersExtent = 25f;
-
-        [Header("Smoothing")]
-        [SerializeField] private float _positionLerpSpeed = 5f;
-        [SerializeField] private float _zoomLerpSpeed = 5f;
-
-        [Header("Default Position")]
-        [SerializeField] private Vector3 _defaultPosition = new Vector3(0, 10, -10);
-        [SerializeField] private float _defaultOrtho = 20f;
-        [SerializeField] private float _defaultFov = 60f;
-
         private float _currentOrthoSize;
         private float _currentFov;
 
+        private SO_CameraSettings _cameraSettings;
+        
         private void Awake()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
             _currentFov = _cinemachineCamera.Lens.FieldOfView;
-        }
 
+            _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
+        }
 
         private void LateUpdate()
         {
@@ -77,9 +62,9 @@ namespace MortierFu
                     _targetGroup.RemoveMember(t);
             }
 
-            _virtualTarget.position = _defaultPosition;
-            _currentOrthoSize = _defaultOrtho;
-            _currentFov = _defaultFov;
+            _virtualTarget.position = _cameraSettings.DefaultPosition;
+            _currentOrthoSize = _cameraSettings.DefaultOrtho;
+            _currentFov = _cameraSettings.DefaultFov;
             ApplyLens();
         }
         
@@ -92,25 +77,25 @@ namespace MortierFu
             _virtualTarget.position = Vector3.Lerp(
                 _virtualTarget.position,
                 center,
-                Time.deltaTime * _positionLerpSpeed);
+                Time.deltaTime * _cameraSettings.PositionLerpSpeed);
 
-            float clampedExtent = Mathf.Clamp(extent, _minPlayersExtent, _maxPlayersExtent);
-            float t = Mathf.InverseLerp(_minPlayersExtent, _maxPlayersExtent, clampedExtent);
+            float clampedExtent = Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
+            float t = Mathf.InverseLerp( _cameraSettings.MinPlayersExtent,  _cameraSettings.MaxPlayersExtent, clampedExtent);
 
-            float targetOrtho = Mathf.Lerp(_minOrthoSize, _maxOrthoSize, t);
-            float targetFov = Mathf.Lerp(_minFov, _maxFov, t);
+            float targetOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, t);
+            float targetFov = Mathf.Lerp( _cameraSettings.MinFov,  _cameraSettings.MaxFov, t);
 
-            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _zoomLerpSpeed);
-            _currentFov = Mathf.Lerp(_currentFov, targetFov, Time.deltaTime * _zoomLerpSpeed);
+            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
+            _currentFov = Mathf.Lerp(_currentFov, targetFov, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
 
         private void UpdateCameraDefault()
         {
-            _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _defaultPosition, Time.deltaTime * _positionLerpSpeed);
-            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _defaultOrtho, Time.deltaTime * _zoomLerpSpeed);
-            _currentFov = Mathf.Lerp(_currentFov, _defaultFov, Time.deltaTime * _zoomLerpSpeed);
+            _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _cameraSettings.DefaultPosition, Time.deltaTime *  _cameraSettings.PositionLerpSpeed);
+            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _cameraSettings.DefaultOrtho, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
+            _currentFov = Mathf.Lerp(_currentFov, _cameraSettings.DefaultFov, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
@@ -123,8 +108,8 @@ namespace MortierFu
                 _virtualTarget.position = b.center;
             }
 
-            float midOrtho = Mathf.Lerp(_minOrthoSize, _maxOrthoSize, 0.5f);
-            float midFov = Mathf.Lerp(_minFov, _maxFov, 0.5f);
+            float midOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, 0.5f);
+            float midFov = Mathf.Lerp( _cameraSettings.MinFov,  _cameraSettings.MaxFov, 0.5f);
 
             _currentOrthoSize = midOrtho;
             _currentFov = midFov;
