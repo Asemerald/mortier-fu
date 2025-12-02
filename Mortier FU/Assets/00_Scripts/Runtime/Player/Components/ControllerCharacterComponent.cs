@@ -36,7 +36,10 @@ namespace MortierFu
         }
 
         public override void Reset()
-        { }
+        {
+            rigidbody.linearVelocity = Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
+        }
 
         public override void Dispose() {
             Stats.AvatarSize.OnDirtyUpdated -= UpdateAvatarSize;

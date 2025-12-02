@@ -58,17 +58,19 @@ namespace MortierFu
         /// </summary>
         public void SpawnInGame(Vector3 spawnPosition)
         {
-            if (_isInGame)
-                return;
-
+            // if (_isInGame)
+            //     return;
             if (_inGameCharacter == null && playerInGamePrefab != null)
             {
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
                 Character.Initialize(this);
+
+                _isInGame = true;
             }
 
             if (_inGameCharacter != null)
             {
+                _inGameCharacter.transform.position = spawnPosition;
                 _inGameCharacter.SetActive(true);
 
                 _isInGame = true;
