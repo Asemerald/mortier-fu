@@ -7,6 +7,7 @@ using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -115,6 +116,8 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
+            //TEMP Initialiser l'aimindicator
+            GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
