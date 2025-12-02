@@ -14,7 +14,6 @@ namespace MortierFu
         public int ThirdRankBonusScore = 10;
         public int KillBonusScore = 50;
 
-        public float AugmentShowcaseDuration = 20f;
         public float AugmentSelectionDuration = 15;
         public float RoundStartCountdown = 4f;
         public float DisplayScoresDuration = 6f;
