@@ -42,7 +42,6 @@ namespace MortierFu
             UpdateRoundText(currentRound);
             UpdatePlayerScores();
             HandleCountdown().Forget();
-            Debug.LogWarning("ROUND STARTED");
         }
 
         private async UniTaskVoid HandleCountdown()
