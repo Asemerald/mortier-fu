@@ -127,14 +127,14 @@ namespace MortierFu
             if (BoundReporter == null)
                 return FallbackTransform;
 
-            if (index < 0 || index >= BoundReporter.SpawnPoints.Length)
+            if (index < 0) // || index >= BoundReporter.SpawnPoints.Length
             {
                 if(_settings.EnableDebug) 
                     Logs.LogWarning("[LevelSystem]: Trying to get a spawn point which is out of range of the provided list of spawn points by the level reporter !");
                 return FallbackTransform;
             }
             
-            return BoundReporter.SpawnPoints[index];
+            return BoundReporter.SpawnPoints[index % BoundReporter.SpawnPoints.Length];
         }
 
         public void PopulateAugmentPoints(Vector3[] outPoints)

@@ -73,17 +73,21 @@ namespace MortierFu
                 pickup.transform.SetParent(_augmentPoints[i]);
                 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: i * 0.06f), duration, Ease.InOutQuad)
-                    .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
-                    {
-                        pickup.SetFaceCameraEnabled(false);
-                        pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-                    });
+                MovePickupToAugmentPoint(pickup, i, duration).Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
         }
-        
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration)
+        {
+            await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: i * 0.06f), duration, Ease.InOutQuad)
+                .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
+                {
+                    pickup.SetFaceCameraEnabled(false);
+                    pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                });
+        }
+
         public void StopShowcase()
         {
             _system.RestorePickupParent();
