@@ -114,21 +114,25 @@ namespace MortierFu
         {
             if (!MainMenuPanel.isActiveAndEnabled)
             {
-                Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
+                //Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
+                MainMenuPanel.gameObject.SetActive(true);
             }
             if (!SettingsPanel.isActiveAndEnabled)
             {
-                Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
+                //Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
+                SettingsPanel.gameObject.SetActive(true);
             }
 
             if (!CreditsPanel.isActiveAndEnabled)
             {
-                Logs.LogWarning("[MenuManager]: CreditsPanel is not active!", this);
+                //Logs.LogWarning("[MenuManager]: CreditsPanel is not active!", this);
+                CreditsPanel.gameObject.SetActive(true);
             }
 
             if (!LobbyPanel.isActiveAndEnabled)
             {
-                Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
+                //Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
+                LobbyPanel.gameObject.SetActive(true);
             }
         }
     }
