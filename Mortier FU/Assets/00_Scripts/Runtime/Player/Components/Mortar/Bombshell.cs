@@ -30,7 +30,10 @@ namespace MortierFu
         }
         
         // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
-        [SerializeField] private TrailRenderer _trail;
+        [SerializeField] private TrailRenderer _trail1;
+        [SerializeField] private TrailRenderer _trail2;
+        [SerializeField] private TrailRenderer _trail3;
+        [SerializeField] private TrailRenderer _trail4;
         [SerializeField] private ParticleSystem _smokeParticles;
 
         private Data _data;
@@ -84,14 +87,20 @@ namespace MortierFu
 
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
-            Vector3 yTargetPos =  new Vector3(groundDir.magnitude, toTarget.y, 0);
             _direction = groundDir.normalized;
+            Vector3 yTargetPos = new (groundDir.magnitude, toTarget.y, 0);
+            
             ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
-
+            
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
             transform.localScale = Vector3.one * _data.Scale;
+
+            _trail1.Clear();
+            _trail2.Clear();
+            _trail3.Clear();
+            _trail4.Clear();
             
             HandleImpactAreaVFX().Forget();
         }
@@ -105,11 +114,15 @@ namespace MortierFu
         {
             _smokeParticles.transform.SetParent(transform);
             _smokeParticles.Play();
-            
-            // TODO: This still causes some artifacts of the travel from old to new position
-            _trail.Clear();
+
+            _trail3.enabled = false;
+            _trail1.Clear();
+            _trail2.Clear();
+            _trail3.Clear();
+            _trail4.Clear();
+            _trail3.enabled = true;
         }
-        
+
         public void OnRelease()
         {
             _smokeParticles.transform.SetParent(null);
@@ -208,7 +221,6 @@ namespace MortierFu
             time = tplus > tmin ? tplus : tmin;
 
             angle = Mathf.Atan(b * time / xt);
- 
             v0 = b / Mathf.Sin(angle);
         }
         
