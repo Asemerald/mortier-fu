@@ -5,10 +5,10 @@ public class DeathTrigger : MonoBehaviour
 {
    private void OnTriggerEnter(Collider other)
    {
-      if (other.GetComponentInParent<PlayerCharacter>().TryGetComponent(out PlayerCharacter character))
+      var rb = other.attachedRigidbody;
+      if (rb != null && rb.TryGetComponent(out PlayerCharacter character))
       {
          character.Health.TakeLethalDamage(gameObject);
-         Debug.Log("Character health taken: " + character.Health);
       }
    }
 }
