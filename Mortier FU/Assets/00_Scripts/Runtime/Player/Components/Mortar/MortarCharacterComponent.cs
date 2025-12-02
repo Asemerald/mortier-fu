@@ -140,6 +140,7 @@ namespace MortierFu
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
             if (!PlayerCharacter.AllowGameplayActions) return;
+            if (!Character.Health.IsAlive) return;
             
             Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();

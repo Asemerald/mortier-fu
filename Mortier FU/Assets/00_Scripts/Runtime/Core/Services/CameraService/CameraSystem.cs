@@ -16,7 +16,7 @@ namespace MortierFu
         {
             var camGo = Object.Instantiate(cameraPrefab, _cameraRoot);
             camGo.name = "GameCamera";
-
+            
             Controller = camGo.GetComponent<CameraController>();
             ShakeController = camGo.GetComponent<CameraShakeController>();
         }

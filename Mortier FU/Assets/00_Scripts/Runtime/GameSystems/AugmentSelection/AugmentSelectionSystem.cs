@@ -128,6 +128,23 @@ namespace MortierFu
 
         public void EndRace()
         {
+            // Give a random augment to remaining pickers
+            var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
+            foreach (var picker in _pickers)
+            {
+                if (remainingAugments.Count == 0)
+                {
+                    Logs.LogWarning("[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
+                    break;
+                }
+
+                var randomAugment = remainingAugments.RandomElement();
+                picker.Character.AddAugment(randomAugment.Augment);
+                randomAugment.IsPicked = true;
+                remainingAugments.Remove(randomAugment);
+                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
+            }
+            
             foreach (var pickup in _pickups)
             {
                 pickup.Hide();

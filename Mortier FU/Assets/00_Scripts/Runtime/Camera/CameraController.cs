@@ -10,13 +10,16 @@ namespace MortierFu
         [SerializeField] private CinemachineTargetGroup _targetGroup;
         [SerializeField] private CameraShakeController _shakeController;
         [SerializeField] private Transform _virtualTarget;
+        [SerializeField] private Camera _camera;
 
         private float _currentOrthoSize;
         private float _currentFov;
 
         private SO_CameraSettings _cameraSettings;
+
+        public Camera Camera => _camera;
         
-        private void Awake()
+        private void Start()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
             _currentFov = _cinemachineCamera.Lens.FieldOfView;

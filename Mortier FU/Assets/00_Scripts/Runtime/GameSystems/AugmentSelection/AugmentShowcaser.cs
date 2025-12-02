@@ -15,10 +15,10 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentPickup> _pickups;
         private readonly ConfirmationService _confirmationService;
         private readonly AugmentSelectionSystem _system;
+        private readonly CameraSystem _cameraSystem;
+        private readonly Camera _cam;
         
         private Transform[] _augmentPoints;
-        
-        private Camera _cam;
 
         public AugmentShowcaser (AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> pickups)
         {
@@ -26,8 +26,8 @@ namespace MortierFu
             _system = system;
            
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
-            
-            _cam = Camera.main;
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            _cam = _cameraSystem.Controller.Camera;
         }
 
         public async UniTask Showcase(Transform pivot, Vector3[] augmentPoints)
