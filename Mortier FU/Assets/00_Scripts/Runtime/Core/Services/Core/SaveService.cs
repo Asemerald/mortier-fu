@@ -15,6 +15,8 @@ namespace MortierFu
 
         private string _settingsPath;
         private string _gamePath;
+        
+        private readonly object _settingsLock = new object();
 
         public bool IsInitialized { get; set; }
 
@@ -51,7 +53,11 @@ namespace MortierFu
 
             await UniTask.Run(() =>
             {
-                File.WriteAllText(_settingsPath, json);
+                // Ensure thread safety when writing settings
+                lock (_settingsLock)
+                {
+                    File.WriteAllText(_settingsPath, json);
+                }
             });
         }
 

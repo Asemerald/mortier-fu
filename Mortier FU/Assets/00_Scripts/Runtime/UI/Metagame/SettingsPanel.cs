@@ -58,39 +58,45 @@ namespace MortierFu
             SFXVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
         }
         
-        private async void OnFullscreenChanged(bool value)
+        private void OnFullscreenChanged(bool value)
         {
             Screen.fullScreen = value;
             _saveService.Settings.IsFullscreen = value;
-            await _saveService.SaveSettings();
         }
 
-        private async void OnVSyncChanged(bool value)
+        private void OnVSyncChanged(bool value)
         {
             QualitySettings.vSyncCount = value ? 1 : 0;
             _saveService.Settings.IsVSyncEnabled = value;
-            await _saveService.SaveSettings();
         }
 
-        private async void OnMasterVolumeChanged(float value)
+        private void OnMasterVolumeChanged(float value)
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MasterVolume = value;
-            await _saveService.SaveSettings();
         }
 
-        private async void OnMusicVolumeChanged(float value)
+        private void OnMusicVolumeChanged(float value)
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MusicVolume = value;
-            await _saveService.SaveSettings();
         }
 
-        private async void OnSfxVolumeChanged(float value)
+        private void OnSfxVolumeChanged(float value)
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.SfxVolume = value;
-            await _saveService.SaveSettings();
+        }
+        
+        private void SaveSettings()
+        {
+            _saveService.SaveSettings().Forget();
+        }
+
+        public override void Hide()
+        {
+            base.Hide();
+            SaveSettings();
         }
     }
 }
