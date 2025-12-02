@@ -1,7 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEditor;
 using UnityEngine;
 using MathUtils = MortierFu.Shared.MathUtils;
 
