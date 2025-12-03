@@ -29,8 +29,8 @@ public class TEMP_FXHandler : MonoBehaviour
     
     public void InstantiateExplosion(Vector3 position, float range)
     {
-        ParticleSystem preview = Instantiate(_bombshellExplosion, new Vector3(position.x, 0.5f, position.z), Quaternion.identity);
-        preview.transform.localScale = Vector3.one * range *0.5f;
+        var ps = Instantiate(_bombshellExplosion, position, Quaternion.identity);
+        ps.transform.localScale = Vector3.one * range * 0.5f;
     }
 
     public void InstantiateStrikeFX(Transform player, float size)
