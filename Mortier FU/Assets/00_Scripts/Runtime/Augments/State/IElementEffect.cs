@@ -9,17 +9,27 @@ namespace MortierFu
     {
         [SerializeReference] public List<IEffect<PlayerCharacter>> Effects = new();
 
-        public void Execute(PlayerCharacter target, PlayerCharacter owner)
+        public void Execute(PlayerCharacter target)
         {
-            foreach(var effect in Effects)
-                effect.Apply(target, owner);
+            foreach (var effect in Effects)
+            {
+                if (target is PlayerCharacter playerCharacter)
+                {
+                    playerCharacter.ApplyEffect(effect);
+                }
+                else
+                {
+                    effect.Apply(target);
+                }
+            }
         }
     }
-    
+
     public interface IEffect<TTarget>
     {
-        void Apply(TTarget target, TTarget owner);
-        void Cancel();
+        void Apply(TTarget target);
+        void Cancel(TTarget target);
+        event Action<IEffect<TTarget>> OnCompleted;
     }
 
     [Serializable]
@@ -27,14 +37,17 @@ namespace MortierFu
     {
         public int DamageAmount = 10;
 
-        public void Apply(PlayerCharacter target, PlayerCharacter owner)
+        public event Action<IEffect<PlayerCharacter>> OnCompleted;
+
+        public void Apply(PlayerCharacter target)
         {
-            target.Health.TakeDamage(DamageAmount, owner);
+            target.Health.TakeDamage(DamageAmount, target);
+            OnCompleted?.Invoke(this);
         }
 
-        public void Cancel()
+        public void Cancel(PlayerCharacter target)
         {
-            // noop
+            OnCompleted?.Invoke(this);
         }
     }
 
@@ -47,23 +60,23 @@ namespace MortierFu
 
         private IntervalTimer _timer;
         private PlayerCharacter _currentTarget;
-        private PlayerCharacter _owner;
 
-        public void Apply(PlayerCharacter target, PlayerCharacter owner)
+        public event Action<IEffect<PlayerCharacter>> OnCompleted;
+
+        public void Apply(PlayerCharacter target)
         {
             _currentTarget = target;
-            _owner = owner;
             _timer = new IntervalTimer(Duration, TickInterval);
-            
+
             _timer.OnInterval = OnInterval;
             _timer.OnTimerStop = OnStop;
             _timer.Start();
         }
 
-        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, _owner);
+        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, _currentTarget);
         void OnStop() => Cleanup();
 
-        public void Cancel()
+        public void Cancel(PlayerCharacter target)
         {
             _timer?.Stop();
             Cleanup();
@@ -71,6 +84,7 @@ namespace MortierFu
 
         void Cleanup()
         {
+            OnCompleted?.Invoke(this);
             _timer = null;
             _currentTarget = null;
         }
