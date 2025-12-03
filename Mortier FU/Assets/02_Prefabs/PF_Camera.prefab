@@ -182,11 +182,10 @@ GameObject:
   m_Component:
   - component: {fileID: 7143738023574168203}
   - component: {fileID: 4342318536625474823}
-  - component: {fileID: 3154064512260194751}
   - component: {fileID: 2852349673030630122}
   m_Layer: 0
   m_Name: RenderOnTop
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -257,14 +256,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &3154064512260194751
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2652871825300554872}
-  m_Enabled: 1
 --- !u!114 &2852349673030630122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,7 +357,7 @@ Transform:
   m_GameObject: {fileID: 3392041852622911767}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.9, y: -27.5, z: 17.70047}
+  m_LocalPosition: {x: 0, y: -30, z: 15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -456,6 +447,7 @@ MonoBehaviour:
   _shakeController: {fileID: 8569257766003188856}
   _virtualTarget: {fileID: 1364309725040297222}
   _camera: {fileID: 2662452714115592332}
+  _renderOnTopCamera: {fileID: 4342318536625474823}
 --- !u!1 &5124277856500845316
 GameObject:
   m_ObjectHideFlags: 0

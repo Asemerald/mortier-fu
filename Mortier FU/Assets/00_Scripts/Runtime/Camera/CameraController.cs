@@ -11,9 +11,9 @@ namespace MortierFu
         [SerializeField] private CameraShakeController _shakeController;
         [SerializeField] private Transform _virtualTarget;
         [SerializeField] private Camera _camera;
+        [SerializeField] private Camera _renderOnTopCamera;
 
         private float _currentOrthoSize;
-        private float _currentFov;
 
         private SO_CameraSettings _cameraSettings;
 
@@ -22,7 +22,6 @@ namespace MortierFu
         private void Start()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
-            _currentFov = _cinemachineCamera.Lens.FieldOfView;
 
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
         }
@@ -67,7 +66,6 @@ namespace MortierFu
 
             _virtualTarget.position = _cameraSettings.DefaultPosition;
             _currentOrthoSize = _cameraSettings.DefaultOrtho;
-            _currentFov = _cameraSettings.DefaultFov;
             ApplyLens();
         }
         
@@ -86,10 +84,8 @@ namespace MortierFu
             float t = Mathf.InverseLerp( _cameraSettings.MinPlayersExtent,  _cameraSettings.MaxPlayersExtent, clampedExtent);
 
             float targetOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, t);
-            float targetFov = Mathf.Lerp( _cameraSettings.MinFov,  _cameraSettings.MaxFov, t);
 
             _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
-            _currentFov = Mathf.Lerp(_currentFov, targetFov, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
@@ -98,7 +94,6 @@ namespace MortierFu
         {
             _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _cameraSettings.DefaultPosition, Time.deltaTime *  _cameraSettings.PositionLerpSpeed);
             _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _cameraSettings.DefaultOrtho, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
-            _currentFov = Mathf.Lerp(_currentFov, _cameraSettings.DefaultFov, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
@@ -112,10 +107,8 @@ namespace MortierFu
             }
 
             float midOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, 0.5f);
-            float midFov = Mathf.Lerp( _cameraSettings.MinFov,  _cameraSettings.MaxFov, 0.5f);
 
             _currentOrthoSize = midOrtho;
-            _currentFov = midFov;
 
             ApplyLens();
         }
@@ -133,9 +126,10 @@ namespace MortierFu
         private void ApplyLens()
         {
             float shakeFovOffset = _shakeController != null ? _shakeController.AddedFOV : 0f;
+            float newOrthographicSize = _currentOrthoSize + shakeFovOffset;
 
-            _cinemachineCamera.Lens.OrthographicSize = _currentOrthoSize + shakeFovOffset;
-            _cinemachineCamera.Lens.FieldOfView = _currentFov + shakeFovOffset;
+            _cinemachineCamera.Lens.OrthographicSize = newOrthographicSize;
+            _renderOnTopCamera.orthographicSize = newOrthographicSize;
         }
 
         private Bounds CalculateTargetsBounds()

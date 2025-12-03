@@ -39,13 +39,13 @@ namespace MortierFu
             _pool.Release(bombshell);
         }
 
+        // Can be improved with a IDamageable interface which seems to be similar to IInteractable as interaction happens on impact or contact.
         public void NotifyImpact(Bombshell bombshell)
         {
-            int numHits =
-                Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
-
+            
+            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
@@ -89,7 +89,7 @@ namespace MortierFu
             }
             else Logs.LogWarning("No FX Handler");
 
-            _cameraSystem?.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
+            _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.Owner.Stats.BombshellTimeTravel.Value);
 
             if (hitCharacters.Count > 0)
