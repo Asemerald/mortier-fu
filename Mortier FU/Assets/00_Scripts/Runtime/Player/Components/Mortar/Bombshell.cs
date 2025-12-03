@@ -115,6 +115,7 @@ namespace MortierFu
             _smokeParticles.transform.SetParent(transform);
             _smokeParticles.Play();
 
+            // TODO: temporary hack for trail renderer but still problem with the bombshell position on spawn
             _trail3.enabled = false;
             _trail1.Clear();
             _trail2.Clear();
