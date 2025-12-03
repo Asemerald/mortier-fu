@@ -36,7 +36,6 @@ namespace MortierFu
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)
-        {
-        }
+        { }
     }
 }
