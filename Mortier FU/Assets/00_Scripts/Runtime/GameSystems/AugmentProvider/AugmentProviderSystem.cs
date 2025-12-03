@@ -19,7 +19,9 @@ namespace MortierFu
         public ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>> AugmentsPerRarity;
         private SO_AugmentProviderSettings _settings;
         
-        private const string k_augmentLibLabel = "AugmentLib";        
+        private AsyncOperationHandle<IList<SO_AugmentLibrary>> _augmentLibHandle;
+
+        private const string k_augmentLibLabel = "AugmentLib";
         
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
@@ -100,22 +102,19 @@ namespace MortierFu
         {
             Logs.Log("Loading Augment Libraries...");
             
-            var handle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
-            await handle;
+            _augmentLibHandle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
+            await _augmentLibHandle;
             
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+            if (_augmentLibHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogWarning($"Error occurred while loading Augment libs: {handle.OperationException.Message}");
+                Logs.LogWarning($"Error occurred while loading Augment libs: {_augmentLibHandle.OperationException.Message}");
                 return;
             }
 
             _augmentsPerRarity = new Dictionary<E_AugmentRarity, List<SO_Augment>>();
             AugmentsPerRarity = new ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>>(_augmentsPerRarity);
             
-            var libs = handle.Result;
-            Addressables.Release(handle);
-            
-            foreach (var lib in libs)
+            foreach (var lib in _augmentLibHandle.Result)
             {
                 foreach (var augment in lib.Augments)
                 {
@@ -136,8 +135,13 @@ namespace MortierFu
             _augmentsPerRarity[augmentRarity].Add(augment);
         }
 
-        public void Dispose()
-        { }
+        public void Dispose() {
+            _rarityTable.Dispose();
+            _augmentsPerRarity.Clear();
+            
+            if (_augmentLibHandle.IsValid())
+                Addressables.Release(_augmentLibHandle);
+        }
         
         public bool IsInitialized { get; set; }
     }
