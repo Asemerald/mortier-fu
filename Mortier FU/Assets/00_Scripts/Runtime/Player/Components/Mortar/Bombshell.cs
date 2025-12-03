@@ -41,6 +41,8 @@ namespace MortierFu
         private float _angle;
         private float _travelTime;
         private float _timeFactor;
+        private float _resolvedTravelTime;
+        private Vector3 _yTargetPos;
         private CountdownTimer _impactDebounceTimer;
 
         private BombshellSystem _system;
@@ -84,10 +86,11 @@ namespace MortierFu
             Vector3 toTarget = _data.TargetPos - _data.StartPos;
             Vector3 groundDir = toTarget.With(y: 0f);
             _direction = groundDir.normalized;
-            Vector3 yTargetPos = new (groundDir.magnitude, toTarget.y, 0);
+            _yTargetPos = new Vector3(groundDir.magnitude, toTarget.y, 0);
             
-            ComputePathWithHeight(yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
+            ComputePathWithHeight(_yTargetPos, _data.Height, _data.GravityScale, out _initialSpeed, out _angle, out _travelTime);
             _timeFactor = _travelTime / _data.TravelTime;
+            _resolvedTravelTime = _travelTime / _timeFactor;
             
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
@@ -166,14 +169,15 @@ namespace MortierFu
                 if (overlapped) {
                     _rb.MovePosition(_rb.position + dir * distance);
                 }
-                
+
+                float previousY = _data.TargetPos.y;
+                _data.TargetPos += _data.TargetPos - _data.StartPos;
+                _data.TargetPos.y = previousY; // Keep the same height target
                 _data.StartPos = transform.position;
-                // 1. Either treat initial speed or travel time, first one makes loss of height !
-                // _initialSpeed *= 0.9f; // Loose 10% of speed
-                // OR
-                // _data.TravelTime *= 0.9f;
-                // _timeFactor = _travelTime / _data.TravelTime;
+                
                 _t = 0f;
+                
+                HandleImpactAreaVFX().Forget();
                 
             } else {
                 ReturnToPool();
@@ -182,12 +186,12 @@ namespace MortierFu
         
         private async UniTask HandleImpactAreaVFX()
         {
-            float delay = Mathf.Max(0f, _travelTime / _timeFactor - 0.6f);
+            float delay = _resolvedTravelTime * _system.Settings.ImpactPreviewDelayFactor;
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             
             if (TEMP_FXHandler.Instance)
             {
-                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, 0.6f, _data.AoeRange);
+                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, _resolvedTravelTime - delay, _data.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
         }
@@ -228,12 +232,6 @@ namespace MortierFu
             float y = v0 * t * Mathf.Sin(angle) - 0.5f * Physics.gravity.y * -gravityScale * t * t;
 
             return start + dir * x + Vector3.up * y;
-        }
-
-        void OnDrawGizmos()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(_data.TargetPos, 0.3f);
         }
     }
 }
