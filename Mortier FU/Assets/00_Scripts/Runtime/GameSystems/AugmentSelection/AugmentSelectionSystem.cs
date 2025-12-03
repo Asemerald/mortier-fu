@@ -49,6 +49,8 @@ namespace MortierFu
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
             
+            Logs.Log("Initialized selected augments array ! Length : " + _selectedAugments.Length);
+            
             await InstantiatePickups();
             
             _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());

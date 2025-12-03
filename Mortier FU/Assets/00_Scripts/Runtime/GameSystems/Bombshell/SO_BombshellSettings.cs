@@ -12,6 +12,9 @@ namespace MortierFu
         [Tooltip("Determine if the bombshells of the same player can collide together.")]
         public bool DisableBombshellSelfCollision = true;
         public float BombshellHeight = 8f;
+        [Tooltip("This will wait n% of the travel time before showing the impact preview for the remaining 100-n% of the preview growing before impact.")]
+        [Range(0f, 1f)]
+        public float ImpactPreviewDelayFactor = 0.6f;
 
         [Header("References")]
         public AssetReferenceGameObject BombshellPrefab;
