@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
@@ -84,55 +85,8 @@ namespace MortierFu
             {
                 var player = players[i];
                 player.SpawnInGame(Vector3.one * i * 2f);
-                player.Character.Health.OnDeath += source => {
-                    player.Metrics.TotalDeaths++;
-                    alivePlayers.Remove(player.Character);
-                    cameraSystem.Controller.RemoveTarget(player.transform);
-                    
-                    if (source is PlayerCharacter killer)
-                    {
-                        OnPlayerKill(killer, player.Character);
-                    }
-                    
-                    var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
-                    if (victimTeam == null)
-                    {
-                        Logs.LogError("[GameModeBase] Victim's team not found!");
-                        return;
-                    }
-
-                    if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
-                    {
-                        victimTeam.Rank = currentRank;
-                        currentRank--;
-                    }
-
-                    // Check if there is one team standing
-                    int aliveTeamIndex = -1;
-                    for (int i = 0; i < teams.Count; i++)
-                    {
-                        PlayerTeam team = teams[i];
-                        if (team.Members.Any(m => m.Character.Health.IsAlive))
-                        {
-                            if (aliveTeamIndex == -1)
-                            {
-                                aliveTeamIndex = i;
-                            }
-                            else
-                            {
-                                aliveTeamIndex = -1;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Set the rank of the winning team to 1 if one.
-                    if (aliveTeamIndex != -1)
-                    {
-                        teams[aliveTeamIndex].Rank = 1;
-                        oneTeamStanding = true;
-                    }
-                };
+                
+                player.Character.Health.OnDeath += source => OnDeath(player, source);
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
@@ -498,7 +452,60 @@ namespace MortierFu
             return false;
         }
 
-        public virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
+        protected void OnDeath(PlayerManager player, object source)
+        {
+            Debug.Log("Player death detected");
+            
+            player.Metrics.TotalDeaths++;
+            alivePlayers.Remove(player.Character);
+            cameraSystem.Controller.RemoveTarget(player.transform);
+
+            if (source is PlayerCharacter killer)
+            {
+                OnPlayerKill(killer, player.Character);
+            }
+
+            var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
+            if (victimTeam == null)
+            {
+                Logs.LogError("[GameModeBase] Victim's team not found!");
+                return;
+            }
+
+            if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
+            {
+                victimTeam.Rank = currentRank;
+                currentRank--;
+            }
+
+            // Check if there is one team standing
+            int aliveTeamIndex = -1;
+            for (int i = 0; i < teams.Count; i++)
+            {
+                PlayerTeam team = teams[i];
+                if (team.Members.Any(m => m.Character.Health.IsAlive))
+                {
+                    if (aliveTeamIndex == -1)
+                    {
+                        aliveTeamIndex = i;
+                    }
+                    else
+                    {
+                        aliveTeamIndex = -1;
+                        break;
+                    }
+                }
+            }
+
+            // Set the rank of the winning team to 1 if one.
+            if (aliveTeamIndex != -1)
+            {
+                teams[aliveTeamIndex].Rank = 1;
+                oneTeamStanding = true;
+            }
+        }
+
+        protected virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
         {
             var killer = killerCharacter.Owner;
             var victim = victimCharacter.Owner;
