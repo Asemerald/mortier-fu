@@ -1,5 +1,6 @@
 using System;
 using Eflatun.SceneReference;
+using Eflatun.SceneReference.Exceptions;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -87,9 +88,15 @@ namespace MortierFu.Editor {
             
             string arenaMapAddress = ReadOverrideMapAddress(k_overrideArenaMapAddress);
             if (!string.IsNullOrEmpty(arenaMapAddress)) {
-                _arenaOverrideMap = SceneReference.FromAddress(arenaMapAddress);
-                if (_arenaOverrideMap == null) {
-                    Logs.LogWarning($"[DebugWindow]: The following address was retrieved for the override map {arenaMapAddress} but could not find a corresponding scene !");
+                try
+                {
+                    _arenaOverrideMap = SceneReference.FromAddress(arenaMapAddress);
+                }
+                catch(SceneReferenceCreationException)
+                {
+                    Logs.LogError($"[DebugWindow]: The following address was retrieved for the override map {arenaMapAddress} but could not find a corresponding scene ! Clearing the override.");
+                    WriteOverrideMapAddress(k_overrideArenaMapAddress, "");
+                    _arenaOverrideMap = null;
                 }
             }
             
@@ -102,9 +109,15 @@ namespace MortierFu.Editor {
             
             string raceMapAddress = ReadOverrideMapAddress(k_overrideRaceMapAddress);
             if (!string.IsNullOrEmpty(raceMapAddress)) {
-                _raceOverrideMap = SceneReference.FromAddress(raceMapAddress);
-                if (_arenaOverrideMap == null) {
-                    Logs.LogWarning($"[DebugWindow]: The following address was retrieved for the override map {raceMapAddress} but could not find a corresponding scene !");
+                try
+                {
+                    _raceOverrideMap = SceneReference.FromAddress(raceMapAddress);
+                }
+                catch (SceneReferenceCreationException)
+                {
+                    Logs.LogError($"[DebugWindow]: The following address was retrieved for the override map {raceMapAddress} but could not find a corresponding scene ! Clearing the override.");
+                    WriteOverrideMapAddress(k_overrideRaceMapAddress, "");
+                    _raceOverrideMap = null;
                 }
             }   
 
