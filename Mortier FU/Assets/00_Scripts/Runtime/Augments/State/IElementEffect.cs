@@ -23,6 +23,21 @@ namespace MortierFu
                 }
             }
         }
+
+        public void Cancel(PlayerCharacter target)
+        {
+            foreach (var effect in Effects)
+            {
+                if (target is PlayerCharacter playerCharacter)
+                {
+                    playerCharacter.RemoveEffect(effect);
+                }
+                else
+                {
+                    effect.Cancel(target);
+                }
+            }
+        }
     }
 
     public interface IEffect<TTarget>
@@ -57,9 +72,9 @@ namespace MortierFu
         public float Duration = 5f;
         public float TickInterval = 1f;
         public int DamagePerTick = 1;
+        private PlayerCharacter _currentTarget;
 
         private IntervalTimer _timer;
-        private PlayerCharacter _currentTarget;
 
         public event Action<IEffect<PlayerCharacter>> OnCompleted;
 
@@ -73,14 +88,14 @@ namespace MortierFu
             _timer.Start();
         }
 
-        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, _currentTarget);
-        void OnStop() => Cleanup();
-
         public void Cancel(PlayerCharacter target)
         {
             _timer?.Stop();
             Cleanup();
         }
+
+        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, _currentTarget);
+        void OnStop() => Cleanup();
 
         void Cleanup()
         {
