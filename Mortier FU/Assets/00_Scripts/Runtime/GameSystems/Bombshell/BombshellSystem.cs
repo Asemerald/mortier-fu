@@ -31,6 +31,8 @@ namespace MortierFu
             Bombshell bombshell = _pool.Get();
             bombshellData.Height = Settings.BombshellHeight;
             bombshell.SetData(bombshellData);
+            bombshell.OnGet();
+            bombshell.gameObject.SetActive(true);
             return bombshell;
         }
 
@@ -138,9 +140,6 @@ namespace MortierFu
 
         private void OnGetBombshell(Bombshell bombshell)
         {
-            bombshell.gameObject.SetActive(true);
-            bombshell.OnGet();
-
             _active.Add(bombshell);
         }
 

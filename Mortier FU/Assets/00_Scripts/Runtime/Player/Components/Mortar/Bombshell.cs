@@ -29,11 +29,7 @@ namespace MortierFu
             public int Bounces;
         }
         
-        // TODO: Temporary to see the curves, can be extracted as a subcomponent ? Maybe it has to be swapped based on augments
-        [SerializeField] private TrailRenderer _trail1;
-        [SerializeField] private TrailRenderer _trail2;
-        [SerializeField] private TrailRenderer _trail3;
-        [SerializeField] private TrailRenderer _trail4;
+        [SerializeField] private TrailRenderer[] _trails;
         [SerializeField] private ParticleSystem _smokeParticles;
 
         private Data _data;
@@ -97,10 +93,11 @@ namespace MortierFu
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
             transform.localScale = Vector3.one * _data.Scale;
 
-            _trail1.Clear();
-            _trail2.Clear();
-            _trail3.Clear();
-            _trail4.Clear();
+            foreach (var trail in _trails)
+            {
+                trail.Clear();
+                trail.emitting = true;
+            }
             
             HandleImpactAreaVFX().Forget();
         }
@@ -116,12 +113,11 @@ namespace MortierFu
             _smokeParticles.Play();
 
             // TODO: temporary hack for trail renderer but still problem with the bombshell position on spawn
-            _trail3.enabled = false;
-            _trail1.Clear();
-            _trail2.Clear();
-            _trail3.Clear();
-            _trail4.Clear();
-            _trail3.enabled = true;
+            foreach (var trail in _trails)
+            {
+                trail.Clear();
+                trail.emitting = false;
+            }
         }
 
         public void OnRelease()
@@ -175,8 +171,8 @@ namespace MortierFu
                 // 1. Either treat initial speed or travel time, first one makes loss of height !
                 // _initialSpeed *= 0.9f; // Loose 10% of speed
                 // OR
-                _data.TravelTime *= 0.9f;
-                _timeFactor = _travelTime / _data.TravelTime;
+                // _data.TravelTime *= 0.9f;
+                // _timeFactor = _travelTime / _data.TravelTime;
                 _t = 0f;
                 
             } else {
