@@ -22,7 +22,7 @@ namespace  MortierFu
 
         static void Clear()
         {
-            Logs.Log($"Clearing {typeof(T).Name} bindings");
+//            Logs.Log($"Clearing {typeof(T).Name} bindings");
             _bindings.Clear();   
         }
     } 
