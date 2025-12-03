@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
+using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
@@ -82,7 +83,7 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(Vector3.zero);
+                player.SpawnInGame(Vector3.one * i * 2f);
                 player.Character.Health.OnDeath += source => {
                     player.Metrics.TotalDeaths++;
                     alivePlayers.Remove(player.Character);
@@ -132,7 +133,7 @@ namespace MortierFu
                         oneTeamStanding = true;
                     }
                 };
-
+                
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
@@ -163,8 +164,6 @@ namespace MortierFu
                 UpdateGameState(GameState.RaceInProgress);
                 StartRace();
                 
-                Debug.Log(teams[0].Members[0].transform.position);
-
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
 
