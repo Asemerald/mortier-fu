@@ -44,6 +44,8 @@ namespace MortierFu
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
+        readonly List<IEffect<PlayerCharacter>> _activeEffects = new();
+        
         private LocomotionState _locomotionState;
         private StunState _stunState;
         private StrikeState _strikeState;
@@ -123,6 +125,13 @@ namespace MortierFu
             Controller.Dispose();
             Aspect.Dispose();
             Mortar.Dispose();
+
+            foreach (var effect in _activeEffects)
+            {
+                effect.OnCompleted -= RemoveEffect;
+                effect.Cancel(this);
+            }
+            _activeEffects.Clear();
             
             if (_toggleAimAction != null && Mortar != null)
             {
@@ -239,6 +248,21 @@ namespace MortierFu
         {
             _animator.SetFloat(_speedHash, Controller.SpeedRatio);
         }
+
+        public void ApplyEffect(IEffect<PlayerCharacter> effect)
+        {
+            effect.OnCompleted += RemoveEffect;
+            _activeEffects.Add(effect);
+            effect.Apply(this);
+            
+        }
+
+        private void RemoveEffect(IEffect<PlayerCharacter> effect)
+        {
+            effect.OnCompleted -= RemoveEffect;
+            _activeEffects.Remove(effect);
+        }
+        
         
         private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
         
