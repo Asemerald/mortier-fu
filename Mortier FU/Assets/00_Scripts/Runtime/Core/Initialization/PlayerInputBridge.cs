@@ -2,10 +2,6 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace MortierFu
 {
     [RequireComponent(typeof(PlayerInputManager))]
@@ -18,15 +14,6 @@ namespace MortierFu
             PlayerInputManager = GetComponent<PlayerInputManager>();
             PlayerInputManager.onPlayerJoined += OnPlayerJoined;
             PlayerInputManager.onPlayerLeft += OnPlayerLeft;
-            
-            #if UNITY_EDITOR
-            if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
-                foreach (Gamepad gamepad in Gamepad.all) {
-                    PlayerInputManager.JoinPlayer(pairWithDevice: gamepad);
-                    Logs.Log("[PlayerInputBridge]: Auto-connecting device with ID: " + gamepad.deviceId);
-                }
-            }
-            #endif
         }
 
         private void OnDestroy()
