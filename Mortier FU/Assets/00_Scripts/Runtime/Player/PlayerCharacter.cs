@@ -46,8 +46,8 @@ namespace MortierFu
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
-        readonly List<IEffect<PlayerCharacter>> _activeEffects = new();
-        
+        private List<IEffect<PlayerCharacter>> _activeEffects = new();
+
         private LocomotionState _locomotionState;
         private StunState _stunState;
         private StrikeState _strikeState;
@@ -55,8 +55,6 @@ namespace MortierFu
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
-        
-        public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
 
@@ -87,7 +85,6 @@ namespace MortierFu
             Augments = _augments.AsReadOnly();
 
             _activeEffects = new List<IEffect<PlayerCharacter>>();
-            PuddleAbilities = new List<Ability>();
 
             InitStateMachine();
         }
@@ -136,6 +133,17 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
+        private void OnDisable()
+        {
+            foreach (var effect in _activeEffects)
+            {
+                effect.OnCompleted -= RemoveEffect;
+                effect.Cancel(this);
+            }
+
+            _activeEffects.Clear();
+        }
+
         void OnDestroy()
         {
             _stateMachine.Dispose();
@@ -150,13 +158,13 @@ namespace MortierFu
                 effect.OnCompleted -= RemoveEffect;
                 effect.Cancel(this);
             }
+
             _activeEffects.Clear();
-            
-            if (_toggleAimAction != null && Mortar != null)
-            {
-                _toggleAimAction.started -= Mortar.BeginAiming;
-                _toggleAimAction.canceled -= Mortar.EndAiming;
-            }
+
+            if (_toggleAimAction == null || Mortar == null) return;
+
+            _toggleAimAction.started -= Mortar.BeginAiming;
+            _toggleAimAction.canceled -= Mortar.EndAiming;
         }
 
         private void InitStateMachine()
@@ -294,18 +302,17 @@ namespace MortierFu
             effect.OnCompleted += RemoveEffect;
             _activeEffects.Add(effect);
             effect.Apply(this);
-            
         }
 
-        private void RemoveEffect(IEffect<PlayerCharacter> effect)
+        public void RemoveEffect(IEffect<PlayerCharacter> effect)
         {
             effect.OnCompleted -= RemoveEffect;
             _activeEffects.Remove(effect);
         }
-        
-        
-        private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
-        
+
+        private void At(IState from, IState to, IPredicate condition) =>
+            _stateMachine.AddTransition(from, to, condition);
+
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
 
 #if UNITY_EDITOR
