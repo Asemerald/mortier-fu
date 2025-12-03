@@ -86,7 +86,7 @@ namespace MortierFu
                 var player = players[i];
                 player.SpawnInGame(Vector3.one * i * 2f);
                 
-                player.Character.Health.OnDeath += source => OnDeath(player, source);
+                player.Character.Health.OnDeath += source => OnDeath(player, source); // Memory leak ? Can be improved
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
