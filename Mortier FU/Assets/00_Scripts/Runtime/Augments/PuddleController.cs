@@ -43,10 +43,9 @@ namespace MortierFu
 
         private void ApplyEffects(PlayerCharacter target)
         {
-            foreach (var effect in Abilities)
+            foreach (Ability t in Abilities)
             {
-                // TODO: Get real owner
-                effect.Execute(target,target);
+                t.Execute(target);
             }
         }
 
