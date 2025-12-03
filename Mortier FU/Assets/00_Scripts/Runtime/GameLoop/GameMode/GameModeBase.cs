@@ -454,8 +454,6 @@ namespace MortierFu
 
         protected void OnDeath(PlayerManager player, object source)
         {
-            Debug.Log("Player death detected");
-            
             player.Metrics.TotalDeaths++;
             alivePlayers.Remove(player.Character);
             cameraSystem.Controller.RemoveTarget(player.transform);
