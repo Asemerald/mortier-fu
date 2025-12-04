@@ -50,7 +50,8 @@ namespace MortierFu
         {
             var rb = other.attachedRigidbody;
             if (rb == null || !rb.TryGetComponent(out PlayerCharacter character)) return;
-
+            
+            CancelEffects(character);
             _inside.Remove(character);
         }
 
