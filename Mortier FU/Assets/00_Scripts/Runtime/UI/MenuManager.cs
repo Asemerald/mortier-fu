@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace MortierFu
     
         [field: Header("Lobby References")]
         [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
+
+        [Header("Utils")] 
+        [field: SerializeField] private GameObject BlackFader; 
         
         private EventSystem _eventSystem;
         
@@ -134,6 +138,14 @@ namespace MortierFu
                 //Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
                 LobbyPanel.gameObject.SetActive(true);
             }
+        }
+
+        [ContextMenu("Trigger Black Fade")]
+        public async UniTaskVoid TriggerBlackFade()
+        {
+            BlackFader.SetActive(true);
+            await UniTask.Delay(TimeSpan.FromSeconds(2));
+            BlackFader.SetActive(false);
         }
     }
 }
