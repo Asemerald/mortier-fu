@@ -9,9 +9,7 @@ namespace MortierFu
 
         protected ElementAugmentBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
             augmentData, owner, db)
-        {
-            _puddleSystem = SystemManager.Instance.Get<PuddleSystem>();
-        }
+        { }
 
         public override void Initialize()
         {
@@ -20,6 +18,8 @@ namespace MortierFu
 
             _endRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
+            
+            _puddleSystem = SystemManager.Instance.Get<PuddleSystem>();
         }
 
         protected abstract void OnTriggerBombshellImpact(TriggerBombshellImpact evt);
