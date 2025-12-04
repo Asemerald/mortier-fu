@@ -25,6 +25,8 @@ namespace MortierFu
         
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
+            Logs.Log("Populating augments for batch...");
+            
             int length = outAugments.Length;
             var rarities = _rarityTable.BatchPull(length);
             
@@ -39,7 +41,9 @@ namespace MortierFu
                 }
                 
                 int randIndex = Random.Range(0, augments.Count);
+                Logs.Log("Pulled random index: " + randIndex);
                 var pulledAugment = augments[randIndex];
+                Logs.Log("Pulled augment: " + pulledAugment.name);
                 
                 // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
                 if (!_settings.AllowCopiesInBatch)
@@ -50,6 +54,7 @@ namespace MortierFu
                 }
                 
                 outAugments[i] = pulledAugment;
+                Logs.Log("Set augment at index " + i + " to " + pulledAugment.name);
             }
 
             if (!_settings.AllowCopiesInBatch)
