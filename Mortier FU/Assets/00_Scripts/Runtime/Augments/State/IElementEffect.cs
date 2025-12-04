@@ -61,7 +61,7 @@ namespace MortierFu
     }
 
     [Serializable]
-    public class DamageOverTimeElementEffect : IEffect<PlayerCharacter>
+    public class PoisonEffect : IEffect<PlayerCharacter>
     {
         public float Duration = 5f;
         public float TickInterval = 1f;
@@ -99,6 +99,27 @@ namespace MortierFu
             OnCompleted?.Invoke(this);
             _timer = null;
             _currentTarget = null;
+        }
+    }
+    
+    [Serializable]
+    public class FreezeEffect : IEffect<PlayerCharacter>
+    {
+        private PlayerCharacter _currentTarget;
+        
+        public float FreezeFactor = 0.5f;
+        public event Action<IEffect<PlayerCharacter>> OnCompleted;
+
+        public void Apply(PlayerCharacter target)
+        {
+            _currentTarget = target;
+            _currentTarget.Stats.MoveSpeed.AddModifier(new StatModifier(-_currentTarget.Stats.MoveSpeed.BaseValue * FreezeFactor, E_StatModType.Flat, this));
+        }
+
+        public void Cancel(PlayerCharacter target)
+        {
+            OnCompleted?.Invoke(this);
+            _currentTarget.Stats.MoveSpeed.RemoveAllModifiersFromSource(this);
         }
     }
 }
