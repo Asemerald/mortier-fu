@@ -13,6 +13,7 @@ namespace MortierFu
             public GameObject PuddlePrefab;
             public Ability Ability;
             public float PuddleDuration;
+            public Vector3 Scale;
         }
 
         public AGM_PoisonPuddle(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
@@ -24,18 +25,21 @@ namespace MortierFu
             if (evt.Bombshell.Owner != Owner) return;
 
             //TODO: Better (pooling)
-            var puddleObj = Object.Instantiate(
-                db.PoisonPuddleParams.PuddlePrefab,
-                evt.Bombshell.transform.position + Vector3.up,
-                Quaternion.identity
-            );
-            
-            var puddle = puddleObj.GetComponent<PuddleController>();
+            var puddleData = new Puddle.Data
+            {
+                Owner = evt.Bombshell.Owner,
+                InstantiatePos = evt.Bombshell.transform.position + Vector3.up,
+                Scale = db.PoisonPuddleParams.Scale,
+                Lifetime = db.PoisonPuddleParams.PuddleDuration
+            };
+
+            var puddle = _puddleSystem.RequestPuddle(puddleData); 
             puddle.AddAbility(db.PoisonPuddleParams.Ability);
-            puddle.Lifetime = db.PoisonPuddleParams.PuddleDuration;
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)
-        { }
+        {
+            
+        }
     }
 }

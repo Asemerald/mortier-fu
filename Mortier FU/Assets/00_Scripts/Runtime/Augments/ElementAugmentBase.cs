@@ -2,11 +2,16 @@ namespace MortierFu
 {
     public abstract class ElementAugmentBase : AugmentBase
     {
+        protected PuddleSystem _puddleSystem;
+        
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
-    
-        protected ElementAugmentBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
-        { }
+
+        protected ElementAugmentBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
+            augmentData, owner, db)
+        {
+            _puddleSystem = SystemManager.Instance.Get<PuddleSystem>();
+        }
 
         public override void Initialize()
         {

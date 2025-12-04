@@ -11,8 +11,6 @@ namespace MortierFu
         public SO_PuddleSettings Settings { get; private set; }
         private GameObject _puddlePrefab;
 
-        private PuddleFactory _puddleFactory;
-        
         private IObjectPool<Puddle> _pool;
         private const bool k_collectionCheck = true;
         private const int k_defaultCapacity = 30;
@@ -24,15 +22,11 @@ namespace MortierFu
         private Transform _puddleParent;
 
         private const int k_maxImpactTargets = 50;
-        
-        public PuddleFactory PuddleFactory => _puddleFactory;
 
         public Puddle RequestPuddle(Puddle.Data puddleData)
         {
             Puddle puddle = _pool.Get();
             puddle.SetData(puddleData);
-            puddle.OnGet();
-            puddle.gameObject.SetActive(true);
             return puddle;
         }
 
@@ -68,6 +62,8 @@ namespace MortierFu
 
         private void OnGetPuddle(Puddle puddle)
         {
+            puddle.gameObject.SetActive(true);
+            puddle.OnGet();
 
             _active.Add(puddle);
         }
@@ -112,8 +108,6 @@ namespace MortierFu
                 k_defaultCapacity,
                 k_maxSize
             );
-            
-            _puddleFactory = new PuddleFactory(this);
         }
 
         public void Dispose()
