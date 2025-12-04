@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -10,10 +11,8 @@ namespace MortierFu
         public struct Params
         {
             public GameObject PuddlePrefab;
-            
-            public AugmentStatMod PoisonDamageMod;
-            public AugmentStatMod Duration;
-            public AugmentStatMod TickInterval;
+            public Ability Ability;
+            public float PuddleDuration;
         }
 
         public AGM_PoisonPuddle(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
@@ -24,15 +23,16 @@ namespace MortierFu
         {
             if (evt.Bombshell.Owner != Owner) return;
 
-            var puddleObj = GameObject.Instantiate(
+            //TODO: Better (pooling)
+            var puddleObj = Object.Instantiate(
                 db.PoisonPuddleParams.PuddlePrefab,
                 evt.Bombshell.transform.position + Vector3.up,
                 Quaternion.identity
             );
             
             var puddle = puddleObj.GetComponent<PuddleController>();
-            
-            puddle.Lifetime = db.PoisonPuddleParams.Duration.Value;
+            puddle.AddAbility(db.PoisonPuddleParams.Ability);
+            puddle.Lifetime = db.PoisonPuddleParams.PuddleDuration;
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)

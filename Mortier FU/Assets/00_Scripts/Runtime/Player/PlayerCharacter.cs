@@ -117,10 +117,8 @@ namespace MortierFu
             Controller.Reset();
             Aspect.Reset();
             Mortar.Reset();
-
-            var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
-
-            foreach (var effect in effectsCopy)
+            
+            foreach (var effect in _activeEffects)
             {
                 effect.OnCompleted -= RemoveEffect;
                 effect.Cancel(this);
@@ -131,17 +129,6 @@ namespace MortierFu
             _strikeState.Reset();
 
             _stateMachine.SetState(_locomotionState);
-        }
-
-        private void OnDisable()
-        {
-            foreach (var effect in _activeEffects)
-            {
-                effect.OnCompleted -= RemoveEffect;
-                effect.Cancel(this);
-            }
-
-            _activeEffects.Clear();
         }
 
         void OnDestroy()
