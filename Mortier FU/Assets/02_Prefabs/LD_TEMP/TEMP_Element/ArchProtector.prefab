@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4591962460183808881}
   - component: {fileID: 5554851110149348942}
   - component: {fileID: 1155122762708445114}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ArchProtector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -613,8 +613,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b84889fd6f1f60645a9d6a6f4ce16c60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::Breakable
-  isBombshellBreakable: 1
-  isStrikeBreakable: 0
-  canprotect: 1
-  life: 2
-  mat: {fileID: 2100000, guid: eb51bb05a8e372e4784e9cf410b74706, type: 2}
+  _life: 1
+  _mat: {fileID: 0}

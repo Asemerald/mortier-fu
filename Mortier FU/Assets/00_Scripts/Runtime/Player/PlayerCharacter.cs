@@ -4,6 +4,7 @@ using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -101,6 +102,7 @@ namespace MortierFu
         {
             // Reset the parent if it was held by an actor
             transform.SetParent(null);
+            SceneManager.MoveGameObjectToScene(transform.gameObject, SceneManager.GetActiveScene());
             
             gameObject.SetActive(true);
             
