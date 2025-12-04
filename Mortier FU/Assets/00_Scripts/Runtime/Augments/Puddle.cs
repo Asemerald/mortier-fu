@@ -5,6 +5,25 @@ namespace MortierFu
 {
     public class PuddleController : MonoBehaviour
     {
+        public struct Data
+        {
+            // Meta
+            public PlayerCharacter Owner;
+        
+            // Movement
+            public Vector3 StartPos;
+            public Vector3 TargetPos;
+            public float Scale;
+            // public float Speed;
+            public float Height;
+            public float TravelTime;
+            public float GravityScale;
+        
+            // Damage
+            public int Damage;
+            public float AoeRange;
+            public int Bounces;
+        }
         // TODO: Do a PuddleSystem and Pooling
         public List<Ability> Abilities;
         public float Lifetime = 5f;
