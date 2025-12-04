@@ -5,10 +5,13 @@ namespace MortierFu
 {
     public class PuddleController : MonoBehaviour
     {
+        // TODO: Do a PuddleSystem and Pooling
         public List<Ability> Abilities;
         public float Lifetime = 5f;
 
         private readonly HashSet<PlayerCharacter> _inside = new();
+
+        public void AddAbility(Ability ability) => Abilities.Add(ability);
 
         private void Start()
         {
@@ -29,7 +32,7 @@ namespace MortierFu
             var rb = other.attachedRigidbody;
             if (rb == null || !rb.TryGetComponent(out PlayerCharacter character)) return;
 
-            CancelEffects(character);
+          //  CancelEffects(character);
             _inside.Remove(character);
         }
 
