@@ -268,9 +268,9 @@ namespace MortierFu
             OnRoundStarted?.Invoke(currentRound);
             Logs.Log($"Round #{currentRound} is starting...");
             
-            timer.Reset(_gameModeData.StormSpawnTime);
-            timer.OnTimerStop += SpawnStorm;
-            timer.Start();
+            // timer.Reset(_gameModeData.StormSpawnTime);
+            // timer.OnTimerStop += SpawnStorm;
+            // timer.Start();
         }
 
         protected virtual void EndRound()
