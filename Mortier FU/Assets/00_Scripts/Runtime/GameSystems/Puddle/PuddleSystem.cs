@@ -27,6 +27,8 @@ namespace MortierFu
         {
             Puddle puddle = _pool.Get();
             puddle.SetData(puddleData);
+            puddle.OnGet();
+            puddle.gameObject.SetActive(true);
             return puddle;
         }
 
@@ -62,8 +64,6 @@ namespace MortierFu
 
         private void OnGetPuddle(Puddle puddle)
         {
-            puddle.gameObject.SetActive(true);
-            puddle.OnGet();
 
             _active.Add(puddle);
         }
