@@ -10,6 +10,8 @@ namespace MortierFu
     public class BombshellSystem : IGameSystem
     {
         public SO_BombshellSettings Settings { get; private set; }
+        
+        private CameraSystem _cameraSystem;
         private GameObject _bombshellPrefab;
 
         private IObjectPool<Bombshell> _pool;
@@ -19,18 +21,15 @@ namespace MortierFu
 
         // Track active bombshells
         private HashSet<Bombshell> _active;
-
         private Transform _bombshellParent;
+        
         private Collider[] _impactResults;
-        private CameraSystem _cameraSystem;
-
         private const int k_maxImpactTargets = 50;
-
+        
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
-            bombshellData.Height = Settings.BombshellHeight;
-            bombshell.SetData(bombshellData);
+            bombshell.Configure(bombshellData);
             bombshell.OnGet();
             bombshell.gameObject.SetActive(true);
             return bombshell;
@@ -163,7 +162,7 @@ namespace MortierFu
 
         public async UniTask OnInitialize()
         {
-            // Load the system settings
+            // Load the system settings;lla
             var settingsRef = SystemManager.Config.BombshellSettings;
             Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (Settings == null) return;
