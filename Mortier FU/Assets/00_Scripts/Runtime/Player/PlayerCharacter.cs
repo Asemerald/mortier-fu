@@ -117,14 +117,7 @@ namespace MortierFu
             Controller.Reset();
             Aspect.Reset();
             Mortar.Reset();
-
-            _strikeState.Reset();
-
-            _stateMachine.SetState(_locomotionState);
-        }
-
-        private void OnDisable()
-        {
+            
             foreach (var effect in _activeEffects)
             {
                 effect.OnCompleted -= RemoveEffect;
@@ -132,6 +125,10 @@ namespace MortierFu
             }
 
             _activeEffects.Clear();
+
+            _strikeState.Reset();
+
+            _stateMachine.SetState(_locomotionState);
         }
 
         void OnDestroy()
