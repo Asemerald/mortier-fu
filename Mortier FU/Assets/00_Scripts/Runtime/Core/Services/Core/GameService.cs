@@ -54,6 +54,7 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
+            SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
 
