@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace MortierFu
 {
@@ -28,14 +28,8 @@ namespace MortierFu
         {
             foreach (var effect in Effects)
             {
-                if (target is PlayerCharacter playerCharacter)
-                {
-                    playerCharacter.RemoveEffect(effect);
-                }
-                else
-                {
-                    effect.Cancel(target);
-                }
+                target.RemoveEffect(effect);
+                effect.Cancel(target);
             }
         }
     }
@@ -94,7 +88,7 @@ namespace MortierFu
             Cleanup();
         }
 
-        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, _currentTarget);
+        void OnInterval() => _currentTarget?.Health.TakeDamage(DamagePerTick, this); // TODO: get owner
         void OnStop() => Cleanup();
 
         void Cleanup()
