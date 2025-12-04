@@ -26,6 +26,7 @@ namespace MortierFu
         public AGM_TakeTheTempo.Params TakeTheTempoParams;
         public AGM_TsarBomba.Params TsarBombaParams;
         public AGM_PoisonPuddle.Params PoisonPuddleParams;
+        public AGM_FreezePuddle.Params FreezePuddleParams;
         
         [Header("Strike")]
         public AGM_BigStrike.Params BigStrikeParams;
