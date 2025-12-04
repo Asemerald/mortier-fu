@@ -1,11 +1,10 @@
 using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
     [Serializable]
-    public class AGM_PoisonPuddle : ElementAugmentBase
+    public class AGM_PoisonPuddle : PuddleAugmentBase
     {
         [Serializable]
         public struct Params
