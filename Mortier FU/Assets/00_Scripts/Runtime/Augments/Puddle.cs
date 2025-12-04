@@ -1,40 +1,40 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace MortierFu
 {
-    public class PuddleController : MonoBehaviour
+    public class Puddle : MonoBehaviour
     {
         public struct Data
         {
             // Meta
             public PlayerCharacter Owner;
-        
+
             // Movement
-            public Vector3 StartPos;
-            public Vector3 TargetPos;
-            public float Scale;
-            // public float Speed;
-            public float Height;
-            public float TravelTime;
-            public float GravityScale;
-        
-            // Damage
-            public int Damage;
-            public float AoeRange;
-            public int Bounces;
+            public Vector3 InstantiatePos;
+            public Vector3 Scale;
+
+            public float Lifetime;
         }
-        // TODO: Do a PuddleSystem and Pooling
-        public List<Ability> Abilities;
-        public float Lifetime = 5f;
 
         private readonly HashSet<PlayerCharacter> _inside = new();
 
-        public void AddAbility(Ability ability) => Abilities.Add(ability);
+        private CancellationTokenSource _cts;
 
-        private void Start()
+        private PuddleSystem _system;
+        private Data _data;
+
+        public List<Ability> Abilities;
+
+        public void AddAbility(Ability ability)
         {
-            Destroy(gameObject, Lifetime);
+            if (!Abilities.Contains(ability))
+            {
+                Abilities.Add(ability);
+            }
         }
 
         private void OnTriggerEnter(Collider other)
@@ -51,14 +51,41 @@ namespace MortierFu
             var rb = other.attachedRigidbody;
             if (rb == null || !rb.TryGetComponent(out PlayerCharacter character)) return;
 
-          //  CancelEffects(character);
             _inside.Remove(character);
         }
 
-        private void OnDestroy()
+        public void SetData(Data data)
         {
+            _data = data;
+            transform.position = data.InstantiatePos;
+            transform.localScale = data.Scale;
+        }
+
+        public void Initialize(PuddleSystem system)
+        {
+            _system = system;
+            Abilities = new List<Ability>();
+        }
+
+        public void OnGet()
+        {
+            Abilities.Clear();
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            StartLifetimeAsync(_cts.Token).Forget();
+        }
+
+        public void OnRelease()
+        {
+            _cts?.Cancel();
+            _cts = null;
+
             foreach (var player in _inside)
                 CancelEffects(player);
+
+            _inside.Clear();
+
+            Abilities.Clear();
         }
 
         private void ApplyEffects(PlayerCharacter target)
@@ -74,6 +101,19 @@ namespace MortierFu
             foreach (Ability t in Abilities)
             {
                 t.Cancel(target);
+            }
+        }
+
+        private async UniTaskVoid StartLifetimeAsync(CancellationToken token)
+        {
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(_data.Lifetime), cancellationToken: token);
+
+                _system.ReleasePuddle(this);
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
     }

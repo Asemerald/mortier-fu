@@ -117,8 +117,10 @@ namespace MortierFu
             Controller.Reset();
             Aspect.Reset();
             Mortar.Reset();
-            
-            foreach (var effect in _activeEffects)
+
+            var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
+
+            foreach (var effect in effectsCopy)
             {
                 effect.OnCompleted -= RemoveEffect;
                 effect.Cancel(this);
@@ -139,14 +141,6 @@ namespace MortierFu
             Controller.Dispose();
             Aspect.Dispose();
             Mortar.Dispose();
-
-            foreach (var effect in _activeEffects)
-            {
-                effect.OnCompleted -= RemoveEffect;
-                effect.Cancel(this);
-            }
-
-            _activeEffects.Clear();
 
             if (_toggleAimAction == null || Mortar == null) return;
 
@@ -274,7 +268,11 @@ namespace MortierFu
         public void ApplyEffect(IEffect<PlayerCharacter> effect)
         {
             effect.OnCompleted += RemoveEffect;
-            _activeEffects.Add(effect);
+            if (!_activeEffects.Contains(effect))
+            {
+                _activeEffects.Add(effect);
+            }
+
             effect.Apply(this);
         }
 

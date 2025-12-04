@@ -75,6 +75,9 @@ namespace MortierFu
         public void Apply(PlayerCharacter target)
         {
             _currentTarget = target;
+            
+            if (_timer is { IsRunning: true }) return;
+            
             _timer = new IntervalTimer(Duration, TickInterval);
 
             _timer.OnInterval = OnInterval;
