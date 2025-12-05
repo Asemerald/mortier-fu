@@ -47,6 +47,7 @@ namespace MortierFu
         public ReadOnlyCollection<IAugment> Augments;
 
         private List<IEffect<PlayerCharacter>> _activeEffects = new();
+        private List<Ability> PuddleAbilities; //TODO: Make it better
 
         private LocomotionState _locomotionState;
         private StunState _stunState;
@@ -55,6 +56,8 @@ namespace MortierFu
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
+        
+        public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
 
@@ -85,6 +88,7 @@ namespace MortierFu
             Augments = _augments.AsReadOnly();
 
             _activeEffects = new List<IEffect<PlayerCharacter>>();
+            PuddleAbilities = new List<Ability>();
 
             InitStateMachine();
         }
@@ -207,6 +211,19 @@ namespace MortierFu
                     SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
             augmentInstance.Initialize();
             _augments.Add(augmentInstance);
+        }
+
+        public void AddPuddleEffect(Ability ability)
+        {
+            if (!PuddleAbilities.Contains(ability)) //TODO: see later if we add duplicate or power up the effect
+            {
+                PuddleAbilities.Add(ability);
+            }
+        }
+
+        public void RemovePuddleEffect(Ability ability)
+        {
+            PuddleAbilities.Remove(ability);
         }
 
         // Could also implement a RemoveAugment method if needed

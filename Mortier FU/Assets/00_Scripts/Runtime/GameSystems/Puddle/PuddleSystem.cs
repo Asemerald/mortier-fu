@@ -11,6 +11,8 @@ namespace MortierFu
         public SO_PuddleSettings Settings { get; private set; }
         private GameObject _puddlePrefab;
 
+        private PuddleFactory _puddleFactory;
+        
         private IObjectPool<Puddle> _pool;
         private const bool k_collectionCheck = true;
         private const int k_defaultCapacity = 30;
@@ -22,6 +24,8 @@ namespace MortierFu
         private Transform _puddleParent;
 
         private const int k_maxImpactTargets = 50;
+        
+        public PuddleFactory PuddleFactory => _puddleFactory;
 
         public Puddle RequestPuddle(Puddle.Data puddleData)
         {
@@ -108,6 +112,8 @@ namespace MortierFu
                 k_defaultCapacity,
                 k_maxSize
             );
+            
+            _puddleFactory = new PuddleFactory(this);
         }
 
         public void Dispose()

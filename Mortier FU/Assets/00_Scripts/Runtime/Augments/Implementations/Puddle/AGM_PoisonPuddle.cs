@@ -9,36 +9,37 @@ namespace MortierFu
         [Serializable]
         public struct Params
         {
-            public GameObject PuddlePrefab;
             public Ability Ability;
-            public float PuddleDuration;
-            public Vector3 Scale;
         }
 
         public AGM_PoisonPuddle(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
             augmentData, owner, db)
         { }
 
+        public override void Initialize()
+        {
+            base.Initialize();
+            Owner.AddPuddleEffect(db.PoisonPuddleParams.Ability);
+        }
+
         protected override void OnTriggerBombshellImpact(TriggerBombshellImpact evt)
         {
             if (evt.Bombshell.Owner != Owner) return;
 
-            //TODO: Better (pooling)
-            var puddleData = new Puddle.Data
-            {
-                Owner = evt.Bombshell.Owner,
-                InstantiatePos = evt.Bombshell.transform.position + Vector3.up,
-                Scale = db.PoisonPuddleParams.Scale,
-                Lifetime = db.PoisonPuddleParams.PuddleDuration
-            };
+            Vector3 pos = evt.Bombshell.transform.position + Vector3.up;
 
-            var puddle = _puddleSystem.RequestPuddle(puddleData); 
-            puddle.AddAbility(db.PoisonPuddleParams.Ability);
+            SpawnPlayerPuddle(Owner, pos);
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)
         {
+        }
+
+        public override void Dispose()
+        {
+            Owner.AddPuddleEffect(db.PoisonPuddleParams.Ability);
             
+            Owner.RemovePuddleEffect(db.PoisonPuddleParams.Ability);
         }
     }
 }

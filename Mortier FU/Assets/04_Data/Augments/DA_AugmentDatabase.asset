@@ -113,17 +113,14 @@ MonoBehaviour:
       Value: 2
       ModType: 100
   PoisonPuddleParams:
-    PuddlePrefab: {fileID: 4839347615854320135, guid: ec33c8e4873d04742b8494d0f3a10335, type: 3}
     Ability:
       Effects:
       - rid: 8527789206929670256
-    PuddleDuration: 5
-    Scale: {x: 3, y: 1, z: 3}
   FreezePuddleParams:
-    PuddlePrefab: {fileID: 4839347615854320135, guid: 80988ac3824f0f644a2e4c7c7433d65e, type: 3}
     Ability:
       Effects:
       - rid: 8527789206929670255
+  GenericPuddleParams:
     PuddleDuration: 5
     Scale: {x: 3, y: 1, z: 3}
   BigStrikeParams:
@@ -153,7 +150,7 @@ MonoBehaviour:
     - rid: 8527789206929670255
       type: {class: FreezeEffect, ns: MortierFu, asm: Mortierfu.Runtime}
       data:
-        FreezeFactor: 0.5
+        FreezeFactor: 0.7
     - rid: 8527789206929670256
       type: {class: PoisonEffect, ns: MortierFu, asm: Mortierfu.Runtime}
       data:

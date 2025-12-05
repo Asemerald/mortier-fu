@@ -113,7 +113,8 @@ namespace MortierFu
         public void Apply(PlayerCharacter target)
         {
             _currentTarget = target;
-            _currentTarget.Stats.MoveSpeed.AddModifier(new StatModifier(-_currentTarget.Stats.MoveSpeed.BaseValue * FreezeFactor, E_StatModType.Flat, this));
+            //TODO: Make it better cause totally freeze the player 
+            _currentTarget.Stats.MoveSpeed.AddModifier(new StatModifier(-_currentTarget.Stats.MoveSpeed.Value * FreezeFactor, E_StatModType.Flat, this));
         }
 
         public void Cancel(PlayerCharacter target)
