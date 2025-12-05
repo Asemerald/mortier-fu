@@ -47,6 +47,7 @@ namespace MortierFu
         public ReadOnlyCollection<IAugment> Augments;
 
         private List<IEffect<PlayerCharacter>> _activeEffects = new();
+        private List<Ability> PuddleAbilities; //TODO: Make it better
 
         private LocomotionState _locomotionState;
         private StunState _stunState;
@@ -55,6 +56,8 @@ namespace MortierFu
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
+        
+        public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
 
@@ -85,6 +88,7 @@ namespace MortierFu
             Augments = _augments.AsReadOnly();
 
             _activeEffects = new List<IEffect<PlayerCharacter>>();
+            PuddleAbilities = new List<Ability>();
 
             InitStateMachine();
         }
