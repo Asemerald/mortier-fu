@@ -25,15 +25,17 @@ namespace MortierFu
         public MinMaxRange CardMoveStaggerRange = new(0.12f, 0.4f);
 
         [Header("Visuals")]
-        [Tooltip("Final scale applied to each augment card during showcase and placement.")]
+        [Tooltip("Final scale applied to each augment card during showcase.")]
         public float DisplayedCardScale = 4f;
-
+        [Tooltip("Final scale applied to each augment card during carousel.")]
+        public float CarouselCardScale = 1.5f;
+        
         [Tooltip("Horizontal distance between augment cards during showcase.")]
         public float CardSpacing = 2.2f;
         
         [Header("References")]
         public AssetReferenceGameObject AugmentPickupPrefab;
-        
+
     }
 }
 

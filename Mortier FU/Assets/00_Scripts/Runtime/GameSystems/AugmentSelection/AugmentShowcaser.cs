@@ -80,11 +80,10 @@ namespace MortierFu
         }
         private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration)
         {
-            await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: i * 0.06f), duration, Ease.InOutQuad)
-                .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
+            await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration, Ease.InOutQuad)
+                .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, _system.Settings.CarouselCardScale, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
                 {
-                    pickup.SetFaceCameraEnabled(false);
-                    pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    pickup.SetFaceCameraEnabled(true);
                 });
         }
 
