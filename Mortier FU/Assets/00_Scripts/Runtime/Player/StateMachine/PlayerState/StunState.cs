@@ -12,13 +12,28 @@ namespace MortierFu
             _stunTimer = new CountdownTimer(0f);
         }
 
+        private Vector3 currentBumpDir;
+
         public bool IsActive => _stunTimer.IsRunning;
         
-        public void ReceiveStun(float duration)
+        public override void Update()
+        {
+            character.Controller.HandleMovementUpdate();
+        }
+        
+        public override void FixedUpdate()
+        {
+            character.Controller.HandleMovementFixedUpdate();
+        }
+        
+        public void ReceiveStun(float duration, Vector3 bumpDirection)
         {
             // On autorise actuellement le "refresh" du stun
             if(IsActive && _stunTimer.CurrentTime > duration)
                 return;
+            
+            //set bump direction
+            currentBumpDir = bumpDirection;
             
             _stunTimer.Reset(duration);
             _stunTimer.Start();
@@ -27,6 +42,9 @@ namespace MortierFu
         public override void OnEnter()
         {
             character.Controller.ResetVelocity();
+            
+            //Apply Knockback
+            character.Controller.ApplyKnockback(currentBumpDir * 10.5f);
             
             EventBus<TriggerGetStrike>.Raise(new TriggerGetStrike()
             {

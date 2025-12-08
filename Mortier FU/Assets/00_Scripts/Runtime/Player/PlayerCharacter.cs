@@ -160,9 +160,9 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveStun(float duration)
+        public void ReceiveStun(float duration, Vector3 direction)
         {
-            _stunState.ReceiveStun(duration);
+            _stunState.ReceiveStun(duration, direction);
         }
         
         public void FindInputAction(string actionName, out InputAction action)
