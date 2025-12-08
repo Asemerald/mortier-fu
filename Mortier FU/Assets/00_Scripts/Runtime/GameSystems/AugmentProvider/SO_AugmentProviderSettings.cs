@@ -12,6 +12,5 @@ namespace MortierFu
         [Header("Drop Rates")]
         [Tooltip("The drop rate of every augment rarities.")]
         public List<LootTable<E_AugmentRarity>.LootTableEntry> RarityDropRates;
-
     }
 }

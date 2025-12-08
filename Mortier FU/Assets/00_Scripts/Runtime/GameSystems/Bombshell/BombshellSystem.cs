@@ -10,6 +10,8 @@ namespace MortierFu
     public class BombshellSystem : IGameSystem
     {
         public SO_BombshellSettings Settings { get; private set; }
+        
+        private CameraSystem _cameraSystem;
         private GameObject _bombshellPrefab;
 
         private IObjectPool<Bombshell> _pool;
@@ -19,18 +21,17 @@ namespace MortierFu
 
         // Track active bombshells
         private HashSet<Bombshell> _active;
-
         private Transform _bombshellParent;
+        
         private Collider[] _impactResults;
-        private CameraSystem _cameraSystem;
-
         private const int k_maxImpactTargets = 50;
-
+        
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
-            bombshellData.Height = Settings.BombshellHeight;
-            bombshell.SetData(bombshellData);
+            bombshell.Configure(bombshellData);
+            bombshell.OnGet();
+            bombshell.gameObject.SetActive(true);
             return bombshell;
         }
 
@@ -39,13 +40,13 @@ namespace MortierFu
             _pool.Release(bombshell);
         }
 
+        // Can be improved with a IDamageable interface which seems to be similar to IInteractable as interaction happens on impact or contact.
         public void NotifyImpact(Bombshell bombshell)
         {
-            int numHits =
-                Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
-
+            
+            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             for (int i = 0; i < numHits; i++)
             {
                 Collider hit = _impactResults[i];
@@ -89,7 +90,7 @@ namespace MortierFu
             }
             else Logs.LogWarning("No FX Handler");
 
-            _cameraSystem?.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
+            _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.Owner.Stats.BombshellTimeTravel.Value);
 
             if (hitCharacters.Count > 0)
@@ -138,9 +139,6 @@ namespace MortierFu
 
         private void OnGetBombshell(Bombshell bombshell)
         {
-            bombshell.gameObject.SetActive(true);
-            bombshell.OnGet();
-
             _active.Add(bombshell);
         }
 
@@ -164,7 +162,7 @@ namespace MortierFu
 
         public async UniTask OnInitialize()
         {
-            // Load the system settings
+            // Load the system settings;lla
             var settingsRef = SystemManager.Config.BombshellSettings;
             Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
             if (Settings == null) return;

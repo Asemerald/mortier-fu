@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -18,13 +19,17 @@ namespace MortierFu
         public ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>> AugmentsPerRarity;
         private SO_AugmentProviderSettings _settings;
         
-        private const string k_augmentLibLabel = "AugmentLib";        
+        private AsyncOperationHandle<IList<SO_AugmentLibrary>> _augmentLibHandle;
+
+        private const string k_augmentLibLabel = "AugmentLib";
         
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
+            Logs.Log("Populating augments for batch...");
+            
             int length = outAugments.Length;
             var rarities = _rarityTable.BatchPull(length);
-
+            
             for (int i = 0; i < length; i++)
             {
                 E_AugmentRarity rarity = rarities[i];
@@ -34,9 +39,11 @@ namespace MortierFu
                     outAugments[i] = null;
                     continue;
                 }
-
+                
                 int randIndex = Random.Range(0, augments.Count);
+                Logs.Log("Pulled random index: " + randIndex);
                 var pulledAugment = augments[randIndex];
+                Logs.Log("Pulled augment: " + pulledAugment.name);
                 
                 // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
                 if (!_settings.AllowCopiesInBatch)
@@ -47,6 +54,7 @@ namespace MortierFu
                 }
                 
                 outAugments[i] = pulledAugment;
+                Logs.Log("Set augment at index " + i + " to " + pulledAugment.name);
             }
 
             if (!_settings.AllowCopiesInBatch)
@@ -85,22 +93,21 @@ namespace MortierFu
         
         private async UniTask PopulateAugmentDictionary()
         {
-            var handle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
-            await handle;
+            Logs.Log("Loading Augment Libraries...");
             
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+            _augmentLibHandle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
+            await _augmentLibHandle;
+            
+            if (_augmentLibHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogWarning($"Error occurred while loading Augment libs: {handle.OperationException.Message}");
+                Logs.LogWarning($"Error occurred while loading Augment libs: {_augmentLibHandle.OperationException.Message}");
                 return;
             }
 
             _augmentsPerRarity = new Dictionary<E_AugmentRarity, List<SO_Augment>>();
             AugmentsPerRarity = new ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>>(_augmentsPerRarity);
-
-            var libs = handle.Result;
-            Addressables.Release(handle);
             
-            foreach (var lib in libs)
+            foreach (var lib in _augmentLibHandle.Result)
             {
                 foreach (var augment in lib.Augments)
                 {
@@ -113,16 +120,21 @@ namespace MortierFu
         private void AddAugmentInDictionary(SO_Augment augment)
         {
             var augmentRarity = augment.Rarity;
-            
-            // If it is the first augment of that rarity to be included, prepare an empty array.
-            _augmentsPerRarity.TryAdd(augmentRarity, new List<SO_Augment>());
 
+            if (!_augmentsPerRarity.ContainsKey(augmentRarity))
+                _augmentsPerRarity.Add(augmentRarity, new List<SO_Augment>());
+            
             // Then add this augment
             _augmentsPerRarity[augmentRarity].Add(augment);
         }
 
-        public void Dispose()
-        { }
+        public void Dispose() {
+            _rarityTable.Dispose();
+            _augmentsPerRarity.Clear();
+            
+            if (_augmentLibHandle.IsValid())
+                Addressables.Release(_augmentLibHandle);
+        }
         
         public bool IsInitialized { get; set; }
     }
