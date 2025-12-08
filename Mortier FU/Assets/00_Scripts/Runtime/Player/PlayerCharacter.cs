@@ -226,6 +226,8 @@ namespace MortierFu
             PuddleAbilities.Remove(ability);
         }
 
+        private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
+        
         // Could also implement a RemoveAugment method if needed
 
         public void ClearAugments()
@@ -284,12 +286,11 @@ namespace MortierFu
 
         public void ApplyEffect(IEffect<PlayerCharacter> effect)
         {
+            if (HasEffect(effect))
+                return;
+            
+            _activeEffects.Add(effect);
             effect.OnCompleted += RemoveEffect;
-            if (!_activeEffects.Contains(effect))
-            {
-                _activeEffects.Add(effect);
-            }
-
             effect.Apply(this);
         }
 
