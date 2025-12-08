@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MortierFu.Shared;
@@ -45,6 +46,7 @@ namespace MortierFu
         public ReadOnlyCollection<IAugment> Augments;
 
         private LocomotionState _locomotionState;
+        private KnockbackState _knockbackState;
         private StunState _stunState;
         private StrikeState _strikeState;
 
@@ -139,11 +141,13 @@ namespace MortierFu
             _locomotionState = new LocomotionState(this, _animator);
             var aimState = new AimState(this, _animator);
             var shootState = new ShootState(this, _animator);
+            _knockbackState = new KnockbackState(this, _animator);
             _stunState = new StunState(this, _animator);
             _strikeState = new StrikeState(this, _animator);
             var deathState = new DeathState(this, _animator);
             
             // Define transitions
+            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
             At(_strikeState, _locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
             At(_locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
@@ -154,15 +158,21 @@ namespace MortierFu
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
+            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
             
             // Set initial state
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveStun(float duration, Vector3 direction)
+        public void ReceiveKnockback(float duration, Vector3 direction)
         {
-            _stunState.ReceiveStun(duration, direction);
+            _knockbackState.ReceiveKnockback(duration, direction);
+        }
+
+        public void ReceiveStun(float duration)
+        {
+            _stunState.ReceiveStun(duration);
         }
         
         public void FindInputAction(string actionName, out InputAction action)
@@ -216,6 +226,14 @@ namespace MortierFu
             Controller.FixedUpdate();
             Aspect.FixedUpdate();
             Mortar.FixedUpdate();
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            if (_knockbackState.IsActive && other.impulse.magnitude > 5)
+            {
+                ReceiveStun(Controller.Stats.StrikeStunDuration.Value);
+            }
         }
 
         private void OnDrawGizmos()

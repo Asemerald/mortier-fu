@@ -112,7 +112,7 @@ namespace MortierFu
                 
                 int strikeDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
                 other.Health.TakeDamage(strikeDamage, character);
-                other.ReceiveStun(character.Stats.StrikeStunDuration.Value, (other.transform.position-character.transform.position).normalized);
+                other.ReceiveKnockback(character.Stats.StrikeStunDuration.Value, (other.transform.position-character.transform.position).normalized);
             }
 
             if (hitCharacters.Count > 0)
