@@ -5,7 +5,7 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod FireRateMod;
+            public AugmentStatMod BombShellDamageMod;
             public AugmentStatMod BombshellBouncesMod;
         }
         
@@ -14,7 +14,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(db.BouncyParams.FireRateMod.ToMod(this));
+            stats.FireRate.AddModifier(db.BouncyParams.BombShellDamageMod.ToMod(this));
             stats.BombshellBounces.AddModifier(db.BouncyParams.BombshellBouncesMod.ToMod(this));
         }
         
