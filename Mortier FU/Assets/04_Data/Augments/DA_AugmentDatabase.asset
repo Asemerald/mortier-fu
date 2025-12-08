@@ -14,18 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_AugmentDatabase
   RockSolidParams:
     MaxHealthMod:
-      Value: 1
+      Value: 2
       ModType: 100
   ToughnessParams:
     MaxHealthMod:
-      Value: 3
+      Value: 5
       ModType: 100
     FireRateMod:
       Value: 0.5
       ModType: 200
   BallistaParams:
     FireRateMod:
-      Value: -0.6
+      Value: -0.5
       ModType: 200
     BombshellDamageMod:
       Value: -2
@@ -46,15 +46,15 @@ MonoBehaviour:
       Value: 0.5
       ModType: 200
   BouncyParams:
-    FireRateMod:
-      Value: 0.3
-      ModType: 200
+    BombShellDamageMod:
+      Value: -1
+      ModType: 100
     BombshellBouncesMod:
       Value: 2
       ModType: 100
   ConfidenceParams:
     BombshellDamageMod:
-      Value: 2
+      Value: 3
       ModType: 100
     BombshellTimeTravelMod:
       Value: 1
@@ -65,12 +65,12 @@ MonoBehaviour:
       ModType: 200
   GunslingerParams:
     FireRateMod:
-      Value: -0.3
+      Value: -0.4
       ModType: 200
     BaseValueSet: 2
   MaximumVelocityParams:
     BombshellTimeTravelMod:
-      Value: -0.5
+      Value: -0.4
       ModType: 200
     FireRateMod:
       Value: -0.1
@@ -92,8 +92,8 @@ MonoBehaviour:
       ModType: 200
   TsarBombaParams:
     BombshellImpactRadius:
-      Value: 1.5
-      ModType: 200
+      Value: 2
+      ModType: 100
     BombshellDamageMod:
       Value: 1
       ModType: 100
