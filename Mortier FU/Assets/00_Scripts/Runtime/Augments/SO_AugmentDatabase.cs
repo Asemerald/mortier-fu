@@ -17,7 +17,6 @@ namespace MortierFu
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
         public AGM_FreezePuddle.Params FreezePuddleParams;
-        public PuddleAugmentBase.Params GenericPuddleParams;
         public AGM_Gunslinger.Params GunslingerParams;
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
         public AGM_Overheating.Params OverheatingParams;
