@@ -1,5 +1,5 @@
-using System;
 using UnityEngine;
+using System;
 
 namespace MortierFu
 {
@@ -9,13 +9,6 @@ namespace MortierFu
         
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
-
-        [Serializable]
-        public struct Params
-        {
-            public float PuddleDuration;
-            public Vector3 Scale;
-        }
         
         protected PuddleAugmentBase(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
             augmentData, owner, db)
@@ -36,15 +29,13 @@ namespace MortierFu
 
         protected abstract void OnTriggerEndRound(TriggerEndRound evt);
         
-        protected void SpawnPlayerPuddle(PlayerCharacter owner, Vector3 pos)
+        protected void SpawnPlayerPuddle(PlayerCharacter owner, Vector3 pos, Vector3 scale, float duration)
         {
-            // TODO: Refactor to use specific puddle params from derived class instead of generic
-            // TODO: Make better
             _puddleSystem.PuddleFactory.CreatePuddle(
                 owner,
                 pos,
-                db.GenericPuddleParams.Scale,
-                db.GenericPuddleParams.PuddleDuration,
+                scale,
+                duration,
                 Owner.GetPuddleAbilities
             );
         }

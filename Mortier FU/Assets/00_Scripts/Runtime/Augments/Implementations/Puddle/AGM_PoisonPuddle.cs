@@ -10,6 +10,8 @@ namespace MortierFu
         public struct Params
         {
             public Ability Ability;
+            public Vector3 Scale;
+            public float Duration;
         }
 
         public AGM_PoisonPuddle(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
@@ -28,7 +30,7 @@ namespace MortierFu
 
             Vector3 pos = evt.Bombshell.transform.position + Vector3.up;
 
-            SpawnPlayerPuddle(Owner, pos);
+            SpawnPlayerPuddle(Owner, pos, db.PoisonPuddleParams.Scale, db.PoisonPuddleParams.Duration);
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)

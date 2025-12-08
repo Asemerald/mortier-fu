@@ -12,7 +12,7 @@ namespace MortierFu
             _system = system;
         }
 
-        public Puddle CreatePuddle(PlayerCharacter owner, Vector3 pos, Vector3 scale, float lifetime, List<Ability> abilities)
+        public void CreatePuddle(PlayerCharacter owner, Vector3 pos, Vector3 scale, float lifetime, List<Ability> abilities)
         {
             //TODO: Refacto
             var puddleData = new Puddle.Data
@@ -29,8 +29,6 @@ namespace MortierFu
             {
                 puddle.AddAbility(ability);
             }
-            
-            return puddle;
         }
     }
 }
