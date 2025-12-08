@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using System.Numerics;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu.Shared;
 using PrimeTween;
@@ -25,6 +28,23 @@ public class TEMP_FXHandler : MonoBehaviour
         Tween.Scale(preview.transform, Vector3.one * (range * 2), duration: 0.5f, ease: Ease.OutCubic);
         var main = preview.main;
         main.simulationSpeed = 1/travelTime;
+
+        StrikeTimingPreview(preview, travelTime).Forget();
+    }
+
+    private async UniTaskVoid StrikeTimingPreview(ParticleSystem preview, float travelTime)
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(travelTime - 0.3f));
+        Debug.LogWarning("COLOR CHANGE");
+        
+        var col = preview.colorOverLifetime;
+
+        //COLOR CHANGES
+        Gradient grad = new Gradient();
+        grad.SetKeys( new GradientColorKey[] { new GradientColorKey(Color.red, 0.0f), new GradientColorKey(Color.red, 0.6f), new GradientColorKey(Color.white, 1.0f) }, 
+            new GradientAlphaKey[] { new GradientAlphaKey(0.0f, 0.0f), new GradientAlphaKey(0.7f, 0.5f), new GradientAlphaKey(0.45f, 0.06f), new GradientAlphaKey(0.40f, 0.7f), new GradientAlphaKey(0.35f, 1.0f) } );
+
+        col.color = grad;
     }
     
     public void InstantiateExplosion(Vector3 position, float range)
