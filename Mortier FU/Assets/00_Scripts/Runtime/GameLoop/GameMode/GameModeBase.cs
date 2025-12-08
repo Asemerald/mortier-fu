@@ -25,6 +25,7 @@ namespace MortierFu
         protected int currentRank;
         protected bool oneTeamStanding;
         protected GameState currentState;
+        protected PlayerTeam gameVictor;
 
         // Dependencies
         protected LobbyService lobbyService;
@@ -101,6 +102,7 @@ namespace MortierFu
             }
 
             currentRound = 0;
+            gameVictor = null;
 
             GameplayCoroutine().Forget();
             Logs.Log("Starting the game...");
@@ -142,14 +144,20 @@ namespace MortierFu
 
                 HideScores();
 
-                if (IsGameOver(out PlayerTeam victor))
+                if (IsGameOver(out gameVictor))
                 {
-                    Logs.Log($"Game Over! Team {victor.Index} wins!");
+                    Logs.Log($"Game Over! Team {gameVictor.Index} wins!");
                     UpdateGameState(GameState.EndGame);
                 }
             }
 
             EndGame();
+        }
+
+        public bool IsGameOver(out PlayerTeam victor)
+        {
+            victor = gameVictor;
+            return gameVictor != null;
         }
 
         private List<PlayerManager> GetAugmentPickers()
@@ -314,9 +322,17 @@ namespace MortierFu
         {
             foreach (var team in teams)
             {
-                int rankBonusScore = GetScorePerRank(team.Rank);
-                int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * _gameModeData.KillBonusScore);
-                team.Score += rankBonusScore + killBonusScore;
+                if (team.Score >= _gameModeData.ScoreToWin)
+                {
+                    if (team.Rank != 1) continue;
+                    gameVictor = team;
+                }
+                else
+                {
+                    int rankBonusScore = GetScorePerRank(team.Rank);
+                    int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * _gameModeData.KillBonusScore);
+                    team.Score = Math.Min(rankBonusScore + killBonusScore, _gameModeData.ScoreToWin);
+                }
             }
         }
 
@@ -430,26 +446,6 @@ namespace MortierFu
         {
             teams.Clear();
             timer.Dispose();
-        }
-
-        /// <summary>
-        /// Default implementation is to select the victor based on a score to win variable.
-        /// </summary>
-        /// <param name="victor">The team which won the game.</param>
-        /// <returns>If the game is over.</returns>
-        public virtual bool IsGameOver(out PlayerTeam victor)
-        {
-            foreach (var team in teams)
-            {
-                if (team.Score > _gameModeData.ScoreToWin)
-                {
-                    victor = team;
-                    return true;
-                }
-            }
-
-            victor = null;
-            return false;
         }
 
         protected void OnDeath(PlayerManager player, object source)
