@@ -7,8 +7,10 @@ namespace MortierFu
     [Serializable]
     public class Ability
     {
+        public bool PersistAfterExit; 
+        
         [SerializeReference] public List<IEffect<PlayerCharacter>> Effects = new();
-
+        
         public void Execute(PlayerCharacter target)
         {
             foreach (var effect in Effects)

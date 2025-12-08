@@ -63,6 +63,13 @@ MonoBehaviour:
     FireRateMod:
       Value: -0.15
       ModType: 200
+  FreezePuddleParams:
+    Ability:
+      PersistAfterExit: 0
+      Effects:
+      - rid: 8527789206929670255
+    Scale: {x: 3, y: 1, z: 3}
+    LifeTime: 5
   GunslingerParams:
     FireRateMod:
       Value: -0.4
@@ -84,6 +91,13 @@ MonoBehaviour:
     BombshellTimeTravelOnHitMod:
       Value: 0.05
       ModType: 200
+  PoisonPuddleParams:
+    Ability:
+      PersistAfterExit: 1
+      Effects:
+      - rid: 8527789206929670256
+    Scale: {x: 3, y: 1, z: 3}
+    LifeTime: 5
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 1
@@ -112,24 +126,6 @@ MonoBehaviour:
     BombshellBouncesMod:
       Value: 2
       ModType: 200
-  BouncyParams:
-    FireRateMod:
-      Value: 0.3
-      ModType: 200
-    BombshellBouncesMod:
-      Value: 2
-      ModType: 100
-  PoisonPuddleParams:
-    Ability:
-      Effects:
-      - rid: 8527789206929670256
-  FreezePuddleParams:
-    Ability:
-      Effects:
-      - rid: 8527789206929670255
-  GenericPuddleParams:
-    PuddleDuration: 5
-    Scale: {x: 3, y: 1, z: 3}
   BigStrikeParams:
     StrikeStunDurationMod:
       Value: 0.2

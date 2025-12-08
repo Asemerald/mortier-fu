@@ -11,7 +11,7 @@ namespace MortierFu
         {
             public Ability Ability;
             public Vector3 Scale;
-            public float Duration;
+            public float LifeTime;
         }
 
         public AGM_FreezePuddle(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(
@@ -31,7 +31,7 @@ namespace MortierFu
 
             Vector3 pos = evt.Bombshell.transform.position + Vector3.up;
 
-            SpawnPlayerPuddle(Owner, pos, db.FreezePuddleParams.Scale, db.FreezePuddleParams.Duration);
+            SpawnPlayerPuddle(Owner, pos, db.FreezePuddleParams.Scale, db.FreezePuddleParams.LifeTime);
         }
 
         protected override void OnTriggerEndRound(TriggerEndRound evt)
