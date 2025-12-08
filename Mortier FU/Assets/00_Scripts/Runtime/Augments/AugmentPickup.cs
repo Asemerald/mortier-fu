@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
@@ -6,13 +7,22 @@ namespace MortierFu
 {
     public class AugmentPickup : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI _augmentNameText;
-        [SerializeField] private TextMeshProUGUI _augmentDescriptionText;
-        [SerializeField] private Image _augmentIconImage;
-        [SerializeField] private MeshRenderer _bgMeshRenderer;
-        private FaceCamera _faceCamera;
+        [System.Serializable]
+        private struct RarityData
+        {
+            public E_AugmentRarity Rarity;
+            public Sprite BgSprite;
+            public Color NameColor;
+        }
+        
+        [SerializeField] private TextMeshProUGUI _nameTxt;
+        [SerializeField] private TextMeshProUGUI _descTxt;
+        [SerializeField] private Image _rarityBgImg;
+        [SerializeField] private Image _iconImg;
+        [SerializeField] private RarityData[] _rarityData;
         
         private AugmentSelectionSystem _system;
+        private FaceCamera _faceCamera;
         private int _index;
         
         public void Initialize(AugmentSelectionSystem system, int augmentIndex)
@@ -25,11 +35,21 @@ namespace MortierFu
         
         public void SetAugmentVisual(SO_Augment augment)
         {
-            _augmentNameText.text = augment != null ? augment.Name : "None";
-            _augmentDescriptionText.text = augment != null ? augment.Description : "None";
-            _augmentIconImage.sprite = augment != null ? augment.Icon : null;
-            _bgMeshRenderer.material.color = augment != null ? augment.BgColor : Color.magenta;
+            if (augment == null)
+            {
+                throw new ArgumentNullException(nameof(augment));
+            }
+
+            var data = GetRarityData(augment.Rarity);
+            
+            _rarityBgImg.sprite = data.BgSprite;
+            _iconImg.sprite = augment.Icon;
+            _nameTxt.SetText(augment.Name.ToUpper());
+            _nameTxt.color = data.NameColor;
+            _descTxt.SetText(augment.Description);
         }
+
+        private RarityData GetRarityData(E_AugmentRarity augmentRarity) => Array.Find(_rarityData, data => data.Rarity == augmentRarity);
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
         
