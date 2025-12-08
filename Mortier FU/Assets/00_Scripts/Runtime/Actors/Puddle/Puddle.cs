@@ -51,9 +51,13 @@ namespace MortierFu
             var rb = other.attachedRigidbody;
             if (rb == null || !rb.TryGetComponent(out PlayerCharacter character)) return;
             
-            // TODO: Cancel effect in trigger if it's stay in trigger and let the effect like poison
-            //CancelEffects(character);
             _inside.Remove(character);
+
+            foreach (var ability in Abilities)
+            {
+                if(!ability.PersistAfterExit)
+                    ability.Cancel(character);
+            }
         }
 
         public void SetData(Data data)
