@@ -4,6 +4,7 @@ using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
@@ -99,6 +100,10 @@ namespace MortierFu
         
         public void Reset()
         {
+            // Reset the parent if it was held by an actor
+            transform.SetParent(null);
+            SceneManager.MoveGameObjectToScene(transform.gameObject, SceneManager.GetActiveScene());
+            
             gameObject.SetActive(true);
             
             Health.Reset();
@@ -118,7 +123,7 @@ namespace MortierFu
             Controller.Dispose();
             Aspect.Dispose();
             Mortar.Dispose();
-
+            
             if (_toggleAimAction != null && Mortar != null)
             {
                 _toggleAimAction.started -= Mortar.BeginAiming;
@@ -144,9 +149,9 @@ namespace MortierFu
             At(_locomotionState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _strikeState, new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
-            At(aimState, shootState, new FuncPredicate(() => Mortar.IsShooting));
-            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished));
+            At(aimState, _strikeState, new GameplayFuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
+            At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
+            At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -109,19 +108,16 @@ namespace MortierFu
                 
                 _pickups[i].SetAugmentVisual(augment);
             }
-            
-            var positions = new List<Vector3>(_augmentCount);
-            for (int i = 0; i < _augmentCount; i++)
-            {
-                var pos = _levelSystem.GetAugmentLocation(i).position;
-                positions.Add(pos);
-            }
+
+            var augmentPivot = _levelSystem.GetAugmentPivot();
+            var augmentPoints = new Vector3[_augmentCount];
+            _levelSystem.PopulateAugmentPoints(augmentPoints);
 
             _showcaseInProgress = true;
-            await _augmentShowcaser.Showcase(positions);
+            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints);
             _showcaseInProgress = false;
 
-            await Task.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
             gm?.EnablePlayerInputs();
@@ -130,15 +126,43 @@ namespace MortierFu
             _augmentTimer.Start();
         }
 
-        public void EndAugmentSelection()
+        public void EndRace()
         {
+            // Give a random augment to remaining pickers
+            var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
+            foreach (var picker in _pickers)
+            {
+                if (remainingAugments.Count == 0)
+                {
+                    Logs.LogWarning("[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
+                    break;
+                }
+
+                var randomAugment = remainingAugments.RandomElement();
+                picker.Character.AddAugment(randomAugment.Augment);
+                randomAugment.IsPicked = true;
+                remainingAugments.Remove(randomAugment);
+                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
+            }
+            
             foreach (var pickup in _pickups)
             {
                 pickup.Hide();
             }
 
+            _augmentShowcaser.StopShowcase();
+            
             _augmentBag.Clear();
             _augmentTimer = null;
+        }
+        
+        public void RestorePickupParent()
+        {
+            for (int i = 0; i < _pickups.Count; i++)
+            {
+                var pickup = _pickups[i];
+                pickup.transform.SetParent(_pickupParent);
+            }
         }
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)

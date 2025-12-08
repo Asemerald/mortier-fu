@@ -12,10 +12,9 @@ namespace MortierFu
     {
         [FormerlySerializedAs("scene")] [Header("Scene to load after init")]
         public string sceneName = "MainMenu";
-        
-        [Expandable]
-        public SO_GameConfig config;
-        
+
+        [Expandable] public SO_GameConfig config;
+
         private ServiceManager _serviceManager;
         private SystemManager _systemManager;
         private ModService _modService;
@@ -27,12 +26,11 @@ namespace MortierFu
         private LobbyService _lobbyService;
         private DiscordService _discordService;
         private SceneService _sceneService;
-        
+
 #if UNITY_EDITOR
-        [Header("Debug")]
-        public bool isPortableBootstrap = false;
-#endif  
-        
+        [Header("Debug")] public bool isPortableBootstrap = false;
+#endif
+
         //private float _progress = 0f;
 
         private void Awake()
@@ -52,26 +50,26 @@ namespace MortierFu
             _systemManager = new SystemManager(this);
 
             await InitializeGameService();
-            
+
             // Initialise les services de base avant les mods
             await _serviceManager.Initialize();
-            
+
             // Initialise les systèmes de base avant les mods
             await _systemManager.Initialize();
-            
+
             // --- Load mod resources
             await _loaderService.LoadAllModResources();
-            
+
             // --- Load GameConfig banks
             await _audioService.LoadBanks(config.fmodBanks);
-            
+
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
             await _audioService.LoadBanks(_modService.GetAllModFmodBanks());
-            
+
 #if UNITY_EDITOR
             // --- Check for missing services (only in editor)
             await _serviceManager.CheckForMissingServices<IGameService>();
-            
+
             if (isPortableBootstrap)
             {
                 // Stay in current Scene
@@ -80,7 +78,7 @@ namespace MortierFu
 #endif
             // --- Load MainMenu Scene
             await _sceneService.LoadScene(sceneName, true);
-            
+
             _sceneService.HideLoadingScreen();
         }
 
@@ -97,7 +95,7 @@ namespace MortierFu
             _discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
-            
+
             // --- Register services
             _serviceManager.Register(_modService);
             _serviceManager.Register(_loaderService);
@@ -108,7 +106,7 @@ namespace MortierFu
             _serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
             _serviceManager.Register(_sceneService);
-            
+
             return UniTask.CompletedTask;
         }
 

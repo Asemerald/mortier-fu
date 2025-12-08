@@ -52,6 +52,7 @@ namespace MortierFu
             
             // Register all game systems
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
+            SystemManager.Instance.CreateAndRegister<CameraSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
+using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
@@ -30,6 +31,7 @@ namespace MortierFu
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
+        protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
         protected ACT_Storm _stormInstance;
@@ -67,6 +69,7 @@ namespace MortierFu
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -80,11 +83,12 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(Vector3.zero);
+                player.SpawnInGame(Vector3.one * i * 2f);
                 player.Character.Health.OnDeath += source => {
                     player.Metrics.TotalDeaths++;
                     alivePlayers.Remove(player.Character);
-
+                    cameraSystem.Controller.RemoveTarget(player.transform);
+                    
                     if (source is PlayerCharacter killer)
                     {
                         OnPlayerKill(killer, player.Character);
@@ -129,7 +133,7 @@ namespace MortierFu
                         oneTeamStanding = true;
                     }
                 };
-
+                
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
@@ -137,7 +141,7 @@ namespace MortierFu
             if (!IsReady)
             {
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
-                await levelSystem.LoadGameplayMap();
+                await levelSystem.LoadArenaMap();
                 StartRound();
                 return;
             }
@@ -148,7 +152,6 @@ namespace MortierFu
             Logs.Log("Starting the game...");
         }
 
-        // TODO: Maybe it is valuable to ask for player 1 input to proceed to each step for fluidity
         protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
@@ -156,21 +159,21 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
-                await levelSystem.LoadAugmentMap();
+                await levelSystem.LoadRaceMap();
 
-                UpdateGameState(GameState.AugmentSelection);
-                StartAugmentSelection();
-
+                UpdateGameState(GameState.RaceInProgress);
+                StartRace();
+                
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
 
                 while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();
 
-                augmentSelectionSys.EndAugmentSelection();
-                EndAugmentSelection();
-
-                await levelSystem.LoadGameplayMap();
+                augmentSelectionSys.EndRace();
+                EndRace();
+                
+                await levelSystem.LoadArenaMap();
 
                 StartRound();
 
@@ -218,13 +221,12 @@ namespace MortierFu
             bool opposite = currentRound % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
 
-            foreach (var team in teams)
+            foreach (var team in teams.OrderByDescending(t => t.Rank))
             {
                 foreach (var member in team.Members)
                 {
-                    var spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
+                    var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1 ? levelSystem.GetWinnerSpawnPoint() : levelSystem.GetSpawnPoint(spawnIndex);
                     member.SpawnInGame(spawnPoint.position);
-                    member.Character.transform.position = spawnPoint.position;
                     if (opposite)
                         spawnIndex--;
                     else
@@ -269,7 +271,8 @@ namespace MortierFu
             currentRound++;
             currentRank = teams.Count;
             oneTeamStanding = false;
-
+            
+            ResetPlayers();
             SpawnPlayers();
             EnablePlayerInputs(false);
 
@@ -284,6 +287,9 @@ namespace MortierFu
                 team.Rank = -1;
             }
 
+            var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
+            cameraSystem.Controller.PopulateTargetGroup(groupMembers);
+            
             HandleCountdown();
         }
 
@@ -334,7 +340,6 @@ namespace MortierFu
             EvaluateScores();
 
             OnRoundEnded?.Invoke(currentRound);
-            Logs.Log("Round ended.");
         }
 
         private void SpawnStorm() => SpawnStormTask().Forget();
@@ -396,21 +401,25 @@ namespace MortierFu
             // Hide UI
         }
 
-        protected virtual void StartAugmentSelection()
+        protected virtual void StartRace()
         {
-            UpdateGameState(GameState.AugmentSelection);
-
+            UpdateGameState(GameState.RaceInProgress);
+            
+            cameraSystem.Controller.ClearTargetGroupMember();
+            cameraSystem.Controller.ResetCameraInstant();
+            
             SpawnPlayers();
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
+            PlayerCharacter.AllowGameplayActions = false;
 
             Logs.Log("Starting augment selection...");
         }
 
-        protected virtual void EndAugmentSelection()
+        protected virtual void EndRace()
         {
-            UpdateGameState(GameState.EndAugmentSelection);
+            UpdateGameState(GameState.EndingRace);
 
             EnablePlayerInputs(false);
 

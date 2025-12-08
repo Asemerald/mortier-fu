@@ -12,6 +12,7 @@ namespace MortierFu
         [Header("Optional global assets")] 
         public AssetReferenceT<SO_LevelSettings> LevelSettings;
         public AssetReferenceT<SO_BombshellSettings> BombshellSettings;
+        public AssetReferenceT<SO_CameraSettings> CameraSettings;
         public AssetReferenceT<SO_AugmentProviderSettings> AugmentProviderSettings;
         public AssetReferenceT<SO_AugmentSelectionSettings> AugmentSelectionSettings;
         public AssetReferenceT<SO_StormSettings> StormSettings;

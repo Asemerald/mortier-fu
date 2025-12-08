@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using PrimeTween;
 using System;
+using Cysharp.Threading.Tasks;
+using Object = UnityEngine.Object;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -15,8 +15,10 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentPickup> _pickups;
         private readonly ConfirmationService _confirmationService;
         private readonly AugmentSelectionSystem _system;
+        private readonly CameraSystem _cameraSystem;
+        private readonly Camera _cam;
         
-        private Camera _cam;
+        private Transform[] _augmentPoints;
 
         public AugmentShowcaser (AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> pickups)
         {
@@ -24,13 +26,13 @@ namespace MortierFu
             _system = system;
            
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
-            
-            _cam = Camera.main;
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            _cam = _cameraSystem.Controller.Camera;
         }
 
-        public async Task Showcase(List<Vector3> positions)
+        public async UniTask Showcase(Transform pivot, Vector3[] augmentPoints)
         {
-            await Task.Delay(TimeSpan.FromSeconds(_system.Settings.ShowcaseStartDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.ShowcaseStartDelay));
             
             float step = _system.Settings.DisplayedCardScale * 2f + _system.Settings.CardSpacing;
             Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f - _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
@@ -43,32 +45,56 @@ namespace MortierFu
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
                 
-                Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale,_system.Settings.CardPopInDuration, Ease.OutBounce);
+                await Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale,_system.Settings.CardPopInDuration, Ease.OutBounce);
                 
-                await Task.Delay(TimeSpan.FromSeconds(0.05f));
+                await UniTask.Delay(TimeSpan.FromSeconds(0.05f));
             }
             
-            await Task.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
             await _confirmationService.WaitUntilAllConfirmed();
 
-            if (_pickups.Count != positions.Count)
+            if (_pickups.Count != augmentPoints.Length)
             {
                 Logs.LogWarning("[AugmentShowcaser] Number of pickups and positions do not match.");
                 return;
             }
             
+            _augmentPoints = new Transform[_pickups.Count];
+            
             for (var i = 0; i < _pickups.Count; i++)
             {
                 var pickup = _pickups[i];
+                
+                var augmentPoint = new GameObject("Augment Point #" + i).transform;
+                augmentPoint.SetParent(pivot);
+                augmentPoint.position = augmentPoints[i];
+                _augmentPoints[i] = augmentPoint;
+                
+                pickup.transform.SetParent(_augmentPoints[i]);
+                
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                Tween.Position(pickup.transform, positions[i].Add(y: i * 0.06f), duration, Ease.InOutQuad)
-                    .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
-                    {
-                        pickup.SetFaceCameraEnabled(false);
-                        pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-                    });
+                MovePickupToAugmentPoint(pickup, i, duration).Forget();
 
-                await Task.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
+                await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
+            }
+        }
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration)
+        {
+            await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: i * 0.06f), duration, Ease.InOutQuad)
+                .Group(Tween.Scale(pickup.transform, _system.Settings.DisplayedCardScale, 1f, duration * 0.7f, Ease.OutBack)).OnComplete(() =>
+                {
+                    pickup.SetFaceCameraEnabled(false);
+                    pickup.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                });
+        }
+
+        public void StopShowcase()
+        {
+            _system.RestorePickupParent();
+
+            for (int i = _augmentPoints.Length - 1; i >= 0; i--)
+            {
+                Object.Destroy(_augmentPoints[i].gameObject);
             }
         }
 
