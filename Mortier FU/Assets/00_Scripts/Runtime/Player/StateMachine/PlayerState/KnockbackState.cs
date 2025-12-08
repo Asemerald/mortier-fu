@@ -3,24 +3,37 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public class StunState : BaseState
+    public class KnockbackState : BaseState
     {
         private CountdownTimer _stunTimer;
 
-        public StunState(PlayerCharacter character, Animator animator) : base(character, animator)
+        public KnockbackState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
             _stunTimer = new CountdownTimer(0f);
         }
 
+        private Vector3 currentBumpDir;
+
         public bool IsActive => _stunTimer.IsRunning;
         
-        public void ReceiveStun(float duration)
+        public override void Update()
+        {
+            character.Controller.HandleMovementUpdate();
+        }
+        
+        public override void FixedUpdate()
+        {
+            character.Controller.HandleMovementFixedUpdate();
+        }
+        
+        public void ReceiveKnockback(float duration, Vector3 bumpDirection)
         {
             // On autorise actuellement le "refresh" du stun
             if(IsActive && _stunTimer.CurrentTime > duration)
                 return;
             
-            SystemManager.Instance.Get<CameraSystem>().Controller.Shake(1, 5, 1);
+            //set bump direction
+            currentBumpDir = bumpDirection;
             
             _stunTimer.Reset(duration);
             _stunTimer.Start();
@@ -30,19 +43,22 @@ namespace MortierFu
         {
             character.Controller.ResetVelocity();
             
+            //Apply Knockback
+            character.Controller.ApplyKnockback(currentBumpDir * 10.5f);
+            
             EventBus<TriggerGetStrike>.Raise(new TriggerGetStrike()
             {
                 Character = character,
             });
             
             if(debug)
-                Logs.Log("Entering Stun State");
+                Logs.Log("Entering Knockback State");
         }
 
         public override void OnExit()
         {
             if(debug) 
-                Logs.Log("Exiting Stun State");
+                Logs.Log("Exiting Knockback State");
         }
     }
 }

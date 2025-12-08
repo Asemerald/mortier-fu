@@ -50,6 +50,7 @@ namespace MortierFu
         private List<Ability> PuddleAbilities; //TODO: Make it better
 
         private LocomotionState _locomotionState;
+        private KnockbackState _knockbackState;
         private StunState _stunState;
         private StrikeState _strikeState;
 
@@ -160,11 +161,13 @@ namespace MortierFu
             _locomotionState = new LocomotionState(this, _animator);
             var aimState = new AimState(this, _animator);
             var shootState = new ShootState(this, _animator);
+            _knockbackState = new KnockbackState(this, _animator);
             _stunState = new StunState(this, _animator);
             _strikeState = new StrikeState(this, _animator);
             var deathState = new DeathState(this, _animator);
 
             // Define transitions
+            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
             At(_strikeState, _locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
             At(_locomotionState, _strikeState,
@@ -177,10 +180,16 @@ namespace MortierFu
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
+            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
 
             // Set initial state
             _stateMachine.SetState(_locomotionState);
+        }
+
+        public void ReceiveKnockback(float duration, Vector3 direction)
+        {
+            _knockbackState.ReceiveKnockback(duration, direction);
         }
 
         public void ReceiveStun(float duration)
@@ -259,6 +268,14 @@ namespace MortierFu
             Controller.FixedUpdate();
             Aspect.FixedUpdate();
             Mortar.FixedUpdate();
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            if (_knockbackState.IsActive && other.impulse.magnitude > 5)
+            {
+                ReceiveStun(Controller.Stats.StrikeStunDuration.Value);
+            }
         }
 
         private void OnDrawGizmos()

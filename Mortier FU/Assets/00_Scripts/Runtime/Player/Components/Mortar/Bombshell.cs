@@ -231,6 +231,7 @@ namespace MortierFu
                 TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, _resolvedTravelTime - delay, _data.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
+            
         }
 
         /// <summary>
