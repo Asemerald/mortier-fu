@@ -6,20 +6,22 @@ namespace MortierFu
     public class SO_AugmentDatabase : ScriptableObject
     {
         [Header("Durability")]
-        public AGM_BigGuy.Params BigGuyParams;
-        public AGM_HealthPack.Params HealthPackParams;
+        public AGM_RockSolid.Params RockSolidParams;
+        public AGM_Toughness.Params ToughnessParams;
         
         [Header("Offensive")]
         public AGM_Ballista.Params BallistaParams;
         public AGM_Berserker.Params BerserkerParams;
         public AGM_BigBullets.Params BigBulletsParams;
+        public AGM_Bouncy.Params BouncyParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
-        public AGM_LuckyLuck.Params LuckyLuckParams;
+        public AGM_Gunslinger.Params GunslingerParams;
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
+        public AGM_Overheating.Params OverheatingParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
+        public AGM_TakeTheTempo.Params TakeTheTempoParams;
         public AGM_TsarBomba.Params TsarBombaParams;
-        public AGM_Bouncy.Params BouncyParams;
         
         [Header("Strike")]
         public AGM_BigStrike.Params BigStrikeParams;

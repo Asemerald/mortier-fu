@@ -1,11 +1,17 @@
-﻿namespace MortierFu.Stats
+﻿namespace MortierFu
 {
     public class AGM_TakeTheTempo : AugmentBase
     {
+        [System.Serializable]
+        public struct Params
+        {
+            public AugmentStatMod FireRateMod;
+        }
+        
         private EventBinding<TriggerHit> _hitBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
         
-        public AGM_TakeTheTempo(SO_Augment augmentData, PlayerCharacter owner) : base(augmentData, owner)
+        public AGM_TakeTheTempo(SO_Augment augmentData, PlayerCharacter owner,  SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
@@ -21,7 +27,7 @@
         {
             if (evt.Bombshell.Owner != owner) return;
             
-            stats.FireRate.AddModifier(new StatModifier(-0.2f, E_StatModType.PercentMult, this));
+            stats.FireRate.AddModifier(db.TakeTheTempoParams.FireRateMod.ToMod(this));
         }
         
         private void OnEndRound(TriggerEndRound evt)

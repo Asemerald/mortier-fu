@@ -1,6 +1,6 @@
 namespace MortierFu
 {
-    public class AGM_LuckyLuck : AugmentBase
+    public class AGM_Gunslinger : AugmentBase
     {
         [System.Serializable]
         public struct Params
@@ -9,14 +9,14 @@ namespace MortierFu
             public int BaseValueSet;
         }
         
-        public AGM_LuckyLuck(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
+        public AGM_Gunslinger(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(db.LuckyLuckParams.FireRateMod.ToMod(this));
+            stats.FireRate.AddModifier(db.GunslingerParams.FireRateMod.ToMod(this));
             // TODO Trouver une solution plus propre pour éviter d'hardset
-            stats.MaxHealth.BaseValue = db.LuckyLuckParams.BaseValueSet;
+            stats.MaxHealth.BaseValue = db.GunslingerParams.BaseValueSet;
         }
         
         public override void Dispose()
