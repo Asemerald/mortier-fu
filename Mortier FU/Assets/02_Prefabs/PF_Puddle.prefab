@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 5856644321261569883}
   - component: {fileID: 9061112421015852399}
   - component: {fileID: 5940292092927319333}
-  - component: {fileID: 9046888768177037141}
   - component: {fileID: 2759475804387935942}
+  - component: {fileID: 2790446106219859904}
   m_Layer: 0
   m_Name: PF_Puddle
   m_TagString: Untagged
@@ -91,8 +91,24 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &9046888768177037141
-SphereCollider:
+--- !u!114 &2759475804387935942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4839347615854320135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c25002448445454fb51f6f58b1d82c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.PuddleController
+  Abilities: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!65 &2790446106219859904
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -110,21 +126,5 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.7
+  m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2759475804387935942
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4839347615854320135}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c25002448445454fb51f6f58b1d82c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.PuddleController
-  Abilities: []
-  references:
-    version: 2
-    RefIds: []

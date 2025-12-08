@@ -27,8 +27,9 @@ namespace MortierFu
         protected override void OnTriggerBombshellImpact(TriggerBombshellImpact evt)
         {
             if (evt.Bombshell.Owner != Owner) return;
-
-            Vector3 pos = evt.Bombshell.transform.position + Vector3.up;
+            if (!evt.HitGround) return;
+            
+            Vector3 pos = evt.HitPoint;
 
             SpawnPlayerPuddle(Owner, pos, db.PoisonPuddleParams.Scale, db.PoisonPuddleParams.LifeTime);
         }
