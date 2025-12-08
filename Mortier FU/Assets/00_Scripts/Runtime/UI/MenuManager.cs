@@ -26,6 +26,7 @@ namespace MortierFu
     
         [field: Header("Lobby References")]
         [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
+		[field: SerializeField] public Button LobbyPlayButton { get; private set; }	
 
         [Header("Utils")] 
         [field: SerializeField] private GameObject BlackFader; 
@@ -147,5 +148,20 @@ namespace MortierFu
             await UniTask.Delay(TimeSpan.FromSeconds(2));
             BlackFader.SetActive(false);
         }
+        
+        public void ChangeSelectedButton(Button newSelected)
+        {
+            _eventSystem.SetSelectedGameObject(newSelected.gameObject);
+        }
+    }
+    
+    public enum MenuPanelType
+    {
+        MainMenu,
+        Settings,
+        Credits,
+        Lobby
     }
 }
+
+
