@@ -30,6 +30,8 @@ namespace MortierFu
         
         [SerializeField] private TrailRenderer[] _trails;
         [SerializeField] private ParticleSystem _smokeParticles;
+        private Transform _smokeParent;
+        private Vector3 _smokeInitialLocalPos;
 
         private Data _data;
 
@@ -70,6 +72,8 @@ namespace MortierFu
             _system = system;
             _rb = GetComponent<Rigidbody>();
             _impactDebounceTimer = new CountdownTimer(0.1f);
+            _smokeParent = _smokeParticles.transform.parent;
+            _smokeInitialLocalPos = _smokeParticles.transform.localPosition;
         }
         
         public void Configure(Data data)
@@ -117,7 +121,9 @@ namespace MortierFu
 
         public void OnGet()
         {
-            _smokeParticles.transform.SetParent(transform);
+            _smokeParticles.transform.SetParent(_smokeParent);
+            _smokeParticles.transform.localPosition = _smokeInitialLocalPos;
+            _smokeParticles.transform.localRotation = Quaternion.identity;
             _smokeParticles.Play();
 
             foreach (var trail in _trails)
