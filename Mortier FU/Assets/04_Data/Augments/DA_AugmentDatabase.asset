@@ -63,6 +63,13 @@ MonoBehaviour:
     FireRateMod:
       Value: -0.15
       ModType: 200
+  FreezePuddleParams:
+    Ability:
+      PersistAfterExit: 0
+      Effects:
+      - rid: 8527789206929670255
+    Scale: {x: 3, y: 1, z: 3}
+    LifeTime: 5
   GunslingerParams:
     FireRateMod:
       Value: -0.4
@@ -84,6 +91,13 @@ MonoBehaviour:
     BombshellTimeTravelOnHitMod:
       Value: 0.05
       ModType: 200
+  PoisonPuddleParams:
+    Ability:
+      PersistAfterExit: 1
+      Effects:
+      - rid: 8527789206929670256
+    Scale: {x: 3, y: 1, z: 3}
+    LifeTime: 5
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 1
@@ -104,6 +118,13 @@ MonoBehaviour:
       ModType: 200
     BombshellTimeTravelMod:
       Value: 1.5
+      ModType: 200
+  BouncyParams:
+    FireRateMod:
+      Value: 0.3
+      ModType: 200
+    BombshellBouncesMod:
+      Value: 2
       ModType: 200
   BigStrikeParams:
     StrikeStunDurationMod:
@@ -126,3 +147,16 @@ MonoBehaviour:
     ParryMaxHealthGain:
       Value: 1
       ModType: 100
+  references:
+    version: 2
+    RefIds:
+    - rid: 8527789206929670255
+      type: {class: FreezeEffect, ns: MortierFu, asm: Mortierfu.Runtime}
+      data:
+        FreezeFactor: 0.5
+    - rid: 8527789206929670256
+      type: {class: PoisonEffect, ns: MortierFu, asm: Mortierfu.Runtime}
+      data:
+        Duration: 5
+        TickInterval: 1
+        DamagePerTick: 1

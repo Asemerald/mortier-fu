@@ -41,7 +41,7 @@ namespace MortierFu
         }
 
         // Can be improved with a IDamageable interface which seems to be similar to IInteractable as interaction happens on impact or contact.
-        public void NotifyImpact(Bombshell bombshell)
+        public void NotifyImpact(Bombshell bombshell, RaycastHit hit)
         {
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
@@ -49,15 +49,15 @@ namespace MortierFu
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             for (int i = 0; i < numHits; i++)
             {
-                Collider hit = _impactResults[i];
+                Collider hitCollider = _impactResults[i];
 
-                if (hit.attachedRigidbody == null)
+                if (hitCollider.attachedRigidbody == null)
                 {
-                    hits.Add(hit.gameObject);
+                    hits.Add(hitCollider.gameObject);
                     continue;
                 }
 
-                if (hit.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
+                if (hitCollider.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
                 {
                     // Prevent self-damage
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
@@ -76,7 +76,7 @@ namespace MortierFu
                     }
                 }
                 // temp check for breakable object
-                else if (hit.attachedRigidbody.TryGetComponent(out IInteractable interactable) &&
+                else if (hitCollider.attachedRigidbody.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
                     interactable.Interact();
@@ -92,7 +92,7 @@ namespace MortierFu
 
             _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.Owner.Stats.BombshellTimeTravel.Value);
-
+            
             if (hitCharacters.Count > 0)
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
@@ -102,12 +102,18 @@ namespace MortierFu
                 });
             }
 
+            //TODO: Maybe a better way to only spawn puddle on ground hit?
+            bool isGround = hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground");
+            
             if (hits.Count > 0)
             {
                 EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
                 {
                     Bombshell = bombshell,
-                    Hits = hits.ToArray(),
+                    HitPoint = hit.point,
+                    HitNormal = hit.normal,
+                    HitGround = isGround,
+                    HitObject = hit.collider.gameObject
                 });
             }
         }

@@ -178,7 +178,7 @@ namespace MortierFu
                     _rb.MovePosition(centerAtHit);
                     
                     // Notify impact
-                    _system.NotifyImpact(this);
+                    _system.NotifyImpact(this, hit);
 
                     if (_data.Bounces > 0)
                     {
