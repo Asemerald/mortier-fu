@@ -1,6 +1,6 @@
 namespace MortierFu
 {
-    public class AGM_BigGuy : AugmentBase
+    public class AGM_Toughness : AugmentBase
     {
         [System.Serializable]
         public struct Params
@@ -9,13 +9,13 @@ namespace MortierFu
             public AugmentStatMod FireRateMod;
         }
         
-        public AGM_BigGuy(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
+        public AGM_Toughness(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.MaxHealth.AddModifier(db.BigGuyParams.MaxHealthMod.ToMod(this));
-            stats.FireRate.AddModifier(db.BigGuyParams.FireRateMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.ToughnessParams.MaxHealthMod.ToMod(this));
+            stats.FireRate.AddModifier(db.ToughnessParams.FireRateMod.ToMod(this));
         }
         
         public override void Dispose()
