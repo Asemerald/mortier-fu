@@ -17,7 +17,9 @@ namespace MortierFu
         private LootTable<E_AugmentRarity> _rarityTable;
         private Dictionary<E_AugmentRarity, List<SO_Augment>> _augmentsPerRarity;
         public ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>> AugmentsPerRarity;
-        private SO_AugmentProviderSettings _settings;
+        
+        private AsyncOperationHandle<SO_AugmentProviderSettings> _settingsHandle;
+        public SO_AugmentProviderSettings Settings => _settingsHandle.Result;
         
         private AsyncOperationHandle<IList<SO_AugmentLibrary>> _augmentLibHandle;
 
@@ -25,8 +27,6 @@ namespace MortierFu
         
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
-            Logs.Log("Populating augments for batch...");
-            
             int length = outAugments.Length;
             var rarities = _rarityTable.BatchPull(length);
             
@@ -41,12 +41,10 @@ namespace MortierFu
                 }
                 
                 int randIndex = Random.Range(0, augments.Count);
-                Logs.Log("Pulled random index: " + randIndex);
                 var pulledAugment = augments[randIndex];
-                Logs.Log("Pulled augment: " + pulledAugment.name);
                 
                 // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
-                if (!_settings.AllowCopiesInBatch)
+                if (!Settings.AllowCopiesInBatch)
                 {
                     int lastIndex = augments.Count - 1;
                     augments[randIndex] = augments[lastIndex];
@@ -54,10 +52,9 @@ namespace MortierFu
                 }
                 
                 outAugments[i] = pulledAugment;
-                Logs.Log("Set augment at index " + i + " to " + pulledAugment.name);
             }
 
-            if (!_settings.AllowCopiesInBatch)
+            if (!Settings.AllowCopiesInBatch)
             {
                 // Restore all pulled augments to their list
                 foreach (var augment in outAugments)
@@ -71,9 +68,7 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings
-            var settingsRef = SystemManager.Config.AugmentProviderSettings;
-            _settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (_settings == null) return;
+            _settingsHandle = await SystemManager.Config.AugmentProviderSettings.LazyLoadAssetRef();
             
             // Create the loot table
             var config = new LootTableConfig()
@@ -84,8 +79,8 @@ namespace MortierFu
             _rarityTable = new LootTable<E_AugmentRarity>(config);
             
             // Load all the rarity drop rates into the rarity loot table
-            _rarityTable.PopulateLootBag(_settings.RarityDropRates);
-            if(_settings.EnableDebug)
+            _rarityTable.PopulateLootBag(Settings.RarityDropRates);
+            if(Settings.EnableDebug)
                 Logs.Log($"Successfully populate the augment rarity loot table with {_rarityTable.TotalWeight} total weight.");
             
             await PopulateAugmentDictionary();
@@ -93,7 +88,8 @@ namespace MortierFu
         
         private async UniTask PopulateAugmentDictionary()
         {
-            Logs.Log("Loading Augment Libraries...");
+            if(Settings.EnableDebug)
+                Logs.Log("Loading Augment Libraries...");
             
             _augmentLibHandle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
             await _augmentLibHandle;
@@ -113,7 +109,9 @@ namespace MortierFu
                 {
                     AddAugmentInDictionary(augment);
                 }
-                Logs.Log($"Successfully included augments from the following augment library: {lib.name}");
+                
+                if(Settings.EnableDebug)
+                    Logs.Log($"Successfully included augments from the following augment library: {lib.name}");
             }
         }
         
@@ -131,6 +129,8 @@ namespace MortierFu
         public void Dispose() {
             _rarityTable.Dispose();
             _augmentsPerRarity.Clear();
+            
+            Addressables.Release(_settingsHandle);
             
             if (_augmentLibHandle.IsValid())
                 Addressables.Release(_augmentLibHandle);

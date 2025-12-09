@@ -37,13 +37,17 @@ namespace MortierFu
         protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
-        protected ACT_Storm _stormInstance;
+        protected ACT_Storm stormInstance;
 
-        private SO_GameModeData _gameModeData;
-        private SO_StormSettings _stormSettings;
+        private AsyncOperationHandle<SO_StormSettings> _stormSettingsHandle;
+        public SO_StormSettings StormSettings => _stormSettingsHandle.Result;
+        
+            
+        private AsyncOperationHandle<SO_GameModeData> _dataHandle;
+        public SO_GameModeData Data => _dataHandle.Result;
 
-        public virtual int MinPlayerCount => _gameModeData.MinPlayerCount;
-        public virtual int MaxPlayerCount => _gameModeData.MaxPlayerCount;
+        public virtual int MinPlayerCount => Data.MinPlayerCount;
+        public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
         public bool IsReady
         {
@@ -123,7 +127,7 @@ namespace MortierFu
                 StartRace();
                 
                 var augmentPickers = GetAugmentPickers();
-                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
+                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
 
                 while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();
@@ -259,7 +263,7 @@ namespace MortierFu
 
         protected void HandleCountdown()
         {
-            float duration = _gameModeData.RoundStartCountdown;
+            float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
             duration *= 0.25f;
             #endif
@@ -291,9 +295,9 @@ namespace MortierFu
             bombshellSys.ClearActiveBombshells();
             puddleSys.ClearActivePuddles();
             
-            if (_stormInstance)
+            if (stormInstance)
             { 
-                _stormInstance.Stop();
+                stormInstance.Stop();
             }
             
             ResetPlayers();
@@ -311,12 +315,9 @@ namespace MortierFu
         
         protected virtual async UniTaskVoid SpawnStormTask()
         {
-            var stormPrefab = await AddressablesUtils.LazyLoadAsset(_stormSettings.StormPrefab);
-            if (stormPrefab == null) return;
-            
-            var stormGO = Object.Instantiate(stormPrefab);
-            _stormInstance = stormGO.GetComponent<ACT_Storm>();
-            _stormInstance.Initialize(Vector3.zero, _stormSettings);
+            var stormGo = await StormSettings.StormPrefab.InstantiateAsync();
+            stormInstance = stormGo.GetComponent<ACT_Storm>();
+            stormInstance.Initialize(Vector3.zero, StormSettings);
             
             Logs.Log("Storm instantiated !");
         }
@@ -325,7 +326,7 @@ namespace MortierFu
         {
             foreach (var team in teams)
             {
-                if (team.Score >= _gameModeData.ScoreToWin)
+                if (team.Score >= Data.ScoreToWin)
                 {
                     if (team.Rank != 1) continue;
                     gameVictor = team;
@@ -333,8 +334,8 @@ namespace MortierFu
                 else
                 {
                     int rankBonusScore = GetScorePerRank(team.Rank);
-                    int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * _gameModeData.KillBonusScore);
-                    team.Score = Math.Min(rankBonusScore + killBonusScore, _gameModeData.ScoreToWin);
+                    int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
+                    team.Score = Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
                 }
             }
         }
@@ -345,9 +346,9 @@ namespace MortierFu
 
             return teamRank switch
             {
-                1 => _gameModeData.FirstRankBonusScore,
-                2 => _gameModeData.SecondRankBonusScore,
-                3 => _gameModeData.ThirdRankBonusScore,
+                1 => Data.FirstRankBonusScore,
+                2 => Data.SecondRankBonusScore,
+                3 => Data.ThirdRankBonusScore,
                 _ => 0
             };
         }
@@ -420,22 +421,10 @@ namespace MortierFu
             sceneService = ServiceManager.Instance.Get<SceneService>();
 
             // Load configuration
-            var dataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");
-            await dataHandle;
-
-            if (dataHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Logs.LogError($"[{GetType().Name}]: Failed to load the game mode data ! Issues {dataHandle.OperationException.Message}");
-                return;
-            }
-
-            _gameModeData = dataHandle.Result;
-            Addressables.Release(dataHandle);
+            _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
 
             // Load Storm settings
-            var stormSettingsRef = SystemManager.Config.StormSettings;
-            _stormSettings = await AddressablesUtils.LazyLoadAsset(stormSettingsRef);
-            if (_stormSettings == null) return;
+            _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
             
             timer = new CountdownTimer(0f);
 
@@ -447,6 +436,14 @@ namespace MortierFu
 
         public virtual void Dispose()
         {
+            if (stormInstance)
+            {
+                Addressables.ReleaseInstance(stormInstance.gameObject);
+            }
+            
+            Addressables.Release(_dataHandle);
+            Addressables.Release(_stormSettingsHandle);
+            
             teams.Clear();
             timer.Dispose();
         }

@@ -2,6 +2,7 @@ using System;
 using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace MortierFu
 {
@@ -44,7 +45,7 @@ namespace MortierFu
         public void Stop()
         {
             _damageTimer.Stop();
-            Destroy(gameObject);
+            Addressables.ReleaseInstance(gameObject);
         }
 
         private void DamagePlayers()

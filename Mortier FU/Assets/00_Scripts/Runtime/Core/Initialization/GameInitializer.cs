@@ -117,7 +117,7 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        private void OnDestroy()
+        private void OnApplicationQuit()
         {
             _serviceManager?.Dispose();
             _systemManager?.Dispose();

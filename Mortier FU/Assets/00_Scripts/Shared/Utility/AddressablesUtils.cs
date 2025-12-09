@@ -1,31 +1,39 @@
-﻿using MortierFu.Shared;
-using Cysharp.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.Exceptions;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu.Shared
 {
     public static class AddressablesUtils
     {
-        public static async UniTask<T> LazyLoadAsset<T>(AssetReferenceT<T> assetRef) where T : Object
+        public static async UniTask<AsyncOperationHandle<T>> LazyLoadAsset<T>(object key) where T : Object
         {
-            var assetHandle = assetRef.LoadAssetAsync();
-            try
-            {
-                await assetHandle;
-                if (assetHandle.Status != AsyncOperationStatus.Succeeded)
-                {
-                    Logs.LogError("[LevelSystem]: Failed while loading settings using Addressables. Error: " + assetHandle.OperationException.Message); 
-                    return null;
-                }
-
-                return assetHandle.Result;
-            }
-            finally
+            var assetHandle = Addressables.LoadAssetAsync<T>(key);
+            await assetHandle;
+            
+            if (assetHandle.Status != AsyncOperationStatus.Succeeded)
             {
                 Addressables.Release(assetHandle);
+                throw new OperationException("Failed to load asset: " + key);
             }
+            
+            return assetHandle;
+        }
+        
+        public static async UniTask<AsyncOperationHandle<T>> LazyLoadAssetRef<T>(this AssetReferenceT<T> assetRef) where T : Object
+        {
+            var assetHandle = assetRef.LoadAssetAsync();
+            await assetHandle;
+            
+            if (assetHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Addressables.Release(assetHandle);
+                throw new OperationException("Failed to load asset reference: " + assetRef.RuntimeKey);
+            }
+            
+            return assetHandle;
         }
     }
 }

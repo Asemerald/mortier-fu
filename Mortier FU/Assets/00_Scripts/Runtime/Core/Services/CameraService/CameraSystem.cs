@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -8,39 +10,28 @@ namespace MortierFu
     {
         public CameraController Controller { get; private set; }
         public CameraShakeController ShakeController { get; private set; }
-        public SO_CameraSettings Settings { get; private set; }
 
-        private Transform _cameraRoot;
+        // Addressables settings
+        private AsyncOperationHandle<SO_CameraSettings> _settingsHandle;
+        public SO_CameraSettings Settings => _settingsHandle.Result;
+        
+        private GameObject _cameraGo;
 
-        private void SpawnCamera(GameObject cameraPrefab)
+        private async UniTask InstantiateCamera()
         {
-            var camGo = Object.Instantiate(cameraPrefab, _cameraRoot);
-            camGo.name = "GameCamera";
+            _cameraGo = await Settings.CameraPrefab.InstantiateAsync();
+            _cameraGo.name = "GameCamera";
             
-            Controller = camGo.GetComponent<CameraController>();
-            ShakeController = camGo.GetComponent<CameraShakeController>();
+            Controller = _cameraGo.GetComponent<CameraController>();
+            ShakeController = _cameraGo.GetComponent<CameraShakeController>();
         }
 
         public async UniTask OnInitialize()
         {
             var settingsRef = SystemManager.Config.CameraSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null)
-            {
-                Logs.LogError("[CameraSystem] CameraSettings not found.");
-                return;
-            }
+            _settingsHandle = await settingsRef.LazyLoadAssetRef();
             
-            _cameraRoot = new GameObject("CameraRoot").transform;
-
-            var cameraPrefab = await AddressablesUtils.LazyLoadAsset(Settings.CameraPrefab);
-            if (cameraPrefab == null)
-            {
-                Logs.LogError("[CameraSystem] Camera prefab not found.");
-                return;
-            }
-            
-            SpawnCamera(cameraPrefab);
+            await InstantiateCamera();
 
             await UniTask.CompletedTask;
         }
@@ -49,14 +40,8 @@ namespace MortierFu
 
         public void Dispose()
         {
-
-            if (_cameraRoot != null)
-            {
-                Object.Destroy(_cameraRoot.gameObject);
-                _cameraRoot = null;
-            }
-
-            Logs.Log("[CameraSystem] Disposed.");
+            Addressables.ReleaseInstance(_cameraGo);
+            Addressables.Release(_settingsHandle);
         }
     }
 }

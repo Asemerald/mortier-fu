@@ -3,16 +3,15 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
     public class BombshellSystem : IGameSystem
     {
-        public SO_BombshellSettings Settings { get; private set; }
-        
         private CameraSystem _cameraSystem;
-        private GameObject _bombshellPrefab;
 
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
@@ -25,6 +24,11 @@ namespace MortierFu
         
         private Collider[] _impactResults;
         private const int k_maxImpactTargets = 50;
+        
+        private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle;
+        public SO_BombshellSettings Settings => _settingsHandle.Result;
+        
+        private AsyncOperationHandle<GameObject> _bombshellPrefabHandle;
         
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
@@ -134,11 +138,11 @@ namespace MortierFu
 
         private Bombshell OnCreateBombshell()
         {
-            var go = Object.Instantiate(_bombshellPrefab, _bombshellParent);
-            var bombshell = go.GetComponent<Bombshell>();
+            var bombshellGo = Object.Instantiate(_bombshellPrefabHandle.Result, _bombshellParent);
+            var bombshell = bombshellGo.GetComponent<Bombshell>();
 
             bombshell.Initialize(this);
-            go.SetActive(false);
+            bombshellGo.SetActive(false);
 
             return bombshell;
         }
@@ -169,16 +173,13 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings;lla
-            var settingsRef = SystemManager.Config.BombshellSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null) return;
+            _settingsHandle = await SystemManager.Config.BombshellSettings.LazyLoadAssetRef();
 
+            _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
+            
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             if (_cameraSystem == null) return;
             
-            _bombshellPrefab = await AddressablesUtils.LazyLoadAsset(Settings.BombshellPrefab);
-            if (_bombshellPrefab == null) return;
-
             _bombshellParent = new GameObject("Bombshells").transform;
 
             _active = new HashSet<Bombshell>();
@@ -197,6 +198,9 @@ namespace MortierFu
 
         public void Dispose()
         {
+            Addressables.Release(_bombshellPrefabHandle);
+            Addressables.Release(_settingsHandle);
+            
             _pool.Clear();
             _active.Clear();
         }
