@@ -4,6 +4,7 @@ using MortierFu.Shared;
 using UnityEngine.UI;
 using UnityEngine;
 using System;
+using System.Linq;
 using TMPro;
 
 namespace MortierFu
@@ -15,6 +16,7 @@ namespace MortierFu
 
         [SerializeField] private GameObject _readyGameObject;
         [SerializeField] private GameObject _playGameObject;
+        [SerializeField] private GameObject _goldenBombshellGameObject;
 
         [SerializeField] private Image _countdownImage;
         [SerializeField] private List<Sprite> _countdownSprites;
@@ -160,12 +162,30 @@ namespace MortierFu
                 if (i < _teamInfoTexts.Count)
                     _teamInfoTexts[i].text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
             }
+            
+            UpdateMatchPointIndicator();
         }
 
         private void UpdateRoundText(int currentRound)
         {
             if (_roundText != null)
                 _roundText.text = $"Round #{currentRound}";
+        }
+        
+        private void UpdateMatchPointIndicator()
+        {
+            if (_gm == null || _goldenBombshellGameObject.activeSelf) return;
+
+            bool isMatchPoint = false;
+
+            for (int i = 0; i < _gm.Teams.Count; i++)
+            {
+                if (_gm.Teams[i].Score < _gm.Data.ScoreToWin) continue;
+                isMatchPoint = true;
+                break;
+            }
+
+            _goldenBombshellGameObject.SetActive(isMatchPoint);
         }
     }
 }
