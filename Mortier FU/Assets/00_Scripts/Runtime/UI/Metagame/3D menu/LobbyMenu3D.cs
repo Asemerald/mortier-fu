@@ -2,31 +2,30 @@ using UnityEngine;
 
 public class LobbyMenu3D : MonoBehaviour
 {
-    [SerializeField] private GameObject playerPrefab;
-    
-    private Transform[] playerPrefabSpawns;
-    private GameObject[] playerPrefabs;
+    [Header("References")]
+    [SerializeField] private GameObject[] playerPrefabs;
     
     private int playerCount = 0;
 
-    public void AddPlayer()
+    public void UpdatePlayersCount(int count)
     {
-        if (playerCount >= playerPrefabSpawns.Length)
-            return;
-        
-        GameObject newPlayer = Instantiate(playerPrefab, playerPrefabSpawns[playerCount].position, playerPrefabSpawns[playerCount].rotation);
-        playerPrefabs[playerCount] = newPlayer;
-        playerCount++;
+        playerCount = count;
+        RefreshPlayerModels();
     }
     
-    public void RemovePlayer()
+    private void RefreshPlayerModels()
     {
-        if (playerCount <= 0)
-            return;
-        
-        playerCount--;
-        Destroy(playerPrefabs[playerCount]);
-        playerPrefabs[playerCount] = null;
+        for (int i = 0; i < playerPrefabs.Length; i++)
+        {
+            if (i < playerCount)
+            {
+                playerPrefabs[i].SetActive(true);
+            }
+            else
+            {
+                playerPrefabs[i].SetActive(false);
+            }
+        }
     }
     
 }

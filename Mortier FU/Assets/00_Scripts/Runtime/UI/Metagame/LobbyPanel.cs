@@ -14,12 +14,10 @@ namespace MortierFu
 {
     public class LobbyPanel : UIPanel
     {
-        [Header("Player Slots Reference")]
-        [SerializeField] private GameObject[] playerSlots;
-        [SerializeField] private TextMeshProUGUI[] playerSlotTexts;
+        [Header("Dependencies")]
+        [SerializeField] private LobbyMenu3D lobbyMenu3D;
+        [Header("Buttons References")]
         [SerializeField] private Button startGameButton;
-        [Header("Customization")]
-        [SerializeField] private GameObject[] customizationSlots;
 
         private GameService _gameService;
         
@@ -27,12 +25,18 @@ namespace MortierFu
         {
             // Resolve dependencies
             _gameService = ServiceManager.Instance.Get<GameService>();
+            
+            if (_gameService == null)
+                Logs.LogError("[LobbyPanel]: GameService could not be found in ServiceManager.", this);
+            if (lobbyMenu3D == null)
+                Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
+            if (startGameButton == null)
+                Logs.LogError("[LobbyPanel]: StartGameButton reference is missing.", this);
         }
         
         private void Start()
         {
             Hide();
-            UpdateSlots(new List<PlayerInput>());
             
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
@@ -49,27 +53,6 @@ namespace MortierFu
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
-        }
-
-        public void UpdateSlots(List<PlayerInput> joinedPlayers)
-        {
-            for (var i = 0; i < playerSlots.Length; i++)
-            {
-                if (i < joinedPlayers.Count)
-                {
-                    playerSlots[i].SetActive(true);
-                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
-                        playerSlotTexts[i].text = $"Joueur {i + 1}";
-                }
-                else
-                {
-                    playerSlots[i].SetActive(false);
-                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
-                        playerSlotTexts[i].text = string.Empty;
-                }
-            }
-            
-            //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
         }
 
         private void OnStartGameClicked() => StartGame().Forget();
