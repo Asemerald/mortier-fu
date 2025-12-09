@@ -572,6 +572,7 @@ GameObject:
   - component: {fileID: 1391742732}
   - component: {fileID: 1391742731}
   - component: {fileID: 1391742730}
+  - component: {fileID: 1391742735}
   m_Layer: 5
   m_Name: GameplayInfoCanvas
   m_TagString: Untagged
@@ -657,7 +658,7 @@ MonoBehaviour:
   _gameplayInfoPanel: {fileID: 1429001663}
   _readyGameObject: {fileID: 1137881213}
   _playGameObject: {fileID: 1495155796}
-  _countdownSpriteRenderer: {fileID: 1933827955}
+  _countdownImage: {fileID: 1933827955}
   _countdownSprites:
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
@@ -665,7 +666,10 @@ MonoBehaviour:
   _roundText: {fileID: 1463569134}
   _teamInfoParent: {fileID: 658560268}
   _teamInfoPrefab: {fileID: 1847201078091024679, guid: a6ecbe318b1206347878f8bf3e5fd62d, type: 3}
-  _teamInfoText: []
+  _teamInfoTexts: []
+  _panelGroup: {fileID: 1391742735}
+  _postPlayDelay: 0.5
+  _panelFadeDuration: 0.35
 --- !u!224 &1391742734
 RectTransform:
   m_ObjectHideFlags: 0
@@ -687,6 +691,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!225 &1391742735
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1391742729}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1429001663
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,8 +731,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 658560268}
   - {fileID: 772488391}
+  - {fileID: 658560268}
   m_Father: {fileID: 1391742734}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

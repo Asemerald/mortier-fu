@@ -3,43 +3,42 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.UI;
 using UnityEngine;
+using System;
 using TMPro;
 
 namespace MortierFu
 {
     public class GameplayInfoUI : MonoBehaviour
     {
-        [Header("References")] 
-        [SerializeField] private GameObject _gameplayInfoPanel;
-        
+        [Header("References")] [SerializeField]
+        private GameObject _gameplayInfoPanel;
+
         [SerializeField] private GameObject _readyGameObject;
         [SerializeField] private GameObject _playGameObject;
-        
-        [SerializeField] private Image _countdownSpriteRenderer;
+
+        [SerializeField] private Image _countdownImage;
         [SerializeField] private List<Sprite> _countdownSprites;
 
         [SerializeField] private TextMeshProUGUI _roundText;
 
         [SerializeField] private Transform _teamInfoParent;
         [SerializeField] private GameObject _teamInfoPrefab;
-        [SerializeField] private List<TextMeshProUGUI> _teamInfoText;
+        [SerializeField] private List<TextMeshProUGUI> _teamInfoTexts;
 
-        private CanvasGroup _panelGroup;
+        [SerializeField] private CanvasGroup _panelGroup;
+        
+        [Header("Countdown Settings")]
+        [SerializeField] private float _postPlayDelay = 0.5f;
+        [SerializeField] private float _panelFadeDuration = 0.35f;
+        
         private GameModeBase _gm;
-
-        private void Awake()
-        {
-            _panelGroup = _gameplayInfoPanel.GetComponent<CanvasGroup>();
-            if (_panelGroup == null)
-                _panelGroup = _gameplayInfoPanel.AddComponent<CanvasGroup>();
-        }
 
         private void Start()
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
             if (_gm == null)
             {
-                Logs.LogWarning("Game mode not found !");
+                Logs.LogWarning("Game mode not found");
                 return;
             }
 
@@ -47,10 +46,18 @@ namespace MortierFu
             _gm.OnRoundStarted += OnRoundStarted;
         }
 
+        private void OnDestroy()
+        {
+            if (_gm == null) return;
+            
+            _gm.OnGameStarted -= OnGameStarted;
+            _gm.OnRoundStarted -= OnRoundStarted;
+        }
+
         private void OnGameStarted()
         {
             _gm.OnGameStarted -= OnGameStarted;
-            Initialize();
+            InitializeUI();
         }
 
         private void OnRoundStarted(int currentRound)
@@ -66,19 +73,17 @@ namespace MortierFu
             ShowPanel();
 
             float remaining;
-
             do
             {
                 remaining = _gm.CountdownRemainingTime;
                 UpdateCountdownVisual(Mathf.CeilToInt(remaining));
                 await UniTask.Yield();
-            }
-            while (remaining > 0f);
+            } while (remaining > 0f);
 
             ShowPlayUI();
-            await UniTask.Delay(500);
+            await UniTask.Delay(TimeSpan.FromSeconds(_postPlayDelay));
 
-            await FadeOutPanel(0.35f);
+            await FadeOutPanel(_panelFadeDuration);
             HidePanel();
         }
 
@@ -86,10 +91,7 @@ namespace MortierFu
         {
             _readyGameObject.SetActive(true);
             _playGameObject.SetActive(false);
-            _countdownSpriteRenderer.enabled = true;
-
-            foreach (Transform child in _gameplayInfoPanel.transform)
-                child.gameObject.SetActive(true);
+            _countdownImage.enabled = true;
 
             _panelGroup.alpha = 1f;
         }
@@ -104,13 +106,14 @@ namespace MortierFu
                 _ => 2
             };
 
-            _countdownSpriteRenderer.sprite = _countdownSprites[index];
+            if (_countdownSprites != null && _countdownSprites.Count > index)
+                _countdownImage.sprite = _countdownSprites[index];
         }
 
         private void ShowPlayUI()
         {
             _readyGameObject.SetActive(false);
-            _countdownSpriteRenderer.enabled = false;
+            _countdownImage.enabled = false;
             _playGameObject.SetActive(true);
         }
 
@@ -132,7 +135,7 @@ namespace MortierFu
         private void ShowPanel() => _gameplayInfoPanel.SetActive(true);
         private void HidePanel() => _gameplayInfoPanel.SetActive(false);
 
-        private void Initialize()
+        private void InitializeUI()
         {
             HidePanel();
             PopulateTeamInfo();
@@ -144,7 +147,7 @@ namespace MortierFu
             {
                 var iconGO = Instantiate(_teamInfoPrefab, _teamInfoParent);
                 var txt = iconGO.GetComponentInChildren<TextMeshProUGUI>();
-                _teamInfoText.Add(txt);
+                _teamInfoTexts.Add(txt);
 
                 txt.text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
             }
@@ -153,10 +156,16 @@ namespace MortierFu
         private void UpdatePlayerScores()
         {
             for (int i = 0; i < _gm.Teams.Count; i++)
-                _teamInfoText[i].text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
+            {
+                if (i < _teamInfoTexts.Count)
+                    _teamInfoTexts[i].text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
+            }
         }
 
         private void UpdateRoundText(int currentRound)
-            => _roundText.text = $"Round #{currentRound}";
+        {
+            if (_roundText != null)
+                _roundText.text = $"Round #{currentRound}";
+        }
     }
 }
