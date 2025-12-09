@@ -47,12 +47,14 @@ namespace MortierFu
         private async UniTaskVoid HandleCountdown()
         {
             ShowCountdown();
+            
             float countdownTime;
+            
             do
             {
                 countdownTime = _gm.CountdownRemainingTime;
                 #if UNITY_EDITOR
-                countdownTime *= 4f;
+               countdownTime *= 4f;
                 #endif
                 UpdateCountdownText(Mathf.FloorToInt(countdownTime));
                 await UniTask.Yield();
