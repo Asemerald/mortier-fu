@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -269,6 +268,7 @@ namespace MortierFu
             #endif
 
             timer.Reset(duration - 0.01f);
+            timer.OnTimerStart += HandleStartOfCountdown;
             timer.OnTimerStop += HandleEndOfCountdown;
             timer.Start();
         }
@@ -279,12 +279,16 @@ namespace MortierFu
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
             
-            OnRoundStarted?.Invoke(currentRound);
             Logs.Log($"Round #{currentRound} is starting...");
             
             // timer.Reset(_gameModeData.StormSpawnTime);
             // timer.OnTimerStop += SpawnStorm;
             // timer.Start();
+        }
+        
+        protected void HandleStartOfCountdown()
+        {
+            OnRoundStarted?.Invoke(currentRound);
         }
 
         protected virtual void EndRound()

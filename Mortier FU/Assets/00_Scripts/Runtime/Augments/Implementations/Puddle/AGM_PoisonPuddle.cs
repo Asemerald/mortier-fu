@@ -40,8 +40,6 @@ namespace MortierFu
 
         public override void Dispose()
         {
-            Owner.AddPuddleEffect(db.PoisonPuddleParams.Ability);
-            
             Owner.RemovePuddleEffect(db.PoisonPuddleParams.Ability);
         }
     }
