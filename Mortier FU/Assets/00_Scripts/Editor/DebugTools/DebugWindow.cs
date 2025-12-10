@@ -1,4 +1,3 @@
-using System;
 using Eflatun.SceneReference;
 using Eflatun.SceneReference.Exceptions;
 using UnityEngine;
@@ -6,7 +5,6 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using MortierFu.Shared;
-using UnityEngine.Serialization;
 
 namespace MortierFu.Editor {
     public class DebugWindow : EditorWindow {
