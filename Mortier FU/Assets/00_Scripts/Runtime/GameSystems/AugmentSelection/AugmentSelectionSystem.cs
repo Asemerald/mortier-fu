@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -10,8 +12,6 @@ namespace MortierFu
 
     public class AugmentSelectionSystem : IGameSystem
     {
-        public SO_AugmentSelectionSettings Settings { get; private set; }
-        
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
@@ -30,13 +30,14 @@ namespace MortierFu
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
 
+        private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
+        public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
+        
         public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
         
         public async UniTask OnInitialize()
         {
-            var settingsRef = SystemManager.Config.AugmentSelectionSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null) return;
+            _settingsHandle = await SystemManager.Config.AugmentSelectionSettings.LazyLoadAssetRef();
             
             _pickupParent = new GameObject("AugmentPickups").transform;
             _pickupParent.position = Vector3.down * 50;
@@ -49,8 +50,6 @@ namespace MortierFu
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
             
-            Logs.Log("Initialized selected augments array ! Length : " + _selectedAugments.Length);
-            
             await InstantiatePickups();
             
             _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());
@@ -58,16 +57,12 @@ namespace MortierFu
         
         private async UniTask InstantiatePickups()
         {
-            // Load the augment pickup prefab
-            var pickupPrefab = await AddressablesUtils.LazyLoadAsset(Settings.AugmentPickupPrefab);
-            if (pickupPrefab == null) return;
-            
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pickupGO = Object.Instantiate(pickupPrefab, _pickupParent);
-                var pickup = pickupGO.GetComponent<AugmentPickup>();
+                var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
+                var pickup = pickupGo.GetComponent<AugmentPickup>();
                 
                 pickup.Initialize(this, i);
                 pickup.Hide();
@@ -80,6 +75,13 @@ namespace MortierFu
 
         public void Dispose()
         {
+            for (int i = _pickups.Count - 1; i >= 0; i--)
+            {
+                Addressables.ReleaseInstance(_pickups[i].gameObject);
+            }
+            
+            Addressables.Release(_settingsHandle);
+            
             _pickups.Clear();
             _augmentBag.Clear();
             

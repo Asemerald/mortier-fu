@@ -34,8 +34,7 @@ public class TEMP_FXHandler : MonoBehaviour
 
     private async UniTaskVoid StrikeTimingPreview(ParticleSystem preview, float travelTime)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(travelTime - 0.3f));
-        Debug.LogWarning("COLOR CHANGE");
+        await UniTask.Delay(TimeSpan.FromSeconds(Mathf.Max(0f, travelTime - 0.3f)));
         
         var col = preview.colorOverLifetime;
 
@@ -50,7 +49,7 @@ public class TEMP_FXHandler : MonoBehaviour
     public void InstantiateExplosion(Vector3 position, float range)
     {
         var ps = Instantiate(_bombshellExplosion, position, Quaternion.identity);
-        ps.transform.localScale = Vector3.one * range * 0.5f;
+        ps.transform.localScale = Vector3.one * (range * 0.5f);
     }
 
     public void InstantiateStrikeFX(Transform player, float size)

@@ -6,7 +6,8 @@ using MathUtils = MortierFu.Shared.MathUtils;
 
 namespace MortierFu
 {
-    [RequireComponent(typeof(Rigidbody))]
+
+    [RequireComponent(typeof(Rigidbody), typeof(BombshellAspect))]
     public class Bombshell : MonoBehaviour
     {
         public struct Data
@@ -28,11 +29,6 @@ namespace MortierFu
             public int Bounces;
         }
         
-        [SerializeField] private TrailRenderer[] _trails;
-        [SerializeField] private ParticleSystem _smokeParticles;
-        private Transform _smokeParent;
-        private Vector3 _smokeInitialLocalPos;
-
         private Data _data;
 
         private Vector3 _direction;
@@ -44,6 +40,7 @@ namespace MortierFu
         
         private BombshellSystem _system;
         private Rigidbody _rb;
+        private BombshellAspect _aspect;
         
         private CountdownTimer _impactDebounceTimer;
 
@@ -70,10 +67,13 @@ namespace MortierFu
         public void Initialize(BombshellSystem system)
         {
             _system = system;
+            
             _rb = GetComponent<Rigidbody>();
+            
+            _aspect = GetComponent<BombshellAspect>();
+            _aspect.Initialize(this);
+            
             _impactDebounceTimer = new CountdownTimer(0.1f);
-            _smokeParent = _smokeParticles.transform.parent;
-            _smokeInitialLocalPos = _smokeParticles.transform.localPosition;
         }
         
         public void Configure(Data data)
@@ -88,12 +88,6 @@ namespace MortierFu
             transform.localScale = Vector3.one * _data.Scale;
             
             _impactDebounceTimer.Stop();
-            
-            foreach (var trail in _trails)
-            {
-                trail.Clear();
-                trail.emitting = true;
-            }
             
             // Preview
             HandleImpactPreview().Forget();
@@ -121,27 +115,13 @@ namespace MortierFu
 
         public void OnGet()
         {
-            _smokeParticles.transform.SetParent(_smokeParent);
-            _smokeParticles.transform.localPosition = _smokeInitialLocalPos;
-            _smokeParticles.transform.localRotation = Quaternion.identity;
-            _smokeParticles.Play();
-
-            foreach (var trail in _trails)
-            {
-                trail.Clear();
-                trail.emitting = true;
-            }
+            _aspect.OnGet();
         }
+
 
         public void OnRelease()
         {
-            _smokeParticles.transform.SetParent(null);
-            _smokeParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-
-            foreach (var trail in _trails)
-            {
-                trail.emitting = false;
-            }
+            _aspect.OnRelease();
         }
         
         public void ReturnToPool() => _system.ReleaseBombshell(this);

@@ -16,7 +16,8 @@ namespace MortierFu
 {
     public class LevelSystem : IGameSystem
     {
-        private SO_LevelSettings _settings;
+        private AsyncOperationHandle<SO_LevelSettings> _settingsHandle;
+        public SO_LevelSettings Settings => _settingsHandle.Result;
         
         private List<IResourceLocation> _arenaMapLocations;
         private List<IResourceLocation> _raceMapLocations;
@@ -40,14 +41,14 @@ namespace MortierFu
                     _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
                     await _mapHandle;
                 
-                    if(_settings.EnableDebug)
+                    if(Settings.EnableDebug)
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
                 
                     return;
                 }
                 else 
                 {
-                    if(_settings.EnableDebug)
+                    if(Settings.EnableDebug)
                         Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
                 }
 
@@ -59,7 +60,7 @@ namespace MortierFu
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
             
-            if(_settings.EnableDebug)
+            if(Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
         }
 
@@ -76,14 +77,14 @@ namespace MortierFu
                     _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
                     await _mapHandle;
                 
-                    if(_settings.EnableDebug)
+                    if(Settings.EnableDebug)
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
                 
                     return;
                 }
                 else 
                 {
-                    if(_settings.EnableDebug)
+                    if(Settings.EnableDebug)
                         Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
                 }
             }
@@ -94,7 +95,7 @@ namespace MortierFu
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
             
-            if(_settings.EnableDebug)
+            if(Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
         }
         
@@ -129,7 +130,7 @@ namespace MortierFu
 
             if (index < 0) // || index >= BoundReporter.SpawnPoints.Length
             {
-                if(_settings.EnableDebug) 
+                if(Settings.EnableDebug) 
                     Logs.LogWarning("[LevelSystem]: Trying to get a spawn point which is out of range of the provided list of spawn points by the level reporter !");
                 return FallbackTransform;
             }
@@ -161,14 +162,14 @@ namespace MortierFu
         {
             if (reporter == null)
             {
-                if (_settings.EnableDebug)
+                if (Settings.EnableDebug)
                     Logs.LogWarning("Trying to bound a null reporter !");
                 
                 return;
             }
             
             _boundReporter = reporter;
-            if(_settings.EnableDebug)
+            if(Settings.EnableDebug)
                 Logs.Log("Successfully bound a new level reporter.");
         }
         
@@ -181,7 +182,7 @@ namespace MortierFu
                 
                 if (_mapHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    if (_settings.EnableDebug)
+                    if (Settings.EnableDebug)
                         Logs.LogError($"[LevelSystem]: Tried to load map with unfinished load process: {_mapHandle.OperationException.Message}");
                 }
             }
@@ -202,7 +203,7 @@ namespace MortierFu
 
                 var operations = new List<IResourceLocation>(handle.Result);
                 
-                if (_settings.EnableDebug)
+                if (Settings.EnableDebug)
                     Logs.Log($"Successfully loaded {operations.Count} maps resource locations.");
 
                 return operations;
@@ -251,9 +252,7 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings
-            var settingsRef = SystemManager.Config.LevelSettings;
-            _settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (_settings == null) return;
+            _settingsHandle = await SystemManager.Config.LevelSettings.LazyLoadAssetRef();
 
             _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
             _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
@@ -261,6 +260,8 @@ namespace MortierFu
 
         public void Dispose()
         {
+            Addressables.Release(_settingsHandle);
+            
             _arenaMapLocations.Clear();
         }
         

@@ -3,13 +3,16 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.Pool;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
     public class PuddleSystem : IGameSystem
     {
-        public SO_PuddleSettings Settings { get; private set; }
-        private GameObject _puddlePrefab;
+        private AsyncOperationHandle<SO_PuddleSettings> _settingsHandle;
+        public SO_PuddleSettings Settings => _settingsHandle.Result;
+        private AsyncOperationHandle<GameObject> _puddlePrefabHandle;
 
         private PuddleFactory _puddleFactory;
         
@@ -22,7 +25,7 @@ namespace MortierFu
         private HashSet<Puddle> _active;
 
         private Transform _puddleParent;
-
+        
         private const int k_maxImpactTargets = 50;
         
         public PuddleFactory PuddleFactory => _puddleFactory;
@@ -57,11 +60,11 @@ namespace MortierFu
 
         private Puddle OnCreatePuddle()
         {
-            var go = Object.Instantiate(_puddlePrefab, _puddleParent);
-            var puddle = go.GetComponent<Puddle>();
+            var puddleGo = Object.Instantiate(_puddlePrefabHandle.Result, _puddleParent);
+            var puddle = puddleGo.GetComponent<Puddle>();
 
             puddle.Initialize(this);
-            go.SetActive(false);
+            puddleGo.SetActive(false);
 
             return puddle;
         }
@@ -93,12 +96,8 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings
-            var settingsRef = SystemManager.Config.PuddleSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null) return;
-
-            _puddlePrefab = await AddressablesUtils.LazyLoadAsset(Settings.PuddlePrefab);
-            if (_puddlePrefab == null) return;
+            _settingsHandle = await SystemManager.Config.PuddleSettings.LazyLoadAssetRef();
+            _puddlePrefabHandle = await Settings.PuddlePrefab.LazyLoadAssetRef();
 
             _puddleParent = new GameObject("Puddles").transform;
 
@@ -120,6 +119,9 @@ namespace MortierFu
         {
             _pool.Clear();
             _active.Clear();
+            
+            Addressables.Release(_puddlePrefabHandle);
+            Addressables.Release(_settingsHandle);
         }
 
         public bool IsInitialized { get; set; }

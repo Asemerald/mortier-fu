@@ -7,7 +7,7 @@ namespace MortierFu
 {
     public class AugmentPickup : MonoBehaviour
     {
-        [System.Serializable]
+        [Serializable]
         private struct RarityData
         {
             public E_AugmentRarity Rarity;
@@ -53,7 +53,7 @@ namespace MortierFu
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
         
-        private void OnTriggerEnter(Collider other)
+        void OnTriggerEnter(Collider other)
         {
             if(other.attachedRigidbody == null) return;
             
@@ -65,7 +65,7 @@ namespace MortierFu
                 Hide();
             }
         }
-        
+
         public void Show() => gameObject.SetActive(true);
         public void Hide() => gameObject.SetActive(false);
     }

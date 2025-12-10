@@ -1,6 +1,16 @@
 using UnityEngine;
 
 namespace MortierFu {
+    [System.Serializable]
+    public struct CharacterAspectMaterials
+    {
+        public Material BurnBaseVoronoiMat;
+        public Material DotsAlphaSpikesMat;
+        public Material OrangeSpikesMat;
+        public Material TrailThinMat;
+        public Material TrailFatMat;
+    }
+    
     public class AspectCharacterComponent : CharacterComponent
     {
         public Color PlayerColor { get; private set; }
@@ -8,12 +18,19 @@ namespace MortierFu {
         private float _saturation;
         private float _value;
         
+        public CharacterAspectMaterials AspectMaterials { get; private set; }
+        
         public AspectCharacterComponent(PlayerCharacter character, float hueOffset, float saturation, float value) : base(character) {
             _hueOffset = hueOffset;
             _saturation = saturation;
             _value = value;
         }
 
+        public void SetAspectMaterials(CharacterAspectMaterials aspectMaterials)
+        {
+            AspectMaterials = aspectMaterials;
+        }
+        
         public override void Initialize() {
             var lobbyService = ServiceManager.Instance.Get<LobbyService>();
             int playerCount = lobbyService.GetPlayers().Count;

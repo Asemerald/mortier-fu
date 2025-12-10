@@ -23,6 +23,7 @@ namespace MortierFu
         [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
         [SerializeField]
         private Color _characterColorConfig = Color.white;
+        [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
 
         [Header("References")] [SerializeField]
         private Animator _animator;
@@ -67,14 +68,28 @@ namespace MortierFu
         /// </summary>
         public void Initialize(PlayerManager owner)
         {
+            if (owner == null)
+            {
+                Logs.LogError("Cannot initialize player with null Owner !");
+                return;
+            }
+            
             Owner = owner;
+
+            var playerIndex = owner.PlayerIndex;
+            if(playerIndex < 0 || playerIndex >= _characterAspectMaterials.Length)
+            {
+                Logs.LogError($"Player index {playerIndex} is out of bounds for character aspect materials.");
+                return;
+            }
+            Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
         }
 
         void Awake()
         {
             // Extract HSV from the character color config
             Color.RGBToHSV(_characterColorConfig, out float hue, out float saturation, out float value);
-
+            
             // Create character components
             Health = new HealthCharacterComponent(this);
             Controller = new ControllerCharacterComponent(this);
