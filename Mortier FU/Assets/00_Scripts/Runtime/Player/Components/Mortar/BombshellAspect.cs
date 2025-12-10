@@ -12,6 +12,7 @@ namespace MortierFu
         [SerializeField] private TrailRenderer _trailThin01;
         [SerializeField] private TrailRenderer _trailThin02;
         [SerializeField] private TrailRenderer _trailFat01;
+        [SerializeField] private ParticleSystem _light;
         private Transform _smokeParent;
         private Vector3 _smokeInitialLocalPos;
 
@@ -54,7 +55,8 @@ namespace MortierFu
         
         private void Colorize()
         {
-            var mats = _bombshell.Owner.Aspect.AspectMaterials;
+            var aspect = _bombshell.Owner.Aspect;
+            var mats = aspect.AspectMaterials;
             
             _cone03.sharedMaterial = mats.BurnBaseVoronoiMat;
             _cone02.sharedMaterial = mats.OrangeSpikesMat;
@@ -62,6 +64,9 @@ namespace MortierFu
             _trailThin01.sharedMaterial = mats.TrailThinMat;
             _trailThin02.sharedMaterial = mats.TrailThinMat;
             _trailFat01.sharedMaterial = mats.TrailFatMat;
+            
+            var main = _light.main;
+            main.startColor = mats.LightColor;
         }
     }
 }

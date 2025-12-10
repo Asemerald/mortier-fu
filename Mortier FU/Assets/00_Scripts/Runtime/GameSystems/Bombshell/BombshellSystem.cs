@@ -91,7 +91,7 @@ namespace MortierFu
             if (TEMP_FXHandler.Instance)
             {
                 var character = bombshell.Owner;
-                TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange, character.Owner.PlayerIndex);
+                TEMP_FXHandler.Instance.InstantiateExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
             else Logs.LogWarning("No FX Handler");
 
