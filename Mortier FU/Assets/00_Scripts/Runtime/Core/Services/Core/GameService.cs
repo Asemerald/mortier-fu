@@ -11,14 +11,20 @@ namespace MortierFu
         
         private const string k_mainMenuScene = "MainMenu";
         private const string k_gameplayScene = "Gameplay";
-
-        /// Kinda expansive, should cache the result if used multiple time per case.
+        
+        private static IGameMode _currentGameModeInstance;
+        
         public static IGameMode CurrentGameMode
         {
             get
             {
-                var gameService = ServiceManager.Instance.Get<GameService>();
-                return gameService._currentGameMode;
+                // return the cached _currentGameModeInstance if not null, else get it from the GameService and cache it
+                if (_currentGameModeInstance == null)
+                {
+                    var gameService = ServiceManager.Instance.Get<GameService>();
+                    _currentGameModeInstance = gameService?._currentGameMode;
+                }
+                return _currentGameModeInstance;
             }
         }
         
