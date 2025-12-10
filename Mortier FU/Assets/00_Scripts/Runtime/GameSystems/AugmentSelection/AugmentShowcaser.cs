@@ -41,8 +41,7 @@ namespace MortierFu
             float cardSpace = Mathf.Lerp(_system.Settings.CardSpacingRange.Min, 
                                          _system.Settings.CardSpacingRange.Max, 
                                          alpha);
-            Debug.Log("Card scale: " + cardScale + ", card space: " + cardSpace);
-            
+
             float step = cardScale * 2f + cardSpace;
             Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f - _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
             

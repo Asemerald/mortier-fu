@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Numerics;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using MortierFu.Shared;
 using PrimeTween;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -13,7 +10,7 @@ public class TEMP_FXHandler : MonoBehaviour
     public static TEMP_FXHandler Instance { get; private set; }
     
     [SerializeField] private ParticleSystem _bombshellPreview;
-    [SerializeField] private ParticleSystem _bombshellExplosion;
+    [SerializeField] private ParticleSystem[] _bombshellExplosionColors;
     [SerializeField] private ParticleSystem _strike;
     
     private void Awake()
@@ -46,9 +43,15 @@ public class TEMP_FXHandler : MonoBehaviour
         col.color = grad;
     }
     
-    public void InstantiateExplosion(Vector3 position, float range)
+    public void InstantiateExplosion(Vector3 position, float range, int playerIndex)
     {
-        var ps = Instantiate(_bombshellExplosion, position, Quaternion.identity);
+        if (playerIndex < 0 || playerIndex >= _bombshellExplosionColors.Length)
+        {
+            Debug.LogError($"Player index {playerIndex} is out of range for bombshell explosion colors.");
+            return;
+        }
+        
+        var ps = Instantiate(_bombshellExplosionColors[playerIndex], position, Quaternion.identity);
         ps.transform.localScale = Vector3.one * (range * 0.5f);
     }
 

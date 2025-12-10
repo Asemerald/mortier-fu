@@ -90,7 +90,8 @@ namespace MortierFu
             //GAMEFEEL CALLS
             if (TEMP_FXHandler.Instance)
             {
-                TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange);
+                var character = bombshell.Owner;
+                TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
             else Logs.LogWarning("No FX Handler");
 
