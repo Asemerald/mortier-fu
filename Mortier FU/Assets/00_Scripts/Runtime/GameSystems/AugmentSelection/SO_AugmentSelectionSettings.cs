@@ -10,7 +10,8 @@ namespace MortierFu
     {
         [Header("Settings")]
         public bool EnforceAugmentCount = false;
-        [ShowIf("EnforceAugmentCount")] public int ForcedAugmentCount = 5;
+        [ShowIf("EnforceAugmentCount")]
+        public int ForcedAugmentCount = 5;
         
         [Header("Timing")]
         [Tooltip("Delay before starting the augment showcase (in seconds).")]
