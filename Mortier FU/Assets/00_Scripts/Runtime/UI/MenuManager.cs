@@ -41,7 +41,7 @@ namespace MortierFu
             CheckActivePanels();
             
             // Create PlayerActionInput and enable Menu action map
-            _playerActions = new PlayerActionInput();
+            _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
         }
     
         private void Start()

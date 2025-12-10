@@ -48,11 +48,13 @@ namespace MortierFu
         private void OnEnable()
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
+            PlayerInputBridge.Instance.CanJoin(true);
         }
         
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
+            PlayerInputBridge.Instance.CanJoin(false);
         }
 
         private void OnStartGameClicked() => StartGame().Forget();
