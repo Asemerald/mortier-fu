@@ -1,3 +1,6 @@
+using System;
+using MortierFu;
+using MortierFu.Shared;
 using UnityEngine;
 
 public class LobbyMenu3D : MonoBehaviour
@@ -6,12 +9,25 @@ public class LobbyMenu3D : MonoBehaviour
     [SerializeField] private GameObject[] playerPrefabs;
     
     private int playerCount = 0;
+    
+    private LobbyService _lobby;
 
-    public void UpdatePlayersCount(int count)
+    private void Awake()
     {
-        playerCount = count;
+        _lobby = ServiceManager.Instance.Get<LobbyService>();
+        if (_lobby == null)
+        {
+            Logs.LogError("[LobbyMenu3D]: LobbyService could not be found in ServiceManager.", this);
+            return;
+        }
+    }
+
+    private void OnEnable()
+    {
+        playerCount = _lobby.CurrentPlayerCount;
         RefreshPlayerModels();
     }
+    
     
     private void RefreshPlayerModels()
     {
