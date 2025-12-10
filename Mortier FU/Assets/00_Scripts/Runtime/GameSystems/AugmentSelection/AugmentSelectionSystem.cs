@@ -5,13 +5,15 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
 
     public class AugmentSelectionSystem : IGameSystem
     {
+        public event Action<float> OnPressureStart;
+        public event Action OnPressureStop;
+        
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
@@ -120,7 +122,7 @@ namespace MortierFu
             _showcaseInProgress = true;
             await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
             _showcaseInProgress = false;
-
+            
             await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
@@ -128,10 +130,19 @@ namespace MortierFu
             
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
+            
+            float pressureStartTime = 5f;
+            float delay = Mathf.Max(0, duration - pressureStartTime);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+            OnPressureStart?.Invoke(pressureStartTime);
         }
 
         public void EndRace()
         {
+            OnPressureStop?.Invoke();
+            
             // Give a random augment to remaining pickers
             var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
             foreach (var picker in _pickers)
