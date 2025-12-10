@@ -4776,7 +4776,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1175427309}
   m_OnClick:
     m_PersistentCalls:
@@ -5719,7 +5719,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: b32b18ef5c5d59b408f3ac551977e94e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5729,6 +5729,11 @@ PrefabInstance:
 --- !u!4 &1413783968 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b32b18ef5c5d59b408f3ac551977e94e, type: 3}
+  m_PrefabInstance: {fileID: 1413783967}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1413783969 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: b32b18ef5c5d59b408f3ac551977e94e, type: 3}
   m_PrefabInstance: {fileID: 1413783967}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1452973817
@@ -6371,7 +6376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyPanel
   <DefaultButton>k__BackingField: {fileID: 1175427308}
-  lobbyMenu3D: {fileID: 0}
+  lobbyMenu3D: {fileID: 6385800421891092987}
   startGameButton: {fileID: 1175427308}
 --- !u!114 &1725973107
 MonoBehaviour:
@@ -6801,7 +6806,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1852023421
 Transform:
   m_ObjectHideFlags: 0
@@ -6990,8 +6995,8 @@ MonoBehaviour:
   <SettingsPanel>k__BackingField: {fileID: 1488956645}
   <CreditsPanel>k__BackingField: {fileID: 514514708}
   <LobbyPanel>k__BackingField: {fileID: 1725973106}
-  <LobbyPlayButton>k__BackingField: {fileID: 0}
-  BlackFader: {fileID: 55333947}
+  blackFader: {fileID: 55333947}
+  cameraManager: {fileID: 6846201641333718831}
 --- !u!4 &1892091464
 Transform:
   m_ObjectHideFlags: 0
@@ -7827,6 +7832,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1680320003161857214, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2423628246365102127, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3738452587967540377, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: playerPrefabs.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: 'playerPrefabs.Array.data[0]'
+      value: 
+      objectReference: {fileID: 6385800421891092986}
+    - target: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: 'playerPrefabs.Array.data[1]'
+      value: 
+      objectReference: {fileID: 6385800421891092985}
+    - target: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: 'playerPrefabs.Array.data[2]'
+      value: 
+      objectReference: {fileID: 6385800421891092984}
+    - target: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+      propertyPath: 'playerPrefabs.Array.data[3]'
+      value: 
+      objectReference: {fileID: 1413783969}
     - target: {fileID: 7162951027839266421, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
       propertyPath: m_Name
       value: MenuComposing
@@ -7919,6 +7956,32 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &6385800421891092984 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3738452587967540377, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+  m_PrefabInstance: {fileID: 6385800421891092980}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6385800421891092985 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2423628246365102127, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+  m_PrefabInstance: {fileID: 6385800421891092980}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6385800421891092986 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1680320003161857214, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+  m_PrefabInstance: {fileID: 6385800421891092980}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6385800421891092987 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6655883785833082851, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
+  m_PrefabInstance: {fileID: 6385800421891092980}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 931f538436ad9514cbb82c1ea539b5fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!114 &6573348163694821947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8042,7 +8105,7 @@ MonoBehaviour:
   cameraPositions:
   - {fileID: 853463262}
   - {fileID: 1877567206}
-  transitionDuration: 2
+  transitionDuration: 10
   transitionCurve:
     serializedVersion: 2
     m_Curve:

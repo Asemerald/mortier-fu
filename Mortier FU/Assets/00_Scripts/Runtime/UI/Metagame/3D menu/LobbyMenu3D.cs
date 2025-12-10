@@ -1,4 +1,5 @@
 using System;
+using Discord.Sdk;
 using MortierFu;
 using MortierFu.Shared;
 using UnityEngine;
@@ -26,8 +27,28 @@ public class LobbyMenu3D : MonoBehaviour
     {
         playerCount = _lobby.CurrentPlayerCount;
         RefreshPlayerModels();
+        
+        _lobby.OnPlayerJoined += HandlePlayerJoined;
+        _lobby.OnPlayerLeft += HandlePlayerLeft;
     }
     
+    private void OnDisable()
+    {
+        _lobby.OnPlayerJoined -= HandlePlayerJoined;
+        _lobby.OnPlayerLeft -= HandlePlayerLeft;
+    }
+    
+    private void HandlePlayerJoined(PlayerManager playerManager)
+    {
+        playerCount = _lobby.CurrentPlayerCount;
+        RefreshPlayerModels();
+    }
+    
+    private void HandlePlayerLeft(PlayerManager playerManager)
+    {
+        playerCount = _lobby.CurrentPlayerCount;
+        RefreshPlayerModels();
+    }
     
     private void RefreshPlayerModels()
     {

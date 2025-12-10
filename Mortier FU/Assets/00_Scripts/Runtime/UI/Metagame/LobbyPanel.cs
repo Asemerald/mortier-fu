@@ -18,16 +18,10 @@ namespace MortierFu
         [SerializeField] private LobbyMenu3D lobbyMenu3D;
         [Header("Buttons References")]
         [SerializeField] private Button startGameButton;
-
-        private GameService _gameService;
         
         void Awake()
         {
             // Resolve dependencies
-            _gameService = ServiceManager.Instance.Get<GameService>();
-            
-            if (_gameService == null)
-                Logs.LogError("[LobbyPanel]: GameService could not be found in ServiceManager.", this);
             if (lobbyMenu3D == null)
                 Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
             if (startGameButton == null)
@@ -40,7 +34,7 @@ namespace MortierFu
             
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
-                StartGame().Forget();
+                MenuManager.Instance.StartGame().Forget();
             }
 #endif
         }
@@ -49,6 +43,7 @@ namespace MortierFu
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
             PlayerInputBridge.Instance.CanJoin(true);
+            MenuManager.Instance.SwitchCameraPosition();
         }
         
         private void OnDisable()
@@ -57,17 +52,8 @@ namespace MortierFu
             PlayerInputBridge.Instance.CanJoin(false);
         }
 
-        private void OnStartGameClicked() => StartGame().Forget();
+        private void OnStartGameClicked() => MenuManager.Instance.StartGame().Forget();
         
-        private async UniTask StartGame()
-        {
-            Logs.Log("[LobbyPanel]: Start Game button clicked.");
-            // When game mode is selected
-            await _gameService.InitializeGameMode<GM_FFA>();
-            
-            // Should handle game mode teams
-
-            _gameService.ExecuteGameplayPipeline().Forget();
-        }
+       
     }
 }
