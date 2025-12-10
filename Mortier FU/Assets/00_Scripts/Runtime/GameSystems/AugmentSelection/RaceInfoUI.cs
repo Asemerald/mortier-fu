@@ -25,6 +25,10 @@ namespace MortierFu
         private int _activePlayerCount;
 
         private LobbyService _lobbyService;
+        private AugmentSelectionSystem _augmentSelectionSystem;
+
+        private Tween _vignetteTween;
+        private ConfirmationService _confirmationService;
 
         private void Awake()
         {
@@ -41,14 +45,25 @@ namespace MortierFu
                 return;
             }
 
+            _augmentSelectionSystem = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            if (_augmentSelectionSystem != null)
+            {
+                _augmentSelectionSystem.OnPressureStart += StartVignettePressure;
+                _augmentSelectionSystem.OnPressureStop += StopVignettePressure;
+            }
+            else
+            {
+                Debug.LogError($"[PlayerConfirmationUI] No AugmentSelectionSystem found for {gameObject.name}");
+            }
+
             _activePlayerCount = _lobbyService.GetPlayers().Count;
 
-            var service = ServiceManager.Instance.Get<ConfirmationService>();
-            if (service != null)
+            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
+            if (_confirmationService != null)
             {
-                service.OnPlayerConfirmed += NotifyPlayerConfirmed;
-                service.OnStartConfirmation += ShowConfirmation;
-                service.OnAllPlayersConfirmed += OnConfirmation;
+                _confirmationService.OnPlayerConfirmed += NotifyPlayerConfirmed;
+                _confirmationService.OnStartConfirmation += ShowConfirmation;
+                _confirmationService.OnAllPlayersConfirmed += OnConfirmation;
             }
             else
             {
@@ -58,12 +73,12 @@ namespace MortierFu
 
         private void OnDestroy()
         {
-            var service = ServiceManager.Instance.Get<ConfirmationService>();
-            if (service == null) return;
+            _augmentSelectionSystem.OnPressureStart -= StartVignettePressure;
+            _augmentSelectionSystem.OnPressureStop -= StopVignettePressure;
 
-            service.OnPlayerConfirmed -= NotifyPlayerConfirmed;
-            service.OnStartConfirmation -= ShowConfirmation;
-            service.OnAllPlayersConfirmed -= OnConfirmation;
+            _confirmationService.OnPlayerConfirmed -= NotifyPlayerConfirmed;
+            _confirmationService.OnStartConfirmation -= ShowConfirmation;
+            _confirmationService.OnAllPlayersConfirmed -= OnConfirmation;
         }
 
         private void ShowConfirmation()
@@ -84,7 +99,7 @@ namespace MortierFu
         private async UniTaskVoid HideConfirmation()
         {
             await UniTask.Delay(TimeSpan.FromSeconds(0.25f));
-            
+
             foreach (var slot in _playerSlots)
             {
                 if (!slot.IsActive) continue;
@@ -143,6 +158,42 @@ namespace MortierFu
                     cycleMode: CycleMode.Yoyo
                 );
             }
+        }
+
+        private void StartVignettePressure(float duration)
+        {
+            if (_vignetteImage == null)
+                return;
+
+            _vignetteImage.gameObject.SetActive(true);
+            if (_vignetteTween.isAlive)
+                _vignetteTween.Stop();
+
+            var color = _vignetteImage.color;
+            color.a = 0f;
+            _vignetteImage.color = color;
+
+            _vignetteTween = Tween.Custom(0f, 1f, 0.6f,
+                a =>
+                {
+                    var c = _vignetteImage.color;
+                    c.a = a;
+                    _vignetteImage.color = c;
+                },
+                cycles: -1,
+                cycleMode: CycleMode.Yoyo
+            );
+
+            Tween.Delay(duration, StopVignettePressure);
+        }
+
+        private void StopVignettePressure()
+        {
+            if (_vignetteTween.isAlive)
+                _vignetteTween.Stop();
+
+            if (_vignetteImage != null)
+                _vignetteImage.gameObject.SetActive(false);
         }
 
         private void NotifyPlayerConfirmed(int playerIndex)
