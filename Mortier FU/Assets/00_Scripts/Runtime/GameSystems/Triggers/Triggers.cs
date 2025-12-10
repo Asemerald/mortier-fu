@@ -37,6 +37,11 @@ namespace MortierFu
         public Bombshell Bombshell;
         public PlayerCharacter[] HitCharacters;
     }
+
+    public struct TriggerBounce : ITrigger
+    {
+        public Bombshell Bombshell;
+    }
     
     public struct TriggerHealthChanged : ITrigger // Check
     {

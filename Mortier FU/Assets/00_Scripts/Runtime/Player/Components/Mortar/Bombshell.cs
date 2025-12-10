@@ -62,6 +62,12 @@ namespace MortierFu
             get => _data.Bounces;
             set => _data.Bounces = value;
         }
+
+        public void MultiplyScale(float scalar)
+        {
+            _data.Scale *= scalar;
+            transform.localScale = Vector3.one * _data.Scale;
+        }
         #endregion
         
         public void Initialize(BombshellSystem system)
@@ -163,6 +169,11 @@ namespace MortierFu
                     if (_data.Bounces > 0)
                     {
                         _data.Bounces--;
+                        
+                        EventBus<TriggerBounce>.Raise(new TriggerBounce()
+                        {
+                            Bombshell = this
+                        });
                         
                         // Reflect velocity using the collider normal
                         _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceDampingFactor;

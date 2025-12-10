@@ -39,6 +39,19 @@ namespace MortierFu
                     outAugments[i] = null;
                     continue;
                 }
+
+                // TODO: SHOULD BE REMOVED WHEN SUFFICIENT AMOUNT OF AUGMENTS
+                // Hard fix for empty augment lists
+                if (augments.Count == 0)
+                {
+                    rarity = E_AugmentRarity.Common;
+                    if (!_augmentsPerRarity.TryGetValue(rarity, out augments))
+                    {
+                        Logs.LogError($"No augment found of rarity {rarity} !");
+                        outAugments[i] = null;
+                        continue;
+                    }
+                }
                 
                 int randIndex = Random.Range(0, augments.Count);
                 var pulledAugment = augments[randIndex];
