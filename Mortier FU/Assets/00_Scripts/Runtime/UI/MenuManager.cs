@@ -159,6 +159,10 @@ namespace MortierFu
             {
                 Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
             }
+            if (cameraManager == null)
+            {
+                Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
+            }
         }
 
         private void CheckActivePanels()

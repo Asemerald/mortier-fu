@@ -18,12 +18,13 @@ namespace MortierFu
 
         private void Awake()
         {
-            playerAnimationPrefab.TryGetComponent(out _playerAnimation);
+            // TODO: Add player animation component check
+            /*playerAnimationPrefab.TryGetComponent(out _playerAnimation);
             
             if (_playerAnimation == null)
             {
                 Logs.LogError("[MainMenuComposing]: Player Animation component is missing on the playerAnimationPrefab.", playerAnimationPrefab);
-            }
+            }*/
         }
 
         private void Start()
@@ -41,7 +42,7 @@ namespace MortierFu
                 Logs.LogWarning("[MainMenuComposing]: ExplosionEffectPrefab is not assigned.", this);
                 return;
             }
-            Instantiate(ExplosionEffectPrefab, playerAnimationPrefab.transform.position, Quaternion.identity);
+            // TODO: Instantiate(ExplosionEffectPrefab, playerAnimationPrefab.transform.position, Quaternion.identity);
         }
         
     } 
