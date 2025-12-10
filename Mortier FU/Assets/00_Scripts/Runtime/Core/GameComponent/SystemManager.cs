@@ -6,7 +6,7 @@ namespace MortierFu
 {
     public class SystemManager : GameComponentManager
     {
-        public GameInitializer GameInitializer{ get; private set; }
+        public GameInitializer GameInitializer { get; private set; }
         
         public static SystemManager Instance { get; private set; }
 

@@ -388,7 +388,8 @@ namespace MortierFu
             
             cameraSystem.Controller.ClearTargetGroupMember();
             cameraSystem.Controller.ResetCameraInstant();
-            
+
+            ResetPlayers();
             SpawnPlayers();
 
             // Hide previous showcase UI            

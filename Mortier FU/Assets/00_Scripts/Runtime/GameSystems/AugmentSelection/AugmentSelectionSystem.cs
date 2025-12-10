@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace MortierFu
     {
         public event Action<float> OnPressureStart;
         public event Action OnPressureStop;
+        private CancellationTokenSource _pressureTokenSource;
         
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
@@ -35,7 +37,7 @@ namespace MortierFu
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
         
-        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
+        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished));
         
         public async UniTask OnInitialize()
         {
@@ -130,17 +132,23 @@ namespace MortierFu
             
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
-            
+
+            _pressureTokenSource = new CancellationTokenSource();
+            HandlePressure(duration).Forget();
+        }
+
+        private async UniTaskVoid HandlePressure(float duration) {
             float pressureStartTime = 5f;
             float delay = Mathf.Max(0, duration - pressureStartTime);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: _pressureTokenSource.Token);
 
+            _pressureTokenSource = null;
             OnPressureStart?.Invoke(pressureStartTime);
         }
 
-        public void EndRace()
-        {
+        public void EndRace() {
+            _pressureTokenSource?.Cancel();
             OnPressureStop?.Invoke();
             
             // Give a random augment to remaining pickers
