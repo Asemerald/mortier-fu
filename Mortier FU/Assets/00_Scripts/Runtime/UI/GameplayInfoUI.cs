@@ -28,11 +28,12 @@ namespace MortierFu
         [SerializeField] private List<TextMeshProUGUI> _teamInfoTexts;
 
         [SerializeField] private CanvasGroup _panelGroup;
-        
-        [Header("Countdown Settings")]
-        [SerializeField] private float _postPlayDelay = 0.5f;
+
+        [Header("Countdown Settings")] [SerializeField]
+        private float _postPlayDelay = 0.5f;
+
         [SerializeField] private float _panelFadeDuration = 0.35f;
-        
+
         private GameModeBase _gm;
 
         private void Start()
@@ -51,7 +52,7 @@ namespace MortierFu
         private void OnDestroy()
         {
             if (_gm == null) return;
-            
+
             _gm.OnGameStarted -= OnGameStarted;
             _gm.OnRoundStarted -= OnRoundStarted;
         }
@@ -131,10 +132,11 @@ namespace MortierFu
                 await UniTask.Yield();
             }
 
-            _panelGroup.alpha = 0f;
+            _panelGroup.alpha = 1f;
         }
 
         private void ShowPanel() => _gameplayInfoPanel.SetActive(true);
+
         private void HidePanel() => _gameplayInfoPanel.SetActive(false);
 
         private void InitializeUI()
@@ -162,7 +164,7 @@ namespace MortierFu
                 if (i < _teamInfoTexts.Count)
                     _teamInfoTexts[i].text = $"Player {_gm.Teams[i].Index + 1}: {_gm.Teams[i].Score}";
             }
-            
+
             UpdateMatchPointIndicator();
         }
 
@@ -171,7 +173,7 @@ namespace MortierFu
             if (_roundText != null)
                 _roundText.text = $"Round #{currentRound}";
         }
-        
+
         private void UpdateMatchPointIndicator()
         {
             if (_gm == null || _goldenBombshellGameObject.activeSelf) return;

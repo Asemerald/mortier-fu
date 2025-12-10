@@ -42,7 +42,7 @@ namespace MortierFu
 
             while (_confirmationCount > 0)
                 await Task.Yield();
-
+            
             OnAllPlayersConfirmed?.Invoke();
             Logs.Log("[ConfirmationService] Host confirmed.");
         }
