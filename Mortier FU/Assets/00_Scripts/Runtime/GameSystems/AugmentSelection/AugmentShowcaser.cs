@@ -61,6 +61,7 @@ namespace MortierFu
             }
             
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
+            _confirmationService.ShowConfirmation();
             await _confirmationService.WaitUntilAllConfirmed();
 
             if (_pickups.Count != augmentPoints.Length)
