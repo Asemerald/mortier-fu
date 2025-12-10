@@ -46,7 +46,7 @@ namespace MortierFu
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _augmentProviderSys = SystemManager.Instance.Get<AugmentProviderSystem>();
             _playerCount = _lobbyService.GetPlayers().Count;
-            _augmentCount = _playerCount + 1;
+            _augmentCount = Settings.EnforceAugmentCount ? Settings.ForcedAugmentCount : _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
             
@@ -118,7 +118,7 @@ namespace MortierFu
             _levelSystem.PopulateAugmentPoints(augmentPoints);
 
             _showcaseInProgress = true;
-            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints);
+            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
             _showcaseInProgress = false;
 
             await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
