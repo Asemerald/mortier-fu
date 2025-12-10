@@ -90,7 +90,7 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(Vector3.one * i * 2f);
+                player.SpawnInGame(new Vector3(i, 5, i) * 2f);
                 
                 player.Character.Health.OnDeath += source => OnDeath(player, source); // Memory leak ? Can be improved
                 
@@ -264,7 +264,7 @@ namespace MortierFu
         {
             float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-          //  duration *= 0.25f;
+            // duration *= 0.25f;
             #endif
 
             timer.Reset(duration - 0.01f);
@@ -434,6 +434,7 @@ namespace MortierFu
             _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
             
             timer = new CountdownTimer(0f);
+            Debug.Log("CREATE TIMER");
 
             Logs.Log("Game mode initialized successfully.");
         }
