@@ -1,6 +1,9 @@
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MortierFu
 {
@@ -30,6 +33,20 @@ namespace MortierFu
             PlayerInputManager.onPlayerJoined += OnPlayerJoined;
             PlayerInputManager.onPlayerLeft += OnPlayerLeft;
         }
+
+#if UNITY_EDITOR 
+        private void Start()
+        {
+            if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
+                // Join a Player for each gamepad connected (for testing in editor)
+                var gamepads = Gamepad.all;
+                foreach (var gamepad in gamepads)
+                {
+                    PlayerInputManager.JoinPlayer(-1, -1, null, gamepad);
+                }
+            }
+        }
+#endif
 
         private void OnDestroy()
         {
