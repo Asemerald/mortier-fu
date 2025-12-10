@@ -26,6 +26,8 @@ namespace MortierFu
         [SerializeField] private GameObject _horizontalLayoutParent; 
 
         private int _activePlayerCount;
+        
+        private LobbyService _lobbyService;
 
         private void Awake()
         {
@@ -33,22 +35,36 @@ namespace MortierFu
                 _horizontalLayoutParent.SetActive(false);
         }
 
-        private void OnEnable()
+        private void Start()
         {
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            if (_lobbyService == null)
+            {
+                Debug.LogError($"[PlayerConfirmationUI] No LobbyService found for {gameObject.name}");
+                return;
+            }
+            _activePlayerCount = _lobbyService.GetPlayers().Count;
+            
             var service = ServiceManager.Instance.Get<ConfirmationService>();
             if (service != null)
             {
                 service.OnPlayerConfirmed += NotifyPlayerConfirmed;
+                service.OnStartConfirmation += ShowConfirmation;
                 service.OnAllPlayersConfirmed += HideConfirmation;
+            }
+            else
+            {
+                Debug.LogError($"[PlayerConfirmationUI] No ConfirmationService found for {gameObject.name}");
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             var service = ServiceManager.Instance.Get<ConfirmationService>();
             if (service != null)
             {
                 service.OnPlayerConfirmed -= NotifyPlayerConfirmed;
+                service.OnStartConfirmation -= ShowConfirmation;
                 service.OnAllPlayersConfirmed -= HideConfirmation;
             }
         }
@@ -78,6 +94,11 @@ namespace MortierFu
 
         private void StartAllAnimations(int playerCount)
         {
+            for (int i = 0; i < _activePlayerCount; i++)
+            {
+                _playerSlots[i].AButtonImage.transform.parent.gameObject.SetActive(true);
+            }
+            
             for (int i = 0; i < _playerSlots.Count; i++)
             {
                 var slot = _playerSlots[i];
