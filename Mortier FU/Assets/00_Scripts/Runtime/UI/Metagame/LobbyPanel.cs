@@ -14,29 +14,27 @@ namespace MortierFu
 {
     public class LobbyPanel : UIPanel
     {
-        [Header("Player Slots Reference")]
-        [SerializeField] private GameObject[] playerSlots;
-        [SerializeField] private TextMeshProUGUI[] playerSlotTexts;
+        [Header("Dependencies")]
+        [SerializeField] private LobbyMenu3D lobbyMenu3D;
+        [Header("Buttons References")]
         [SerializeField] private Button startGameButton;
-        [Header("Customization")]
-        [SerializeField] private GameObject[] customizationSlots;
-
-        private GameService _gameService;
         
         void Awake()
         {
             // Resolve dependencies
-            _gameService = ServiceManager.Instance.Get<GameService>();
+            if (lobbyMenu3D == null)
+                Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
+            if (startGameButton == null)
+                Logs.LogError("[LobbyPanel]: StartGameButton reference is missing.", this);
         }
         
         private void Start()
         {
             Hide();
-            UpdateSlots(new List<PlayerInput>());
             
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
-                StartGame().Forget();
+                MenuManager.Instance.StartGame().Forget();
             }
 #endif
         }
@@ -44,45 +42,18 @@ namespace MortierFu
         private void OnEnable()
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
+            PlayerInputBridge.Instance.CanJoin(true);
+            MenuManager.Instance.SwitchCameraPosition();
         }
         
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
+            PlayerInputBridge.Instance.CanJoin(false);
         }
 
-        public void UpdateSlots(List<PlayerInput> joinedPlayers)
-        {
-            for (var i = 0; i < playerSlots.Length; i++)
-            {
-                if (i < joinedPlayers.Count)
-                {
-                    playerSlots[i].SetActive(true);
-                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
-                        playerSlotTexts[i].text = $"Joueur {i + 1}";
-                }
-                else
-                {
-                    playerSlots[i].SetActive(false);
-                    if (playerSlotTexts != null && i < playerSlotTexts.Length && playerSlotTexts[i] != null)
-                        playerSlotTexts[i].text = string.Empty;
-                }
-            }
-            
-            //startGameButton.interactable = (joinedPlayers.Count >= 2 && joinedPlayers.Count <= 4);
-        }
-
-        private void OnStartGameClicked() => StartGame().Forget();
+        private void OnStartGameClicked() => MenuManager.Instance.StartGame().Forget();
         
-        private async UniTask StartGame()
-        {
-            Logs.Log("[LobbyPanel]: Start Game button clicked.");
-            // When game mode is selected
-            await _gameService.InitializeGameMode<GM_FFA>();
-            
-            // Should handle game mode teams
-
-            _gameService.ExecuteGameplayPipeline().Forget();
-        }
+       
     }
 }

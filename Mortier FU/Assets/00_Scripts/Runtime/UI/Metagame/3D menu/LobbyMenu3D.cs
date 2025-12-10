@@ -1,32 +1,68 @@
+using System;
+using Discord.Sdk;
+using MortierFu;
+using MortierFu.Shared;
 using UnityEngine;
 
 public class LobbyMenu3D : MonoBehaviour
 {
-    [SerializeField] private GameObject playerPrefab;
-    
-    private Transform[] playerPrefabSpawns;
-    private GameObject[] playerPrefabs;
+    [Header("References")]
+    [SerializeField] private GameObject[] playerPrefabs;
     
     private int playerCount = 0;
+    
+    private LobbyService _lobby;
 
-    public void AddPlayer()
+    private void Awake()
     {
-        if (playerCount >= playerPrefabSpawns.Length)
+        _lobby = ServiceManager.Instance.Get<LobbyService>();
+        if (_lobby == null)
+        {
+            Logs.LogError("[LobbyMenu3D]: LobbyService could not be found in ServiceManager.", this);
             return;
+        }
+    }
+
+    private void OnEnable()
+    {
+        playerCount = _lobby.CurrentPlayerCount;
+        RefreshPlayerModels();
         
-        GameObject newPlayer = Instantiate(playerPrefab, playerPrefabSpawns[playerCount].position, playerPrefabSpawns[playerCount].rotation);
-        playerPrefabs[playerCount] = newPlayer;
-        playerCount++;
+        _lobby.OnPlayerJoined += HandlePlayerJoined;
+        _lobby.OnPlayerLeft += HandlePlayerLeft;
     }
     
-    public void RemovePlayer()
+    private void OnDisable()
     {
-        if (playerCount <= 0)
-            return;
-        
-        playerCount--;
-        Destroy(playerPrefabs[playerCount]);
-        playerPrefabs[playerCount] = null;
+        _lobby.OnPlayerJoined -= HandlePlayerJoined;
+        _lobby.OnPlayerLeft -= HandlePlayerLeft;
+    }
+    
+    private void HandlePlayerJoined(PlayerManager playerManager)
+    {
+        playerCount = _lobby.CurrentPlayerCount;
+        RefreshPlayerModels();
+    }
+    
+    private void HandlePlayerLeft(PlayerManager playerManager)
+    {
+        playerCount = _lobby.CurrentPlayerCount;
+        RefreshPlayerModels();
+    }
+    
+    private void RefreshPlayerModels()
+    {
+        for (int i = 0; i < playerPrefabs.Length; i++)
+        {
+            if (i < playerCount)
+            {
+                playerPrefabs[i].SetActive(true);
+            }
+            else
+            {
+                playerPrefabs[i].SetActive(false);
+            }
+        }
     }
     
 }
