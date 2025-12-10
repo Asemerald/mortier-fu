@@ -5,7 +5,6 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -132,9 +131,8 @@ namespace MortierFu
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
             
-            float totalDuration = duration;
             float pressureStartTime = 5f;
-            float delay = Mathf.Max(0, totalDuration - pressureStartTime);
+            float delay = Mathf.Max(0, duration - pressureStartTime);
 
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
