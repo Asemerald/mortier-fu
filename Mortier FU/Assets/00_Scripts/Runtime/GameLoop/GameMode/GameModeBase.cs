@@ -421,12 +421,15 @@ namespace MortierFu
         {
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
+            ReturnToMainMenuAfterDelay(5f).Forget();
         }
         
         private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             await sceneService.LoadScene("MainMenu", true);
+            //TODO: a full check, je pense que ATM le SystemManager est pas Dispose
+            ServiceManager.Instance.Get<GameService>().Dispose();
         }
 
         protected virtual void UpdateGameState(GameState newState)
