@@ -1003,7 +1003,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &772488391
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1775,22 +1775,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb0ab9c9c12549979da94fc1b2eb3f2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.GameplayInfoUI
-  _gameplayInfoPanel: {fileID: 1429001663}
-  _readyGameObject: {fileID: 1137881213}
-  _playGameObject: {fileID: 1495155796}
-  _goldenBombshellGameObject: {fileID: 195425640}
-  _countdownImage: {fileID: 1933827955}
-  _countdownSprites:
-  - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   _roundText: {fileID: 1463569134}
   _teamInfoParent: {fileID: 658560268}
   _teamInfoPrefab: {fileID: 1847201078091024679, guid: a6ecbe318b1206347878f8bf3e5fd62d, type: 3}
   _teamInfoTexts: []
-  _panelGroup: {fileID: 1391742735}
-  _postPlayDelay: 0.5
-  _panelFadeDuration: 0.35
 --- !u!224 &1391742734
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1835,13 +1823,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1429001664}
+  - component: {fileID: 1429001665}
   m_Layer: 5
   m_Name: OnStartRound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1429001664
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1863,6 +1852,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1429001665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1429001663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37b34acae8810d844863152b287f4702, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.RoundAnnouncementUI
+  _postPlayDelay: 0.5
+  _panelFadeDuration: 0.35
+  _roundAnnouncement: {fileID: 772488390}
+  _readyGameObject: {fileID: 1137881213}
+  _playGameObject: {fileID: 1495155796}
+  _goldenBombshellGameObject: {fileID: 195425640}
+  _countdownImage: {fileID: 1933827955}
+  _countdownSprites:
+  - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  _panelGroup: {fileID: 1391742735}
 --- !u!1 &1454623485
 GameObject:
   m_ObjectHideFlags: 0
