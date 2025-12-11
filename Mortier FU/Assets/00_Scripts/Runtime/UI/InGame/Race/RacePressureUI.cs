@@ -7,12 +7,18 @@ namespace MortierFu
 {
     public class RacePressureUI : MonoBehaviour
     {
-        [SerializeField] private Image _vignetteImage;
-
+        [Header("Parameters"),SerializeField] private float _pulseDuration = 0.6f;
+        
+        [Header("References"), SerializeField] private Image _vignetteImage;
+        
         private AugmentSelectionSystem _augmentSelectionSystem;
 
         private Tween _vignetteTween;
-        
+        private Tween _delayTween;
+
+        private Color _baseColor;
+        private Color _tempColor;
+
         private void Start()
         {
             _augmentSelectionSystem = SystemManager.Instance.Get<AugmentSelectionSystem>();
@@ -25,6 +31,8 @@ namespace MortierFu
 
             _augmentSelectionSystem.OnPressureStart += StartVignettePressure;
             _augmentSelectionSystem.OnPressureStop += StopVignettePressure;
+
+            _baseColor = _vignetteImage.color;
         }
 
         // Safe to unsubscribe because systems are disposed after the map is unloaded.
@@ -32,10 +40,11 @@ namespace MortierFu
         {
             if (_augmentSelectionSystem == null)
             {
-                Logs.LogWarning("[RacePressureUI] No AugmentSelectionSystem found for {gameObject.name}: Potential memory leak.");
+                Logs.LogWarning(
+                    "[RacePressureUI] No AugmentSelectionSystem found for {gameObject.name}: Potential memory leak.");
                 return;
             }
-            
+
             _augmentSelectionSystem.OnPressureStart -= StartVignettePressure;
             _augmentSelectionSystem.OnPressureStop -= StopVignettePressure;
         }
@@ -45,26 +54,29 @@ namespace MortierFu
             if (_vignetteImage == null)
                 return;
 
-            _vignetteImage.gameObject.SetActive(true);
             if (_vignetteTween.isAlive)
                 _vignetteTween.Stop();
 
-            var color = _vignetteImage.color;
-            color.a = 0f;
-            _vignetteImage.color = color;
+            if (_delayTween.isAlive)
+                _delayTween.Stop();
 
-            _vignetteTween = Tween.Custom(0f, 1f, 0.6f,
+            _vignetteImage.color = new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0f);
+            _vignetteImage.gameObject.SetActive(true);
+
+            _vignetteTween = Tween.Custom(
+                0f,
+                1f,
+                _pulseDuration,
                 a =>
                 {
-                    var c = _vignetteImage.color;
-                    c.a = a;
-                    _vignetteImage.color = c;
+                    _tempColor = _baseColor;
+                    _tempColor.a = a;
+                    _vignetteImage.color = _tempColor;
                 },
                 cycles: -1,
                 cycleMode: CycleMode.Yoyo
             );
-
-            Tween.Delay(duration, StopVignettePressure);
+            _delayTween = Tween.Delay(duration, StopVignettePressure);
         }
 
         private void StopVignettePressure()
@@ -72,8 +84,15 @@ namespace MortierFu
             if (_vignetteTween.isAlive)
                 _vignetteTween.Stop();
 
-            if (_vignetteImage != null)
-                _vignetteImage.gameObject.SetActive(false);
+            if (_delayTween.isAlive)
+                _delayTween.Stop();
+
+            if (_vignetteImage == null) return;
+
+            _tempColor = _baseColor;
+            _tempColor.a = 0f;
+            _vignetteImage.color = _tempColor;
+            _vignetteImage.gameObject.SetActive(false);
         }
     }
 }
