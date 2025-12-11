@@ -19,11 +19,9 @@ namespace MortierFu
             get
             {
                 // return the cached _currentGameModeInstance if not null, else get it from the GameService and cache it
-                if (_currentGameModeInstance == null)
-                {
-                    var gameService = ServiceManager.Instance.Get<GameService>();
-                    _currentGameModeInstance = gameService?._currentGameMode;
-                }
+                if (_currentGameModeInstance != null) return _currentGameModeInstance;
+                var gameService = ServiceManager.Instance.Get<GameService>();
+                _currentGameModeInstance = gameService?._currentGameMode;
                 return _currentGameModeInstance;
             }
         }

@@ -63,10 +63,17 @@ namespace MortierFu
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
-        public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
+        
+        /// <summary>
+        /// Invoked when a player kills another player.
+        /// <remarks>Killer / Victim</remarks>
+        /// </summary>
+        public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
         public event Action<int> OnRoundStarted;
         public event Action<int> OnRoundEnded;
+        
+        public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
@@ -412,8 +419,14 @@ namespace MortierFu
 
         protected virtual void EndGame()
         {
-            // The game state is already set to EndGame at that point
-            // Show the victory screen
+            OnGameEnded?.Invoke(GetWinnerPlayerIndex());
+            Logs.Log("Game has ended.");
+        }
+        
+        private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            await sceneService.LoadScene("MainMenu", true);
         }
 
         protected virtual void UpdateGameState(GameState newState)
@@ -520,5 +533,16 @@ namespace MortierFu
 
             OnPlayerKilled?.Invoke(killer, victim);
         }
+        
+        public int GetWinnerPlayerIndex()
+        {
+            if (IsGameOver(out var victor))
+            {
+                return victor?.Index ?? -1;
+            }
+            
+            return -1; // Aucun gagnant pour l'instant
+        }
+
     }
 }

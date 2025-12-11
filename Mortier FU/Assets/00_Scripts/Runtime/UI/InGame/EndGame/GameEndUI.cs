@@ -1,5 +1,6 @@
 using System;
 using MortierFu;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,27 +8,38 @@ public class GameEndUI : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Image winnerImage;
+    [SerializeField] private Image winnerImageBackground;
     [SerializeField] private Image[] playerImages;
 
-    //TODO: Rework et pas hardcoder les couleur mais plutot utiliser les PlayerIndex et une liste de materiaux
     [Header("Assets")] 
-    [SerializeField] private Material redWinnerMaterial;
-    [SerializeField] private Material blueWinnerMaterial;
-    [SerializeField] private Material greenWinnerMaterial;
-    [SerializeField] private Material yellowWinnerMaterial;
+    [SerializeField] private Material[] winnerMaterials;
+    [SerializeField] private Material[] winnerBackgroundMaterial;
+    [SerializeField] private Sprite[] winnerSprites;
 
-    private void OnEnable()
+    private GameModeBase _gm;
+
+    private void Start()
+    {
+        _gm = GameService.CurrentGameMode as GameModeBase;
+        if (_gm == null)
+        {
+            Logs.LogWarning("Game mode not found");
+            return;
+        }
+
+        _gm.OnGameEnded += DisplayVictoryScreen;
+    }
+    
+    private void DisplayVictoryScreen(int WinnerIndex)
     {
         var lobbyService = ServiceManager.Instance.Get<LobbyService>();
         int playerCount = lobbyService.GetPlayers().Count;
-        DisplayPlayerImages(playerCount);
-
-        var gameService = ServiceManager.Instance.Get<GameService>();
-        int winnerIndex = gameService.GetWinnerPlayerIndex();
-        SetWinner(winnerIndex);
+        DisplayPlayerImages(playerCount, WinnerIndex);
+        
+        SetWinner(WinnerIndex);
     }
 
-    private void DisplayPlayerImages(int playerCount)
+    private void DisplayPlayerImages(int playerCount, int winnerIndex)
     {
         for (int i = 0; i < playerImages.Length; i++)
         {
@@ -40,29 +52,34 @@ public class GameEndUI : MonoBehaviour
                 playerImages[i].gameObject.SetActive(false);
             }
         }
-    }
-    
-    private void SetWinner(int playerIndex)
-    {
-        switch (playerIndex)
+        
+        // Change Sprites for winner 
+        for (int i = 0; i < playerCount; i++)
         {
-            case 0:
-                winnerImage.material = blueWinnerMaterial;
-                break;
-            case 1:
-                winnerImage.material = redWinnerMaterial;
-                break;
-            case 2:
-                winnerImage.material = greenWinnerMaterial;
-                break;
-            case 3:
-                winnerImage.material = yellowWinnerMaterial;
-                break;
-            default:
-                Debug.LogError("Invalid PlayerIndex");
-                break;
+            if (i == winnerIndex)
+            {
+                playerImages[i].sprite = winnerSprites[i];
+            }
         }
     }
+    
+    
+
+    private void SetWinner(int playerIndex)
+    {
+        if (playerIndex >= 0 && playerIndex < winnerMaterials.Length)
+        {
+            winnerImage.material = winnerMaterials[playerIndex];
+            winnerImageBackground.material = winnerBackgroundMaterial[playerIndex];
+            winnerImage.gameObject.SetActive(true);
+            winnerImageBackground.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("Invalid PlayerIndex");
+        }
+    }
+
     
     
     

@@ -10,7 +10,7 @@ namespace MortierFu
         
         public int ScoreToWin = 1000;
         public int FirstRankBonusScore = 100;
-        public int SecondRankBonusScore = 30;
+        public int SecondRankBonusScore = 30;   
         public int ThirdRankBonusScore = 10;
         public int KillBonusScore = 50;
 
