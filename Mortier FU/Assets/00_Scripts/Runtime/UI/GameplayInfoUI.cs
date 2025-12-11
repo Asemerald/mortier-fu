@@ -4,7 +4,7 @@ using MortierFu.Shared;
 using UnityEngine.UI;
 using UnityEngine;
 using System;
-using System.Linq;
+using PrimeTween;
 using TMPro;
 
 namespace MortierFu
@@ -76,6 +76,9 @@ namespace MortierFu
             ShowPanel();
 
             float remaining;
+            
+            AnimateCountdownImage().Forget();
+            
             do
             {
                 remaining = _gm.CountdownRemainingTime;
@@ -88,6 +91,11 @@ namespace MortierFu
 
             await FadeOutPanel(_panelFadeDuration);
             HidePanel();
+        }
+        private async UniTaskVoid AnimateCountdownImage()
+        {
+            var target = _countdownImage.transform;
+            await Tween.Scale(target, target.localScale * 0.525f, 1f, Ease.OutBack, cycles: Mathf.CeilToInt(_gm.CountdownRemainingTime), CycleMode.Restart);
         }
 
         private void ResetCountdownUI()
@@ -109,8 +117,13 @@ namespace MortierFu
                 _ => 2
             };
 
-            if (_countdownSprites != null && _countdownSprites.Count > index)
-                _countdownImage.sprite = _countdownSprites[index];
+            if (_countdownSprites == null || _countdownSprites.Count <= index) return;
+            
+            var newSprite = _countdownSprites[index];
+            
+            if (_countdownImage.sprite == newSprite) return;
+
+            _countdownImage.sprite = newSprite;
         }
 
         private void ShowPlayUI()
