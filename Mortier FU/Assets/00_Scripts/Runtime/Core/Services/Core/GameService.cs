@@ -63,6 +63,7 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
 
             await SystemManager.Instance.Initialize();
+            
 
             // Start the game mode
             await _currentGameMode.StartGame();

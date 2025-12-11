@@ -36,7 +36,7 @@ namespace MortierFu
 
         private GameModeBase _gm;
 
-        private void Start()
+        private void OnEnable()
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
             if (_gm == null)
@@ -49,7 +49,7 @@ namespace MortierFu
             _gm.OnRoundStarted += OnRoundStarted;
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             if (_gm == null) return;
 
@@ -92,10 +92,27 @@ namespace MortierFu
             await FadeOutPanel(_panelFadeDuration);
             HidePanel();
         }
+        
         private async UniTaskVoid AnimateCountdownImage()
         {
             var target = _countdownImage.transform;
-            await Tween.Scale(target, target.localScale * 0.525f, 1f, Ease.OutBack, cycles: Mathf.CeilToInt(_gm.CountdownRemainingTime), CycleMode.Restart);
+            Vector3 targetScale = target.localScale;
+            int cycles = Mathf.CeilToInt(_gm.CountdownRemainingTime);
+
+            const float growthDuration = 0.3f;
+            const float shrinkDuration = 0.3f;
+            float bumpDuration = 1f - growthDuration - shrinkDuration;
+            
+            // Grow from zero, then scale down slowly while moving up and down to quickly shrink down to zero.
+            var seq = Sequence.Create(cycles, Sequence.SequenceCycleMode.Restart)
+                .Chain(Tween.Scale(target, Vector3.zero, targetScale, growthDuration, Ease.OutBack))
+                .Group(Tween.Rotation(target, Quaternion.Euler(0f, 0f, 180), Quaternion.Euler(0f, 0f, 0f), growthDuration * 0.9f, Ease.OutBack, startDelay: growthDuration * 0.1f))
+                //.Chain(Tween.Scale(target, targetScale * 0.5f, bumpDuration, Ease.InQuad))
+                .ChainDelay(bumpDuration)
+                .Chain(Tween.Scale(target, Vector3.zero, shrinkDuration, Ease.InBack))
+                .Group(Tween.Rotation(target, Quaternion.Euler(0f, 0f, 180f), shrinkDuration * 0.9f, Ease.InBack, startDelay: shrinkDuration * 0.1f));
+
+            await seq;
         }
 
         private void ResetCountdownUI()
