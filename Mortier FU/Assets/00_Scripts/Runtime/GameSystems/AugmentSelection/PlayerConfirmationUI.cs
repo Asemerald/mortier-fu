@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.UI;
 using UnityEngine;
 using PrimeTween;
+using System;
 
 namespace MortierFu
 {
@@ -17,6 +17,9 @@ namespace MortierFu
 
         [SerializeField] private float _pulseDuration = 0.45f;
 
+        [SerializeField] private float _hideDuration = 0.6f;
+        [SerializeField] private float _scaleDuration = 0.5f;
+
         [Header("References")] [SerializeField]
         private GameObject _horizontalLayoutParent;
 
@@ -29,7 +32,7 @@ namespace MortierFu
         {
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
-            
+
             if (_horizontalLayoutParent != null)
                 _horizontalLayoutParent.SetActive(false);
         }
@@ -65,11 +68,9 @@ namespace MortierFu
         private void ShowConfirmation()
         {
             if (_horizontalLayoutParent != null)
-            {
                 _horizontalLayoutParent.SetActive(true);
-            }
 
-            StartAllAnimations(_activePlayerCount);
+            StartButtonsAnimation(_activePlayerCount);
         }
 
         private void OnConfirmation()
@@ -90,32 +91,25 @@ namespace MortierFu
                 if (slot.ScaleTween.isAlive)
                     slot.ScaleTween.Complete();
 
-                var target = slot.Animator.gameObject.transform;
-
-                slot.ScaleTween = Tween.Scale(target, Vector3.one, Vector3.zero, 0.6f, Ease.InQuint).OnComplete(() =>
-                {
-                    slot.Animator.enabled = false;
-                });
+                slot.ScaleTween = Tween
+                    .Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, Ease.InQuint)
+                    .OnComplete(() => { slot.Animator.enabled = false; });
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
+            await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration));
 
             if (_horizontalLayoutParent != null)
                 _horizontalLayoutParent.SetActive(false);
         }
 
-        private void StartAllAnimations(int playerCount)
+        private void StartButtonsAnimation(int playerCount)
         {
-            for (int i = 0; i < _activePlayerCount; i++)
-            {
-                _playerSlots[i].Animator.gameObject.SetActive(true);
-            }
-
             for (int i = 0; i < _playerSlots.Count; i++)
             {
                 var slot = _playerSlots[i];
                 slot.IsActive = i < playerCount;
 
+                slot.Animator.gameObject.SetActive(slot.IsActive);
                 slot.AButtonImage.gameObject.SetActive(slot.IsActive);
                 slot.OkImage.gameObject.SetActive(false);
 
@@ -126,9 +120,8 @@ namespace MortierFu
 
                 if (!slot.IsActive) continue;
 
-                var target = slot.Animator.gameObject.transform;
-
-                slot.ScaleTween = Tween.Scale(target, Vector3.zero, Vector3.one, 0.5f, Ease.OutBack);
+                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.zero, Vector3.one, _scaleDuration,
+                    Ease.OutBack);
 
                 slot.ATween = Tween.Scale(
                     target: slot.AButtonImage.rectTransform,
@@ -140,7 +133,7 @@ namespace MortierFu
                 );
             }
         }
-        
+
         private void NotifyPlayerConfirmed(int playerIndex)
         {
             if (playerIndex < 0 || playerIndex >= _playerSlots.Count)
@@ -159,11 +152,17 @@ namespace MortierFu
         public class PlayerSlot
         {
             public Image AButtonImage;
+            public RectTransform AButtonImageRect;
+
             public Image OkImage;
+
             public Animator Animator;
+            public Transform AnimatorTransform;
+
             public bool IsActive;
-            [HideInInspector] public Tween ATween;
-            [HideInInspector] public Tween ScaleTween;
+
+            public Tween ATween;
+            public Tween ScaleTween;
         }
     }
 }

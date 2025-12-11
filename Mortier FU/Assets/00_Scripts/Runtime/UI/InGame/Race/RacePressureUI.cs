@@ -7,10 +7,10 @@ namespace MortierFu
 {
     public class RacePressureUI : MonoBehaviour
     {
-        [Header("Parameters"),SerializeField] private float _pulseDuration = 0.6f;
-        
+        [Header("Parameters"), SerializeField] private float _pulseDuration = 0.6f;
+
         [Header("References"), SerializeField] private Image _vignetteImage;
-        
+
         private AugmentSelectionSystem _augmentSelectionSystem;
 
         private Tween _vignetteTween;
@@ -64,9 +64,9 @@ namespace MortierFu
             _vignetteImage.gameObject.SetActive(true);
 
             _vignetteTween = Tween.Custom(
-                0f,
-                1f,
-                _pulseDuration,
+                startValue: 0f,
+                endValue: 1f,
+                duration: _pulseDuration,
                 a =>
                 {
                     _tempColor = _baseColor;

@@ -256,6 +256,11 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 7914279283718223069, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
   m_PrefabInstance: {fileID: 69981283}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &69981288 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8117107802837055826, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
+  m_PrefabInstance: {fileID: 69981283}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &188978885
 GameObject:
   m_ObjectHideFlags: 0
@@ -755,6 +760,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!224 &462224987 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8117107802837055826, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
+  m_PrefabInstance: {fileID: 462224982}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &608904172 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4667456094355308085, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
@@ -1233,6 +1243,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!224 &863436603 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8117107802837055826, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
+  m_PrefabInstance: {fileID: 863436598}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1043756251
 GameObject:
   m_ObjectHideFlags: 0
@@ -1622,23 +1637,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.PlayerConfirmationUI
   _playerSlots:
   - AButtonImage: {fileID: 608904172}
+    AButtonImageRect: {fileID: 56828273662036657}
     OkImage: {fileID: 56828273662036656}
     Animator: {fileID: 56828273662036655}
+    AnimatorTransform: {fileID: 2101436525}
     IsActive: 0
   - AButtonImage: {fileID: 69981286}
+    AButtonImageRect: {fileID: 69981288}
     OkImage: {fileID: 69981285}
     Animator: {fileID: 69981287}
+    AnimatorTransform: {fileID: 69981284}
     IsActive: 0
   - AButtonImage: {fileID: 863436600}
+    AButtonImageRect: {fileID: 863436603}
     OkImage: {fileID: 863436602}
     Animator: {fileID: 863436601}
+    AnimatorTransform: {fileID: 863436599}
     IsActive: 0
   - AButtonImage: {fileID: 462224984}
+    AButtonImageRect: {fileID: 462224987}
     OkImage: {fileID: 462224986}
     Animator: {fileID: 462224985}
+    AnimatorTransform: {fileID: 462224983}
     IsActive: 0
   _pulseScale: 1.15
   _pulseDuration: 0.45
+  _hideDuration: 0.6
+  _scaleDuration: 0.5
   _horizontalLayoutParent: {fileID: 303719213}
 --- !u!114 &1339678714
 MonoBehaviour:
@@ -1652,6 +1677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afedce4349ae3884c9943433bb9f1c36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.RacePressureUI
+  _pulseDuration: 0.6
   _vignetteImage: {fileID: 2070744413}
 --- !u!1 &1391742729
 GameObject:
@@ -2625,6 +2651,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!224 &56828273662036657 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8117107802837055826, guid: 06c9a2a59b6e11144b6be0bbf9d3a457, type: 3}
+  m_PrefabInstance: {fileID: 56828273662036654}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
