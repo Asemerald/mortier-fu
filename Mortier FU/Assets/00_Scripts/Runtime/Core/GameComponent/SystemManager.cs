@@ -55,6 +55,11 @@ namespace MortierFu
             var system = Get<TSystem>();
             if (system != null)
             {
+                EventBus<EventSystemDisposed>.Raise(new EventSystemDisposed()
+                {
+                    System = system
+                });
+                
                 system.Dispose();
                 _components.Remove(typeof(TSystem));
             }

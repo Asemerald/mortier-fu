@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using MortierFu.Shared;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
