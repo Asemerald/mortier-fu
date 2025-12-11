@@ -7,7 +7,7 @@ using PrimeTween;
 
 namespace MortierFu
 {
-    public class RaceInfoUI : MonoBehaviour
+    public class PlayerConfirmationUI : MonoBehaviour
     {
         [Header("Player Slots (Blue, Green, Red, Yellow order)")] [SerializeField]
         private List<PlayerSlot> _playerSlots;
@@ -20,45 +20,29 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private GameObject _horizontalLayoutParent;
 
-        [SerializeField] private Image _vignetteImage;
-
         private int _activePlayerCount;
 
         private LobbyService _lobbyService;
-        private AugmentSelectionSystem _augmentSelectionSystem;
-
-        private Tween _vignetteTween;
         private ConfirmationService _confirmationService;
 
         private void Awake()
         {
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
+            
             if (_horizontalLayoutParent != null)
                 _horizontalLayoutParent.SetActive(false);
         }
 
-        private void Start()
+        private void OnEnable()
         {
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             if (_lobbyService == null)
             {
                 Debug.LogError($"[PlayerConfirmationUI] No LobbyService found for {gameObject.name}");
-                return;
-            }
-
-            _augmentSelectionSystem = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            if (_augmentSelectionSystem != null)
-            {
-                _augmentSelectionSystem.OnPressureStart += StartVignettePressure;
-                _augmentSelectionSystem.OnPressureStop += StopVignettePressure;
-            }
-            else
-            {
-                Debug.LogError($"[PlayerConfirmationUI] No AugmentSelectionSystem found for {gameObject.name}");
             }
 
             _activePlayerCount = _lobbyService.GetPlayers().Count;
 
-            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             if (_confirmationService != null)
             {
                 _confirmationService.OnPlayerConfirmed += NotifyPlayerConfirmed;
@@ -71,11 +55,8 @@ namespace MortierFu
             }
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
-            _augmentSelectionSystem.OnPressureStart -= StartVignettePressure;
-            _augmentSelectionSystem.OnPressureStop -= StopVignettePressure;
-
             _confirmationService.OnPlayerConfirmed -= NotifyPlayerConfirmed;
             _confirmationService.OnStartConfirmation -= ShowConfirmation;
             _confirmationService.OnAllPlayersConfirmed -= OnConfirmation;
@@ -159,43 +140,7 @@ namespace MortierFu
                 );
             }
         }
-
-        private void StartVignettePressure(float duration)
-        {
-            if (_vignetteImage == null)
-                return;
-
-            _vignetteImage.gameObject.SetActive(true);
-            if (_vignetteTween.isAlive)
-                _vignetteTween.Stop();
-
-            var color = _vignetteImage.color;
-            color.a = 0f;
-            _vignetteImage.color = color;
-
-            _vignetteTween = Tween.Custom(0f, 1f, 0.6f,
-                a =>
-                {
-                    var c = _vignetteImage.color;
-                    c.a = a;
-                    _vignetteImage.color = c;
-                },
-                cycles: -1,
-                cycleMode: CycleMode.Yoyo
-            );
-
-            Tween.Delay(duration, StopVignettePressure);
-        }
-
-        private void StopVignettePressure()
-        {
-            if (_vignetteTween.isAlive)
-                _vignetteTween.Stop();
-
-            if (_vignetteImage != null)
-                _vignetteImage.gameObject.SetActive(false);
-        }
-
+        
         private void NotifyPlayerConfirmed(int playerIndex)
         {
             if (playerIndex < 0 || playerIndex >= _playerSlots.Count)
