@@ -19,7 +19,7 @@ namespace MortierFu
             get
             {
                 // return the cached _currentGameModeInstance if not null, else get it from the GameService and cache it
-                if (_currentGameModeInstance != null) return _currentGameModeInstance;
+                //if (_currentGameModeInstance != null) return _currentGameModeInstance; old buggy logic, players can't move in race
                 var gameService = ServiceManager.Instance.Get<GameService>();
                 _currentGameModeInstance = gameService?._currentGameMode;
                 return _currentGameModeInstance;
@@ -55,8 +55,8 @@ namespace MortierFu
             await _sceneService.LoadScene(k_gameplayScene, true);
             
             // Register all game systems
-            SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
+            SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
             SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
