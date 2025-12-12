@@ -3,16 +3,15 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
     public class BombshellSystem : IGameSystem
     {
-        public SO_BombshellSettings Settings { get; private set; }
-        
         private CameraSystem _cameraSystem;
-        private GameObject _bombshellPrefab;
 
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
@@ -25,6 +24,11 @@ namespace MortierFu
         
         private Collider[] _impactResults;
         private const int k_maxImpactTargets = 50;
+        
+        private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle;
+        public SO_BombshellSettings Settings => _settingsHandle.Result;
+        
+        private AsyncOperationHandle<GameObject> _bombshellPrefabHandle;
         
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
@@ -41,7 +45,7 @@ namespace MortierFu
         }
 
         // Can be improved with a IDamageable interface which seems to be similar to IInteractable as interaction happens on impact or contact.
-        public void NotifyImpact(Bombshell bombshell)
+        public void NotifyImpact(Bombshell bombshell, RaycastHit hit)
         {
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
@@ -49,15 +53,15 @@ namespace MortierFu
             int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
             for (int i = 0; i < numHits; i++)
             {
-                Collider hit = _impactResults[i];
+                Collider hitCollider = _impactResults[i];
 
-                if (hit.attachedRigidbody == null)
+                if (hitCollider.attachedRigidbody == null)
                 {
-                    hits.Add(hit.gameObject);
+                    hits.Add(hitCollider.gameObject);
                     continue;
                 }
 
-                if (hit.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
+                if (hitCollider.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
                 {
                     // Prevent self-damage
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
@@ -72,11 +76,11 @@ namespace MortierFu
 
                     if (Settings.EnableDebug)
                     {
-                        Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
+                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " + character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
                     }
                 }
                 // temp check for breakable object
-                else if (hit.attachedRigidbody.TryGetComponent(out IInteractable interactable) &&
+                else if (hitCollider.attachedRigidbody.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
                     interactable.Interact();
@@ -86,13 +90,14 @@ namespace MortierFu
             //GAMEFEEL CALLS
             if (TEMP_FXHandler.Instance)
             {
-                TEMP_FXHandler.Instance.InstantiateExplosion(bombshell.transform.position, bombshell.AoeRange);
+                var character = bombshell.Owner;
+                TEMP_FXHandler.Instance.InstantiateExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
             else Logs.LogWarning("No FX Handler");
 
             _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.Owner.Stats.BombshellTimeTravel.Value);
-
+            
             if (hitCharacters.Count > 0)
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
@@ -102,12 +107,18 @@ namespace MortierFu
                 });
             }
 
+            //TODO: Maybe a better way to only spawn puddle on ground hit?
+            bool isGround = hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground");
+            
             if (hits.Count > 0)
             {
                 EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
                 {
                     Bombshell = bombshell,
-                    Hits = hits.ToArray(),
+                    HitPoint = hit.point,
+                    HitNormal = hit.normal,
+                    HitGround = isGround,
+                    HitObject = hit.collider.gameObject
                 });
             }
         }
@@ -128,11 +139,11 @@ namespace MortierFu
 
         private Bombshell OnCreateBombshell()
         {
-            var go = Object.Instantiate(_bombshellPrefab, _bombshellParent);
-            var bombshell = go.GetComponent<Bombshell>();
+            var bombshellGo = Object.Instantiate(_bombshellPrefabHandle.Result, _bombshellParent);
+            var bombshell = bombshellGo.GetComponent<Bombshell>();
 
             bombshell.Initialize(this);
-            go.SetActive(false);
+            bombshellGo.SetActive(false);
 
             return bombshell;
         }
@@ -163,16 +174,13 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             // Load the system settings;lla
-            var settingsRef = SystemManager.Config.BombshellSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null) return;
+            _settingsHandle = await SystemManager.Config.BombshellSettings.LazyLoadAssetRef();
 
+            _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
+            
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             if (_cameraSystem == null) return;
             
-            _bombshellPrefab = await AddressablesUtils.LazyLoadAsset(Settings.BombshellPrefab);
-            if (_bombshellPrefab == null) return;
-
             _bombshellParent = new GameObject("Bombshells").transform;
 
             _active = new HashSet<Bombshell>();
@@ -191,6 +199,9 @@ namespace MortierFu
 
         public void Dispose()
         {
+            Addressables.Release(_bombshellPrefabHandle);
+            Addressables.Release(_settingsHandle);
+            
             _pool.Clear();
             _active.Clear();
         }

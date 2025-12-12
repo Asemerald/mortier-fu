@@ -11,14 +11,18 @@ namespace MortierFu
         
         private const string k_mainMenuScene = "MainMenu";
         private const string k_gameplayScene = "Gameplay";
-
-        /// Kinda expansive, should cache the result if used multiple time per case.
+        
+        private static IGameMode _currentGameModeInstance;
+        
         public static IGameMode CurrentGameMode
         {
             get
             {
+                // return the cached _currentGameModeInstance if not null, else get it from the GameService and cache it
+                //if (_currentGameModeInstance != null) return _currentGameModeInstance; old buggy logic, players can't move in race
                 var gameService = ServiceManager.Instance.Get<GameService>();
-                return gameService._currentGameMode;
+                _currentGameModeInstance = gameService?._currentGameMode;
+                return _currentGameModeInstance;
             }
         }
         
@@ -51,13 +55,15 @@ namespace MortierFu
             await _sceneService.LoadScene(k_gameplayScene, true);
             
             // Register all game systems
-            SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
+            SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
+            SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
 
             await SystemManager.Instance.Initialize();
+            
 
             // Start the game mode
             await _currentGameMode.StartGame();

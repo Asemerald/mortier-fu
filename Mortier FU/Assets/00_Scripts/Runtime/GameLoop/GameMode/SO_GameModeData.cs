@@ -10,12 +10,13 @@ namespace MortierFu
         
         public int ScoreToWin = 1000;
         public int FirstRankBonusScore = 100;
-        public int SecondRankBonusScore = 30;
+        public int SecondRankBonusScore = 30;   
         public int ThirdRankBonusScore = 10;
         public int KillBonusScore = 50;
 
-        public float AugmentSelectionDuration = 15;
+        public float AugmentSelectionDuration = 20;
         public float RoundStartCountdown = 4f;
+        public float RoundStartDelay = 1f;
         public float DisplayScoresDuration = 6f;
 
         public float StormSpawnTime = 30;

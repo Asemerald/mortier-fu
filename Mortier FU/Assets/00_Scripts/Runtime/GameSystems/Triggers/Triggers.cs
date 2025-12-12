@@ -26,13 +26,21 @@ namespace MortierFu
     public struct TriggerBombshellImpact : ITrigger // Check
     {
         public Bombshell Bombshell;
-        public GameObject[] Hits;
+        public Vector3 HitPoint;
+        public Vector3 HitNormal;
+        public bool HitGround;
+        public GameObject HitObject;
     }
 
     public struct TriggerHit : ITrigger // Check
     {
         public Bombshell Bombshell;
         public PlayerCharacter[] HitCharacters;
+    }
+
+    public struct TriggerBounce : ITrigger
+    {
+        public Bombshell Bombshell;
     }
     
     public struct TriggerHealthChanged : ITrigger // Check

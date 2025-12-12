@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -25,6 +24,7 @@ namespace MortierFu
         protected int currentRank;
         protected bool oneTeamStanding;
         protected GameState currentState;
+        protected PlayerTeam gameVictor;
 
         // Dependencies
         protected LobbyService lobbyService;
@@ -32,16 +32,21 @@ namespace MortierFu
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
+        protected PuddleSystem puddleSys;
         protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
-        protected ACT_Storm _stormInstance;
+        protected ACT_Storm stormInstance;
 
-        private SO_GameModeData _gameModeData;
-        private SO_StormSettings _stormSettings;
+        private AsyncOperationHandle<SO_StormSettings> _stormSettingsHandle;
+        public SO_StormSettings StormSettings => _stormSettingsHandle.Result;
+        
+            
+        private AsyncOperationHandle<SO_GameModeData> _dataHandle;
+        public SO_GameModeData Data => _dataHandle.Result;
 
-        public virtual int MinPlayerCount => _gameModeData.MinPlayerCount;
-        public virtual int MaxPlayerCount => _gameModeData.MaxPlayerCount;
+        public virtual int MinPlayerCount => Data.MinPlayerCount;
+        public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
         public bool IsReady
         {
@@ -58,10 +63,17 @@ namespace MortierFu
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
-        public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
+        
+        /// <summary>
+        /// Invoked when a player kills another player.
+        /// <remarks>Killer / Victim</remarks>
+        /// </summary>
+        public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
         public event Action<int> OnRoundStarted;
         public event Action<int> OnRoundEnded;
+        
+        public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
@@ -69,8 +81,9 @@ namespace MortierFu
         public virtual async UniTask StartGame()
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
+            puddleSys = SystemManager.Instance.Get<PuddleSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -84,9 +97,9 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(Vector3.one * i * 2f);
+                player.SpawnInGame(new Vector3(i, 5, i) * 2f);
                 
-                player.Character.Health.OnDeath += source => OnDeath(player, source); // Memory leak ? Can be improved
+                player.Character.Health.OnDeath += source => OnDeath(player, source); //TODO: Memory leak ? Can be improved
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
@@ -101,6 +114,7 @@ namespace MortierFu
             }
 
             currentRound = 0;
+            gameVictor = null;
 
             GameplayCoroutine().Forget();
             Logs.Log("Starting the game...");
@@ -119,7 +133,7 @@ namespace MortierFu
                 StartRace();
                 
                 var augmentPickers = GetAugmentPickers();
-                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, _gameModeData.AugmentSelectionDuration);
+                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
 
                 while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();
@@ -142,14 +156,20 @@ namespace MortierFu
 
                 HideScores();
 
-                if (IsGameOver(out PlayerTeam victor))
+                if (IsGameOver(out gameVictor))
                 {
-                    Logs.Log($"Game Over! Team {victor.Index} wins!");
+                    Logs.Log($"Game Over! Team {gameVictor.Index} wins!");
                     UpdateGameState(GameState.EndGame);
                 }
             }
 
             EndGame();
+        }
+
+        public bool IsGameOver(out PlayerTeam victor)
+        {
+            victor = gameVictor;
+            return gameVictor != null;
         }
 
         private List<PlayerManager> GetAugmentPickers()
@@ -249,28 +269,36 @@ namespace MortierFu
 
         protected void HandleCountdown()
         {
-            float duration = _gameModeData.RoundStartCountdown;
+            float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-            duration *= 0.25f;
+            // duration *= 0.25f;
             #endif
 
             timer.Reset(duration - 0.01f);
+            timer.OnTimerStart += HandleStartOfCountdown;
             timer.OnTimerStop += HandleEndOfCountdown;
             timer.Start();
         }
 
-        protected void HandleEndOfCountdown()
+        protected async void HandleEndOfCountdown()
         {
             timer.OnTimerStop -= HandleEndOfCountdown;
+
+            await UniTask.Delay(TimeSpan.FromSeconds(Data.RoundStartDelay));
+                
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
-            
-            OnRoundStarted?.Invoke(currentRound);
+
             Logs.Log($"Round #{currentRound} is starting...");
             
             // timer.Reset(_gameModeData.StormSpawnTime);
             // timer.OnTimerStop += SpawnStorm;
             // timer.Start();
+        }
+        
+        protected void HandleStartOfCountdown()
+        {
+            OnRoundStarted?.Invoke(currentRound);
         }
 
         protected virtual void EndRound()
@@ -279,10 +307,11 @@ namespace MortierFu
             timer.Stop();
             
             bombshellSys.ClearActiveBombshells();
-
-            if (_stormInstance)
+            puddleSys.ClearActivePuddles();
+            
+            if (stormInstance)
             { 
-                _stormInstance.Stop();
+                stormInstance.Stop();
             }
             
             ResetPlayers();
@@ -300,12 +329,9 @@ namespace MortierFu
         
         protected virtual async UniTaskVoid SpawnStormTask()
         {
-            var stormPrefab = await AddressablesUtils.LazyLoadAsset(_stormSettings.StormPrefab);
-            if (stormPrefab == null) return;
-            
-            var stormGO = Object.Instantiate(stormPrefab);
-            _stormInstance = stormGO.GetComponent<ACT_Storm>();
-            _stormInstance.Initialize(Vector3.zero, _stormSettings);
+            var stormGo = await StormSettings.StormPrefab.InstantiateAsync();
+            stormInstance = stormGo.GetComponent<ACT_Storm>();
+            stormInstance.Initialize(Vector3.zero, StormSettings);
             
             Logs.Log("Storm instantiated !");
         }
@@ -314,9 +340,17 @@ namespace MortierFu
         {
             foreach (var team in teams)
             {
-                int rankBonusScore = GetScorePerRank(team.Rank);
-                int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * _gameModeData.KillBonusScore);
-                team.Score += rankBonusScore + killBonusScore;
+                if (team.Score >= Data.ScoreToWin)
+                {
+                    if (team.Rank != 1) continue;
+                    gameVictor = team;
+                }
+                else
+                {
+                    int rankBonusScore = GetScorePerRank(team.Rank);
+                    int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
+                    team.Score += Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
+                }
             }
         }
 
@@ -326,9 +360,9 @@ namespace MortierFu
 
             return teamRank switch
             {
-                1 => _gameModeData.FirstRankBonusScore,
-                2 => _gameModeData.SecondRankBonusScore,
-                3 => _gameModeData.ThirdRankBonusScore,
+                1 => Data.FirstRankBonusScore,
+                2 => Data.SecondRankBonusScore,
+                3 => Data.ThirdRankBonusScore,
                 _ => 0
             };
         }
@@ -360,8 +394,8 @@ namespace MortierFu
             UpdateGameState(GameState.RaceInProgress);
             
             cameraSystem.Controller.ClearTargetGroupMember();
-            cameraSystem.Controller.ResetCameraInstant();
-            
+
+            ResetPlayers();
             SpawnPlayers();
 
             // Hide previous showcase UI            
@@ -384,8 +418,17 @@ namespace MortierFu
 
         protected virtual void EndGame()
         {
-            // The game state is already set to EndGame at that point
-            // Show the victory screen
+            OnGameEnded?.Invoke(GetWinnerPlayerIndex());
+            Logs.Log("Game has ended.");
+            ReturnToMainMenuAfterDelay(5f).Forget();
+        }
+        
+        private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            await sceneService.LoadScene("MainMenu", true);
+            //TODO: a full check, je pense que ATM le SystemManager est pas Dispose
+            ServiceManager.Instance.Get<GameService>().Dispose();
         }
 
         protected virtual void UpdateGameState(GameState newState)
@@ -401,24 +444,13 @@ namespace MortierFu
             sceneService = ServiceManager.Instance.Get<SceneService>();
 
             // Load configuration
-            var dataHandle = Addressables.LoadAssetAsync<SO_GameModeData>("DA_GM_FFA");
-            await dataHandle;
-
-            if (dataHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Logs.LogError($"[{GetType().Name}]: Failed to load the game mode data ! Issues {dataHandle.OperationException.Message}");
-                return;
-            }
-
-            _gameModeData = dataHandle.Result;
-            Addressables.Release(dataHandle);
+            _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
 
             // Load Storm settings
-            var stormSettingsRef = SystemManager.Config.StormSettings;
-            _stormSettings = await AddressablesUtils.LazyLoadAsset(stormSettingsRef);
-            if (_stormSettings == null) return;
+            _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
             
             timer = new CountdownTimer(0f);
+            Debug.Log("CREATE TIMER");
 
             Logs.Log("Game mode initialized successfully.");
         }
@@ -428,28 +460,16 @@ namespace MortierFu
 
         public virtual void Dispose()
         {
+            if (stormInstance)
+            {
+                Addressables.ReleaseInstance(stormInstance.gameObject);
+            }
+            
+            Addressables.Release(_dataHandle);
+            Addressables.Release(_stormSettingsHandle);
+            
             teams.Clear();
             timer.Dispose();
-        }
-
-        /// <summary>
-        /// Default implementation is to select the victor based on a score to win variable.
-        /// </summary>
-        /// <param name="victor">The team which won the game.</param>
-        /// <returns>If the game is over.</returns>
-        public virtual bool IsGameOver(out PlayerTeam victor)
-        {
-            foreach (var team in teams)
-            {
-                if (team.Score > _gameModeData.ScoreToWin)
-                {
-                    victor = team;
-                    return true;
-                }
-            }
-
-            victor = null;
-            return false;
         }
 
         protected void OnDeath(PlayerManager player, object source)
@@ -515,5 +535,16 @@ namespace MortierFu
 
             OnPlayerKilled?.Invoke(killer, victim);
         }
+        
+        public int GetWinnerPlayerIndex()
+        {
+            if (IsGameOver(out var victor))
+            {
+                return victor?.Index ?? -1;
+            }
+            
+            return -1; // Aucun gagnant pour l'instant
+        }
+
     }
 }

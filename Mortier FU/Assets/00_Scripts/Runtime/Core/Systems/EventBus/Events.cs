@@ -4,4 +4,9 @@ namespace MortierFu
 {
     public interface IEvent 
     { }
+
+    public struct EventSystemDisposed : IEvent
+    {
+        public IGameSystem System;
+    }
 }

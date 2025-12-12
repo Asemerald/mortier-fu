@@ -26,7 +26,8 @@ namespace MortierFu
         private LobbyService _lobbyService;
         private DiscordService _discordService;
         private SceneService _sceneService;
-
+        private SaveService _saveService;
+        
 #if UNITY_EDITOR
         [Header("Debug")] public bool isPortableBootstrap = false;
 #endif
@@ -35,6 +36,10 @@ namespace MortierFu
 
         private void Awake()
         {
+            // Lock and hide cursor
+            /*Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;*/
+            
             InitializeAsync().Forget();
         }
 
@@ -95,7 +100,8 @@ namespace MortierFu
             _discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
-
+            _saveService = new SaveService();
+            
             // --- Register services
             _serviceManager.Register(_modService);
             _serviceManager.Register(_loaderService);
@@ -106,11 +112,12 @@ namespace MortierFu
             _serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
             _serviceManager.Register(_sceneService);
-
+            _serviceManager.Register(_saveService);
+            
             return UniTask.CompletedTask;
         }
 
-        private void OnDestroy()
+        private void OnApplicationQuit()
         {
             _serviceManager?.Dispose();
             _systemManager?.Dispose();

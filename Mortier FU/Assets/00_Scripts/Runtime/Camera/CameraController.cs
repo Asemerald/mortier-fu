@@ -5,8 +5,9 @@ namespace MortierFu
 {
     public class CameraController : MonoBehaviour
     {
-        [Header("Cinemachine")]
-        [SerializeField] private CinemachineCamera _cinemachineCamera;
+        [Header("Cinemachine")] [SerializeField]
+        private CinemachineCamera _cinemachineCamera;
+
         [SerializeField] private CinemachineTargetGroup _targetGroup;
         [SerializeField] private CameraShakeController _shakeController;
         [SerializeField] private Transform _virtualTarget;
@@ -17,8 +18,10 @@ namespace MortierFu
 
         private SO_CameraSettings _cameraSettings;
 
+        private bool _isStaticRaceCamera = false;
+
         public Camera Camera => _camera;
-        
+
         private void Start()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
@@ -28,10 +31,10 @@ namespace MortierFu
 
         private void LateUpdate()
         {
+            if (_isStaticRaceCamera) return;
+
             if (!_targetGroup.IsEmpty)
                 UpdateCameraForTargets();
-            else
-                UpdateCameraDefault();
         }
 
         public void PopulateTargetGroup(Transform[] playerTransforms, float weight = 1f, float radius = 0f)
@@ -47,6 +50,8 @@ namespace MortierFu
             }
 
             ResetCameraInstant();
+
+            _isStaticRaceCamera = false;
         }
 
         public void RemoveTarget(Transform playerTransform)
@@ -64,11 +69,13 @@ namespace MortierFu
                     _targetGroup.RemoveMember(t);
             }
 
-            _virtualTarget.position = _cameraSettings.DefaultPosition;
+            if (_isStaticRaceCamera) return;
+
+            _virtualTarget.position = _cameraSettings.RacePosition;
             _currentOrthoSize = _cameraSettings.DefaultOrtho;
             ApplyLens();
         }
-        
+
         private void UpdateCameraForTargets()
         {
             Bounds bounds = CalculateTargetsBounds();
@@ -80,25 +87,30 @@ namespace MortierFu
                 center,
                 Time.deltaTime * _cameraSettings.PositionLerpSpeed);
 
-            float clampedExtent = Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
-            float t = Mathf.InverseLerp( _cameraSettings.MinPlayersExtent,  _cameraSettings.MaxPlayersExtent, clampedExtent);
+            float clampedExtent =
+                Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
+            float t = Mathf.InverseLerp(_cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent,
+                clampedExtent);
 
-            float targetOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, t);
+            float targetOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, t);
 
-            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
+            _currentOrthoSize =
+                Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
 
-        private void UpdateCameraDefault()
+        public void ApplyCameraMapConfig(CameraMapConfig mapConfig)
         {
-            _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _cameraSettings.DefaultPosition, Time.deltaTime *  _cameraSettings.PositionLerpSpeed);
-            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _cameraSettings.DefaultOrtho, Time.deltaTime *  _cameraSettings.ZoomLerpSpeed);
+            _isStaticRaceCamera = true;
+
+            _virtualTarget.localPosition = mapConfig.PositionForRace;
+            _currentOrthoSize = mapConfig.OrthoSize;
 
             ApplyLens();
         }
-        
-        public void ResetCameraInstant()
+
+        private void ResetCameraInstant()
         {
             if (!_targetGroup.IsEmpty)
             {
@@ -106,7 +118,7 @@ namespace MortierFu
                 _virtualTarget.position = b.center;
             }
 
-            float midOrtho = Mathf.Lerp( _cameraSettings.MinOrthoSize,  _cameraSettings.MaxOrthoSize, 0.5f);
+            float midOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, 0.5f);
 
             _currentOrthoSize = midOrtho;
 

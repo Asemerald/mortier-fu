@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -9,16 +10,19 @@ namespace MortierFu
     public class ConfirmationService : IGameService
     {
         private DeviceService _deviceService;
-        private List<PlayerManager> _players;
+
+        private readonly Dictionary<PlayerInput, Action<InputAction.CallbackContext>> _callbacks =
+            new();
+
         private int _confirmationCount;
-        
         private const string k_confirmAction = "Confirm";
 
-        public ConfirmationService()
-        {
-            _players = new List<PlayerManager>();
-        }
-        
+        public bool IsInitialized { get; set; }
+
+        public event Action<int> OnPlayerConfirmed;
+        public event Action OnAllPlayersConfirmed;
+        public event Action OnStartConfirmation;
+
         public UniTask OnInitialize()
         {
             _deviceService = ServiceManager.Instance.Get<DeviceService>();
@@ -29,65 +33,81 @@ namespace MortierFu
         {
             if (!_deviceService.TryGetPlayerInput(0, out var playerInput))
             {
-                Logs.LogError("[ConfirmationService]: No device found for host player (index 0).");
-                return;
-            }
-            
-            var action = playerInput.actions.FindAction(k_confirmAction);
-            if (action == null)
-            {
-                Logs.LogError("[ConfirmationService]: 'Confirm' action not found in host player's input actions.");
+                Logs.LogError("[ConfirmationService]: No input found for host (player 0).");
                 return;
             }
 
             _confirmationCount = 1;
             RequestConfirmation(playerInput);
-            
-            while (_confirmationCount > 0) 
+
+            while (_confirmationCount > 0)
                 await Task.Yield();
             
-            Logs.Log("[ConfirmationService]: Host player confirmed.");
+            OnAllPlayersConfirmed?.Invoke();
+            Logs.Log("[ConfirmationService] Host confirmed.");
         }
         
+        public void ShowConfirmation()
+        {
+            OnStartConfirmation?.Invoke();
+            Logs.Log("[ConfirmationService] Confirmation started.");
+        }
+
         public async Task WaitUntilAllConfirmed()
         {
             var players = _deviceService.GetAllPlayerInputs();
             _confirmationCount = players.Count;
 
             foreach (var playerInput in players)
-            {
                 RequestConfirmation(playerInput);
-            }
-            
-            while (_confirmationCount > 0) 
+
+            while (_confirmationCount > 0)
                 await Task.Yield();
-            
-            Logs.Log("[ConfirmationService]: All players confirmed.");
+
+            OnAllPlayersConfirmed?.Invoke();
+            Logs.Log("[ConfirmationService] All players confirmed.");
         }
-        
+
         private void RequestConfirmation(PlayerInput playerInput)
         {
             var action = playerInput.actions.FindAction(k_confirmAction);
             if (action == null)
             {
-                Logs.LogError($"[ConfirmationService]: 'Confirm' action not found in player {playerInput.playerIndex}'s input actions.");
+                Logs.LogError($"[ConfirmationService] Confirm action not found for player {playerInput.playerIndex}");
                 _confirmationCount--;
                 return;
             }
-            action.performed += OnConfirmed;
+
+            Action<InputAction.CallbackContext> callback =
+                ctx => OnConfirmed(playerInput.playerIndex, playerInput, action);
+
+            _callbacks[playerInput] = callback;
+            action.performed += callback;
         }
 
-        private void OnConfirmed(InputAction.CallbackContext context)
+        private void OnConfirmed(int playerIndex, PlayerInput playerInput, InputAction action)
         {
             _confirmationCount--;
-            context.action.performed -= OnConfirmed;
-        } 
-        
+
+            OnPlayerConfirmed?.Invoke(playerIndex);
+
+            if (_callbacks.TryGetValue(playerInput, out var callback))
+            {
+                action.performed -= callback;
+                _callbacks.Remove(playerInput);
+            }
+        }
+
         public void Dispose()
         {
-            _players.Clear();
+            foreach (var pair in _callbacks)
+            {
+                var action = pair.Key.actions.FindAction(k_confirmAction);
+                if (action != null)
+                    action.performed -= pair.Value;
+            }
+
+            _callbacks.Clear();
         }
-        
-        public bool IsInitialized { get; set; }
     }
 }

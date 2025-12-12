@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace MortierFu
 {
@@ -16,9 +16,11 @@ namespace MortierFu
         public AGM_Bouncy.Params BouncyParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
+        public AGM_FreezePuddle.Params FreezePuddleParams;
         public AGM_Gunslinger.Params GunslingerParams;
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
         public AGM_Overheating.Params OverheatingParams;
+        public AGM_PoisonPuddle.Params PoisonPuddleParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
         public AGM_TakeTheTempo.Params TakeTheTempoParams;
         public AGM_TsarBomba.Params TsarBombaParams;

@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
 
     public class AugmentSelectionSystem : IGameSystem
     {
-        public SO_AugmentSelectionSettings Settings { get; private set; }
+        public event Action<float> OnPressureStart;
+        public event Action OnPressureStop;
+        private CancellationTokenSource _pressureTokenSource;
         
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
@@ -30,13 +34,14 @@ namespace MortierFu
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
 
-        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
+        private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
+        public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
+        
+        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished));
         
         public async UniTask OnInitialize()
         {
-            var settingsRef = SystemManager.Config.AugmentSelectionSettings;
-            Settings = await AddressablesUtils.LazyLoadAsset(settingsRef);
-            if (Settings == null) return;
+            _settingsHandle = await SystemManager.Config.AugmentSelectionSettings.LazyLoadAssetRef();
             
             _pickupParent = new GameObject("AugmentPickups").transform;
             _pickupParent.position = Vector3.down * 50;
@@ -45,11 +50,9 @@ namespace MortierFu
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _augmentProviderSys = SystemManager.Instance.Get<AugmentProviderSystem>();
             _playerCount = _lobbyService.GetPlayers().Count;
-            _augmentCount = _playerCount + 1;
+            _augmentCount = Settings.EnforceAugmentCount ? Settings.ForcedAugmentCount : _playerCount + 1;
             _augmentBag = new List<AugmentState>(_augmentCount);
             _selectedAugments = new SO_Augment[_augmentCount];
-            
-            Logs.Log("Initialized selected augments array ! Length : " + _selectedAugments.Length);
             
             await InstantiatePickups();
             
@@ -58,16 +61,12 @@ namespace MortierFu
         
         private async UniTask InstantiatePickups()
         {
-            // Load the augment pickup prefab
-            var pickupPrefab = await AddressablesUtils.LazyLoadAsset(Settings.AugmentPickupPrefab);
-            if (pickupPrefab == null) return;
-            
             _pickups = new  List<AugmentPickup>(_augmentCount);
             
             for (int i = 0; i < _augmentCount; i++)
             {
-                var pickupGO = Object.Instantiate(pickupPrefab, _pickupParent);
-                var pickup = pickupGO.GetComponent<AugmentPickup>();
+                var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
+                var pickup = pickupGo.GetComponent<AugmentPickup>();
                 
                 pickup.Initialize(this, i);
                 pickup.Hide();
@@ -80,6 +79,13 @@ namespace MortierFu
 
         public void Dispose()
         {
+            for (int i = _pickups.Count - 1; i >= 0; i--)
+            {
+                Addressables.ReleaseInstance(_pickups[i].gameObject);
+            }
+            
+            Addressables.Release(_settingsHandle);
+            
             _pickups.Clear();
             _augmentBag.Clear();
             
@@ -116,9 +122,9 @@ namespace MortierFu
             _levelSystem.PopulateAugmentPoints(augmentPoints);
 
             _showcaseInProgress = true;
-            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints);
+            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
             _showcaseInProgress = false;
-
+            
             await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
@@ -126,10 +132,25 @@ namespace MortierFu
             
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
+
+            _pressureTokenSource = new CancellationTokenSource();
+            HandlePressure(duration).Forget();
         }
 
-        public void EndRace()
-        {
+        private async UniTaskVoid HandlePressure(float duration) {
+            float pressureStartTime = 5f;
+            float delay = Mathf.Max(0, duration - pressureStartTime);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: _pressureTokenSource.Token);
+
+            _pressureTokenSource = null;
+            OnPressureStart?.Invoke(pressureStartTime);
+        }
+
+        public void EndRace() {
+            _pressureTokenSource?.Cancel();
+            OnPressureStop?.Invoke();
+            
             // Give a random augment to remaining pickers
             var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
             foreach (var picker in _pickers)

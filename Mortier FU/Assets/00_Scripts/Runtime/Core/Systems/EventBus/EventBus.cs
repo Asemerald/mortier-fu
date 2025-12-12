@@ -3,11 +3,12 @@ using MortierFu.Shared;
 
 // Code from git-amend "Learn to Build an Advanced Event Bus | Unity Architecture".
 
-namespace  MortierFu
+namespace MortierFu
 {
-    public static class EventBus<T> where T : IEvent {
-        static readonly HashSet<IEventBinding<T>> _bindings = new HashSet<IEventBinding<T>>();
-        
+    public static class EventBus<T> where T : IEvent
+    {
+        static readonly HashSet<IEventBinding<T>> _bindings = new();
+
         public static void Register(EventBinding<T> binding) => _bindings.Add(binding);
         public static void Deregister(EventBinding<T> binding) => _bindings.Remove(binding);
 
@@ -22,8 +23,8 @@ namespace  MortierFu
 
         static void Clear()
         {
-            Logs.Log($"Clearing {typeof(T).Name} bindings");
-            _bindings.Clear();   
+//            Logs.Log($"Clearing {typeof(T).Name} bindings");
+            _bindings.Clear();
         }
-    } 
+    }
 }

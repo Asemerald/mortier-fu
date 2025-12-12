@@ -59,8 +59,32 @@ namespace MortierFu
         // LocomotionState methods
         public void HandleMovementFixedUpdate()
         {
-            var velocity = new Vector3(_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
-            rigidbody.linearVelocity = velocity;
+            Vector3 currentVelocity = rigidbody.linearVelocity;
+            Vector3 targetVelocity = new Vector3(_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
+
+            // -------------------------------
+            // 1) APPLICATION DU KNOCKBACK
+            // -------------------------------
+            if (_knockback.sqrMagnitude > 0.01f)
+            {
+                rigidbody.AddForce(_knockback, ForceMode.VelocityChange);
+
+                // Le knockback décroit progressivement
+                _knockback = Vector3.Lerp(_knockback, Vector3.zero, knockbackDecay * Time.fixedDeltaTime);
+            }
+
+            // -------------------------------
+            // 2) CONTROLE DU JOUEUR MEME PENDANT LE KNOCKBACK
+            // -------------------------------
+            Vector3 velocityChange = (targetVelocity - currentVelocity);
+
+            // Le contrôle est réduit quand knockback actif
+            if (_knockback.sqrMagnitude > 0.01f)
+                velocityChange *= moveDuringKnockbackFactor;
+
+            velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
+
+            rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
 
         public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
@@ -71,23 +95,24 @@ namespace MortierFu
             var targetDirection = (new Vector2(horizontal, vertical)).normalized;
             var targetSpeed = Stats.MoveSpeed.Value * factor;
 
-            // On veut atteindre cette vitesse finale
+            // Targetted Velocity
             var targetVelocity = targetDirection * targetSpeed;
 
-            // Accélération ou décélération selon si on bouge ou non
+            // Accel/Decel if moving or not
             float rate = (targetDirection.sqrMagnitude > 0.01f) ? Stats.Accel.Value : Stats.Decel.Value;
 
-            // Applique Interpolation douce (lissage)
+            // Apply smooth Interpolation
             _moveDirection = Vector2.Lerp(_moveDirection, targetVelocity, Time.deltaTime * rate);
             
             var velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
             
+            // Smooth rotation apply to character
             if (velocity3D.sqrMagnitude > 0.001f)
             {
                 character.transform.rotation = Quaternion.Slerp(
                     character.transform.rotation,
                     Quaternion.LookRotation(velocity3D.normalized, Vector3.up),
-                    Time.deltaTime * 10f // vitesse de rotation fluide
+                    Time.deltaTime * 10f
                 );
             }
         }
@@ -102,6 +127,16 @@ namespace MortierFu
         public void ResetVelocity()
         {
             rigidbody.linearVelocity = Vector3.zero;
+        }
+
+        private Vector3 _knockback;
+        private float knockbackDecay = 2.2f;          // vitesse à laquelle le bump se dissipe
+        private float moveDuringKnockbackFactor = 0.75f; 
+        
+        public void ApplyKnockback(Vector3 force)
+        {
+            rigidbody.AddForce(force, ForceMode.Impulse);
+            _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
     }
 }

@@ -6,7 +6,8 @@ using MathUtils = MortierFu.Shared.MathUtils;
 
 namespace MortierFu
 {
-    [RequireComponent(typeof(Rigidbody))]
+
+    [RequireComponent(typeof(Rigidbody), typeof(BombshellAspect))]
     public class Bombshell : MonoBehaviour
     {
         public struct Data
@@ -28,9 +29,6 @@ namespace MortierFu
             public int Bounces;
         }
         
-        [SerializeField] private TrailRenderer[] _trails;
-        [SerializeField] private ParticleSystem _smokeParticles;
-
         private Data _data;
 
         private Vector3 _direction;
@@ -42,6 +40,7 @@ namespace MortierFu
         
         private BombshellSystem _system;
         private Rigidbody _rb;
+        private BombshellAspect _aspect;
         
         private CountdownTimer _impactDebounceTimer;
 
@@ -63,12 +62,23 @@ namespace MortierFu
             get => _data.Bounces;
             set => _data.Bounces = value;
         }
+
+        public void MultiplyScale(float scalar)
+        {
+            _data.Scale *= scalar;
+            transform.localScale = Vector3.one * _data.Scale;
+        }
         #endregion
         
         public void Initialize(BombshellSystem system)
         {
             _system = system;
+            
             _rb = GetComponent<Rigidbody>();
+            
+            _aspect = GetComponent<BombshellAspect>();
+            _aspect.Initialize(this);
+            
             _impactDebounceTimer = new CountdownTimer(0.1f);
         }
         
@@ -84,12 +94,6 @@ namespace MortierFu
             transform.localScale = Vector3.one * _data.Scale;
             
             _impactDebounceTimer.Stop();
-            
-            foreach (var trail in _trails)
-            {
-                trail.Clear();
-                trail.emitting = true;
-            }
             
             // Preview
             HandleImpactPreview().Forget();
@@ -117,25 +121,13 @@ namespace MortierFu
 
         public void OnGet()
         {
-            _smokeParticles.transform.SetParent(transform);
-            _smokeParticles.Play();
-
-            foreach (var trail in _trails)
-            {
-                trail.Clear();
-                trail.emitting = true;
-            }
+            _aspect.OnGet();
         }
+
 
         public void OnRelease()
         {
-            _smokeParticles.transform.SetParent(null);
-            _smokeParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-
-            foreach (var trail in _trails)
-            {
-                trail.emitting = false;
-            }
+            _aspect.OnRelease();
         }
         
         public void ReturnToPool() => _system.ReleaseBombshell(this);
@@ -172,11 +164,16 @@ namespace MortierFu
                     _rb.MovePosition(centerAtHit);
                     
                     // Notify impact
-                    _system.NotifyImpact(this);
+                    _system.NotifyImpact(this, hit);
 
                     if (_data.Bounces > 0)
                     {
                         _data.Bounces--;
+                        
+                        EventBus<TriggerBounce>.Raise(new TriggerBounce()
+                        {
+                            Bombshell = this
+                        });
                         
                         // Reflect velocity using the collider normal
                         _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceDampingFactor;
@@ -225,6 +222,7 @@ namespace MortierFu
                 TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, _resolvedTravelTime - delay, _data.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
+            
         }
 
         /// <summary>

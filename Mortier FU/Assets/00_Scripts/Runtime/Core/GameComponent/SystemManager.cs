@@ -6,7 +6,7 @@ namespace MortierFu
 {
     public class SystemManager : GameComponentManager
     {
-        public GameInitializer GameInitializer{ get; private set; }
+        public GameInitializer GameInitializer { get; private set; }
         
         public static SystemManager Instance { get; private set; }
 
@@ -55,6 +55,11 @@ namespace MortierFu
             var system = Get<TSystem>();
             if (system != null)
             {
+                EventBus<EventSystemDisposed>.Raise(new EventSystemDisposed()
+                {
+                    System = system
+                });
+                
                 system.Dispose();
                 _components.Remove(typeof(TSystem));
             }
