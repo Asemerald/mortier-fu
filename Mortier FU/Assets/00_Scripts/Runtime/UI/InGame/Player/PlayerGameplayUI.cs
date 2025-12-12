@@ -37,8 +37,6 @@ public class PlayerGameplayUI : MonoBehaviour {
         
         // Initialize Character Arrow Color and Player Index Text
         GetColorAndIndex().Forget();
-        
-      
     }
     
     private async UniTaskVoid GetColorAndIndex()

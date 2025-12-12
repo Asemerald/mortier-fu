@@ -76,7 +76,7 @@ namespace MortierFu
 
                     if (Settings.EnableDebug)
                     {
-                        Logs.Log("Bombshell hit " + character.name + " for " + bombshell.Damage + " damage.");
+                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " + character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
                     }
                 }
                 // temp check for breakable object

@@ -299,6 +299,13 @@ namespace MortierFu
             Controller?.OnDrawGizmos();
             Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
+            
+            if (Owner != null)
+            {
+                Gizmos.color = Color.white;
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
+                    $"Player {Owner.PlayerIndex + 1}");
+            }
         }
 
         private void OnDrawGizmosSelected()
@@ -307,6 +314,13 @@ namespace MortierFu
             Controller?.OnDrawGizmosSelected();
             Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
+            
+            if (Owner != null)
+            {
+                Gizmos.color = Color.white;
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
+                    $"Player {Owner.PlayerIndex + 1}");
+            }
         }
 
         #endregion
@@ -341,5 +355,7 @@ namespace MortierFu
         // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
         private bool ShouldShowStats => Stats != null;
 #endif
+        
+        
     }
 }
