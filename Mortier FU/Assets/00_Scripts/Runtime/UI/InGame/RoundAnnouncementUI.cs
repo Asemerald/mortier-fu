@@ -67,7 +67,6 @@ namespace MortierFu
 
         private void InitializeUI()
         {
-            Debug.LogError("oaidfzaid");
             HidePanel();
             _panelGroup.alpha = 0f;
             
