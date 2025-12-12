@@ -72,8 +72,7 @@ namespace MortierFu
         private void InitializeUI()
         {
             HidePanel();
-            _panelGroup.alpha = 0f;
-            
+
             _readyGameObject.SetActive(true);
             _playGameObject.SetActive(false);
             _goldenBombshellGameObject.SetActive(false);
