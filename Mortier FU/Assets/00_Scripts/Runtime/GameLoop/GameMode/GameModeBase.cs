@@ -426,7 +426,7 @@ namespace MortierFu
         private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            await sceneService.LoadScene("MainMenu", true);
+            await sceneService.LoadScene("MainMenu", true, true);
             //TODO: a full check, je pense que ATM le SystemManager est pas Dispose
             ServiceManager.Instance.Get<GameService>().Dispose();
         }

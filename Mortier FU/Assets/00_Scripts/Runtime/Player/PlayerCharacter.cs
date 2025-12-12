@@ -293,6 +293,7 @@ namespace MortierFu
             }
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Health?.OnDrawGizmos();
@@ -322,6 +323,8 @@ namespace MortierFu
                     $"Player {Owner.PlayerIndex + 1}");
             }
         }
+        
+#endif
 
         #endregion
 
