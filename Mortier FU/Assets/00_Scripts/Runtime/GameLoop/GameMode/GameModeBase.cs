@@ -99,7 +99,7 @@ namespace MortierFu
                 var player = players[i];
                 player.SpawnInGame(new Vector3(i, 5, i) * 2f);
                 
-                player.Character.Health.OnDeath += source => OnDeath(player, source); // Memory leak ? Can be improved
+                player.Character.Health.OnDeath += source => OnDeath(player, source); //TODO: Memory leak ? Can be improved
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
@@ -349,7 +349,7 @@ namespace MortierFu
                 {
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
-                    team.Score = Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    team.Score += Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
                 }
             }
         }

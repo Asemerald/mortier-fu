@@ -142,7 +142,7 @@ namespace MortierFu
             if (!PlayerCharacter.AllowGameplayActions) return;
             if (!Character.Health.IsAlive) return;
             
-            Logs.Log("[MortarCharacterComponent]: Begin Aiming");
+            //Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
@@ -150,7 +150,7 @@ namespace MortierFu
 
         public void EndAiming(InputAction.CallbackContext ctx)
         {
-            Logs.Log("[MortarCharacterComponent]: End Aiming");
+            //Logs.Log("[MortarCharacterComponent]: End Aiming");
             AimWidget.Hide();
             _shootStrategy?.EndAiming();
             _shootAction.Disable();
