@@ -27,10 +27,14 @@ namespace MortierFu
         [SerializeField] private CanvasGroup _panelGroup;
 
         private GameModeBase _gm;
+        
+        private Vector3 _initialCountdownScale;
 
         private void Awake()
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
+            
+            _initialCountdownScale = _countdownImage.transform.localScale;
         }
 
         private void OnEnable()
@@ -148,6 +152,10 @@ namespace MortierFu
             _countdownImage.enabled = true;
 
             _panelGroup.alpha = 1f;
+            
+            var t = _countdownImage.transform;
+            t.localScale = _initialCountdownScale;
+            t.localRotation = Quaternion.identity;
         }
 
         private void ShowCountdown()
