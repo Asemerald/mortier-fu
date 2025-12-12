@@ -18,87 +18,104 @@ namespace MortierFu
     {
         private AsyncOperationHandle<SO_LevelSettings> _settingsHandle;
         public SO_LevelSettings Settings => _settingsHandle.Result;
-        
+        public CameraMapConfig CurrentCameraMapConfig;
+
         private List<IResourceLocation> _arenaMapLocations;
         private List<IResourceLocation> _raceMapLocations;
-        
+
         // Used to track and unload the current loaded map
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
         private const string k_arenaMapsLabel = "ArenaMaps";
         private const string k_raceMapsLabel = "RaceMaps";
 
+        private CameraSystem _cameraSystem;
+
         public async UniTask LoadRaceMap()
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             string sceneKey = EditorPrefs.GetString("OverrideRaceMapAddress", "");
-            if (!string.IsNullOrEmpty(sceneKey)) {
+            if (!string.IsNullOrEmpty(sceneKey))
+            {
                 var locations = await Addressables.LoadResourceLocationsAsync(sceneKey);
-                if (locations.Count > 0) {
-                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+                if (locations.Count > 0)
+                {
+                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive,
+                        SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
                     await _mapHandle;
-                
-                    if(Settings.EnableDebug)
+
+                    if (Settings.EnableDebug)
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
-                
+
+                    CurrentCameraMapConfig = _boundReporter.CameraConfig;
+
+                    _cameraSystem.Controller.ApplyCameraMapConfig(CurrentCameraMapConfig);
+                    
                     return;
                 }
-                else 
+                else
                 {
-                    if(Settings.EnableDebug)
+                    if (Settings.EnableDebug)
                         Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
                 }
-
             }
-            #endif
-            
+#endif
+
             var map = _raceMapLocations.RandomElement();
-            
-            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+
+            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive,
+                SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
-            
-            if(Settings.EnableDebug)
+
+            if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
+            
+            CurrentCameraMapConfig = _boundReporter.CameraConfig;
+
+            _cameraSystem.Controller.ApplyCameraMapConfig(CurrentCameraMapConfig);
         }
 
         public async UniTask LoadArenaMap()
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
-            
-            #if UNITY_EDITOR
+
+#if UNITY_EDITOR
             string sceneKey = EditorPrefs.GetString("OverrideArenaMapAddress", "");
-            if (!string.IsNullOrEmpty(sceneKey)) {
+            if (!string.IsNullOrEmpty(sceneKey))
+            {
                 var locations = await Addressables.LoadResourceLocationsAsync(sceneKey);
-                if (locations.Count > 0) {
-                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+                if (locations.Count > 0)
+                {
+                    _mapHandle = Addressables.LoadSceneAsync(sceneKey, LoadSceneMode.Additive,
+                        SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
                     await _mapHandle;
-                
-                    if(Settings.EnableDebug)
+
+                    if (Settings.EnableDebug)
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
-                
                     return;
                 }
-                else 
+                else
                 {
-                    if(Settings.EnableDebug)
+                    if (Settings.EnableDebug)
                         Logs.LogWarning($"[LevelSystem]: Debug scene key not found in Addressables: {sceneKey}");
                 }
             }
-            #endif
-            
+#endif
+
             var map = _arenaMapLocations.RandomElement();
-            
-            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+
+            _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive,
+                SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
-            
-            if(Settings.EnableDebug)
+
+            if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
         }
-        
+
         private async UniTask UnloadCurrentMap()
         {
             if (!_mapHandle.IsValid()) return;
@@ -111,10 +128,10 @@ namespace MortierFu
         {
             if (BoundReporter == null)
                 return false;
-            
+
             return BoundReporter.IsRaceMap;
         }
-        
+
         public Transform GetWinnerSpawnPoint()
         {
             if (BoundReporter == null)
@@ -122,7 +139,7 @@ namespace MortierFu
 
             return BoundReporter.WinnerSpawnPoint ?? FallbackTransform;
         }
-        
+
         public Transform GetSpawnPoint(int index)
         {
             if (BoundReporter == null)
@@ -130,11 +147,12 @@ namespace MortierFu
 
             if (index < 0) // || index >= BoundReporter.SpawnPoints.Length
             {
-                if(Settings.EnableDebug) 
-                    Logs.LogWarning("[LevelSystem]: Trying to get a spawn point which is out of range of the provided list of spawn points by the level reporter !");
+                if (Settings.EnableDebug)
+                    Logs.LogWarning(
+                        "[LevelSystem]: Trying to get a spawn point which is out of range of the provided list of spawn points by the level reporter !");
                 return FallbackTransform;
             }
-            
+
             return BoundReporter.SpawnPoints[index % BoundReporter.SpawnPoints.Length];
         }
 
@@ -149,41 +167,43 @@ namespace MortierFu
 
                 return;
             }
-            
+
             for (int i = 0; i < outPoints.Length; i++)
             {
                 outPoints[i] = BoundReporter.GetAugmentPoint(outPoints.Length, i);
             }
         }
-        
-        public Transform GetAugmentPivot() => BoundReporter != null ? BoundReporter.AugmentPivot ?? FallbackTransform : FallbackTransform;
-        
+
+        public Transform GetAugmentPivot() =>
+            BoundReporter != null ? BoundReporter.AugmentPivot ?? FallbackTransform : FallbackTransform;
+
         public void BindReporter(LevelReporter reporter)
         {
             if (reporter == null)
             {
                 if (Settings.EnableDebug)
                     Logs.LogWarning("Trying to bound a null reporter !");
-                
+
                 return;
             }
-            
+
             _boundReporter = reporter;
-            if(Settings.EnableDebug)
+            if (Settings.EnableDebug)
                 Logs.Log("Successfully bound a new level reporter.");
         }
-        
+
         private async UniTask FinishUnfinishedBusiness()
         {
             // Finish unfinished business
             if (_mapHandle.IsValid() && !_mapHandle.IsDone)
             {
                 await _mapHandle;
-                
+
                 if (_mapHandle.Status != AsyncOperationStatus.Succeeded)
                 {
                     if (Settings.EnableDebug)
-                        Logs.LogError($"[LevelSystem]: Tried to load map with unfinished load process: {_mapHandle.OperationException.Message}");
+                        Logs.LogError(
+                            $"[LevelSystem]: Tried to load map with unfinished load process: {_mapHandle.OperationException.Message}");
                 }
             }
         }
@@ -197,24 +217,26 @@ namespace MortierFu
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Logs.Log($"[LevelSystem]: Failed to load the arena maps. Issued: {handle.OperationException.Message}");
+                    Logs.Log(
+                        $"[LevelSystem]: Failed to load the arena maps. Issued: {handle.OperationException.Message}");
                     return null;
                 }
 
                 var operations = new List<IResourceLocation>(handle.Result);
-                
+
                 if (Settings.EnableDebug)
                     Logs.Log($"Successfully loaded {operations.Count} maps resource locations.");
 
                 return operations;
-
-            } finally
+            }
+            finally
             {
                 Addressables.Release(handle);
             }
         }
-        
+
         private LevelReporter _boundReporter;
+
         private LevelReporter BoundReporter
         {
             get
@@ -228,6 +250,7 @@ namespace MortierFu
                         Logs.LogWarning("Found a level reporter in the scene ! Fallback to that reporter.");
                         return _boundReporter = reporter;
                     }
+
                     return null;
                 }
 
@@ -236,6 +259,7 @@ namespace MortierFu
         }
 
         private Transform _fallbackTransform;
+
         public Transform FallbackTransform
         {
             get
@@ -244,13 +268,19 @@ namespace MortierFu
                 {
                     _fallbackTransform = new GameObject("FallbackSpawnPoint").transform;
                 }
-                
+
                 return _fallbackTransform;
             }
         }
-        
+
         public async UniTask OnInitialize()
         {
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            if (_cameraSystem == null)
+            {
+                Logs.LogWarning("[LevelSystem]: No camera System found !");
+            }
+
             // Load the system settings
             _settingsHandle = await SystemManager.Config.LevelSettings.LazyLoadAssetRef();
 
@@ -261,10 +291,10 @@ namespace MortierFu
         public void Dispose()
         {
             Addressables.Release(_settingsHandle);
-            
+
             _arenaMapLocations.Clear();
         }
-        
+
         public bool IsInitialized { get; set; }
     }
 }

@@ -208,11 +208,15 @@ MonoBehaviour:
   SpawnPoints:
   - {fileID: 8270493795685870074}
   - {fileID: 3862948409411120684}
-  _isAugmentMap: 0
-  AugmentPoints:
-  - {fileID: 3061342153171504554}
-  - {fileID: 1964050062909681983}
+  _cameraMapConfig:
+    PositionForRace: {x: 0, y: 10, z: -10}
+    OrthoSize: 20
+  IsRaceMap: 0
+  WinnerSpawnPoint: {fileID: 0}
+  AugmentPivot: {fileID: 0}
+  Radius: 4
   _enableDebug: 1
+  _winnerSpawnColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _spawnPointColor: {r: 0.1176471, g: 0.5647059, b: 1, a: 1}
   _augmentPointColor: {r: 0.26050434, g: 0.8396226, b: 0.13069598, a: 1}
   _widgetSize: 0.1

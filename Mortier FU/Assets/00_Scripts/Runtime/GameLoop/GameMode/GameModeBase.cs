@@ -394,7 +394,6 @@ namespace MortierFu
             UpdateGameState(GameState.RaceInProgress);
             
             cameraSystem.Controller.ClearTargetGroupMember();
-            cameraSystem.Controller.ResetCameraInstant();
 
             ResetPlayers();
             SpawnPlayers();
