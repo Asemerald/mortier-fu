@@ -20,6 +20,8 @@ namespace MortierFu
         private bool _isAiming;
 
         public bool CanShoot => !_shootCooldownTimer.IsRunning;
+        
+        public float ShootCooldownProgress => _shootCooldownTimer.Progress;
 
         public bool IsShooting { get; private set; }
 
@@ -77,6 +79,7 @@ namespace MortierFu
 
         public override void Reset()
         {
+            _shootCooldownTimer.Reset();
             _shootCooldownTimer?.Stop();
             
             ResetAimWidget();
@@ -94,6 +97,7 @@ namespace MortierFu
         }
 
         public override void Dispose() {
+            
             Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
             
             _shootCooldownTimer.Dispose();
