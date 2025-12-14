@@ -63,7 +63,7 @@ namespace MortierFu
             InitializeUI();
         }
 
-        private void OnRoundStarted(int currentRound)
+        private void OnRoundStarted(RoundInfo currentRound)
         {
             UpdateMatchPointIndicator();
             RunCountdown().Forget();

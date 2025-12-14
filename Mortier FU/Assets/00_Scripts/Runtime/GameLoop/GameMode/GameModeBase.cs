@@ -15,12 +15,13 @@ namespace MortierFu
     public abstract class GameModeBase : IGameMode
     {
         protected List<PlayerTeam> teams;
+        public List<RoundInfo> RoundHistory { get; protected set; } = new List<RoundInfo>();
+        private RoundInfo _currentRound;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
         protected List<PlayerCharacter> alivePlayers;
         public ReadOnlyCollection<PlayerCharacter> AlivePlayers;
         
-        protected int currentRound;
         protected int currentRank;
         protected bool oneTeamStanding;
         protected GameState currentState;
@@ -58,7 +59,7 @@ namespace MortierFu
         }
 
         public GameState CurrentState => currentState;
-        public int CurrentRoundCount => currentRound;
+        public int CurrentRoundCount => _currentRound.RoundIndex;
         public float CountdownRemainingTime => timer.CurrentTime;
 
         /// EVENTS
@@ -70,8 +71,8 @@ namespace MortierFu
         /// </summary>
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
-        public event Action<int> OnRoundStarted;
-        public event Action<int> OnRoundEnded;
+        public event Action<RoundInfo> OnRoundStarted;
+        public event Action<RoundInfo> OnRoundEnded;
         
         public event Action<int> OnGameEnded;
 
@@ -113,7 +114,7 @@ namespace MortierFu
                 return;
             }
 
-            currentRound = 0;
+            _currentRound = new RoundInfo();
             gameVictor = null;
 
             GameplayCoroutine().Forget();
@@ -153,7 +154,9 @@ namespace MortierFu
 
                 UpdateGameState(GameState.DisplayScores);
                 DisplayScores();
-
+                
+                await UniTask.Delay(TimeSpan.FromSeconds(Data.DisplayScoresDuration));
+                
                 HideScores();
 
                 if (IsGameOver(out gameVictor))
@@ -192,7 +195,7 @@ namespace MortierFu
 
         private void SpawnPlayers()
         {
-            bool opposite = currentRound % 2 == 0;
+            bool opposite = _currentRound.RoundIndex % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
 
             foreach (var team in teams.OrderByDescending(t => t.Rank))
@@ -242,7 +245,14 @@ namespace MortierFu
         {
             UpdateGameState(GameState.Round);
 
-            currentRound++;
+            _currentRound = new RoundInfo
+            {
+                RoundIndex = RoundHistory.Count + 1,
+                WinningTeam = teams.FirstOrDefault(t => t.Rank == 1)
+            };
+            
+            RoundHistory.Add(_currentRound);
+            
             currentRank = teams.Count;
             oneTeamStanding = false;
             
@@ -289,7 +299,7 @@ namespace MortierFu
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
 
-            Logs.Log($"Round #{currentRound} is starting...");
+            Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
             
             // timer.Reset(_gameModeData.StormSpawnTime);
             // timer.OnTimerStop += SpawnStorm;
@@ -298,7 +308,7 @@ namespace MortierFu
         
         protected void HandleStartOfCountdown()
         {
-            OnRoundStarted?.Invoke(currentRound);
+            OnRoundStarted?.Invoke(_currentRound);
         }
 
         protected virtual void EndRound()
@@ -322,7 +332,7 @@ namespace MortierFu
             
             EvaluateScores();
 
-            OnRoundEnded?.Invoke(currentRound);
+            OnRoundEnded?.Invoke(_currentRound);
         }
 
         private void SpawnStorm() => SpawnStormTask().Forget();

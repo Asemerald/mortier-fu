@@ -23,8 +23,8 @@ namespace MortierFu
         public event Action<GameState> OnGameStateChanged;
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
         public event Action OnGameStarted;
-        public event Action<int> OnRoundStarted;
-        public event Action<int> OnRoundEnded;
+        public event Action<RoundInfo> OnRoundStarted;
+        public event Action<RoundInfo> OnRoundEnded;
         
         /// <summary>
         /// Event called when the game ends.

@@ -47,9 +47,9 @@ namespace MortierFu
             InitializeUI();
         }
         
-        private void OnRoundStarted(int currentRound)
+        private void OnRoundStarted(RoundInfo currentRound)
         {
-            UpdateRoundText(currentRound);
+            UpdateRoundText(currentRound.RoundIndex);
             UpdatePlayerScores();
         }
 

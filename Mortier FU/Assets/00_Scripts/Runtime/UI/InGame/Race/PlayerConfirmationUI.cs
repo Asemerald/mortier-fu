@@ -9,7 +9,7 @@ namespace MortierFu
 {
     public class PlayerConfirmationUI : MonoBehaviour
     {
-        [Header("Player Slots (Blue, Green, Red, Yellow order)")] [SerializeField]
+        [Header("Player Slots (Blue, Red, Green, Yellow order)")] [SerializeField]
         private List<PlayerSlot> _playerSlots;
 
         [Header("Animation Settings")] [SerializeField]
