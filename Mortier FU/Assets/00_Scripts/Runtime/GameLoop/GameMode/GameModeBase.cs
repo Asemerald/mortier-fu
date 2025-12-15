@@ -331,6 +331,8 @@ namespace MortierFu
             alivePlayers.Clear();
             
             EvaluateScores();
+            
+            _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
 
             OnRoundEnded?.Invoke(_currentRound);
         }
