@@ -72,6 +72,7 @@ namespace MortierFu
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
         public event Action<RoundInfo> OnRoundStarted;
+        public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
         
         public event Action<int> OnGameEnded;
@@ -399,6 +400,7 @@ namespace MortierFu
             timer.Stop();
 
             // Hide UI
+            OnScoreDisplayOver?.Invoke();
         }
 
         protected virtual void StartRace()
