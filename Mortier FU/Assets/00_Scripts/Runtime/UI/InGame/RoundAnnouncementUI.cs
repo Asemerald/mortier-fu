@@ -90,6 +90,9 @@ namespace MortierFu
             do
             {
                 remaining = _gm.CountdownRemainingTime;
+                #if UNITY_EDITOR
+                remaining *= 4f;
+                #endif
                 UpdateCountdownVisual(Mathf.CeilToInt(remaining));
                 await UniTask.Yield();
             } while (remaining > 0f);

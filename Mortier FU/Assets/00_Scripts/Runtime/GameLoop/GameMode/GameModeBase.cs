@@ -281,7 +281,7 @@ namespace MortierFu
         {
             float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-            // duration *= 0.25f;
+            duration *= 0.25f;
             #endif
 
             timer.Reset(duration - 0.01f);
