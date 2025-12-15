@@ -63,14 +63,24 @@ public class RoundEndUI : MonoBehaviour
         // Set Player Image to winning team sprite if team has the most point 
         int highestScore = -1;
         int winningTeamIndex = -1;
+        foreach (var t in playerTeams)
+        {
+            if (t.Score > highestScore)
+            {
+                highestScore = t.Score;
+                winningTeamIndex = t.Index;
+            }
+        }
+        
         for (int i = 0; i < playerTeams.Count; i++)
         {
-            if (playerTeams[i].Score > highestScore)
+            if (i < playerCount)
             {
-                highestScore = playerTeams[i].Score;
-                winningTeamIndex = playerTeams[i].Index;
+                if (playerTeams[i].Index == winningTeamIndex)
+                {
+                    playerImages[i].sprite = winnerSprites[playerTeams[i].Index];
+                }
             }
-            playerImages[i].sprite = winnerSprites[playerTeams[i].Index];
         }
     }
 
