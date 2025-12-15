@@ -16,6 +16,7 @@ public class RoundEndUI : MonoBehaviour
     [Header("Assets")] 
     [SerializeField] private Material[] winnerMaterials;
     [SerializeField] private Material[] winnerBackgroundMaterial;
+    [SerializeField] private Sprite[] defaultSprites;
     [SerializeField] private Sprite[] winnerSprites;
 
     private GameModeBase _gm;
@@ -51,6 +52,7 @@ public class RoundEndUI : MonoBehaviour
             if (i < playerCount)
             {
                 playerImages[i].gameObject.SetActive(true);
+                playerImages[i].sprite = defaultSprites[playerTeams[i].Index];
                 scoreTexts[i].text = playerTeams[i].Score.ToString();
             }
             else
