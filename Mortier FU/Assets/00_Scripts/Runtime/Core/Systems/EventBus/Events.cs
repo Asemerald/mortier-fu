@@ -9,4 +9,9 @@ namespace MortierFu
     {
         public IGameSystem System;
     }
+
+    public struct EventPlayerDeath : IEvent {
+        public PlayerCharacter Character;
+        public object Source;
+    }
 }
