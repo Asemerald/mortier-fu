@@ -1,5 +1,7 @@
+using System.Data;
 using UnityEngine.InputSystem;
 using MortierFu.Shared;
+using PrimeTween;
 using UnityEngine;
 
 namespace MortierFu
@@ -14,6 +16,8 @@ namespace MortierFu
         
         private InputAction _moveAction;
 
+        private Tween _avatarSizeTween;
+        
         public float SpeedRatio => Mathf.Clamp01(rigidbody.linearVelocity.magnitude / Stats.MoveSpeed.Value); 
         
         public ControllerCharacterComponent(PlayerCharacter character) : base(character)
@@ -55,7 +59,12 @@ namespace MortierFu
 
         private void UpdateAvatarSize()
         {
-            character.transform.localScale = Vector3.one * Stats.GetAvatarSize();
+            if (_avatarSizeTween.isAlive) {
+                _avatarSizeTween.Stop();
+            }
+            
+            float targetSize = Stats.GetAvatarSize();
+            _avatarSizeTween = Tween.Scale(character.transform, targetSize, 0.25f, Ease.OutQuad);
         }
         
         // LocomotionState methods

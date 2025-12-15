@@ -31,8 +31,8 @@ namespace MortierFu
         public void ReceiveKnockback(float duration, Vector3 bumpForce, float stunDuration)
         {
             // On autorise actuellement le "refresh" du stun
-            if(IsActive && _stunTimer.CurrentTime > duration)
-                return;
+            // if(IsActive && _stunTimer.CurrentTime > duration)
+            //     return;
             
             //set bump direction
             _currentBumpForce = bumpForce;

@@ -87,7 +87,7 @@ namespace MortierFu
         
         // Complex stats calculations
         public float GetStrikePushForce() => StrikePushForceOffset + StrikePushForce.Value;
-        public float GetAvatarSize()    => AvatarSize.Value + Mathf.Log(1f + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor);
+        public float GetAvatarSize()    => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
         public float GetStrikeRadius()  => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetShotRange()     => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
         public float GetBombshellSize() => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
