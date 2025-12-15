@@ -11,7 +11,6 @@ public class RoundEndUI : MonoBehaviour
     [SerializeField] private Image winnerImage;
     [SerializeField] private Image winnerImageBackground;
     [SerializeField] private Image[] playerImages;
-    [SerializeField] private Image[] scoreBackgroundImages;
     [SerializeField] private TMP_Text[] scoreTexts;
 
     [Header("Assets")] 
@@ -52,34 +51,27 @@ public class RoundEndUI : MonoBehaviour
             if (i < playerCount)
             {
                 playerImages[i].gameObject.SetActive(true);
-                scoreBackgroundImages[i].gameObject.SetActive(true);
-                scoreTexts[i].gameObject.SetActive(true);
                 scoreTexts[i].text = playerTeams[i].Score.ToString();
             }
             else
             {
                 playerImages[i].gameObject.SetActive(false);
-                scoreBackgroundImages[i].gameObject.SetActive(false);
                 scoreTexts[i].gameObject.SetActive(false);
             }
         }
         
-        // Set Winner Sprite to team with highest score
+        // Set Player Image to winning team sprite if team has the most point 
         int highestScore = -1;
-        int winningPlayerIndex = -1;
-        foreach (var t in playerTeams)
+        int winningTeamIndex = -1;
+        for (int i = 0; i < playerTeams.Count; i++)
         {
-            if (t.Score > highestScore)
+            if (playerTeams[i].Score > highestScore)
             {
-                highestScore = t.Score;
-                winningPlayerIndex = t.Index;
+                highestScore = playerTeams[i].Score;
+                winningTeamIndex = playerTeams[i].Index;
             }
+            playerImages[i].sprite = winnerSprites[playerTeams[i].Index];
         }
-        if (winningPlayerIndex >= 0 && winningPlayerIndex < winnerSprites.Length)
-        {
-            winnerImage.sprite = winnerSprites[winningPlayerIndex];
-        }
-
     }
 
     private void SetWinner(int playerIndex)
@@ -103,15 +95,6 @@ public class RoundEndUI : MonoBehaviour
         winnerImageBackground.gameObject.SetActive(false);
 
         foreach (var t in playerImages)
-        {
-            t.gameObject.SetActive(false);
-        }
-        foreach (var t in scoreBackgroundImages)
-        {
-            t.gameObject.SetActive(false);
-        }
-
-        foreach (var t in scoreTexts)
         {
             t.gameObject.SetActive(false);
         }
