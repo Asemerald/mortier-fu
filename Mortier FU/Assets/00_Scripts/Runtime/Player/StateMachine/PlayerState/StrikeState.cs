@@ -114,7 +114,7 @@ namespace MortierFu
                 other.Health.TakeDamage(strikeDamage, character);
 
                 var knockbackDir = (other.transform.position - character.transform.position).normalized;
-                var knockbackForce = knockbackDir * character.Stats.StrikePushForce.Value;
+                var knockbackForce = knockbackDir * character.Stats.GetStrikePushForce();
                 float knockbackDuration = character.Stats.KnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
                 other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration);

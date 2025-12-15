@@ -59,7 +59,10 @@ namespace MortierFu
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
         [field: SerializeField, Tooltip("Duration of the Stun.")]
-        public CharacterStat StrikePushForce { get; private set; } = new( 10.5f);
+        public CharacterStat StrikePushForce { get; private set; } = new( 2f);
+
+        [field: SerializeField, Tooltip("Offset the strength to make it more scalable.")]
+        public float StrikePushForceOffset = 8.5f;
 
         [field: SerializeField, Tooltip("Duration of the Knockback effect.")]
         public CharacterStat KnockbackDuration { get; private set; } = new(0.5f);
@@ -67,12 +70,14 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Stun duration caused when colliding into an obstacle during knockback.")]
         public float KnockbackStunDuration { get; private set; } = 0.5f;
         
-        [Header("Fomrula Components")]
-        [field: SerializeField, Space, Tooltip("Influence of the max health towards the avatar size.")]
+        [field: Header("Fomrula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
         public float MaxHealthToAvatarSizeFactor { get; private set; } = 0.6f;
         
         [field: SerializeField, Tooltip("Influence of strike push force towards the strike radius.")]
         public float StrikePushForceToStrikeRadiusFactor { get; private set; } = 0.6f;
+        
+        [field: SerializeField, Tooltip("Influence of strike push force towards the strike radius.")]
+        public float AvatarSizeToStrikeRadiusFactor { get; private set; } = 1f;
         
         [field: SerializeField, Tooltip("Influence of the bombshell impact radius towards the shot range.")]
         public float BombshellImpactRadiusToShotRangeFactor { get; private set; } = 0.8f;
@@ -81,8 +86,9 @@ namespace MortierFu
         public float BombshellImpactRadiusToBombshellSizeFactor { get; private set; } = 1.4f;
         
         // Complex stats calculations
-        public float GetAvatarSize()    => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
-        public float GetStrikeRadius()  => StrikeRadius.Value + (StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
+        public float GetStrikePushForce() => StrikePushForceOffset + StrikePushForce.Value;
+        public float GetAvatarSize()    => AvatarSize.Value + Mathf.Log(1f + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor);
+        public float GetStrikeRadius()  => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetShotRange()     => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
         public float GetBombshellSize() => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
         public float GetKnockbackStunDuration()
