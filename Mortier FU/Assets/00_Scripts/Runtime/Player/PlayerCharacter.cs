@@ -202,9 +202,10 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveKnockback(float duration, Vector3 direction)
+        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
         {
-            _knockbackState.ReceiveKnockback(duration, direction);
+            force /= Stats.GetAvatarSize();
+            _knockbackState.ReceiveKnockback(duration, force, stunDuration);
         }
 
         public void ReceiveStun(float duration)
@@ -289,7 +290,7 @@ namespace MortierFu
         {
             if (_knockbackState.IsActive && other.impulse.magnitude > 5)
             {
-                ReceiveStun(Controller.Stats.StrikeStunDuration.Value);
+                ReceiveStun(_knockbackState.StunDuration);
             }
         }
 

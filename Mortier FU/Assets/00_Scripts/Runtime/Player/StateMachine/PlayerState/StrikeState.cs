@@ -37,7 +37,7 @@ namespace MortierFu
                 Character =  character,
             });
             
-            TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.StrikeRadius.Value);
+            TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.GetStrikeRadius());
             if(debug)
                 Logs.Log("Entering Strike State");
         }
@@ -73,7 +73,7 @@ namespace MortierFu
         private void ExecuteStrike()
         {
             var origin = character.transform.position;
-            var count = Physics.OverlapSphereNonAlloc(origin, character.Stats.StrikeRadius.Value, _overlapBuffer);
+            var count = Physics.OverlapSphereNonAlloc(origin, character.Stats.GetStrikeRadius(), _overlapBuffer);
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             var processedRoots = new HashSet<GameObject>();
@@ -112,7 +112,12 @@ namespace MortierFu
                 
                 int strikeDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
                 other.Health.TakeDamage(strikeDamage, character);
-                other.ReceiveKnockback(character.Stats.StrikeStunDuration.Value, (other.transform.position-character.transform.position).normalized);
+
+                var knockbackDir = (other.transform.position - character.transform.position).normalized;
+                var knockbackForce = knockbackDir * character.Stats.StrikePushForce.Value;
+                float knockbackDuration = character.Stats.KnockbackDuration.Value;
+                float stunDuration = character.Stats.GetKnockbackStunDuration();
+                other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration);
             }
 
             if (hitCharacters.Count > 0)
