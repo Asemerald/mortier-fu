@@ -44,7 +44,7 @@ namespace MortierFu
                 // Hard fix for empty augment lists
                 if (augments.Count == 0)
                 {
-                    rarity = E_AugmentRarity.Common;
+                    rarity = E_AugmentRarity.Rare;
                     if (!_augmentsPerRarity.TryGetValue(rarity, out augments))
                     {
                         Logs.LogError($"No augment found of rarity {rarity} !");

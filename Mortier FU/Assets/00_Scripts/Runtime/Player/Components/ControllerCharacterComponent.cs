@@ -32,6 +32,7 @@ namespace MortierFu
             character.FindInputAction("Move", out _moveAction);
 
             Stats.AvatarSize.OnDirtyUpdated += UpdateAvatarSize;
+            Stats.MaxHealth.OnDirtyUpdated += UpdateAvatarSize;
             UpdateAvatarSize();
         }
 
@@ -43,6 +44,7 @@ namespace MortierFu
 
         public override void Dispose() {
             Stats.AvatarSize.OnDirtyUpdated -= UpdateAvatarSize;
+            Stats.MaxHealth.OnDirtyUpdated -= UpdateAvatarSize;
         }
         
         public override void Update()
@@ -53,7 +55,7 @@ namespace MortierFu
 
         private void UpdateAvatarSize()
         {
-            character.transform.localScale = Vector3.one * Stats.AvatarSize.Value;
+            character.transform.localScale = Vector3.one * Stats.GetAvatarSize();
         }
         
         // LocomotionState methods
@@ -121,7 +123,7 @@ namespace MortierFu
         public override void OnDrawGizmos()
         {
             Gizmos.color = _debugStrikeColor;
-            Gizmos.DrawWireSphere(character.transform.position, Stats.StrikeRadius.Value);
+            Gizmos.DrawWireSphere(character.transform.position, Stats.GetStrikeRadius());
         }
 
         public void ResetVelocity()

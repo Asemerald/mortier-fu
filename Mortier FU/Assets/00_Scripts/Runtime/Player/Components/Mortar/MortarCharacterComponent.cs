@@ -121,7 +121,7 @@ namespace MortierFu
                 TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
-                Scale =  Stats.BombshellSize.Value,
+                Scale =  Stats.GetBombshellSize(),
                 AoeRange = Stats.BombshellImpactRadius.Value,
                 Bounces = Mathf.RoundToInt(Stats.BombshellBounces.Value)
             };
