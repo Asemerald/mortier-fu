@@ -23,7 +23,7 @@ public class RoundEndUI : MonoBehaviour
 
     private void Start()
     {
-        HideScore(new RoundInfo());
+        HideScore();
         
         _gm = GameService.CurrentGameMode as GameModeBase;
         if (_gm == null)
@@ -101,12 +101,19 @@ public class RoundEndUI : MonoBehaviour
     {
         winnerImage.gameObject.SetActive(false);
         winnerImageBackground.gameObject.SetActive(false);
-        
-        for (int i = 0; i < playerImages.Length; i++)
+
+        foreach (var t in playerImages)
         {
-            playerImages[i].gameObject.SetActive(false);
-            scoreBackgroundImages[i].gameObject.SetActive(false);
-            scoreTexts[i].gameObject.SetActive(false);
+            t.gameObject.SetActive(false);
+        }
+        foreach (var t in scoreBackgroundImages)
+        {
+            t.gameObject.SetActive(false);
+        }
+
+        foreach (var t in scoreTexts)
+        {
+            t.gameObject.SetActive(false);
         }
     }
     
