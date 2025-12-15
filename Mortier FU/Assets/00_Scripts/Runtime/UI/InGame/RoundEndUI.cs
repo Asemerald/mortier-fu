@@ -33,7 +33,7 @@ public class RoundEndUI : MonoBehaviour
         }
 
         _gm.OnRoundEnded += DisplayScores;
-        _gm.OnRoundStarted += HideScore;
+        _gm.OnScoreDisplayOver += HideScore;
     }
     
     private void DisplayScores(RoundInfo round)
@@ -97,7 +97,7 @@ public class RoundEndUI : MonoBehaviour
         }
     }
 
-    private void HideScore(RoundInfo currentRound)
+    private void HideScore()
     {
         winnerImage.gameObject.SetActive(false);
         winnerImageBackground.gameObject.SetActive(false);
