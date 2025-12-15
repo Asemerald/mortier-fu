@@ -7,7 +7,6 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = UnityEngine.Object;
 using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
@@ -362,7 +361,7 @@ namespace MortierFu
                 {
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
-                    team.Score += Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
                 }
             }
         }
