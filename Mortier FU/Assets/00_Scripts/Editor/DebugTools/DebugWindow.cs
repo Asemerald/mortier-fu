@@ -16,12 +16,19 @@ namespace MortierFu.Editor {
         private SerializedObject _serializedObject;
         
         private const string k_skipMenuEnabled = "SkipMenuEnabled";
+        private const string k_countdownSpeedMultiplier = "CountdownSpeedMult";
         private const string k_overrideArenaMapAddress = "OverrideArenaMapAddress";
         private const string k_overrideRaceMapAddress = "OverrideRaceMapAddress";
         
         private static bool SkipMenuEnabled {
-            get => EditorPrefs.GetBool(k_skipMenuEnabled);
+            get => EditorPrefs.GetBool(k_skipMenuEnabled, false);
             set => EditorPrefs.SetBool(k_skipMenuEnabled, value);
+        }
+
+        private static int CountdownSpeedMultiplier
+        {
+            get => EditorPrefs.GetInt(k_countdownSpeedMultiplier, 1);
+            set => EditorPrefs.SetInt(k_countdownSpeedMultiplier, value);
         }
         
         private void CreateGUI() {
@@ -77,12 +84,25 @@ namespace MortierFu.Editor {
 
             var skipMenuToggle = new Toggle("Skip Menu") {
                 tooltip = "If toggled, the system will detect connected devices, make them join and skip the main menu to launch the game as fast as possible.",
-                value = SkipMenuEnabled,
+                value = SkipMenuEnabled
             };
             skipMenuToggle.RegisterValueChangedCallback(evt => SkipMenuEnabled = evt.newValue);
+            skipMenuToggle.labelElement.style.minWidth = 200;
+            skipMenuToggle.labelElement.style.width = 200;
+            
+            var speedMultiplierSlider = new SliderInt("Countdown Speed Multiplier", 1, 10)
+            {
+                tooltip = "Multiplies the speed at which the countdown goes.",
+                value = CountdownSpeedMultiplier,
+                showInputField = true
+            };
+            speedMultiplierSlider.RegisterValueChangedCallback(evt => CountdownSpeedMultiplier = evt.newValue);
+            speedMultiplierSlider.labelElement.style.minWidth = 200;
+            speedMultiplierSlider.labelElement.style.width = 200;
             
             _contentContainer.AddHeader("GLOBAL");
             _contentContainer.Add(skipMenuToggle);
+            _contentContainer.Add(speedMultiplierSlider);
             
             string arenaMapAddress = ReadOverrideMapAddress(k_overrideArenaMapAddress);
             if (!string.IsNullOrEmpty(arenaMapAddress)) {

@@ -6,6 +6,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace MortierFu
 {
     public class RoundAnnouncementUI : MonoBehaviour
@@ -91,7 +95,8 @@ namespace MortierFu
             {
                 remaining = _gm.CountdownRemainingTime;
                 #if UNITY_EDITOR
-                remaining *= 4f;
+                int speedMult = EditorPrefs.GetInt("CountdownSpeedMult", 1);
+                remaining *= speedMult;
                 #endif
                 UpdateCountdownVisual(Mathf.CeilToInt(remaining));
                 await UniTask.Yield();

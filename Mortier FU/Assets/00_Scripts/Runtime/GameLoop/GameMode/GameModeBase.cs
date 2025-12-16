@@ -4,10 +4,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Vector3 = UnityEngine.Vector3;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MortierFu
 {
@@ -286,7 +289,8 @@ namespace MortierFu
         {
             float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-            duration *= 0.25f;
+            int speedMult = EditorPrefs.GetInt("CountdownSpeedMult", 1);
+            duration *= 1f / speedMult;
             #endif
 
             timer.Reset(duration - 0.01f);

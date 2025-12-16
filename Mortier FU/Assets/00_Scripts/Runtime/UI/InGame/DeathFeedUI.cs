@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.ResourceManagement.Exceptions;
@@ -44,7 +43,10 @@ namespace MortierFu
             }
 
             notif.Initialize(this, evt.Character);
+            
+            Debug.Log($"Create notif bacause {evt.Character.Owner.PlayerIndex} died !");
         }
+        
         private RectTransform GetAvailableSlot()
         {
             for (int i = 0; i < _slots.Length; i++)

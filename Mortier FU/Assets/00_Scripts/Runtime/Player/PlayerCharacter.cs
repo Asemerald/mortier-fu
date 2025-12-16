@@ -204,7 +204,7 @@ namespace MortierFu
 
         public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
         {
-            //force /= Stats.GetAvatarSize();
+            force /= 1 + (Stats.GetAvatarSize() - 1) * 0.2f;
             _knockbackState.ReceiveKnockback(duration, force, stunDuration);
         }
 

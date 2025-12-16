@@ -38,8 +38,9 @@ namespace MortierFu {
             
             // Retrieve this player's index
             int index = character.Owner.PlayerIndex;
-            PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);
-
+            //PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);\
+            PlayerColor = AspectMaterials.LightColor.color;
+            
             var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>();
             if (renderers.Length > 0)
             {
