@@ -5,6 +5,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine.AddressableAssets;
+using UnityEngine.InputSystem;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Vector3 = UnityEngine.Vector3;
 
@@ -117,6 +118,7 @@ namespace MortierFu
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
                 await levelSystem.LoadArenaMap();
                 StartRound();
+                
                 return;
             }
 

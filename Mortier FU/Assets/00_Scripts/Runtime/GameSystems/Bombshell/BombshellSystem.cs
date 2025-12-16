@@ -50,18 +50,14 @@ namespace MortierFu
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
             
-            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults);
+            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults, Settings.WhatIsCollidable);
             for (int i = 0; i < numHits; i++)
             {
                 Collider hitCollider = _impactResults[i];
+                hits.Add(hitCollider.gameObject);
 
-                if (hitCollider.attachedRigidbody == null)
-                {
-                    hits.Add(hitCollider.gameObject);
-                    continue;
-                }
-
-                if (hitCollider.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
+                var rb = hitCollider.attachedRigidbody;
+                if (rb && rb.TryGetComponent(out PlayerCharacter character))
                 {
                     // Prevent self-damage
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
@@ -80,7 +76,7 @@ namespace MortierFu
                     }
                 }
                 // temp check for breakable object
-                else if (hitCollider.attachedRigidbody.TryGetComponent(out IInteractable interactable) &&
+                else if (hitCollider.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
                     interactable.Interact();

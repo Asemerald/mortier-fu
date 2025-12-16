@@ -12,18 +12,18 @@ namespace MortierFu
 
         public Action<object> OnDeath;
 
-        private int _currentHealth;
-        private int _maxHealth;
+        private float _currentHealth;
+        private float _maxHealth;
 
-        public int CurrentHealth => _currentHealth;
-        public int MaxHealth => _maxHealth;
-        public float HealthRatio => Mathf.Clamp01(_currentHealth / (float)_maxHealth);
-        public bool IsAlive => _currentHealth > 0;
+        public float CurrentHealth => _currentHealth;
+        public float MaxHealth => _maxHealth;
+        public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
+        public bool IsAlive => _currentHealth > 0f;
 
         public HealthCharacterComponent(PlayerCharacter character) : base(character)
         {
-            _maxHealth = 1;
-            _currentHealth = 1;
+            _maxHealth = 1f;
+            _currentHealth = 1f;
         }
 
         public override void Initialize()
@@ -32,14 +32,14 @@ namespace MortierFu
             UpdateHealth();
         }
 
-        public void TakeDamage(int amount, object source, bool isLethal = false)
+        public void TakeDamage(float amount, object source, bool isLethal = false)
         {
             // Cannot take damage if already dead
             if (!IsAlive)
                 return;
 
-            int previousHealth = _currentHealth;
-            _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth));
+            float previousHealth = _currentHealth;
+            _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(-amount);
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
@@ -67,8 +67,8 @@ namespace MortierFu
 
         public void Heal(float amount)
         {
-            int previousHealth = _currentHealth;
-            _currentHealth = Mathf.RoundToInt(Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth));
+            float previousHealth = _currentHealth;
+            _currentHealth = Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(amount);
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
@@ -88,10 +88,10 @@ namespace MortierFu
 
         void UpdateHealth()
         {
-            int newMaxHealth = Math.Max(1, Mathf.RoundToInt(Stats.MaxHealth.Value));
+            float newMaxHealth = Mathf.Max(1f, Stats.MaxHealth.Value);
 
             // Calculate gain or loss in max health
-            int delta = newMaxHealth - _maxHealth;
+            float delta = newMaxHealth - _maxHealth;
 
             _maxHealth = newMaxHealth;
 
@@ -102,7 +102,7 @@ namespace MortierFu
             }
 
             // Always clamp to ensure we stay inside valid bounds
-            _currentHealth = Math.Clamp(_currentHealth, 0, _maxHealth);
+            _currentHealth = Mathf.Clamp(_currentHealth, 0f, _maxHealth);
         }
 
         public override void Dispose()

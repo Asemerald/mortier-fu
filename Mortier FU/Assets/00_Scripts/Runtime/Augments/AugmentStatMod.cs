@@ -7,7 +7,6 @@
         public E_StatModType ModType;
     }
     
-    
     public static class AugmentStatModExtensions {
         public static StatModifier ToMod(this AugmentStatMod mod, object source)
         {
