@@ -1,14 +1,5 @@
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
-using PrimeTween;
 using UnityEngine;
-using UnityEngine.UI;
-using System;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace MortierFu
 {
@@ -16,19 +7,24 @@ namespace MortierFu
     {
         [SerializeField] private GameObject _goldenBombshellGameObject;
 
-        private GameModeBase _gm;
-        
+        [SerializeField] private CountdownUI _countdownUI;
+
+        private void Awake()
+        {
+            _countdownUI.gameObject.SetActive(false);
+        }
+
         public void OnGameStarted()
         {
-            _gm = GameService.CurrentGameMode as GameModeBase;
-            
-            _gm.OnGameStarted -= OnGameStarted;
             InitializeUI();
         }
 
-        public void OnRoundStarted()
+        public void OnRoundStarted(GameModeBase gm)
         {
-            UpdateMatchPointIndicator();
+            UpdateMatchPointIndicator(gm);
+
+            _countdownUI.gameObject.SetActive(true);
+            _countdownUI.PlayCountdown().Forget();
         }
 
         private void InitializeUI()
@@ -38,15 +34,15 @@ namespace MortierFu
             _goldenBombshellGameObject.SetActive(false);
         }
 
-        private void UpdateMatchPointIndicator()
+        private void UpdateMatchPointIndicator(GameModeBase gm)
         {
-            if (_gm == null || _goldenBombshellGameObject.activeSelf) return;
+            if (gm == null || _goldenBombshellGameObject.activeSelf) return;
 
             bool isMatchPoint = false;
 
-            for (int i = 0; i < _gm.Teams.Count; i++)
+            for (int i = 0; i < gm.Teams.Count; i++)
             {
-                if (_gm.Teams[i].Score < _gm.Data.ScoreToWin) continue;
+                if (gm.Teams[i].Score < gm.Data.ScoreToWin) continue;
                 isMatchPoint = true;
                 break;
             }

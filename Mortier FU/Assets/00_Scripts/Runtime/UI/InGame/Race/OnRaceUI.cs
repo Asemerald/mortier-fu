@@ -7,7 +7,6 @@ namespace MortierFu
     {
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;
-
         [SerializeField] private CountdownUI _raceCountdownUI;
 
         private ConfirmationService _confirmationService;
@@ -26,23 +25,14 @@ namespace MortierFu
         {
             if (_confirmationService != null)
             {
-                _confirmationService.OnStartConfirmation += ShowConfirmation;
-                _confirmationService.OnPlayerConfirmed += _playerConfirmationUI.NotifyPlayerConfirmed;
-                _confirmationService.OnAllPlayersConfirmed += _playerConfirmationUI.OnConfirmation;
+                _confirmationService.OnStartConfirmation += HandleStartConfirmation;
+                _confirmationService.OnPlayerConfirmed += HandlePlayerConfirmed;
+                _confirmationService.OnAllPlayersConfirmed += HandleAllPlayersConfirmed;
             }
             else
             {
                 Debug.LogError($"OnRaceUI] No ConfirmationService found for {gameObject.name}");
             }
-        }
-
-        private void OnDisable()
-        {
-            if (_confirmationService == null) return;
-
-            _confirmationService.OnStartConfirmation -= ShowConfirmation;
-            _confirmationService.OnPlayerConfirmed -= _playerConfirmationUI.NotifyPlayerConfirmed;
-            _confirmationService.OnAllPlayersConfirmed -= _playerConfirmationUI.OnConfirmation;
         }
 
         private void Start()
@@ -55,9 +45,18 @@ namespace MortierFu
                 return;
             }
 
-            _augmentSelectionSystem.OnPressureStart += StartVignettePressure;
-            _augmentSelectionSystem.OnPressureStop += _racePressureUI.StopVignettePressure;
-            _augmentSelectionSystem.OnStopShowcase += StartRaceCountdown;
+            _augmentSelectionSystem.OnPressureStart += HandlePressureStart;
+            _augmentSelectionSystem.OnPressureStop += HandlePressureStop;
+            _augmentSelectionSystem.OnStopShowcase += HandleStopShowcase;
+        }
+        
+        private void OnDisable()
+        {
+            if (_confirmationService == null) return;
+
+            _confirmationService.OnStartConfirmation -= HandleStartConfirmation;
+            _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirmed;
+            _confirmationService.OnAllPlayersConfirmed -=HandleAllPlayersConfirmed;
         }
 
         void OnDestroy()
@@ -69,24 +68,40 @@ namespace MortierFu
                 return;
             }
 
-            _augmentSelectionSystem.OnPressureStart -= StartVignettePressure;
-            _augmentSelectionSystem.OnPressureStop -= _racePressureUI.StopVignettePressure;
-            _augmentSelectionSystem.OnStopShowcase -= StartRaceCountdown;
+            _augmentSelectionSystem.OnPressureStart -= HandlePressureStart;
+            _augmentSelectionSystem.OnPressureStop -= HandlePressureStop;
+            _augmentSelectionSystem.OnStopShowcase -= HandleStopShowcase;
         }
 
-        private void ShowConfirmation(int activePlayerCount)
+        private void HandleStartConfirmation(int activePlayerCount)
         {
             _playerConfirmationUI.gameObject.SetActive(true);
             _playerConfirmationUI.ShowConfirmation(activePlayerCount);
         }
+        
+        private void HandlePlayerConfirmed(int playerIndex)
+        {
+            _playerConfirmationUI.NotifyPlayerConfirmed(playerIndex);
+        }
 
-        private void StartVignettePressure(float duration)
+        private void HandleAllPlayersConfirmed()
+        {
+            _playerConfirmationUI.OnConfirmation();
+        }
+
+        private void HandlePressureStart(float duration)
         {
             _racePressureUI.gameObject.SetActive(true);
             _racePressureUI.StartVignettePressure(duration);
         }
+        
+        private void HandlePressureStop()
+        {
+            _racePressureUI.StopVignettePressure();
+            _racePressureUI.gameObject.SetActive(false);
+        }
 
-        private void StartRaceCountdown()
+        private void HandleStopShowcase()
         {
             _raceCountdownUI.gameObject.SetActive(true);
             _raceCountdownUI.PlayCountdown().Forget();
