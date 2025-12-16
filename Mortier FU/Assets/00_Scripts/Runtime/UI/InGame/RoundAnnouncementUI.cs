@@ -9,29 +9,12 @@ namespace MortierFu
 
         [SerializeField] private CountdownUI _countdownUI;
 
-        private void Awake()
-        {
-            _countdownUI.gameObject.SetActive(false);
-        }
-
-        public void OnGameStarted()
-        {
-            InitializeUI();
-        }
-
         public void OnRoundStarted(GameModeBase gm)
         {
             UpdateMatchPointIndicator(gm);
 
             _countdownUI.gameObject.SetActive(true);
             _countdownUI.PlayCountdown().Forget();
-        }
-
-        private void InitializeUI()
-        {
-            gameObject.SetActive(false);
-
-            _goldenBombshellGameObject.SetActive(false);
         }
 
         private void UpdateMatchPointIndicator(GameModeBase gm)

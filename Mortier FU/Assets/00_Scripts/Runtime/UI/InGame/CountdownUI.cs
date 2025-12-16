@@ -12,16 +12,17 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private Image _countdownImage;
 
-        [SerializeField] private List<Sprite> _countdownSprites;
-
         [SerializeField] private GameObject _lastGameObjectToShow;
         [SerializeField] private GameObject _firstGameObjectToShow;
+
+        [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
 
         [Header("Parameters")] [SerializeField]
         private float _racePopDuration = 1f;
 
         [SerializeField] private float _racePopScale = 1.2f;
 
+        private Vector3 _initialRaceScale;
         private Vector3 _initialCountdownScale;
 
         private Sequence _countdownSequence;
@@ -31,7 +32,10 @@ namespace MortierFu
             _initialCountdownScale = _countdownImage.transform.localScale;
 
             if (_lastGameObjectToShow != null)
+            {
+                _initialRaceScale = _lastGameObjectToShow.transform.localScale;
                 _lastGameObjectToShow.SetActive(false);
+            }
 
             if (_firstGameObjectToShow != null)
                 _firstGameObjectToShow.SetActive(false);
@@ -79,7 +83,7 @@ namespace MortierFu
         {
             var target = _countdownImage.transform;
             Vector3 targetScale = _initialCountdownScale;
-            
+
             if (_countdownSequence.isAlive)
                 _countdownSequence.Stop();
 
@@ -110,14 +114,19 @@ namespace MortierFu
             _lastGameObjectToShow.SetActive(true);
 
             var t = _lastGameObjectToShow.transform;
-            Vector3 originalScale = t.localScale;
             t.localScale = Vector3.zero;
 
-            await Tween.Scale(t, Vector3.zero, originalScale * _racePopScale, _racePopDuration * 0.5f, Ease.OutBack);
-            await Tween.Scale(t, originalScale * _racePopScale, originalScale, _racePopDuration * 0.5f, Ease.InBack);
+            await Tween.Scale(
+                t,
+                t.localScale * _racePopScale,
+                _initialRaceScale,
+                _racePopDuration * 0.5f,
+                Ease.InBack
+            );
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
+            t.localScale = _initialRaceScale;
             _lastGameObjectToShow.SetActive(false);
         }
 
