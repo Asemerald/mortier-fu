@@ -11,6 +11,7 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
+    // TODO: Le GameMode de salopard, il fait bientôt 600 lignes, il faudrait peut-être mettre le bébé au régime
     public abstract class GameModeBase : IGameMode
     {
         protected List<PlayerTeam> teams;
@@ -40,11 +41,12 @@ namespace MortierFu
 
         private AsyncOperationHandle<SO_StormSettings> _stormSettingsHandle;
         public SO_StormSettings StormSettings => _stormSettingsHandle.Result;
-        
             
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
         public SO_GameModeData Data => _dataHandle.Result;
 
+        private EventBinding<EventPlayerDeath> _playerDeathBinding;
+        
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
@@ -100,12 +102,13 @@ namespace MortierFu
                 var player = players[i];
                 player.SpawnInGame(new Vector3(i, 5, i) * 2f);
                 
-                player.Character.Health.OnDeath += source => OnDeath(player, source); //TODO: Memory leak ? Can be improved
+                // Use event bus to prevent closure and weird on Death subscriptions
+                // player.Character.Health. += source => OnDeath(player, source);
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
-
+            
             if (!IsReady)
             {
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
@@ -274,6 +277,8 @@ namespace MortierFu
             var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
             cameraSystem.Controller.PopulateTargetGroup(groupMembers);
             
+            EventBus<EventPlayerDeath>.Register(_playerDeathBinding);
+            
             HandleCountdown();
         }
 
@@ -281,7 +286,7 @@ namespace MortierFu
         {
             float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-            // duration *= 0.25f;
+            duration *= 0.25f;
             #endif
 
             timer.Reset(duration - 0.01f);
@@ -315,6 +320,8 @@ namespace MortierFu
         {
             timer.OnTimerStop -= SpawnStorm;
             timer.Stop();
+            
+            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
             
             bombshellSys.ClearActiveBombshells();
             puddleSys.ClearActivePuddles();
@@ -463,8 +470,9 @@ namespace MortierFu
             _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
             
             timer = new CountdownTimer(0f);
-            Debug.Log("CREATE TIMER");
 
+            _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
+            
             Logs.Log("Game mode initialized successfully.");
         }
 
@@ -480,20 +488,24 @@ namespace MortierFu
             
             Addressables.Release(_dataHandle);
             Addressables.Release(_stormSettingsHandle);
+
+            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
+            _playerDeathBinding = null;
             
             teams.Clear();
             timer.Dispose();
         }
 
-        protected void OnDeath(PlayerManager player, object source)
-        {
+        protected void OnPlayerDeath(EventPlayerDeath evt) {
+            var player = evt.Character.Owner;
+            
             player.Metrics.TotalDeaths++;
             alivePlayers.Remove(player.Character);
             cameraSystem.Controller.RemoveTarget(player.transform);
 
-            if (source is PlayerCharacter killer)
+            if (evt.Source is PlayerCharacter killer)
             {
-                OnPlayerKill(killer, player.Character);
+                OnPlayerKill(killer, evt.Character);
             }
 
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
@@ -507,6 +519,8 @@ namespace MortierFu
             {
                 victimTeam.Rank = currentRank;
                 currentRank--;
+                
+                Logs.Log("This eliminated, assigned rank #" + victimTeam.Rank);
             }
 
             // Check if there is one team standing

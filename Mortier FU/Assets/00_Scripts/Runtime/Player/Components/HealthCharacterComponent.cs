@@ -56,13 +56,10 @@ namespace MortierFu
                 _currentHealth = 0;
                 OnDeath?.Invoke(source);
                 
-                if (source is PlayerCharacter sourceCharacter)
-                {
-                    Logs.Log($"Player {Character.Owner.PlayerIndex} was killed by {sourceCharacter.Owner.PlayerIndex}");
-                }
-                else {
-                    Logs.Log($"Player {Character.Owner.PlayerIndex} has died from unknown source {source}.");
-                }
+                EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath() {
+                    Character = Character,
+                    Source = source
+                });
             }
         }
 
