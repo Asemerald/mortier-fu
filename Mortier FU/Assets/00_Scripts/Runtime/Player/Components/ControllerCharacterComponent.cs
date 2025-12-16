@@ -64,6 +64,8 @@ namespace MortierFu
             }
             
             float targetSize = Stats.GetAvatarSize();
+            if (Mathf.Approximately(targetSize, character.transform.localScale.x)) return;
+            
             _avatarSizeTween = Tween.Scale(character.transform, targetSize, 0.25f, Ease.OutQuad);
         }
         
