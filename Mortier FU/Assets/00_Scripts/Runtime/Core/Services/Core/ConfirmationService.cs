@@ -21,7 +21,7 @@ namespace MortierFu
 
         public event Action<int> OnPlayerConfirmed;
         public event Action OnAllPlayersConfirmed;
-        public event Action OnStartConfirmation;
+        public event Action<int> OnStartConfirmation;
 
         public UniTask OnInitialize()
         {
@@ -47,9 +47,9 @@ namespace MortierFu
             Logs.Log("[ConfirmationService] Host confirmed.");
         }
         
-        public void ShowConfirmation()
+        public void ShowConfirmation(int activePlayers)
         {
-            OnStartConfirmation?.Invoke();
+            OnStartConfirmation?.Invoke(activePlayers);
             Logs.Log("[ConfirmationService] Confirmation started.");
         }
 

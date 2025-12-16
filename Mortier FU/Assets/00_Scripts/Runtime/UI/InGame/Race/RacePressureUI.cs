@@ -1,4 +1,3 @@
-using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,8 +10,6 @@ namespace MortierFu
 
         [Header("References"), SerializeField] private Image _vignetteImage;
 
-        private AugmentSelectionSystem _augmentSelectionSystem;
-
         private Tween _vignetteTween;
         private Tween _delayTween;
 
@@ -21,35 +18,10 @@ namespace MortierFu
 
         private void Start()
         {
-            _augmentSelectionSystem = SystemManager.Instance.Get<AugmentSelectionSystem>();
-
-            if (_augmentSelectionSystem == null)
-            {
-                Debug.LogError($"[RacePressureUI] No AugmentSelectionSystem found for {gameObject.name}");
-                return;
-            }
-
-            _augmentSelectionSystem.OnPressureStart += StartVignettePressure;
-            _augmentSelectionSystem.OnPressureStop += StopVignettePressure;
-
             _baseColor = _vignetteImage.color;
         }
 
-        // Safe to unsubscribe because systems are disposed after the map is unloaded.
-        void OnDestroy()
-        {
-            if (_augmentSelectionSystem == null)
-            {
-                Logs.LogWarning(
-                    "[RacePressureUI] No AugmentSelectionSystem found for {gameObject.name}: Potential memory leak.");
-                return;
-            }
-
-            _augmentSelectionSystem.OnPressureStart -= StartVignettePressure;
-            _augmentSelectionSystem.OnPressureStop -= StopVignettePressure;
-        }
-
-        private void StartVignettePressure(float duration)
+        public void StartVignettePressure(float duration)
         {
             if (_vignetteImage == null)
                 return;
@@ -79,7 +51,7 @@ namespace MortierFu
             _delayTween = Tween.Delay(duration, StopVignettePressure);
         }
 
-        private void StopVignettePressure()
+        public void StopVignettePressure()
         {
             if (_vignetteTween.isAlive)
                 _vignetteTween.Stop();

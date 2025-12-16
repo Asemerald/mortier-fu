@@ -20,60 +20,12 @@ namespace MortierFu
         [SerializeField] private float _hideDuration = 0.6f;
         [SerializeField] private float _scaleDuration = 0.5f;
 
-        [Header("References")] [SerializeField]
-        private GameObject _horizontalLayoutParent;
-
-        private int _activePlayerCount;
-
-        private LobbyService _lobbyService;
-        private ConfirmationService _confirmationService;
-
-        private void Awake()
+        public void ShowConfirmation(int activePlayerCount)
         {
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
-
-            if (_horizontalLayoutParent != null)
-                _horizontalLayoutParent.SetActive(false);
+            StartButtonsAnimation(activePlayerCount);
         }
 
-        private void OnEnable()
-        {
-            if (_lobbyService == null)
-            {
-                Debug.LogError($"[PlayerConfirmationUI] No LobbyService found for {gameObject.name}");
-            }
-
-            _activePlayerCount = _lobbyService.GetPlayers().Count;
-
-            if (_confirmationService != null)
-            {
-                _confirmationService.OnPlayerConfirmed += NotifyPlayerConfirmed;
-                _confirmationService.OnStartConfirmation += ShowConfirmation;
-                _confirmationService.OnAllPlayersConfirmed += OnConfirmation;
-            }
-            else
-            {
-                Debug.LogError($"[PlayerConfirmationUI] No ConfirmationService found for {gameObject.name}");
-            }
-        }
-
-        private void OnDisable()
-        {
-            _confirmationService.OnPlayerConfirmed -= NotifyPlayerConfirmed;
-            _confirmationService.OnStartConfirmation -= ShowConfirmation;
-            _confirmationService.OnAllPlayersConfirmed -= OnConfirmation;
-        }
-
-        private void ShowConfirmation()
-        {
-            if (_horizontalLayoutParent != null)
-                _horizontalLayoutParent.SetActive(true);
-
-            StartButtonsAnimation(_activePlayerCount);
-        }
-
-        private void OnConfirmation()
+        public void OnConfirmation()
         {
             HideConfirmation().Forget();
         }
@@ -97,9 +49,8 @@ namespace MortierFu
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration));
-
-            if (_horizontalLayoutParent != null)
-                _horizontalLayoutParent.SetActive(false);
+            
+            gameObject.SetActive(false);
         }
 
         private void StartButtonsAnimation(int playerCount)
@@ -134,7 +85,7 @@ namespace MortierFu
             }
         }
 
-        private void NotifyPlayerConfirmed(int playerIndex)
+        public void NotifyPlayerConfirmed(int playerIndex)
         {
             if (playerIndex < 0 || playerIndex >= _playerSlots.Count)
                 return;
@@ -152,7 +103,6 @@ namespace MortierFu
         public class PlayerSlot
         {
             public Image AButtonImage;
-            public RectTransform AButtonImageRect;
 
             public Image OkImage;
 
