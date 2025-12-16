@@ -37,7 +37,7 @@ namespace MortierFu
                 Character =  character,
             });
             
-            TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.GetStrikeRadius() * 2f);
+            TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.GetStrikeRadius() * 0.5f);
             if(debug)
                 Logs.Log("Entering Strike State");
             
