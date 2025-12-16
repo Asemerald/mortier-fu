@@ -5,7 +5,6 @@ using PrimeTween;
 using System;
 using Cysharp.Threading.Tasks;
 using Object = UnityEngine.Object;
-using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
@@ -15,6 +14,7 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentPickup> _pickups;
         private readonly ConfirmationService _confirmationService;
         private readonly AugmentSelectionSystem _system;
+        private readonly LobbyService _lobbyService;
         private readonly CameraSystem _cameraSystem;
         private readonly Camera _cam;
         
@@ -27,6 +27,7 @@ namespace MortierFu
            
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _cam = _cameraSystem.Controller.Camera;
         }
 
@@ -60,7 +61,7 @@ namespace MortierFu
             }
             
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
-            _confirmationService.ShowConfirmation();
+            _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
             await _confirmationService.WaitUntilAllConfirmed();
 
             if (_pickups.Count != augmentPoints.Length)

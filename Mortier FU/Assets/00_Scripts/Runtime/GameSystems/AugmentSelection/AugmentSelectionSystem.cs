@@ -14,6 +14,8 @@ namespace MortierFu
     {
         public event Action<float> OnPressureStart;
         public event Action OnPressureStop;
+        public event Action OnStopShowcase;
+        
         private CancellationTokenSource _pressureTokenSource;
         
         private List<AugmentPickup> _pickups;
@@ -125,6 +127,7 @@ namespace MortierFu
             await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
             _showcaseInProgress = false;
             
+            OnStopShowcase?.Invoke();
             await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
