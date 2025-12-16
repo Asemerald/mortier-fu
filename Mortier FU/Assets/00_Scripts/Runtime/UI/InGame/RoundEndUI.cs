@@ -1,116 +1,127 @@
-using MortierFu;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
 
-public class RoundEndUI : MonoBehaviour
+namespace MortierFu
 {
-    [Header("References")]
-    [SerializeField] private Image winnerImage;
-    [SerializeField] private Image winnerImageBackground;
-    [SerializeField] private Image[] playerImages;
-    [SerializeField] private TMP_Text[] scoreTexts;
-
-    [Header("Assets")] 
-    [SerializeField] private Material[] winnerMaterials;
-    [SerializeField] private Material[] winnerBackgroundMaterial;
-    [SerializeField] private Sprite[] defaultSprites;
-    [SerializeField] private Sprite[] winnerSprites;
-
-    private GameModeBase _gm;
-
-    private void Start()
+    public class RoundEndUI : MonoBehaviour
     {
-        HideScore();
-        
-        _gm = GameService.CurrentGameMode as GameModeBase;
-        if (_gm == null)
+        [Header("Winner UI")] [SerializeField] private Image winnerImage;
+        [SerializeField] private Image winnerImageBackground;
+
+        [Header("Players UI (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
+        private Image[] playerImages;
+
+        [SerializeField] private TMP_Text[] scoreTexts;
+
+        [Header("Assets")] [SerializeField] private Sprite[] defaultSprites;
+        [SerializeField] private Sprite[] _winnerIconSprites;
+        [SerializeField] private Sprite[] _winnerTextSprites;
+        [SerializeField] private Sprite[] _winnerBackgroundSprites;
+
+        private GameModeBase _gm;
+
+        private void Awake()
         {
-            Logs.LogWarning("Game mode not found");
-            return;
+            ResetUI();
         }
 
-        _gm.OnRoundEnded += DisplayScores;
-        _gm.OnScoreDisplayOver += HideScore;
-    }
-    
-    private void DisplayScores(RoundInfo round)
-    {
-        var lobbyService = ServiceManager.Instance.Get<LobbyService>();
-        int playerCount = lobbyService.GetPlayers().Count;
-        DisplayPlayerImages(playerCount, _gm.Teams);
-        
-        SetWinner(round.WinningTeam.Index);
-    }
-
-    private void DisplayPlayerImages(int playerCount, ReadOnlyCollection<PlayerTeam> playerTeams)
-    {
-        for (int i = 0; i < playerTeams.Count; i++)
+        private void OnEnable()
         {
-            if (i < playerCount)
+            _gm = GameService.CurrentGameMode as GameModeBase;
+            if (_gm == null)
             {
-                playerImages[i].gameObject.SetActive(true);
-                playerImages[i].sprite = defaultSprites[playerTeams[i].Index];
-                scoreTexts[i].text = playerTeams[i].Score.ToString();
+                Logs.LogWarning("[RoundEndUI] Game mode not found");
+                return;
             }
-            else
+
+            _gm.OnRoundEnded += OnRoundEnded;
+            _gm.OnScoreDisplayOver += HideScore;
+        }
+
+        private void OnDisable()
+        {
+            if (_gm == null) return;
+
+            _gm.OnRoundEnded -= OnRoundEnded;
+            _gm.OnScoreDisplayOver -= HideScore;
+        }
+
+        private void OnRoundEnded(RoundInfo round)
+        {
+            ResetUI();
+
+            var teams = _gm.Teams;
+
+            DisplayPlayers(teams);
+            DisplayWinner(round.WinningTeam);
+        }
+
+        private void DisplayPlayers(ReadOnlyCollection<PlayerTeam> teams)
+        {
+            for (int i = 0; i < playerImages.Length; i++)
             {
                 playerImages[i].gameObject.SetActive(false);
                 scoreTexts[i].gameObject.SetActive(false);
             }
-        }
-        
-        // Set Player Image to winning team sprite if team has the most point 
-        int highestScore = -1;
-        int winningTeamIndex = -1;
-        foreach (var t in playerTeams)
-        {
-            if (t.Score > highestScore)
-            {
-                highestScore = t.Score;
-                winningTeamIndex = t.Index;
-            }
-        }
-        
-        for (int i = 0; i < playerTeams.Count; i++)
-        {
-            if (i < playerCount)
-            {
-                if (playerTeams[i].Index == winningTeamIndex)
-                {
-                    playerImages[i].sprite = winnerSprites[playerTeams[i].Index];
-                }
-            }
-        }
-    }
 
-    private void SetWinner(int playerIndex)
-    {
-        if (playerIndex >= 0 && playerIndex < winnerMaterials.Length)
+            foreach (var team in teams)
+            {
+                int index = team.Index;
+
+                if (index < 0 || index >= playerImages.Length)
+                    continue;
+
+                playerImages[index].gameObject.SetActive(true);
+                scoreTexts[index].gameObject.SetActive(true);
+
+                playerImages[index].sprite = defaultSprites[index];
+                scoreTexts[index].text = team.Score.ToString();
+            }
+        }
+        
+        private void DisplayWinner(PlayerTeam winningTeam)
         {
-            winnerImage.material = winnerMaterials[playerIndex];
-            winnerImageBackground.material = winnerBackgroundMaterial[playerIndex];
+            if (winningTeam == null)
+                return;
+
+            int index = winningTeam.Index;
+            if (index < 0 || index >= _winnerTextSprites.Length)
+            {
+                Logs.LogError("[RoundEndUI] Invalid winning team index");
+                return;
+            }
+
+            winnerImage.sprite = _winnerTextSprites[index];
+            winnerImageBackground.sprite = _winnerBackgroundSprites[index];
             winnerImage.gameObject.SetActive(true);
             winnerImageBackground.gameObject.SetActive(true);
+
+            playerImages[index].sprite = _winnerIconSprites[index];
         }
-        else
+
+        private void HideScore()
         {
-            Debug.LogError("Invalid PlayerIndex");
+            ResetUI();
+        }
+
+        private void ResetUI()
+        {
+            winnerImage.gameObject.SetActive(false);
+            winnerImageBackground.gameObject.SetActive(false);
+            winnerImage.material = null;
+            winnerImageBackground.material = null;
+
+            for (int i = 0; i < playerImages.Length; i++)
+            {
+                playerImages[i].gameObject.SetActive(false);
+                scoreTexts[i].gameObject.SetActive(false);
+
+                if (i < defaultSprites.Length)
+                    playerImages[i].sprite = defaultSprites[i];
+            }
         }
     }
-
-    private void HideScore()
-    {
-        winnerImage.gameObject.SetActive(false);
-        winnerImageBackground.gameObject.SetActive(false);
-
-        foreach (var t in playerImages)
-        {
-            t.gameObject.SetActive(false);
-        }
-    }
-    
-    
 }
