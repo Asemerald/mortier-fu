@@ -128,6 +128,7 @@ namespace MortierFu
 
             t.localScale = _initialRaceScale;
             _lastGameObjectToShow.SetActive(false);
+            gameObject.SetActive(false);
         }
 
         private void ResetUI()

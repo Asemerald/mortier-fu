@@ -77,6 +77,7 @@ namespace MortierFu
             _winnerImageBackground.gameObject.SetActive(true);
 
             playerImages[index].sprite = _winnerIconSprites[index];
+            // TODO: Set active false le gameobject
         }
 
         public void ResetUI()
