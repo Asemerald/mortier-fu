@@ -10,9 +10,9 @@ namespace MortierFu
     {
         [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
 
-        protected Rigidbody rigidbody;
+        public Rigidbody rigidbody;
 
-        private Vector3 _moveDirection;
+        public Vector3 _moveDirection;
         
         private InputAction _moveAction;
 

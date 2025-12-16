@@ -40,6 +40,9 @@ namespace MortierFu
             TEMP_FXHandler.Instance.InstantiateStrikeFX(character.transform, character.Stats.GetStrikeRadius() * 2f);
             if(debug)
                 Logs.Log("Entering Strike State");
+            
+            Vector3 dashDir = new Vector3(character.Controller._moveDirection.x, 0, character.Controller._moveDirection.y);
+            character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
         }
 
         public override void Update()
