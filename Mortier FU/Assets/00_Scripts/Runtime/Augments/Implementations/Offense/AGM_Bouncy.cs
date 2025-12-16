@@ -17,7 +17,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.FireRate.AddModifier(db.BouncyParams.BombShellDamageMod.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.BouncyParams.BombShellDamageMod.ToMod(this));
             stats.BombshellBounces.AddModifier(db.BouncyParams.BombshellBouncesMod.ToMod(this));
 
             // _bounceBinding = new EventBinding<TriggerBounce>(OnBounce);
