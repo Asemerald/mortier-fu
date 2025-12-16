@@ -31,7 +31,7 @@ namespace MortierFu
         public override void Update()
         {
             character.Mortar.HandleAimMovement();
-            character.Controller.HandleMovementUpdate(0.2f);
+            character.Controller.HandleMovementUpdate(0.65f);
         }
         
         public override void FixedUpdate()

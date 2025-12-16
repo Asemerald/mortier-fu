@@ -100,26 +100,36 @@ namespace MortierFu
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
 
-        public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
+        public void HandleMovementUpdate(float factor = 1.0f)
         {
-            var horizontal = _moveAction.ReadValue<Vector2>().x;
-            var vertical = _moveAction.ReadValue<Vector2>().y;
-            
-            var targetDirection = (new Vector2(horizontal, vertical)).normalized;
-            var targetSpeed = Stats.MoveSpeed.Value * factor;
+            Vector2 input = _moveAction.ReadValue<Vector2>();
 
-            // Targetted Velocity
-            var targetVelocity = targetDirection * targetSpeed;
+            // Deadzone stricte
+            if (input.sqrMagnitude < 0.01f)
+                input = Vector2.zero;
 
-            // Accel/Decel if moving or not
-            float rate = (targetDirection.sqrMagnitude > 0.01f) ? Stats.Accel.Value : Stats.Decel.Value;
+            Vector2 targetDirection = input.normalized;
+            float targetSpeed = Stats.MoveSpeed.Value * factor;
 
-            // Apply smooth Interpolation
-            _moveDirection = Vector2.Lerp(_moveDirection, targetVelocity, Time.deltaTime * rate);
+            Vector2 targetVelocity = targetDirection * targetSpeed;
+
+            // Choix accel / decel basé sur la distance
+            float maxDelta = (
+                targetVelocity.magnitude > _moveDirection.magnitude
+                    ? Stats.Accel.Value
+                    : Stats.Decel.Value
+            ) * Time.deltaTime;
+
+            // Mouvement stable, sans ambiguïté
+            _moveDirection = Vector2.MoveTowards(
+                _moveDirection,
+                targetVelocity,
+                maxDelta
+            );
+
+            // Rotation basée sur la vélocité réelle
+            Vector3 velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
             
-            var velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
-            
-            // Smooth rotation apply to character
             if (velocity3D.sqrMagnitude > 0.001f)
             {
                 character.transform.rotation = Quaternion.Slerp(
@@ -129,6 +139,7 @@ namespace MortierFu
                 );
             }
         }
+
         
         // Debugs
         public override void OnDrawGizmos()
