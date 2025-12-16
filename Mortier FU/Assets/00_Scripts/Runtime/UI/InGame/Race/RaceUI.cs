@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public class OnRaceUI : MonoBehaviour
+    public class RaceUI : MonoBehaviour
     {
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;

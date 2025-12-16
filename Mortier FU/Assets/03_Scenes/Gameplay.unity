@@ -1923,7 +1923,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &758357714
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1935,12 +1935,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1137881214}
   m_Father: {fileID: 772488391}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1960, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &758357715
@@ -2014,7 +2015,6 @@ RectTransform:
   - {fileID: 1200283829}
   - {fileID: 668152918}
   - {fileID: 758357714}
-  - {fileID: 1137881214}
   - {fileID: 1495155797}
   - {fileID: 195425641}
   - {fileID: 1791980023}
@@ -2039,7 +2039,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.RoundAnnouncementUI
   _goldenBombshellGameObject: {fileID: 195425640}
+  _bannerGameObject: {fileID: 758357713}
+  _readyGameObject: {fileID: 1137881213}
   _countdownUI: {fileID: 772488393}
+  _slideDuration: 0.5
+  _readyScaleDuration: 0.5
+  _holdDuration: 2
+  _slideEase: 6
+  _readEase: 5
 --- !u!114 &772488393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2054,7 +2061,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.CountdownUI
   _countdownImage: {fileID: 1933827955}
   _lastGameObjectToShow: {fileID: 1495155796}
-  _firstGameObjectToShow: {fileID: 1137881213}
+  _firstGameObjectToShow: {fileID: 0}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
@@ -2523,16 +2530,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137881213}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.3, y: 1.3, z: 1.3}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 772488391}
+  m_Father: {fileID: 758357714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -66}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 703, y: 170}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1137881215

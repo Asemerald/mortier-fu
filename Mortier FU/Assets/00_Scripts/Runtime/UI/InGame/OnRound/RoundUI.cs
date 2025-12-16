@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public class OnRoundUI : MonoBehaviour
+    public class RoundUI : MonoBehaviour
     {
         [SerializeField] private RoundAnnouncementUI _roundAnnouncementUI;
         [SerializeField] private RoundEndUI _roundEndUI;
