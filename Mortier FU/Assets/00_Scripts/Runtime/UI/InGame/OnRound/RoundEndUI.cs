@@ -8,8 +8,8 @@ namespace MortierFu
 {
     public class RoundEndUI : MonoBehaviour
     {
-        [Header("Winner UI")] [SerializeField] private Image winnerImage;
-        [SerializeField] private Image winnerImageBackground;
+        [Header("Winner UI")] [SerializeField] private Image _winnerImage;
+        [SerializeField] private Image _winnerImageBackground;
 
         [Header("Players UI (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
         private Image[] playerImages;
@@ -21,39 +21,16 @@ namespace MortierFu
         [SerializeField] private Sprite[] _winnerTextSprites;
         [SerializeField] private Sprite[] _winnerBackgroundSprites;
 
-        private GameModeBase _gm;
-
         private void Awake()
         {
             ResetUI();
         }
 
-        private void OnEnable()
-        {
-            _gm = GameService.CurrentGameMode as GameModeBase;
-            if (_gm == null)
-            {
-                Logs.LogWarning("[RoundEndUI] Game mode not found");
-                return;
-            }
-
-            _gm.OnRoundEnded += OnRoundEnded;
-            _gm.OnScoreDisplayOver += HideScore;
-        }
-
-        private void OnDisable()
-        {
-            if (_gm == null) return;
-
-            _gm.OnRoundEnded -= OnRoundEnded;
-            _gm.OnScoreDisplayOver -= HideScore;
-        }
-
-        private void OnRoundEnded(RoundInfo round)
+        public void OnRoundEnded(RoundInfo round, GameModeBase gm)
         {
             ResetUI();
 
-            var teams = _gm.Teams;
+            var teams = gm.Teams;
 
             DisplayPlayers(teams);
             DisplayWinner(round.WinningTeam);
@@ -80,6 +57,23 @@ namespace MortierFu
                 playerImages[index].sprite = defaultSprites[index];
                 scoreTexts[index].text = team.Score.ToString();
             }
+            
+            // Team with the hoighest score  change his sprite to winner icon
+            PlayerTeam highestScoreTeam = null;
+            foreach (var team in teams)
+            {
+                if (highestScoreTeam == null || team.Score > highestScoreTeam.Score)
+                {
+                    highestScoreTeam = team;
+                }
+            }
+
+            if (highestScoreTeam == null) return;
+            int highestIndex = highestScoreTeam.Index;
+            if (highestIndex >= 0 && highestIndex < playerImages.Length)
+            {
+                playerImages[highestIndex].sprite = _winnerIconSprites[highestIndex];
+            }
         }
         
         private void DisplayWinner(PlayerTeam winningTeam)
@@ -94,25 +88,20 @@ namespace MortierFu
                 return;
             }
 
-            winnerImage.sprite = _winnerTextSprites[index];
-            winnerImageBackground.sprite = _winnerBackgroundSprites[index];
-            winnerImage.gameObject.SetActive(true);
-            winnerImageBackground.gameObject.SetActive(true);
-
-            playerImages[index].sprite = _winnerIconSprites[index];
+            _winnerImage.sprite = _winnerTextSprites[index];
+            _winnerImageBackground.sprite = _winnerBackgroundSprites[index];
+            _winnerImage.gameObject.SetActive(true);
+            _winnerImageBackground.gameObject.SetActive(true);
+            
+            // TODO: Set active false le gameobject
         }
 
-        private void HideScore()
+        public void ResetUI()
         {
-            ResetUI();
-        }
-
-        private void ResetUI()
-        {
-            winnerImage.gameObject.SetActive(false);
-            winnerImageBackground.gameObject.SetActive(false);
-            winnerImage.material = null;
-            winnerImageBackground.material = null;
+            _winnerImage.gameObject.SetActive(false);
+            _winnerImageBackground.gameObject.SetActive(false);
+            _winnerImage.material = null;
+            _winnerImageBackground.material = null;
 
             for (int i = 0; i < playerImages.Length; i++)
             {

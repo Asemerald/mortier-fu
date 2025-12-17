@@ -338,6 +338,7 @@ namespace MortierFu
             }
             
             ResetPlayers();
+            SpawnPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);

@@ -85,6 +85,9 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Influence of the bombshell impact radius towards the bombshell size.")]
         public float BombshellImpactRadiusToBombshellSizeFactor { get; private set; } = 1.4f;
         
+        [field: SerializeField, Tooltip("Factor that determines how much the forces applied to this character will be mitigated based on the avatar size.")]
+        public float AvatarSizeToForceMitigationFactor { get; private set; } = 0.2f;
+        
         // Complex stats calculations
         public float GetStrikePushForce() => StrikePushForceOffset + StrikePushForce.Value;
         public float GetAvatarSize()    => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;

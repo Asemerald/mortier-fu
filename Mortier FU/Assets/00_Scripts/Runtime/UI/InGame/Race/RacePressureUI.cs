@@ -64,7 +64,6 @@ namespace MortierFu
             _tempColor = _baseColor;
             _tempColor.a = 0f;
             _vignetteImage.color = _tempColor;
-            _vignetteImage.gameObject.SetActive(false);
         }
     }
 }

@@ -88,12 +88,12 @@ namespace MortierFu
         void Awake()
         {
             // Extract HSV from the character color config
-            Color.RGBToHSV(_characterColorConfig, out float hue, out float saturation, out float value);
+            //Color.RGBToHSV(_characterColorConfig, out float hue, out float saturation, out float value);
             
             // Create character components
             Health = new HealthCharacterComponent(this);
             Controller = new ControllerCharacterComponent(this);
-            Aspect = new AspectCharacterComponent(this, hue, saturation, value);
+            Aspect = new AspectCharacterComponent(this);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
 
             // Create a unique instance of CharacterData for this character
@@ -204,7 +204,7 @@ namespace MortierFu
 
         public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
         {
-            force /= 1 + (Stats.GetAvatarSize() - 1) * 0.2f;
+            force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
             _knockbackState.ReceiveKnockback(duration, force, stunDuration);
         }
 

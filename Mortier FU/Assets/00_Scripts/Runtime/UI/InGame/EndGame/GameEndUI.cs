@@ -1,86 +1,63 @@
-using System;
-using MortierFu;
-using MortierFu.Shared;
-using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine;
 
-public class GameEndUI : MonoBehaviour
+namespace MortierFu
 {
-    [Header("References")]
-    [SerializeField] private Image winnerImage;
-    [SerializeField] private Image winnerImageBackground;
-    [SerializeField] private Image[] playerImages;
-
-    [Header("Assets")] 
-    [SerializeField] private Material[] winnerMaterials;
-    [SerializeField] private Material[] winnerBackgroundMaterial;
-    [SerializeField] private Sprite[] winnerSprites;
-
-    private GameModeBase _gm;
-
-    private void Start()
+    public class GameEndUI : MonoBehaviour
     {
-        _gm = GameService.CurrentGameMode as GameModeBase;
-        if (_gm == null)
+        [Header("References")] [SerializeField]
+        private Image _winnerImage;
+
+        [SerializeField] private Image _winnerImageBackground;
+        [SerializeField] private Image[] _playerImages;
+
+        [Header("Assets")] [SerializeField] private Sprite[] _winnerTextSprites;
+        [SerializeField] private Sprite[] _winnerBackgroundSprites;
+        [SerializeField] private Sprite[] _winnerIconSprites;
+
+        public void DisplayVictoryScreen(int winnerIndex, int activePlayerCount)
         {
-            Logs.LogWarning("Game mode not found");
-            return;
+            DisplayPlayerImages(activePlayerCount, winnerIndex);
+
+            SetWinner(winnerIndex);
         }
 
-        _gm.OnGameEnded += DisplayVictoryScreen;
-    }
-    
-    private void DisplayVictoryScreen(int WinnerIndex)
-    {
-        var lobbyService = ServiceManager.Instance.Get<LobbyService>();
-        int playerCount = lobbyService.GetPlayers().Count;
-        DisplayPlayerImages(playerCount, WinnerIndex);
-        
-        SetWinner(WinnerIndex);
-    }
-
-    private void DisplayPlayerImages(int playerCount, int winnerIndex)
-    {
-        for (int i = 0; i < playerImages.Length; i++)
+        private void DisplayPlayerImages(int playerCount, int winnerIndex)
         {
-            if (i < playerCount)
+            for (int i = 0; i < _playerImages.Length; i++)
             {
-                playerImages[i].gameObject.SetActive(true);
+                if (i < playerCount)
+                {
+                    _playerImages[i].gameObject.SetActive(true);
+                }
+                else
+                {
+                    _playerImages[i].gameObject.SetActive(false);
+                }
+            }
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (i == winnerIndex)
+                {
+                    _playerImages[i].sprite = _winnerIconSprites[i];
+                }
+            }
+        }
+
+        private void SetWinner(int playerIndex)
+        {
+            if (playerIndex >= 0 && playerIndex < _winnerTextSprites.Length)
+            {
+                _winnerImage.sprite = _winnerTextSprites[playerIndex];
+                _winnerImageBackground.sprite = _winnerBackgroundSprites[playerIndex];
+                _winnerImage.gameObject.SetActive(true);
+                _winnerImageBackground.gameObject.SetActive(true);
             }
             else
             {
-                playerImages[i].gameObject.SetActive(false);
-            }
-        }
-        
-        // Change Sprites for winner 
-        for (int i = 0; i < playerCount; i++)
-        {
-            if (i == winnerIndex)
-            {
-                playerImages[i].sprite = winnerSprites[i];
+                Debug.LogError("Invalid PlayerIndex");
             }
         }
     }
-    
-    
-
-    private void SetWinner(int playerIndex)
-    {
-        if (playerIndex >= 0 && playerIndex < winnerMaterials.Length)
-        {
-            winnerImage.material = winnerMaterials[playerIndex];
-            winnerImageBackground.material = winnerBackgroundMaterial[playerIndex];
-            winnerImage.gameObject.SetActive(true);
-            winnerImageBackground.gameObject.SetActive(true);
-        }
-        else
-        {
-            Debug.LogError("Invalid PlayerIndex");
-        }
-    }
-
-    
-    
-    
 }
