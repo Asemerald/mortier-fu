@@ -57,6 +57,23 @@ namespace MortierFu
                 playerImages[index].sprite = defaultSprites[index];
                 scoreTexts[index].text = team.Score.ToString();
             }
+            
+            // Team with the hoighest score  change his sprite to winner icon
+            PlayerTeam highestScoreTeam = null;
+            foreach (var team in teams)
+            {
+                if (highestScoreTeam == null || team.Score > highestScoreTeam.Score)
+                {
+                    highestScoreTeam = team;
+                }
+            }
+
+            if (highestScoreTeam == null) return;
+            int highestIndex = highestScoreTeam.Index;
+            if (highestIndex >= 0 && highestIndex < playerImages.Length)
+            {
+                playerImages[highestIndex].sprite = _winnerIconSprites[highestIndex];
+            }
         }
         
         private void DisplayWinner(PlayerTeam winningTeam)
@@ -75,8 +92,7 @@ namespace MortierFu
             _winnerImageBackground.sprite = _winnerBackgroundSprites[index];
             _winnerImage.gameObject.SetActive(true);
             _winnerImageBackground.gameObject.SetActive(true);
-
-            playerImages[index].sprite = _winnerIconSprites[index];
+            
             // TODO: Set active false le gameobject
         }
 
