@@ -26,14 +26,7 @@ namespace MortierFu
         {
             for (int i = 0; i < _playerImages.Length; i++)
             {
-                if (i < playerCount)
-                {
-                    _playerImages[i].gameObject.SetActive(true);
-                }
-                else
-                {
-                    _playerImages[i].gameObject.SetActive(false);
-                }
+                _playerImages[i].gameObject.SetActive(i < playerCount);
             }
 
             for (int i = 0; i < playerCount; i++)

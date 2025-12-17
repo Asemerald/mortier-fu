@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -7,10 +8,13 @@ namespace MortierFu
     {
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;
+        [SerializeField] private AugmentSummaryUI _augmentSummaryUI;
         [SerializeField] private CountdownUI _raceCountdownUI;
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
+        
+        private GameModeBase _gm;
         
         private void Awake()
         {
@@ -19,10 +23,16 @@ namespace MortierFu
             _playerConfirmationUI.gameObject.SetActive(false);
             _racePressureUI.gameObject.SetActive(false);
             _raceCountdownUI.gameObject.SetActive(false);
+            _augmentSummaryUI.gameObject.SetActive(false);
         }
 
         private void OnEnable()
         {
+            _gm = GameService.CurrentGameMode as GameModeBase;
+            
+            if (_gm != null)
+                _gm.OnRaceEndedUI += PlayAugmentSummary;
+            
             if (_confirmationService != null)
             {
                 _confirmationService.OnStartConfirmation += HandleStartConfirmation;
@@ -52,6 +62,9 @@ namespace MortierFu
         
         private void OnDisable()
         {
+            if (_gm != null)
+                _gm.OnRaceEndedUI -= PlayAugmentSummary;
+            
             if (_confirmationService == null) return;
 
             _confirmationService.OnStartConfirmation -= HandleStartConfirmation;
@@ -105,6 +118,19 @@ namespace MortierFu
         {
             _raceCountdownUI.gameObject.SetActive(true);
             _raceCountdownUI.PlayCountdown().Forget();
+        }
+
+        private async UniTask PlayAugmentSummary()
+        {
+            _augmentSummaryUI.gameObject.SetActive(true);
+
+            int playerCount = 2;
+
+            await _augmentSummaryUI.AnimatePlayerImages(playerCount);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+            _augmentSummaryUI.gameObject.SetActive(false);
         }
     }
 }
