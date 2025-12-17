@@ -1,18 +1,29 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 namespace MortierFu
 {
     public class AugmentSummaryUI : MonoBehaviour
     {
         [SerializeField] private Image[] _playerImages;
+        
+        [Header("Settings")]
+        [SerializeField] private float _playerScaleDuration = 0.4f;
+        [SerializeField] private float _playerTargetScale = 0.65f;
+        [SerializeField] private float _playerAnimDelay = 0.15f;
+        [SerializeField] private Ease _playerScaleEase = Ease.OutBack;
+
         [SerializeField] private float _childRadius = 225f;
         [SerializeField] private float _childAnimDelay = 0.3f;
         [SerializeField] private float _childAnimDuration = 0.8f;
+        [SerializeField] private Ease _augmentIconScaleEase = Ease.OutBack;
+        [SerializeField] private Ease _augmentIconMoveEase = Ease.OutCubic;
+
+        [SerializeField] private float _finalPauseDuration = 1.5f;
 
         private Tween _tween;
 
@@ -57,18 +68,18 @@ namespace MortierFu
                 _tween = Tween.Scale(
                     _playerImages[i].transform,
                     Vector3.zero,
-                    Vector3.one * 0.65f,
-                    0.4f,
-                    Ease.OutBack
+                    Vector3.one * _playerTargetScale,
+                    _playerScaleDuration,
+                    _playerScaleEase
                 );
 
                 AnimateChildren(_playerImages[i].transform).Forget();
-                await UniTask.Delay(TimeSpan.FromSeconds(0.15f));
+                await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay));
             }
 
             await _tween;
             
-            await UniTask.Delay(TimeSpan.FromSeconds(1.5f));
+            await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration));
         }
 
 
@@ -95,9 +106,21 @@ namespace MortierFu
             {
                 Transform child = parent.GetChild(i);
 
-                Tween.Scale(child, Vector3.zero, Vector3.one, _childAnimDuration, Ease.OutBack);
+                Tween.Scale(
+                    child,
+                    Vector3.zero,
+                    Vector3.one,
+                    _childAnimDuration,
+                    _augmentIconScaleEase
+                );
 
-                Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _childAnimDuration, Ease.OutCubic);
+                Tween.LocalPosition(
+                    child,
+                    Vector3.zero,
+                    finalPositions[i],
+                    _childAnimDuration,
+                    _augmentIconMoveEase
+                );
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_childAnimDelay));
             }

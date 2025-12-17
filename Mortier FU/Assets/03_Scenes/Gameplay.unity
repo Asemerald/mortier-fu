@@ -979,7 +979,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.CountdownUI
   _countdownImage: {fileID: 1925758911}
-  _lastGameObjectToShow: {fileID: 1225621246}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
@@ -1298,9 +1297,16 @@ MonoBehaviour:
   - {fileID: 1836123873}
   - {fileID: 1851792770}
   - {fileID: 1677770837}
+  _playerScaleDuration: 0.4
+  _playerTargetScale: 0.65
+  _playerAnimDelay: 0.15
+  _playerScaleEase: 27
   _childRadius: 225
   _childAnimDelay: 0.3
   _childAnimDuration: 0.8
+  _augmentIconScaleEase: 27
+  _augmentIconMoveEase: 9
+  _finalPauseDuration: 1.5
 --- !u!1 &418134200
 GameObject:
   m_ObjectHideFlags: 0
@@ -3081,11 +3087,16 @@ MonoBehaviour:
   _goldenBombshellGameObject: {fileID: 195425640}
   _bannerGameObject: {fileID: 758357713}
   _readyGameObject: {fileID: 1137881213}
+  _playGameObject: {fileID: 1495155796}
   _countdownUI: {fileID: 772488393}
   _slideDuration: 0.5
   _readyScaleDuration: 0.5
   _slideEase: 6
   _readEase: 5
+  _playPopDuration: 1
+  _playPopScale: 1.2
+  _playEase: 27
+  _countdownDelayAfterBanner: 1.5
 --- !u!114 &772488393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3099,7 +3110,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.CountdownUI
   _countdownImage: {fileID: 1933827955}
-  _lastGameObjectToShow: {fileID: 1495155796}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
@@ -4585,7 +4595,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1225621247
 RectTransform:
   m_ObjectHideFlags: 0
