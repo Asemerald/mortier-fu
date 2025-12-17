@@ -14,6 +14,8 @@ namespace MortierFu
         [SerializeField] private Camera _camera;
         [SerializeField] private Camera _renderOnTopCamera;
 
+        [SerializeField] private CinemachineCamera zoomCineCam;
+
         private float _currentOrthoSize;
 
         private SO_CameraSettings _cameraSettings;
@@ -174,6 +176,20 @@ namespace MortierFu
             return bounds;
         }
 
+        public void EndFightCameraMovement(Transform playerWin)
+        {
+            zoomCineCam.Target.TrackingTarget = playerWin;
+            zoomCineCam.gameObject.SetActive(true);
+            
+            //ADD SLOW MO EFFECT
+            
+        }
+
+        public void ResetToMainCamera()
+        {
+            zoomCineCam.gameObject.SetActive(false);
+        }
+        
         private void DebugDrawBounds(Bounds b, Color c)
         {
             Vector3 v3FrontTopLeft = new Vector3(b.min.x, b.max.y, b.max.z);

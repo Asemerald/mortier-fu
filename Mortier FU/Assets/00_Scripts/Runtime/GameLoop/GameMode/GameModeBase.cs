@@ -347,6 +347,9 @@ namespace MortierFu
             EvaluateScores();
             
             _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
+            
+            //TEMPORARY
+            cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform);
 
             OnRoundEnded?.Invoke(_currentRound);
         }
@@ -410,6 +413,9 @@ namespace MortierFu
 
         protected virtual void HideScores()
         {
+            //TEMPORARY
+            cameraSystem.Controller.ResetToMainCamera();
+            
             timer.Stop();
 
             // Hide UI

@@ -31,7 +31,7 @@ namespace MortierFu
 
         public void CallCameraShake(float aoeRange, float power, float travelTime, float delay = 0)
         {
-            float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 5f, 10f);
+            float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 1f, 10f);
             float time = intensity * 0.07f;
             StartCoroutine(ShakeCamera(intensity, time, intensity, time / 2f, delay));
         }
