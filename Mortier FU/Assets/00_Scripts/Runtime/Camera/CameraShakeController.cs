@@ -48,11 +48,11 @@ namespace MortierFu
                 yield return new WaitForSeconds(delay);
 
             _shakeTimer = shakeTime;
-            _shakeIntensity = intensity;
-            _shakeMult = 1f / _shakeTimer;
+            _shakeIntensity = intensity * 0.25f;
+            _shakeMult = 1f / _shakeTimer * 0.5f;
 
-            _zoomTimer = zoomTime;
-            _zoomValue = value;
+            _zoomTimer = zoomTime * 0.5f;
+            _zoomValue = value * 0.25f;
         }
 
         private void ShakeUpdate()
