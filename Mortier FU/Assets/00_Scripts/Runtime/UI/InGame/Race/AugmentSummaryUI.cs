@@ -10,9 +10,9 @@ namespace MortierFu
     public class AugmentSummaryUI : MonoBehaviour
     {
         [SerializeField] private Image[] _playerImages;
-        [SerializeField] private float _childRadius = 30f;
-        [SerializeField] private float _childAnimDelay = 0.05f;
-        [SerializeField] private float _childAnimDuration = 0.3f;
+        [SerializeField] private float _childRadius = 225f;
+        [SerializeField] private float _childAnimDelay = 0.3f;
+        [SerializeField] private float _childAnimDuration = 0.8f;
 
         private Tween _tween;
 

@@ -55,6 +55,7 @@ namespace MortierFu
 
             if (_lastGameObjectToShow != null)
             {
+                await UniTask.Delay(TimeSpan.FromSeconds(1));
                 await ShowRaceObject();
             }
         }
@@ -75,7 +76,7 @@ namespace MortierFu
         private async UniTask AnimateCountdownNumber()
         {
             var target = _countdownImage.transform;
-            Vector3 targetScale = _initialCountdownScale;
+            Vector3 targetScale = Vector3.one;
 
             if (_countdownSequence.isAlive)
                 _countdownSequence.Stop();
