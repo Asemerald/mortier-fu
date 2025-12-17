@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
@@ -15,8 +16,10 @@ namespace MortierFu
 
         private Tween _tween;
 
-        public async UniTask AnimatePlayerImages(int playerCount)
+        public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments)
         {
+            int playerCount = playerAugments.Count;
+
             for (int i = 0; i < _playerImages.Length; i++)
             {
                 bool active = i < playerCount;
@@ -25,10 +28,27 @@ namespace MortierFu
 
                 _playerImages[i].transform.localScale = Vector3.zero;
 
-                foreach (Transform child in _playerImages[i].transform)
+                int childCount = _playerImages[i].transform.childCount;
+                for (int c = 0; c < childCount; c++)
                 {
+                    Transform child = _playerImages[i].transform.GetChild(c);
                     child.localScale = Vector3.zero;
                     child.localPosition = Vector3.zero;
+
+                    var augments = playerAugments[i];
+                    if (c < augments.Count)
+                    {
+                        var iconImg = child.GetComponent<Image>();
+                        if (iconImg != null)
+                        {
+                            iconImg.sprite = augments[augments.Count - 1 - c].Icon;
+                            child.gameObject.SetActive(true); 
+                        }
+                    }
+                    else
+                    {
+                        child.gameObject.SetActive(false); 
+                    }
                 }
             }
 
@@ -43,12 +63,14 @@ namespace MortierFu
                 );
 
                 AnimateChildren(_playerImages[i].transform).Forget();
-
                 await UniTask.Delay(TimeSpan.FromSeconds(0.15f));
             }
 
             await _tween;
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(1.5f));
         }
+
 
         private async UniTaskVoid AnimateChildren(Transform parent)
         {

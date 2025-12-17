@@ -38,6 +38,10 @@ namespace MortierFu
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
         
+        private Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
+        
+        public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
+        
         public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished));
         
         public async UniTask OnInitialize()
@@ -152,11 +156,14 @@ namespace MortierFu
         public void EndRace() {
             _pressureTokenSource?.Cancel();
             OnPressureStop?.Invoke();
-            
-            // Give a random augment to remaining pickers
+
             var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
+
             foreach (var picker in _pickers)
             {
+                if (!_pickedAugments.ContainsKey(picker.Character))
+                    _pickedAugments[picker.Character] = new List<SO_Augment>();
+
                 if (remainingAugments.Count == 0)
                 {
                     Logs.LogWarning("[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
@@ -165,21 +172,24 @@ namespace MortierFu
 
                 var randomAugment = remainingAugments.RandomElement();
                 picker.Character.AddAugment(randomAugment.Augment);
+
+                _pickedAugments[picker.Character].Add(randomAugment.Augment);
+
                 randomAugment.IsPicked = true;
                 remainingAugments.Remove(randomAugment);
+
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
             }
-            
+
             foreach (var pickup in _pickups)
-            {
                 pickup.Hide();
-            }
 
             _augmentShowcaser.StopShowcase();
-            
+
             _augmentBag.Clear();
             _augmentTimer = null;
         }
+
         
         public void RestorePickupParent()
         {
@@ -209,7 +219,7 @@ namespace MortierFu
             return true;
         }
         
-        public class AugmentState // TODO Better rename
+        private class AugmentState // TODO Better rename
         {
             public SO_Augment Augment;
             public bool IsPicked;

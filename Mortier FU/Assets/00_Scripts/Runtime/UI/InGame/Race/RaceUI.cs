@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -126,13 +127,22 @@ namespace MortierFu
         {
             _augmentSummaryUI.gameObject.SetActive(true);
 
-            int playerCount = 2;
+            var players = _lobbyService.GetPlayers();
 
-            await _augmentSummaryUI.AnimatePlayerImages(_lobbyService.GetPlayers().Count);
+            List<List<SO_Augment>> playerAugments = new();
+            foreach (var player in players)
+            {
+                if (_augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
+                    playerAugments.Add(augments);
+                else
+                    playerAugments.Add(new List<SO_Augment>());
+            }
+
+            await _augmentSummaryUI.AnimatePlayerImagesWithAugments(playerAugments);
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-
             _augmentSummaryUI.gameObject.SetActive(false);
         }
+
     }
 }
