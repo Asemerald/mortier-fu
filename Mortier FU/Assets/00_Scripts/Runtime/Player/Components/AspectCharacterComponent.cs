@@ -10,7 +10,7 @@ namespace MortierFu {
         public Material TrailThinMat;
         public Material TrailFatMat;
         public ParticleSystem.MinMaxGradient LightColor;
-        [ColorUsage(false)] public Color PlayerColor;
+        [ColorUsage(true)] public Color PlayerColor;
     }
     
     public class AspectCharacterComponent : CharacterComponent 
