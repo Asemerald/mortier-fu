@@ -13,13 +13,15 @@ namespace MortierFu
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
+        private LobbyService _lobbyService;
         
         private GameModeBase _gm;
         
         private void Awake()
         {
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
-
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            
             _playerConfirmationUI.gameObject.SetActive(false);
             _racePressureUI.gameObject.SetActive(false);
             _raceCountdownUI.gameObject.SetActive(false);
@@ -126,7 +128,7 @@ namespace MortierFu
 
             int playerCount = 2;
 
-            await _augmentSummaryUI.AnimatePlayerImages(playerCount);
+            await _augmentSummaryUI.AnimatePlayerImages(_lobbyService.GetPlayers().Count);
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
