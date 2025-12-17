@@ -9,7 +9,6 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
-
     public class AugmentSelectionSystem : IGameSystem
     {
         public event Action<float> OnPressureStart;
