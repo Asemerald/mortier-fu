@@ -81,9 +81,9 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundStarted;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-
+        
         public event Func<UniTask> OnRaceEndedUI;
-
+        
         public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
@@ -155,7 +155,7 @@ namespace MortierFu
 
                 augmentSelectionSys.EndRace();
                 EndRace();
-
+                
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -164,7 +164,7 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-
+                
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
