@@ -13,7 +13,6 @@ namespace MortierFu
         private Image _countdownImage;
 
         [SerializeField] private GameObject _lastGameObjectToShow;
-        [SerializeField] private GameObject _firstGameObjectToShow;
 
         [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
 
@@ -37,9 +36,6 @@ namespace MortierFu
                 _lastGameObjectToShow.SetActive(false);
             }
 
-            if (_firstGameObjectToShow != null)
-                _firstGameObjectToShow.SetActive(false);
-
             _countdownImage.gameObject.SetActive(false);
         }
 
@@ -47,9 +43,6 @@ namespace MortierFu
         {
             ResetUI();
             ShowCountdownImage();
-
-            if (_firstGameObjectToShow != null)
-                _firstGameObjectToShow.SetActive(true);
 
             for (int t = seconds; t > 0; t--)
             {
@@ -108,9 +101,6 @@ namespace MortierFu
 
         private async UniTask ShowRaceObject()
         {
-            if (_firstGameObjectToShow != null)
-                _firstGameObjectToShow.SetActive(false);
-
             _lastGameObjectToShow.SetActive(true);
 
             var t = _lastGameObjectToShow.transform;

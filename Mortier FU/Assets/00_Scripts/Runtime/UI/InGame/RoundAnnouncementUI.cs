@@ -1,7 +1,7 @@
-using System;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
+using System;
 
 namespace MortierFu
 {
@@ -37,7 +37,7 @@ namespace MortierFu
             _readyGameObject.SetActive(false);
             _goldenBombshellGameObject.SetActive(false);
             
-            _holdDuration = 3 - (_slideDuration + _readyScaleDuration);
+            _holdDuration = 2.8f - (_slideDuration + _readyScaleDuration);
         }
 
         public void OnRoundStarted(GameModeBase gm)
