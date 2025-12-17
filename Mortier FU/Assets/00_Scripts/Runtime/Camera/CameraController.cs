@@ -180,6 +180,9 @@ namespace MortierFu
         {
             zoomCineCam.Target.TrackingTarget = playerWin;
             zoomCineCam.gameObject.SetActive(true);
+            
+            //ADD SLOW MO EFFECT
+            
         }
 
         public void ResetToMainCamera()
