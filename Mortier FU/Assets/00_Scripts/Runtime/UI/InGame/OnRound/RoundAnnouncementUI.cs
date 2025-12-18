@@ -17,13 +17,15 @@ namespace MortierFu
         [SerializeField] private GameObject _playGameObject;
         [SerializeField] private Image _countdownImage;
         [SerializeField] private List<Sprite> _countdownSprites;
+        [SerializeField] float _showPlayDelay = 1f;
 
         [SerializeField] float _slideDuration = 0.5f;
-        [SerializeField] Ease _slideEase = Ease.OutBack;
+        [SerializeField] Ease _slideEaseOut = Ease.OutQuad;
+        [SerializeField] Ease _slideEaseIn = Ease.InQuad;
 
         [SerializeField] float _readyScaleDuration = 0.5f;
         [SerializeField] Ease _readyEaseIn = Ease.InElastic;
-        [SerializeField] Ease _readyEaseOut = Ease.OutBounce;
+        [SerializeField] Ease _readyEaseOut = Ease.OutQuad;
 
         [SerializeField] float _holdDuration = 1f;
 
@@ -33,6 +35,7 @@ namespace MortierFu
 
         [SerializeField] float _racePopDuration = 0.5f;
         [SerializeField] float _playDisableDelay = 1f;
+        [SerializeField] Ease _playEaseIn = Ease.InQuad;
 
         private Vector3 _bannerCenterPos;
         private Vector3 _bannerStartPos;
@@ -95,7 +98,7 @@ namespace MortierFu
                 _bannerGameObject.transform.position,
                 _bannerCenterPos,
                 _slideDuration,
-                _slideEase
+                _slideEaseOut
             );
             await _bannerTween;
 
@@ -124,14 +127,14 @@ namespace MortierFu
                 _bannerGameObject.transform.position,
                 _bannerStartPos,
                 _slideDuration,
-                Ease.InQuad
+                _slideEaseIn
             );
             await _bannerTween;
 
             _bannerGameObject.SetActive(false);
             _readyGameObject.SetActive(false);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await UniTask.Delay(TimeSpan.FromSeconds(_playDisableDelay));
 
             PlayCountdown().Forget();
         }
@@ -166,7 +169,7 @@ namespace MortierFu
 
             _countdownImage.gameObject.SetActive(false);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1));
+            await UniTask.Delay(TimeSpan.FromSeconds(_showPlayDelay));
             await ShowPlay();
         }
 
@@ -214,7 +217,7 @@ namespace MortierFu
                 Vector3.zero,
                 Vector3.one,
                 _racePopDuration,
-                Ease.InQuad
+                _playEaseIn
             );
 
             await UniTask.Delay(TimeSpan.FromSeconds(_playDisableDelay));

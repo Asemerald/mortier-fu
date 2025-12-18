@@ -14,11 +14,11 @@ namespace MortierFu
         private Tween _delayTween;
 
         private Color _baseColor;
-        private Color _tempColor;
 
-        private void Start()
+        private void Awake()
         {
             _baseColor = _vignetteImage.color;
+            _baseColor.a = 1f;
         }
 
         public void StartVignettePressure(float duration)
@@ -41,13 +41,14 @@ namespace MortierFu
                 duration: _pulseDuration,
                 a =>
                 {
-                    _tempColor = _baseColor;
-                    _tempColor.a = a;
-                    _vignetteImage.color = _tempColor;
+                    var color = _vignetteImage.color;
+                    color.a = a;
+                    _vignetteImage.color = color;
                 },
                 cycles: -1,
                 cycleMode: CycleMode.Yoyo
             );
+
             _delayTween = Tween.Delay(duration, StopVignettePressure);
         }
 
@@ -61,9 +62,9 @@ namespace MortierFu
 
             if (_vignetteImage == null) return;
 
-            _tempColor = _baseColor;
-            _tempColor.a = 0f;
-            _vignetteImage.color = _tempColor;
+            var color = _vignetteImage.color;
+            color.a = 0f;
+            _vignetteImage.color = color;
         }
     }
 }

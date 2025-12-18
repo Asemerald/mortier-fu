@@ -23,7 +23,7 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private Image _countdownImage;
 
-        [SerializeField] private GameObject _lastGameObjectToShow;
+        [SerializeField] private GameObject _raceGameObject;
 
         [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
 
@@ -31,6 +31,12 @@ namespace MortierFu
         private float _racePopDuration = 1f;
 
         [SerializeField] private float _racePopScale = 1f;
+        [SerializeField] private float _raceDisableDelay = 0.5f;
+
+        [SerializeField] private Ease _aButtonEaseOut = Ease.OutBack;
+        [SerializeField] private Ease _aImageEaseInOut = Ease.InOutQuad;
+        [SerializeField] private Ease _playEaseIn = Ease.InBack;
+        [SerializeField] private Ease _slotEaseIn = Ease.InQuint;
 
         private Vector3 _initialRaceScale;
         private Vector3 _initialCountdownScale;
@@ -41,8 +47,8 @@ namespace MortierFu
         {
             _initialCountdownScale = _countdownImage.transform.localScale;
 
-            _initialRaceScale = _lastGameObjectToShow.transform.localScale;
-            _lastGameObjectToShow.SetActive(false);
+            _initialRaceScale = _raceGameObject.transform.localScale;
+            _raceGameObject.SetActive(false);
 
             _countdownImage.gameObject.SetActive(false);
         }
@@ -74,21 +80,21 @@ namespace MortierFu
 
         private async UniTask ShowPlay()
         {
-            _lastGameObjectToShow.SetActive(true);
+            _raceGameObject.SetActive(true);
 
-            _lastGameObjectToShow.transform.localScale = Vector3.zero;
+            _raceGameObject.transform.localScale = Vector3.zero;
 
             await Tween.Scale(
-                _lastGameObjectToShow.transform,
+                _raceGameObject.transform,
                 Vector3.zero,
                 _initialRaceScale,
                 _racePopDuration,
-                Ease.InBack
+                _playEaseIn
             );
 
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            await UniTask.Delay(TimeSpan.FromSeconds(_raceDisableDelay));
 
-            _lastGameObjectToShow.SetActive(false);
+            _raceGameObject.SetActive(false);
             gameObject.SetActive(false);
         }
 
@@ -133,7 +139,7 @@ namespace MortierFu
         public void ShowConfirmation(int activePlayerCount)
         {
             _countdownImage.gameObject.SetActive(false);
-            _lastGameObjectToShow.SetActive(false);
+            _raceGameObject.SetActive(false);
 
             foreach (var slot in _playerSlots)
             {
@@ -165,7 +171,7 @@ namespace MortierFu
                     slot.ScaleTween.Complete();
 
                 slot.ScaleTween = Tween
-                    .Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, Ease.InQuint)
+                    .Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, _slotEaseIn)
                     .OnComplete(() => { slot.Animator.enabled = false; });
             }
 
@@ -193,13 +199,13 @@ namespace MortierFu
                 if (!slot.IsActive) continue;
 
                 slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.zero, Vector3.one, _scaleDuration,
-                    Ease.OutBack);
+                    _aButtonEaseOut);
 
                 slot.ATween = Tween.Scale(
                     target: slot.AButtonImage.rectTransform,
                     Vector3.one * _pulseScale,
                     duration: _pulseDuration,
-                    ease: Ease.InOutQuad,
+                    ease: _aImageEaseInOut,
                     cycles: -1,
                     cycleMode: CycleMode.Yoyo
                 );
