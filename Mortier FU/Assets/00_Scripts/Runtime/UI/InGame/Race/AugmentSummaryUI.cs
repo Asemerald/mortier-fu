@@ -53,37 +53,39 @@ namespace MortierFu
                         if (iconImg != null)
                         {
                             iconImg.sprite = augments[augments.Count - 1 - c].Icon;
-                            child.gameObject.SetActive(true); 
+                            child.gameObject.SetActive(true);
                         }
                     }
                     else
                     {
-                        child.gameObject.SetActive(false); 
+                        child.gameObject.SetActive(false);
                     }
                 }
             }
 
             for (int i = 0; i < playerCount; i++)
             {
+                var playerTransform = _playerImages[i].transform;
+
                 _tween = Tween.Scale(
-                    _playerImages[i].transform,
+                    playerTransform,
                     Vector3.zero,
                     Vector3.one * _playerTargetScale,
                     _playerScaleDuration,
                     _playerScaleEase
                 );
 
-                AnimateChildren(_playerImages[i].transform).Forget();
+                await AnimateChildren(playerTransform);
+
                 await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay));
             }
 
             await _tween;
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration));
         }
 
-
-        private async UniTaskVoid AnimateChildren(Transform parent)
+        private async UniTask AnimateChildren(Transform parent)
         {
             int childCount = parent.childCount;
             if (childCount == 0) return;
@@ -105,6 +107,7 @@ namespace MortierFu
             for (int i = 0; i < childCount; i++)
             {
                 Transform child = parent.GetChild(i);
+                if (!child.gameObject.activeSelf) continue; 
 
                 Tween.Scale(
                     child,

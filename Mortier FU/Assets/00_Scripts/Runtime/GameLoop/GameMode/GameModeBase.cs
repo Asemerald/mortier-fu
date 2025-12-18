@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -120,7 +121,6 @@ namespace MortierFu
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
                 await levelSystem.LoadArenaMap();
                 StartRound();
-                
                 return;
             }
 
@@ -307,8 +307,13 @@ namespace MortierFu
             #endif
 
             timer.Reset(duration - 0.01f);
+            
+            timer.OnTimerStart -= HandleStartOfCountdown;
+            timer.OnTimerStop -= HandleEndOfCountdown;
+
             timer.OnTimerStart += HandleStartOfCountdown;
             timer.OnTimerStop += HandleEndOfCountdown;
+            
             timer.Start();
         }
 

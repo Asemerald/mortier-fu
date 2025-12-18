@@ -10,7 +10,6 @@ namespace MortierFu
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;
         [SerializeField] private AugmentSummaryUI _augmentSummaryUI;
-        [SerializeField] private CountdownUI _raceCountdownUI;
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
@@ -25,7 +24,6 @@ namespace MortierFu
             
             _playerConfirmationUI.gameObject.SetActive(false);
             _racePressureUI.gameObject.SetActive(false);
-            _raceCountdownUI.gameObject.SetActive(false);
             _augmentSummaryUI.gameObject.SetActive(false);
         }
 
@@ -119,8 +117,6 @@ namespace MortierFu
 
         private void HandleStopShowcase()
         {
-            _raceCountdownUI.gameObject.SetActive(true);
-            _raceCountdownUI.PlayCountdown().Forget();
         }
 
         private async UniTask PlayAugmentSummary()

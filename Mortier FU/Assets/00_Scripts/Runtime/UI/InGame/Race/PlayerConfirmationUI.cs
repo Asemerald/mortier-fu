@@ -20,8 +20,129 @@ namespace MortierFu
         [SerializeField] private float _hideDuration = 0.6f;
         [SerializeField] private float _scaleDuration = 0.5f;
 
+        [Header("References")] [SerializeField]
+        private Image _countdownImage;
+
+        [SerializeField] private GameObject _lastGameObjectToShow;
+
+        [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
+
+        [Header("Parameters")] [SerializeField]
+        private float _racePopDuration = 1f;
+
+        [SerializeField] private float _racePopScale = 1f;
+
+        private Vector3 _initialRaceScale;
+        private Vector3 _initialCountdownScale;
+
+        private Sequence _countdownSequence;
+
+        private void Awake()
+        {
+            _initialCountdownScale = _countdownImage.transform.localScale;
+
+            _initialRaceScale = _lastGameObjectToShow.transform.localScale;
+            _lastGameObjectToShow.SetActive(false);
+
+            _countdownImage.gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            if (_countdownSequence.isAlive)
+                _countdownSequence.Stop();
+        }
+
+        private async UniTask PlayCountdown(int seconds = 3)
+        {
+            ShowCountdownImage();
+
+            _countdownImage.gameObject.SetActive(true);
+
+            _countdownImage.sprite = _countdownSprites[0];
+
+            for (int t = seconds; t > 0; t--)
+            {
+                SetCountdownVisual(t);
+                await AnimateCountdownNumber();
+            }
+
+            _countdownImage.gameObject.SetActive(false);
+
+            await ShowPlay();
+        }
+
+        private async UniTask ShowPlay()
+        {
+            _lastGameObjectToShow.SetActive(true);
+
+            _lastGameObjectToShow.transform.localScale = Vector3.zero;
+
+            await Tween.Scale(
+                _lastGameObjectToShow.transform,
+                Vector3.zero,
+                _initialRaceScale,
+                _racePopDuration,
+                Ease.InBack
+            );
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+            _lastGameObjectToShow.SetActive(false);
+            gameObject.SetActive(false);
+        }
+
+        private void SetCountdownVisual(int number)
+        {
+            int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
+            _countdownImage.sprite = _countdownSprites[index];
+        }
+
+        private async UniTask AnimateCountdownNumber()
+        {
+            if (_countdownSequence.isAlive)
+                _countdownSequence.Stop();
+
+            _countdownImage.transform.localScale = Vector3.zero;
+
+            const float growthDuration = 0.3f;
+            const float shrinkDuration = 0.3f;
+            float bumpDuration = 0.4f;
+
+            _countdownSequence = Sequence.Create()
+                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, growthDuration, Ease.OutBack))
+                .Group(Tween.Rotation(_countdownImage.transform, Quaternion.Euler(0f, 0f, 180),
+                    Quaternion.Euler(0f, 0f, 0f),
+                    growthDuration * 0.9f, Ease.OutBack, startDelay: growthDuration * 0.1f))
+                .ChainDelay(bumpDuration)
+                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, shrinkDuration, Ease.InBack))
+                .Group(Tween.Rotation(_countdownImage.transform,
+                    Quaternion.Euler(0f, 0f, 180f), shrinkDuration * 0.9f, Ease.InBack,
+                    startDelay: shrinkDuration * 0.1f));
+
+            await _countdownSequence;
+        }
+
+
+        private void ShowCountdownImage()
+        {
+            _countdownImage.transform.localScale = _initialCountdownScale;
+            _countdownImage.transform.localRotation = Quaternion.identity;
+        }
+
         public void ShowConfirmation(int activePlayerCount)
         {
+            _countdownImage.gameObject.SetActive(false);
+            _lastGameObjectToShow.SetActive(false);
+
+            foreach (var slot in _playerSlots)
+            {
+                slot.AButtonImage.gameObject.SetActive(false);
+                slot.OkImage.gameObject.SetActive(false);
+                slot.Animator.enabled = false;
+                slot.IsActive = false;
+            }
+
             StartButtonsAnimation(activePlayerCount);
         }
 
@@ -49,8 +170,8 @@ namespace MortierFu
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration));
-            
-            gameObject.SetActive(false);
+
+            await PlayCountdown();
         }
 
         private void StartButtonsAnimation(int playerCount)

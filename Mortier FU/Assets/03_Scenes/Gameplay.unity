@@ -928,64 +928,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 267606728}
   m_CullTransparentMesh: 1
---- !u!1 &274665962
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 274665963}
-  - component: {fileID: 274665964}
-  m_Layer: 5
-  m_Name: CountdownUI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &274665963
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 274665962}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1925758910}
-  - {fileID: 1225621247}
-  m_Father: {fileID: 1299488696}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &274665964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 274665962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5f5f9a914b6ec54daa6392a40a495ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.CountdownUI
-  _countdownImage: {fileID: 1925758911}
-  _lastGameObjectToShow: {fileID: 0}
-  _countdownSprites:
-  - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  _racePopDuration: 1
-  _racePopScale: 0.8
 --- !u!1 &311177773
 GameObject:
   m_ObjectHideFlags: 0
@@ -1244,6 +1186,81 @@ MonoBehaviour:
   - {fileID: -104438956, guid: 093435f22d2965f4abcb55416b12d0c2, type: 3}
   - {fileID: -132674152, guid: 093435f22d2965f4abcb55416b12d0c2, type: 3}
   - {fileID: 469190638, guid: 093435f22d2965f4abcb55416b12d0c2, type: 3}
+--- !u!1 &365214082
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 365214083}
+  - component: {fileID: 365214085}
+  - component: {fileID: 365214084}
+  m_Layer: 5
+  m_Name: Countdown
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &365214083
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365214082}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2.5, y: 2, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1299488696}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 164, y: 239}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &365214084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365214082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &365214085
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 365214082}
+  m_CullTransparentMesh: 1
 --- !u!1 &417967899
 GameObject:
   m_ObjectHideFlags: 0
@@ -2558,6 +2575,14 @@ MonoBehaviour:
   _pulseDuration: 0.45
   _hideDuration: 0.6
   _scaleDuration: 0.5
+  _countdownImage: {fileID: 365214084}
+  _lastGameObjectToShow: {fileID: 1225621246}
+  _countdownSprites:
+  - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  _racePopDuration: 0.5
+  _racePopScale: 1
 --- !u!1 &668152917
 GameObject:
   m_ObjectHideFlags: 0
@@ -3039,7 +3064,6 @@ GameObject:
   m_Component:
   - component: {fileID: 772488391}
   - component: {fileID: 772488392}
-  - component: {fileID: 772488393}
   m_Layer: 5
   m_Name: RoundAnnouncementUI
   m_TagString: Untagged
@@ -3088,32 +3112,23 @@ MonoBehaviour:
   _goldenBombshellGameObject: {fileID: 195425640}
   _bannerGameObject: {fileID: 758357713}
   _readyGameObject: {fileID: 1137881213}
-  _countdownUI: {fileID: 772488393}
-  _slideDuration: 0.5
-  _readyScaleDuration: 0.5
-  _slideEase: 6
-  _readEase: 5
-  _holdDuration: 0.5
---- !u!114 &772488393
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 772488390}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5f5f9a914b6ec54daa6392a40a495ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.CountdownUI
+  _playGameObject: {fileID: 1495155796}
   _countdownImage: {fileID: 1933827955}
-  _lastGameObjectToShow: {fileID: 0}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  _racePopDuration: 1
-  _racePopScale: 1.2
+  _slideDuration: 0.5
+  _slideEase: 6
+  _readyScaleDuration: 0.5
+  _readyEaseIn: 5
+  _readyEaseOut: 6
+  _holdDuration: 0.5
+  _countdownGrowthDuration: 0.3
+  _countdownShrinkDuration: 0.3
+  _countdownBumpDuration: 0.4
+  _racePopDuration: 0.5
+  _playDisableDelay: 1
 --- !u!1 &818672848
 GameObject:
   m_ObjectHideFlags: 0
@@ -4601,12 +4616,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1225621246}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 274665963}
+  m_Father: {fileID: 1299488696}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4847,10 +4862,11 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 274665963}
+  - {fileID: 1225621247}
   - {fileID: 664963558}
   - {fileID: 417967900}
   - {fileID: 1418208425}
+  - {fileID: 365214083}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4873,7 +4889,6 @@ MonoBehaviour:
   _playerConfirmationUI: {fileID: 664963560}
   _racePressureUI: {fileID: 1418208428}
   _augmentSummaryUI: {fileID: 417967901}
-  _raceCountdownUI: {fileID: 274665964}
 --- !u!1 &1329914394
 GameObject:
   m_ObjectHideFlags: 0
@@ -5705,7 +5720,7 @@ RectTransform:
   m_GameObject: {fileID: 1495155796}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 772488391}
@@ -6907,81 +6922,6 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1851792768}
-  m_CullTransparentMesh: 1
---- !u!1 &1925758909
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1925758910}
-  - component: {fileID: 1925758912}
-  - component: {fileID: 1925758911}
-  m_Layer: 5
-  m_Name: Countdown
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1925758910
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1925758909}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.5, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 274665963}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 164, y: 239}
-  m_Pivot: {x: 0.5, y: 1}
---- !u!114 &1925758911
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1925758909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1925758912
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1925758909}
   m_CullTransparentMesh: 1
 --- !u!1 &1933827953
 GameObject:
