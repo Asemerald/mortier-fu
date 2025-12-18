@@ -11,41 +11,87 @@ namespace MortierFu
 {
     public class RoundAnnouncementUI : MonoBehaviour
     {
-        [SerializeField] private GameObject _goldenBombshellGameObject;
+        #region Variables
+
+        #region References
+
+        [Header("UI References")] [SerializeField]
+        private GameObject _goldenBombshellGameObject;
+
         [SerializeField] private GameObject _bannerGameObject;
         [SerializeField] private GameObject _readyGameObject;
         [SerializeField] private GameObject _playGameObject;
         [SerializeField] private Image _countdownImage;
-        [SerializeField] private List<Sprite> _countdownSprites;
-        [SerializeField] float _showPlayDelay = 1f;
 
-        [SerializeField] float _slideDuration = 0.5f;
+        #endregion
+
+        #region Assets
+
+        [Header("Countdown Assets")] [SerializeField]
+        private List<Sprite> _countdownSprites;
+
+        #endregion
+
+        #region Timing Settings
+
+        [Header("General Timing")] [SerializeField]
+        float _playShowDelay = 1f;
+
+        [SerializeField] float _holdDuration = 0.5f;
+        [SerializeField] float _playDisableDelay = 1f;
+
+        #endregion
+
+        #region Banner Animation
+
+        [Header("Banner Animation")] [SerializeField]
+        float _slideDuration = 0.5f;
+
         [SerializeField] Ease _slideEaseOut = Ease.OutQuad;
         [SerializeField] Ease _slideEaseIn = Ease.InQuad;
-
-        [SerializeField] float _readyScaleDuration = 0.5f;
-        [SerializeField] Ease _readyEaseIn = Ease.InElastic;
-        [SerializeField] Ease _readyEaseOut = Ease.OutQuad;
-
-        [SerializeField] float _holdDuration = 1f;
-
-        [SerializeField] float _countdownGrowthDuration = 0.3f;
-        [SerializeField] float _countdownShrinkDuration = 0.3f;
-        [SerializeField] float _countdownBumpDuration = 0.4f;
-
-        [SerializeField] float _racePopDuration = 0.5f;
-        [SerializeField] float _playDisableDelay = 1f;
-        [SerializeField] Ease _playEaseIn = Ease.InQuad;
 
         private Vector3 _bannerCenterPos;
         private Vector3 _bannerStartPos;
         private Tween _bannerTween;
 
-        private Sequence _countdownSequence;
-        private Vector3 _initialCountdownScale;
+        #endregion
+
+        #region Ready Animation
+
+        [Header("Ready Animation")] [SerializeField]
+        float _readyScaleDuration = 0.5f;
+
+        [SerializeField] Ease _readyEaseIn = Ease.InQuad;
+        [SerializeField] Ease _readyEaseOut = Ease.OutQuad;
 
         private Vector3 _readyStartScale;
         private Tween _readyTween;
+
+        #endregion
+
+        #region Countdown Animation
+
+        [Header("Countdown Animation")] [SerializeField]
+        float _countdownGrowthDuration = 0.3f;
+
+        [SerializeField] float _countdownShrinkDuration = 0.3f;
+        [SerializeField] float _countdownBumpDuration = 0.4f;
+
+        private Sequence _countdownSequence;
+        private Vector3 _initialCountdownScale;
+
+        #endregion
+
+        #region Play Animation
+
+        [Header("Play Animation")] [SerializeField]
+        float _playPopDuration = 0.5f;
+
+        [SerializeField] Ease _playEaseIn = Ease.InQuad;
+
+        #endregion
+
+        #endregion
 
         private void Awake()
         {
@@ -169,7 +215,7 @@ namespace MortierFu
 
             _countdownImage.gameObject.SetActive(false);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_showPlayDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(_playShowDelay));
             await ShowPlay();
         }
 
@@ -216,7 +262,7 @@ namespace MortierFu
                 _playGameObject.transform,
                 Vector3.zero,
                 Vector3.one,
-                _racePopDuration,
+                _playPopDuration,
                 _playEaseIn
             );
 
