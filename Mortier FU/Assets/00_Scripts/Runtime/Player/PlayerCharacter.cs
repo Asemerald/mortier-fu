@@ -193,10 +193,10 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
+        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
         {
             force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
-            _knockbackState.ReceiveKnockback(duration, force, stunDuration);
+            _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
         public void ReceiveStun(float duration)

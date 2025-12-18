@@ -12,6 +12,7 @@ namespace MortierFu
             _stunTimer = new CountdownTimer(0f);
         }
 
+        private object _lastBumpSource;
         private Vector3 _currentBumpForce;
         
         public float StunDuration { get; private set; }
@@ -28,22 +29,25 @@ namespace MortierFu
             character.Controller.HandleMovementFixedUpdate();
         }
         
-        public void ReceiveKnockback(float duration, Vector3 bumpForce, float stunDuration)
+        public void ReceiveKnockback(float duration, Vector3 bumpForce, float stunDuration, object source)
         {
+            // Prevent getting bump by the same source multiple times
+            if (IsActive && _lastBumpSource == source)
+                return;
+            
             // On autorise actuellement le "refresh" du stun
             // if(IsActive && _stunTimer.CurrentTime > duration)
             //     return;
             
             //set bump direction
             _currentBumpForce = bumpForce;
+            _lastBumpSource = source;
+            
             StunDuration = stunDuration;
             
             _stunTimer.Reset(duration);
             _stunTimer.Start();
-        }
-        
-        public override void OnEnter()
-        {
+            
             character.Controller.ResetVelocity();
             
             //Apply Knockback
@@ -53,7 +57,10 @@ namespace MortierFu
             {
                 Character = character,
             });
-            
+        }
+        
+        public override void OnEnter()
+        {
             if(debug)
                 Logs.Log("Entering Knockback State");
         }

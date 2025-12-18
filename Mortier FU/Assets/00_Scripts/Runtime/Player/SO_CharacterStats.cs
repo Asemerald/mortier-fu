@@ -96,8 +96,8 @@ namespace MortierFu
         public float GetBombshellSize() => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
         public float GetKnockbackStunDuration()
         {
-            float factor = KnockbackStunDuration / StrikePushForce.BaseValue;
-            return StrikePushForce.Value * factor;
+            float factor = KnockbackStunDuration / (StrikePushForce.BaseValue + StrikePushForceOffset);
+            return KnockbackStunDuration + StrikePushForce.Value * factor;
         }
     }
 }
