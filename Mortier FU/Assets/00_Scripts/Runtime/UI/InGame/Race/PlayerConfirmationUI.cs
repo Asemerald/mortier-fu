@@ -9,39 +9,72 @@ namespace MortierFu
 {
     public class PlayerConfirmationUI : MonoBehaviour
     {
-        [Header("Player Slots (Blue, Red, Green, Yellow order)")] [SerializeField]
+        #region Variables
+
+        #region Player Slots
+
+        [Header("Player Slots (Blue, Red, Green, Yellow)")] [SerializeField]
         private List<PlayerSlot> _playerSlots;
 
-        [Header("Animation Settings")] [SerializeField]
-        private float _pulseScale = 1.15f;
+        #endregion
 
-        [SerializeField] private float _pulseDuration = 0.45f;
+        #region UI References
 
-        [SerializeField] private float _hideDuration = 0.6f;
-        [SerializeField] private float _scaleDuration = 0.5f;
-
-        [Header("References")] [SerializeField]
+        [Header("UI References")] [SerializeField]
         private Image _countdownImage;
 
         [SerializeField] private GameObject _raceGameObject;
 
+        #endregion
+
+        #region Assets
+
         [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
 
-        [Header("Parameters")] [SerializeField]
-        private float _racePopDuration = 1f;
+        #endregion
+
+        #region General Animation Settings
+
+        [Header("General Animation Settings")] [SerializeField]
+        private float _pulseScale = 1.15f;
+
+        [SerializeField] private float _pulseDuration = 0.45f;
+        [SerializeField] private float _hideDuration = 0.6f;
+        [SerializeField] private float _defaultScaleDuration = 0.5f;
+
+        #endregion
+
+        #region Race Animation Settings
+
+        [Header("Race Animation Settings")] [SerializeField]
+        private float _racePopDuration = 0.5f;
 
         [SerializeField] private float _racePopScale = 1f;
         [SerializeField] private float _raceDisableDelay = 0.5f;
 
-        [SerializeField] private Ease _aButtonEaseOut = Ease.OutBack;
-        [SerializeField] private Ease _aImageEaseInOut = Ease.InOutQuad;
+        #endregion
+
+        #region Ease Settings
+
+        [Header("Ease Settings")] [SerializeField]
+        private Ease _actionButtonEaseOut = Ease.OutBack;
+
+        [SerializeField] private Ease _actionImageEaseInOut = Ease.InOutQuad;
         [SerializeField] private Ease _playEaseIn = Ease.InBack;
         [SerializeField] private Ease _slotEaseIn = Ease.InQuint;
+
+        #endregion
+
+        #region Runtime State
 
         private Vector3 _initialRaceScale;
         private Vector3 _initialCountdownScale;
 
         private Sequence _countdownSequence;
+
+        #endregion
+
+        #endregion
 
         private void Awake()
         {
@@ -198,14 +231,14 @@ namespace MortierFu
 
                 if (!slot.IsActive) continue;
 
-                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.zero, Vector3.one, _scaleDuration,
-                    _aButtonEaseOut);
+                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.zero, Vector3.one, _defaultScaleDuration,
+                    _actionButtonEaseOut);
 
                 slot.ATween = Tween.Scale(
                     target: slot.AButtonImage.rectTransform,
                     Vector3.one * _pulseScale,
                     duration: _pulseDuration,
-                    ease: _aImageEaseInOut,
+                    ease: _actionImageEaseInOut,
                     cycles: -1,
                     cycleMode: CycleMode.Yoyo
                 );

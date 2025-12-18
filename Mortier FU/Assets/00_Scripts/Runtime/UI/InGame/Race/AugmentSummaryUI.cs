@@ -9,23 +9,51 @@ namespace MortierFu
 {
     public class AugmentSummaryUI : MonoBehaviour
     {
-        [SerializeField] private Image[] _playerImages;
-        
-        [Header("Settings")]
-        [SerializeField] private float _playerScaleDuration = 0.4f;
+        #region Variables
+
+        #region References
+
+        [Header("Player Image References")] [SerializeField]
+        private Image[] _playerImages;
+
+        #endregion
+
+        #region Player Animation Settings
+
+        [Header("Player Animation Settings")] [SerializeField]
+        private float _playerScaleDuration = 0.4f;
+
         [SerializeField] private float _playerTargetScale = 0.65f;
         [SerializeField] private float _playerAnimDelay = 0.15f;
         [SerializeField] private Ease _playerScaleEase = Ease.OutBack;
 
-        [SerializeField] private float _childRadius = 225f;
+        #endregion
+
+        #region Child / Augment Icon Animation
+
+        [Header("Child / Augment Icon Animation")] [SerializeField]
+        private float _augmentIconRadius = 225f;
+
         [SerializeField] private float _childAnimDelay = 0.3f;
-        [SerializeField] private float _childAnimDuration = 0.8f;
+        [SerializeField] private float _augmentIconAnimDuration = 0.8f;
         [SerializeField] private Ease _augmentIconScaleEase = Ease.OutBack;
         [SerializeField] private Ease _augmentIconMoveEase = Ease.OutCubic;
 
-        [SerializeField] private float _finalPauseDuration = 1.5f;
+        #endregion
+
+        #region Timing
+
+        [Header("Timing")] [SerializeField] private float _finalPauseDuration = 1.5f;
+
+        #endregion
+
+        #region Runtime State
 
         private Tween _tween;
+
+        #endregion
+
+        #endregion
 
         public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments)
         {
@@ -98,8 +126,8 @@ namespace MortierFu
                 float angle = -i * angleStep;
                 float rad = angle * Mathf.Deg2Rad;
                 finalPositions[i] = new Vector3(
-                    Mathf.Cos(rad) * _childRadius,
-                    Mathf.Sin(rad) * _childRadius,
+                    Mathf.Cos(rad) * _augmentIconRadius,
+                    Mathf.Sin(rad) * _augmentIconRadius,
                     0f
                 );
             }
@@ -107,13 +135,13 @@ namespace MortierFu
             for (int i = 0; i < childCount; i++)
             {
                 Transform child = parent.GetChild(i);
-                if (!child.gameObject.activeSelf) continue; 
+                if (!child.gameObject.activeSelf) continue;
 
                 Tween.Scale(
                     child,
                     Vector3.zero,
                     Vector3.one,
-                    _childAnimDuration,
+                    _augmentIconAnimDuration,
                     _augmentIconScaleEase
                 );
 
@@ -121,7 +149,7 @@ namespace MortierFu
                     child,
                     Vector3.zero,
                     finalPositions[i],
-                    _childAnimDuration,
+                    _augmentIconAnimDuration,
                     _augmentIconMoveEase
                 );
 

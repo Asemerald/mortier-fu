@@ -2576,13 +2576,18 @@ MonoBehaviour:
   _hideDuration: 0.6
   _scaleDuration: 0.5
   _countdownImage: {fileID: 365214084}
-  _lastGameObjectToShow: {fileID: 1225621246}
+  _raceGameObject: {fileID: 1225621246}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   _racePopDuration: 0.5
   _racePopScale: 1
+  _raceDisableDelay: 0.5
+  _aButtonEaseOut: 27
+  _aImageEaseInOut: 7
+  _playEaseIn: 26
+  _slotEaseIn: 14
 --- !u!1 &668152917
 GameObject:
   m_ObjectHideFlags: 0
@@ -3118,17 +3123,20 @@ MonoBehaviour:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  _playShowDelay: 1
+  _holdDuration: 0.5
+  _playDisableDelay: 1
   _slideDuration: 0.5
-  _slideEase: 6
+  _slideEaseOut: 6
+  _slideEaseIn: 5
   _readyScaleDuration: 0.5
   _readyEaseIn: 5
   _readyEaseOut: 6
-  _holdDuration: 0.5
   _countdownGrowthDuration: 0.3
   _countdownShrinkDuration: 0.3
   _countdownBumpDuration: 0.4
-  _racePopDuration: 0.5
-  _playDisableDelay: 1
+  _playPopDuration: 0.5
+  _playEaseIn: 5
 --- !u!1 &818672848
 GameObject:
   m_ObjectHideFlags: 0
