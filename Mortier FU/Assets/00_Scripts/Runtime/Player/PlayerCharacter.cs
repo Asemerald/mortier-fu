@@ -291,6 +291,11 @@ namespace MortierFu
             if (_knockbackState.IsActive && other.impulse.magnitude > 5)
             {
                 ReceiveStun(_knockbackState.StunDuration);
+                //temp ajout destruction barriere
+                if (other.gameObject.GetComponent<Breakable>())
+                {
+                    other.gameObject.GetComponent<Breakable>().Interact();
+                }
             }
         }
 
