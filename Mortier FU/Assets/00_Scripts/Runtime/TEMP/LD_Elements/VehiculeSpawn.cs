@@ -8,7 +8,7 @@ public class VehiculeSpawn : MonoBehaviour
     [SerializeField] private Transform endPoint;
     [SerializeField] private GameObject vehicule;
     [SerializeField] private float vehiculeSpeed;
-    [SerializeField] private float vehiculteRate;
+    [SerializeField] private Vector2 vehiculteRate;
 
     private List<GameObject> vehiculList;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -40,7 +40,7 @@ public class VehiculeSpawn : MonoBehaviour
     private IEnumerator CreateCar()
     {
         vehiculList.Add(Instantiate(vehicule, startingPoint.position, Quaternion.LookRotation((endPoint.position-startingPoint.position).normalized)));
-        yield return new WaitForSeconds(vehiculteRate);
+        yield return new WaitForSeconds(Random.Range(vehiculteRate.x, vehiculteRate.y));
         StartCoroutine(CreateCar());
     }
     
