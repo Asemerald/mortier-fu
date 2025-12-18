@@ -121,7 +121,7 @@ namespace MortierFu
                 var knockbackForce = knockbackDir * character.Stats.GetStrikePushForce();
                 float knockbackDuration = character.Stats.KnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
-                other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration);
+                other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration, character);
             }
 
             if (hitCharacters.Count > 0)

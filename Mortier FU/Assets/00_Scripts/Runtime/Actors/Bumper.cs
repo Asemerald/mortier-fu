@@ -14,7 +14,7 @@ namespace MortierFu {
             if (!character) return;
 
             var dir = -other.contacts[0].normal;
-            character.ReceiveKnockback(_bumpDuration, dir * _bumpForce, _stunDuration);
+            character.ReceiveKnockback(_bumpDuration, dir * _bumpForce, _stunDuration, this);
         }
     }
 }

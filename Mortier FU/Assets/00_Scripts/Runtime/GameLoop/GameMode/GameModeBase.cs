@@ -141,6 +141,7 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
+                EnablePlayerGravity(false);
                 await levelSystem.LoadRaceMap();
 
                 UpdateGameState(GameState.RaceInProgress);
@@ -157,6 +158,8 @@ namespace MortierFu
                 augmentSelectionSys.EndRace();
                 EndRace();
                 
+                EnablePlayerGravity(false);
+                 
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -165,7 +168,7 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-                
+            
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -217,6 +220,17 @@ namespace MortierFu
             return pickers;
         }
 
+        private void EnablePlayerGravity(bool enabled = true)
+        {
+            foreach (var team in teams)
+            {
+                foreach (var member in team.Members)
+                {
+                    member.Character.Controller.rigidbody.useGravity = enabled;
+                }
+            }
+        }
+        
         private void SpawnPlayers()
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
@@ -290,6 +304,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            EnablePlayerGravity();
             EnablePlayerInputs(false);
 
             foreach (var team in teams)
@@ -462,6 +477,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            EnablePlayerGravity();
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
