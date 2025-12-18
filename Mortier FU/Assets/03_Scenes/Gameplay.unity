@@ -1319,9 +1319,9 @@ MonoBehaviour:
   _playerTargetScale: 0.65
   _playerAnimDelay: 0.15
   _playerScaleEase: 27
-  _childRadius: 225
+  _augmentIconRadius: 225
   _childAnimDelay: 0.3
-  _childAnimDuration: 0.8
+  _augmentIconAnimDuration: 0.8
   _augmentIconScaleEase: 27
   _augmentIconMoveEase: 9
   _finalPauseDuration: 1.5
@@ -2571,21 +2571,21 @@ MonoBehaviour:
     Animator: {fileID: 96883151}
     AnimatorTransform: {fileID: 96883148}
     IsActive: 0
-  _pulseScale: 1.15
-  _pulseDuration: 0.45
-  _hideDuration: 0.6
-  _scaleDuration: 0.5
   _countdownImage: {fileID: 365214084}
   _raceGameObject: {fileID: 1225621246}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
+  _pulseScale: 1.15
+  _pulseDuration: 0.45
+  _hideDuration: 0.6
+  _defaultScaleDuration: 0.5
   _racePopDuration: 0.5
   _racePopScale: 1
   _raceDisableDelay: 0.5
-  _aButtonEaseOut: 27
-  _aImageEaseInOut: 7
+  _actionButtonEaseOut: 27
+  _actionImageEaseInOut: 7
   _playEaseIn: 26
   _slotEaseIn: 14
 --- !u!1 &668152917
@@ -3123,9 +3123,9 @@ MonoBehaviour:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 2094725454, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
-  _playShowDelay: 1
+  _playShowDelay: 0.2
   _holdDuration: 0.5
-  _playDisableDelay: 1
+  _playDisableDelay: 0.5
   _slideDuration: 0.5
   _slideEaseOut: 6
   _slideEaseIn: 5
@@ -3135,7 +3135,7 @@ MonoBehaviour:
   _countdownGrowthDuration: 0.3
   _countdownShrinkDuration: 0.3
   _countdownBumpDuration: 0.4
-  _playPopDuration: 0.5
+  _playPopDuration: 0.4
   _playEaseIn: 5
 --- !u!1 &818672848
 GameObject:
