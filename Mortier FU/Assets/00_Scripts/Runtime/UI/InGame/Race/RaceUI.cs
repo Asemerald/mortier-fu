@@ -58,7 +58,6 @@ namespace MortierFu
 
             _augmentSelectionSystem.OnPressureStart += HandlePressureStart;
             _augmentSelectionSystem.OnPressureStop += HandlePressureStop;
-            _augmentSelectionSystem.OnStopShowcase += HandleStopShowcase;
         }
         
         private void OnDisable()
@@ -84,7 +83,6 @@ namespace MortierFu
 
             _augmentSelectionSystem.OnPressureStart -= HandlePressureStart;
             _augmentSelectionSystem.OnPressureStop -= HandlePressureStop;
-            _augmentSelectionSystem.OnStopShowcase -= HandleStopShowcase;
         }
 
         private void HandleStartConfirmation(int activePlayerCount)
@@ -113,10 +111,6 @@ namespace MortierFu
         {
             _racePressureUI.StopVignettePressure();
             _racePressureUI.gameObject.SetActive(false);
-        }
-
-        private void HandleStopShowcase()
-        {
         }
 
         private async UniTask PlayAugmentSummary()

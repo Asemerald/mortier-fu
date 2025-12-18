@@ -213,8 +213,12 @@ namespace MortierFu
 
             augment.IsPicked = true;
             _pickers.Remove(picker);
-            
+
             character.AddAugment(augment.Augment);
+
+            if (!_pickedAugments.ContainsKey(character))
+                _pickedAugments[character] = new List<SO_Augment>();
+            _pickedAugments[character].Add(augment.Augment);
 
             return true;
         }
