@@ -33,7 +33,7 @@ namespace MortierFu
 
         [SerializeField] float _racePopDuration = 0.5f;
         [SerializeField] float _playDisableDelay = 1f;
-        
+
         private Vector3 _bannerCenterPos;
         private Vector3 _bannerStartPos;
         private Tween _bannerTween;
@@ -41,7 +41,6 @@ namespace MortierFu
         private Sequence _countdownSequence;
         private Vector3 _initialCountdownScale;
 
-        private Vector3 _initialPlayScale;
         private Vector3 _readyStartScale;
         private Tween _readyTween;
 
@@ -52,7 +51,6 @@ namespace MortierFu
 
             _readyStartScale = _readyGameObject.transform.localScale;
             _initialCountdownScale = _countdownImage.transform.localScale;
-            _initialPlayScale = _playGameObject.transform.localScale;
 
             _playGameObject.SetActive(false);
             _bannerGameObject.SetActive(false);
@@ -88,7 +86,7 @@ namespace MortierFu
 
             _bannerGameObject.transform.position = _bannerStartPos;
             _bannerGameObject.SetActive(true);
-            
+
             _readyGameObject.transform.localScale = Vector3.zero;
             _readyGameObject.SetActive(true);
 
@@ -120,7 +118,7 @@ namespace MortierFu
                 _readyEaseIn
             );
             await _readyTween;
-            
+
             _bannerTween = Tween.Position(
                 _bannerGameObject.transform,
                 _bannerGameObject.transform.position,
@@ -193,7 +191,8 @@ namespace MortierFu
             _countdownImage.transform.localScale = Vector3.zero;
 
             _countdownSequence = Sequence.Create()
-                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, _countdownGrowthDuration, Ease.OutBack))
+                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, _countdownGrowthDuration,
+                    Ease.OutBack))
                 .Group(Tween.Rotation(_countdownImage.transform, Quaternion.Euler(0f, 0f, 180),
                     Quaternion.Euler(0f, 0f, 0f),
                     _countdownGrowthDuration * 0.9f, Ease.OutBack, startDelay: _countdownGrowthDuration * 0.1f))
@@ -207,15 +206,15 @@ namespace MortierFu
 
         private async UniTask ShowPlay()
         {
-            _playGameObject.SetActive(true);
             _playGameObject.transform.localScale = Vector3.zero;
+            _playGameObject.SetActive(true);
 
             await Tween.Scale(
                 _playGameObject.transform,
                 Vector3.zero,
-                _initialPlayScale,
+                Vector3.one,
                 _racePopDuration,
-                Ease.InBack
+                Ease.InQuad
             );
 
             await UniTask.Delay(TimeSpan.FromSeconds(_playDisableDelay));
