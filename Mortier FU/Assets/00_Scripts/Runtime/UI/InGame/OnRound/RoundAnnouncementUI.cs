@@ -18,12 +18,13 @@ namespace MortierFu
         [SerializeField] private Ease _slideEase = Ease.OutBack;
         [SerializeField] private Ease _readEase = Ease.InElastic;
 
+        [SerializeField] private float _holdDuration;
+        
         private Vector3 _bannerStartPos;
         private Vector3 _bannerCenterPos;
         private Vector3 _readyStartScale;
         private Tween _bannerTween;
         private Tween _readyTween;
-        private float _holdDuration;
 
         private void Awake()
         {
@@ -36,8 +37,6 @@ namespace MortierFu
             _bannerGameObject.SetActive(false);
             _readyGameObject.SetActive(false);
             _goldenBombshellGameObject.SetActive(false);
-            
-            _holdDuration = 2.8f - (_slideDuration + _readyScaleDuration);
         }
 
         public void OnRoundStarted(GameModeBase gm)
@@ -45,9 +44,6 @@ namespace MortierFu
             UpdateMatchPointIndicator(gm);
 
             AnimateBanner().Forget();
-
-            _countdownUI.gameObject.SetActive(true);
-            _countdownUI.PlayCountdown().Forget();
         }
 
         private async UniTaskVoid AnimateBanner()
@@ -108,6 +104,11 @@ namespace MortierFu
 
             _bannerGameObject.SetActive(false);
             _readyGameObject.SetActive(false);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            
+            _countdownUI.gameObject.SetActive(true);
+            _countdownUI.PlayCountdown().Forget();
         }
 
         private void UpdateMatchPointIndicator(GameModeBase gm)
