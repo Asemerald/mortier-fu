@@ -62,32 +62,43 @@ namespace MortierFu
             for (int i = 0; i < _playerImages.Length; i++)
             {
                 bool active = i < playerCount;
-                _playerImages[i].gameObject.SetActive(active);
+                var playerImage = _playerImages[i];
+
+                playerImage.gameObject.SetActive(active);
                 if (!active) continue;
 
-                _playerImages[i].transform.localScale = Vector3.zero;
+                var playerTransform = playerImage.transform;
+                playerTransform.localScale = Vector3.zero;
 
-                int childCount = _playerImages[i].transform.childCount;
+                var augments = playerAugments[i];
+                int childCount = playerTransform.childCount;
+
                 for (int c = 0; c < childCount; c++)
                 {
-                    Transform child = _playerImages[i].transform.GetChild(c);
+                    var child = playerTransform.GetChild(c);
                     child.localScale = Vector3.zero;
                     child.localPosition = Vector3.zero;
 
-                    var augments = playerAugments[i];
-                    if (c < augments.Count)
-                    {
-                        var iconImg = child.GetComponent<Image>();
-                        if (iconImg != null)
-                        {
-                            iconImg.sprite = augments[augments.Count - 1 - c].Icon;
-                            child.gameObject.SetActive(true);
-                        }
-                    }
-                    else
+                    if (c >= augments.Count)
                     {
                         child.gameObject.SetActive(false);
+                        continue;
                     }
+
+                    var augment = augments[augments.Count - 1 - c];
+
+                    var rarityImage = child.GetComponent<Image>();
+                    if (rarityImage != null)
+                        rarityImage.sprite = augment.RarityIcon;
+
+                    if (child.childCount > 0)
+                    {
+                        var logoImage = child.GetChild(0).GetComponent<Image>();
+                        if (logoImage != null)
+                            logoImage.sprite = augment.LogoIcon;
+                    }
+
+                    child.gameObject.SetActive(true);
                 }
             }
 
@@ -103,12 +114,13 @@ namespace MortierFu
                     _playerScaleEase
                 );
 
+                await UniTask.Yield();
                 await AnimateChildren(playerTransform);
-
                 await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay));
             }
 
-            await _tween;
+            if (_tween.isAlive)
+                await _tween;
 
             await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration));
         }
