@@ -10,32 +10,32 @@ namespace MortierFu
     /// </summary>
     public class LobbyService : IGameService
     {
-        private readonly List<PlayerManager> _players = new();
+        public readonly List<PlayerManager> Players = new();
         private int _maxPlayers = 4;
 
         public event Action<PlayerManager> OnPlayerJoined;
         public event Action<PlayerManager> OnPlayerLeft;
         
-        public int CurrentPlayerCount => _players.Count;
+        public int CurrentPlayerCount => Players.Count;
         
         public void Dispose()
         {
-            _players.Clear();
+            Players.Clear();
             Logs.Log("[LobbyService] Disposed.");
         }
 
         public void RegisterPlayer(PlayerManager player)
         {
-            if (player == null || _players.Contains(player))
+            if (player == null || Players.Contains(player))
                 return;
 
-            if (_players.Count >= _maxPlayers)
+            if (Players.Count >= _maxPlayers)
             {
                 Logs.LogWarning($"[LobbyService] Max players reached ({_maxPlayers}).");
                 return;
             }
 
-            _players.Add(player);
+            Players.Add(player);
             player.OnPlayerInitialized += HandlePlayerInitialized;
             player.OnPlayerDestroyed += HandlePlayerDestroyed;
 
@@ -45,13 +45,13 @@ namespace MortierFu
 
         public void UnregisterPlayer(PlayerManager player)
         {
-            if (player == null || !_players.Contains(player))
+            if (player == null || !Players.Contains(player))
                 return;
 
             player.OnPlayerInitialized -= HandlePlayerInitialized;
             player.OnPlayerDestroyed -= HandlePlayerDestroyed;
 
-            _players.Remove(player);
+            Players.Remove(player);
             Logs.Log($"[LobbyService] Player {player.PlayerIndex} left the lobby.");
             OnPlayerLeft?.Invoke(player);
         }
@@ -67,7 +67,7 @@ namespace MortierFu
             UnregisterPlayer(player);
         }
 
-        public IReadOnlyList<PlayerManager> GetPlayers() => _players.AsReadOnly();
+        public IReadOnlyList<PlayerManager> GetPlayers() => Players.AsReadOnly();
 
         public UniTask OnInitialize()
         {
