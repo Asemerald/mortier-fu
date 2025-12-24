@@ -44,12 +44,12 @@ namespace MortierFu
                 SpawnDummy();
             }
 
-            // Cycle avec RB
+            /*// Cycle avec RB
             if (Gamepad.current != null &&
                 Gamepad.current.rightShoulder.wasPressedThisFrame)
             {
                 CycleControl();
-            }
+            }*/
         }
 
         void SpawnDummy()
