@@ -241,6 +241,10 @@ namespace MortierFu
                     // si c'est joueur 0 ou pas.
                 }
             }
+            
+#if UNITY_EDITOR
+            PlayerInputSwapper.Instance.UpdateActivePlayer();
+#endif
         }
 
         protected virtual bool AllPlayersReady()

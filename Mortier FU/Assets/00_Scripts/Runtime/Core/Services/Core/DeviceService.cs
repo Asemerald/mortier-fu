@@ -127,6 +127,10 @@ namespace MortierFu
             // Désactiver temporairement les entrées du joueur
             if (_playerInputs.TryGetValue(playerIndex, out var playerInput))
                 playerInput.DeactivateInput();
+            
+#if UNITY_EDITOR
+            PlayerInputSwapper.Instance.UpdateActivePlayer();
+#endif
         }
 
         private void OnDeviceRestored(InputDevice device)

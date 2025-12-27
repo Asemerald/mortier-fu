@@ -12,6 +12,13 @@ namespace MortierFu
     {
         public PlayerInputManager playerInputManager;
         private PlayerInput activePlayer;
+        
+        public static PlayerInputSwapper Instance;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
@@ -34,9 +41,15 @@ namespace MortierFu
 
             // Cycle avec RB
             if (Gamepad.current != null &&
-                Gamepad.current.rightShoulder.wasPressedThisFrame)
+                Gamepad.current.rightStickButton.wasPressedThisFrame)
             {
                 CycleControl();
+            }
+            
+            if (Gamepad.current != null &&
+                Gamepad.current.leftStickButton.wasPressedThisFrame)
+            {
+                UpdateActivePlayer();
             }
         }
 
@@ -84,7 +97,7 @@ namespace MortierFu
             Debug.Log($"Switched to player: {activePlayer.name}");
         }
 
-        void UpdateActivePlayer()
+        public void UpdateActivePlayer()
         {
             var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
 
