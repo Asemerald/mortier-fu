@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -23,6 +24,11 @@ public class DebugManager : MonoBehaviour
     [SerializeField] private bool showMemoryUsage = false;
     [SerializeField] private float performanceUpdateInterval = 0.5f;
     [SerializeField] private KeyCode toggleMemoryKey = KeyCode.F3;
+    
+    [Header("Triangles Count")]
+    [SerializeField] private bool showTriangleCount = false;
+
+    [SerializeField] private TriangleCounter triangleCounter; 
     
     // FPS tracking
     private float deltaTime = 0.0f;
@@ -57,6 +63,15 @@ public class DebugManager : MonoBehaviour
         
         // Subscribe to log messages
         Application.logMessageReceived += HandleLog;
+
+        SceneManager.sceneLoaded += PrintTriangleCount;
+    }
+
+    void PrintTriangleCount(Scene scene, LoadSceneMode mode)
+    {
+        if (!showTriangleCount) return;
+        
+        triangleCounter.CountMeshTriangles();
     }
 
     private void OnDestroy()

@@ -1249,10 +1249,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5748455811640966842, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
+      propertyPath: m_audioModuleState
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748455811640966842, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
+      propertyPath: m_findAudioListenerInCameraIfNull
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 7122515921895446280, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
       propertyPath: m_Name
       value: '[DebugManager]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8245993414839338909, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
+      propertyPath: playerInputManager
+      value: 
+      objectReference: {fileID: 1829325158}
     - target: {fileID: 8828831538657107683, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2172.8555
@@ -1295,17 +1307,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 8828831538657107683, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1627880692}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
---- !u!4 &5577153065785900472 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8828831538657107683, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-  m_PrefabInstance: {fileID: 5577153065785900471}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
