@@ -44,20 +44,29 @@ namespace MortierFu
                 SpawnDummy();
             }
 
-            /*// Cycle avec RB
+            // TODO: Change Input parce que c'est la meme que le dash
             if (Gamepad.current != null &&
                 Gamepad.current.rightShoulder.wasPressedThisFrame)
             {
                 CycleControl();
-            }*/
+            }
+            
+            
         }
 
         void SpawnDummy()
         {
             if (playerInputManager != null)
             {
-                playerInputManager.JoinPlayer();
-                Debug.Log("Dummy player spawned");
+                
+                var newPlayer = playerInputManager.JoinPlayer(
+                    playerIndex: -1,  // Auto-assign
+                    splitScreenIndex: -1,  // Auto-assign
+                    controlScheme: null,  
+                    pairWithDevices: Gamepad.current
+                );
+        
+                Debug.Log($"Dummy player spawned: {newPlayer?.name}");
             }
         }
 
@@ -68,6 +77,7 @@ namespace MortierFu
             if (allPlayers.Length <= 1 || Gamepad.current == null)
                 return;
 
+            // Trouve le player actuel qui possède la manette
             PlayerInput currentPlayer = null;
             foreach (var player in allPlayers)
             {
@@ -81,21 +91,31 @@ namespace MortierFu
             if (currentPlayer == null)
                 currentPlayer = allPlayers[0];
 
+            // Détermine le prochain player
             int currentIndex = System.Array.IndexOf(allPlayers, currentPlayer);
             int nextIndex = (currentIndex + 1) % allPlayers.Length;
             var nextPlayer = allPlayers[nextIndex];
 
-            // Désactive TOUS les players sauf le next
-            foreach (var player in allPlayers)
+            // Récupère TOUS les devices du current player
+            var allDevices = currentPlayer.devices.ToArray();
+
+            Debug.Log($"Transferring {allDevices.Length} devices from {currentPlayer.name} to {nextPlayer.name}");
+
+            // Unpair TOUS les devices du current player
+            foreach (var device in allDevices)
             {
-                player.DeactivateInput();
+                InputUser.PerformPairingWithDevice(device, 
+                    currentPlayer.user, 
+                    InputUserPairingOptions.UnpairCurrentDevicesFromUser);
             }
 
-            // Active uniquement le next avec la manette
-            nextPlayer.ActivateInput();
-            nextPlayer.SwitchCurrentControlScheme("Gamepad", Gamepad.current);
+            // Pair TOUS les devices au next player
+            foreach (var device in allDevices)
+            {
+                InputUser.PerformPairingWithDevice(device, nextPlayer.user);
+            }
 
-            Debug.Log($"Swapped to player: {nextPlayer.name}");
+            Debug.Log($"Next player now has {nextPlayer.devices.Count()} devices: {string.Join(", ", nextPlayer.devices.Select(d => d.name))}");
         }
     }
 }
