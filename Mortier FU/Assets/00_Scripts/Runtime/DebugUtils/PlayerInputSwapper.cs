@@ -11,30 +11,18 @@ namespace MortierFu
     public class PlayerInputSwapper : MonoBehaviour
     {
         public PlayerInputManager playerInputManager;
+        private PlayerInput activePlayer;
+
         private void Start()
         {
-            // TA GRAND MERE UNITY ÇA SERT A QUOI DE METTRE DES ACTIONS SI ELLES MARCHENT PAS
-            
-            /*if (playerInputManager == null)
+            // Active uniquement le premier player au démarrage
+            var firstPlayer = FindObjectOfType<PlayerInput>();
+            if (firstPlayer != null)
             {
-                Logs.LogError("PlayerInputManager not found");
-                return;
+                activePlayer = firstPlayer;
+                UpdateActivePlayer();
             }
-            playerInputManager.onPlayerJoined += RegisterNewPlayer;
-            playerInputManager.onPlayerLeft += DeregisterPlayer;*/
         }
-
-        /*private void RegisterNewPlayer(PlayerInput playerInput)
-        {
-            players.Add(playerInput);
-            Debug.Log($"Player joined: {playerInput.name}");
-        }
-
-        private void DeregisterPlayer(PlayerInput playerInput)
-        {
-            players.Remove(playerInput);
-            Debug.Log($"Player left: {playerInput.name}");
-        }*/
 
         void Update()
         {
@@ -44,29 +32,32 @@ namespace MortierFu
                 SpawnDummy();
             }
 
-            // TODO: Change Input parce que c'est la meme que le dash
+            // Cycle avec RB
             if (Gamepad.current != null &&
                 Gamepad.current.rightShoulder.wasPressedThisFrame)
             {
                 CycleControl();
             }
-            
-            
         }
 
         void SpawnDummy()
         {
             if (playerInputManager != null)
             {
-                
                 var newPlayer = playerInputManager.JoinPlayer(
-                    playerIndex: -1,  // Auto-assign
-                    splitScreenIndex: -1,  // Auto-assign
-                    controlScheme: null,  
+                    playerIndex: -1,
+                    splitScreenIndex: -1,
+                    controlScheme: null,
                     pairWithDevices: Gamepad.current
                 );
-        
+
                 Debug.Log($"Dummy player spawned: {newPlayer?.name}");
+                
+                // Désactive le nouveau player immédiatement
+                if (newPlayer != null)
+                {
+                    newPlayer.DeactivateInput();
+                }
             }
         }
 
@@ -74,48 +65,40 @@ namespace MortierFu
         {
             var allPlayers = FindObjectsOfType<PlayerInput>();
 
-            if (allPlayers.Length <= 1 || Gamepad.current == null)
+            if (allPlayers.Length <= 1)
                 return;
 
-            // Trouve le player actuel qui possède la manette
-            PlayerInput currentPlayer = null;
-            foreach (var player in allPlayers)
+            // Si pas de player actif, prend le premier
+            if (activePlayer == null || !allPlayers.Contains(activePlayer))
             {
-                if (player.devices.Contains(Gamepad.current))
-                {
-                    currentPlayer = player;
-                    break;
-                }
+                activePlayer = allPlayers[0];
             }
-
-            if (currentPlayer == null)
-                currentPlayer = allPlayers[0];
 
             // Détermine le prochain player
-            int currentIndex = System.Array.IndexOf(allPlayers, currentPlayer);
+            int currentIndex = System.Array.IndexOf(allPlayers, activePlayer);
             int nextIndex = (currentIndex + 1) % allPlayers.Length;
-            var nextPlayer = allPlayers[nextIndex];
+            activePlayer = allPlayers[nextIndex];
 
-            // Récupère TOUS les devices du current player
-            var allDevices = currentPlayer.devices.ToArray();
+            UpdateActivePlayer();
 
-            Debug.Log($"Transferring {allDevices.Length} devices from {currentPlayer.name} to {nextPlayer.name}");
+            Debug.Log($"Switched to player: {activePlayer.name}");
+        }
 
-            // Unpair TOUS les devices du current player
-            foreach (var device in allDevices)
+        void UpdateActivePlayer()
+        {
+            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+
+            // Désactive TOUS les players
+            foreach (var player in allPlayers)
             {
-                InputUser.PerformPairingWithDevice(device, 
-                    currentPlayer.user, 
-                    InputUserPairingOptions.UnpairCurrentDevicesFromUser);
+                player.DeactivateInput();
             }
 
-            // Pair TOUS les devices au next player
-            foreach (var device in allDevices)
+            // Active UNIQUEMENT le player actif
+            if (activePlayer != null)
             {
-                InputUser.PerformPairingWithDevice(device, nextPlayer.user);
+                activePlayer.ActivateInput();
             }
-
-            Debug.Log($"Next player now has {nextPlayer.devices.Count()} devices: {string.Join(", ", nextPlayer.devices.Select(d => d.name))}");
         }
     }
 }
