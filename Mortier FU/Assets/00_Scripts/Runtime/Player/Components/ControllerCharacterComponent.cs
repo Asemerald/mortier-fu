@@ -159,6 +159,8 @@ namespace MortierFu
         
         public void ApplyKnockback(Vector3 force)
         {
+            force.y = 0f;
+            
             rigidbody.AddForce(force, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
