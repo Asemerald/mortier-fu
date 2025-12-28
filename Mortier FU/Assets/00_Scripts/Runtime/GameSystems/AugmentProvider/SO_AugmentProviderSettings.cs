@@ -9,6 +9,7 @@ namespace MortierFu
         [Tooltip("If enabled, the same augment can appear multiple times in the same augment bag.")]
         public bool AllowCopiesInBatch = false;
         
+        [Tooltip("Reduces an augment's chance after being picked. Lower values make it appear less often.")]
         public float DampingFactor = 0.03f;
         
         [Header("Drop Rates")]
