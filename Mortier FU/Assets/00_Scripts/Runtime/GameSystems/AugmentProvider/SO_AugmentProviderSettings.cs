@@ -10,7 +10,7 @@ namespace MortierFu
         public bool AllowCopiesInBatch = false;
         
         [Tooltip("Reduces an augment's chance after being picked. Lower values make it appear less often.")]
-        public float DampingFactor = 0.03f;
+        public float DropRateDamping = 0.03f;
         
         [Header("Drop Rates")]
         [Tooltip("The drop rate of every augment rarities.")]
