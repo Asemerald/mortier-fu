@@ -171,9 +171,10 @@ namespace MortierFu
                 }
 
                 var randomAugment = remainingAugments.RandomElement();
-                picker.Character.AddAugment(randomAugment.Augment);
+                picker.Character.AddAugment(randomAugment.Augment); 
 
                 _pickedAugments[picker.Character].Add(randomAugment.Augment);
+                _augmentProviderSys?.ApplyDamping(randomAugment.Augment);
 
                 randomAugment.IsPicked = true;
                 remainingAugments.Remove(randomAugment);
@@ -219,6 +220,8 @@ namespace MortierFu
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
             _pickedAugments[character].Add(augment.Augment);
+
+            _augmentProviderSys?.ApplyDamping(augment.Augment);
 
             return true;
         }
