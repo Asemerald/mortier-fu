@@ -37,7 +37,7 @@ namespace MortierFu
 
             DisplayPlayers(teams);
             DisplayWinner(round.WinningTeam);
-            UpdatePlaceTexts(teams);
+            UpdatePlaceTexts(teams, gm);
         }
 
         private async UniTask ShowPlayerPlaces(RoundInfo round, GameModeBase gm)
@@ -46,27 +46,27 @@ namespace MortierFu
             DisplayPlayers(teams);
             DisplayWinner(round.WinningTeam);
 
-            UpdatePlaceTexts(teams);
+            UpdatePlaceTexts(teams, gm);
 
             await UniTask.Delay(2000);
         }
 
-        private void UpdatePlaceTexts(ReadOnlyCollection<PlayerTeam> teams)
+        private void UpdatePlaceTexts(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
         {
             foreach (var team in teams)
             {
                 int index = team.Index;
 
-                if (index >= 0 && index < _placeTexts.Length)
-                {
-                    _placeTexts[index].text = GetPlaceText(team.Rank);
-                }
+                if (index < 0 || index >= _placeTexts.Length) continue;
+                
+                int rankScore = gm.GetScorePerRank(team.Rank);
+                _placeTexts[index].text = GetPlaceText(team.Rank, rankScore);
             }
         }
 
-        private string GetPlaceText(int rank)
+        private string GetPlaceText(int rank, int rankScore)
         {
-            return rank switch
+            string rankText = rank switch
             {
                 1 => "1st Place",
                 2 => "2nd Place",
@@ -74,6 +74,8 @@ namespace MortierFu
                 4 => "4th Place",
                 _ => rank + "th Place"
             };
+
+            return $"{rankText} + {rankScore}";
         }
 
         private void DisplayPlayers(ReadOnlyCollection<PlayerTeam> teams)

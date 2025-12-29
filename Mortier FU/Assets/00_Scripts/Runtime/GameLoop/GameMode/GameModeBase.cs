@@ -402,8 +402,8 @@ namespace MortierFu
                 }
             }
         }
-
-        protected virtual int GetScorePerRank(int teamRank)
+        
+        public int GetScorePerRank(int teamRank)
         {
             if (teamRank >= teams.Count) return 0;
 
