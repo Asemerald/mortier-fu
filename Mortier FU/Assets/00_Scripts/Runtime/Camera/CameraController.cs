@@ -15,8 +15,11 @@ namespace MortierFu
         [SerializeField] private Camera _renderOnTopCamera;
 
         [SerializeField] private CinemachineCamera zoomCineCam;
+        
+        [SerializeField] private Vector3 _offset = new (3.5f, -1.2f, 0f); 
 
         private float _currentOrthoSize;
+        private Transform _endFightTarget;
 
         private SO_CameraSettings _cameraSettings;
 
@@ -178,11 +181,18 @@ namespace MortierFu
 
         public void EndFightCameraMovement(Transform playerWin)
         {
+         /*   if (_endFightTarget == null)
+            {
+                GameObject go = new ("EndFightCameraTarget");
+                _endFightTarget = go.transform;
+            }*/
+            
+//            _endFightTarget.position = playerWin.position + _offset;
+
             zoomCineCam.Target.TrackingTarget = playerWin;
             zoomCineCam.gameObject.SetActive(true);
             
             //ADD SLOW MO EFFECT
-            
         }
 
         public void ResetToMainCamera()

@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu
 {
@@ -11,10 +12,12 @@ namespace MortierFu
         [Header("Winner UI")] [SerializeField] private Image _winnerImage;
         [SerializeField] private Image _winnerImageBackground;
 
+
         [Header("Players UI (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
         private Image[] playerImages;
 
-        [SerializeField] private TMP_Text[] scoreTexts;
+        [SerializeField] private TextMeshProUGUI[] _placeTexts;
+        [SerializeField] private Slider[] _sliders;
 
         [Header("Assets")] [SerializeField] private Sprite[] defaultSprites;
         [SerializeField] private Sprite[] _winnerIconSprites;
@@ -34,6 +37,43 @@ namespace MortierFu
 
             DisplayPlayers(teams);
             DisplayWinner(round.WinningTeam);
+            UpdatePlaceTexts(teams);
+        }
+
+        private async UniTask ShowPlayerPlaces(RoundInfo round, GameModeBase gm)
+        {
+            var teams = gm.Teams;
+            DisplayPlayers(teams);
+            DisplayWinner(round.WinningTeam);
+
+            UpdatePlaceTexts(teams);
+
+            await UniTask.Delay(2000);
+        }
+
+        private void UpdatePlaceTexts(ReadOnlyCollection<PlayerTeam> teams)
+        {
+            foreach (var team in teams)
+            {
+                int index = team.Index;
+
+                if (index >= 0 && index < _placeTexts.Length)
+                {
+                    _placeTexts[index].text = GetPlaceText(team.Rank);
+                }
+            }
+        }
+
+        private string GetPlaceText(int rank)
+        {
+            return rank switch
+            {
+                1 => "1st Place",
+                2 => "2nd Place",
+                3 => "3rd Place",
+                4 => "4th Place",
+                _ => rank + "th Place"
+            };
         }
 
         private void DisplayPlayers(ReadOnlyCollection<PlayerTeam> teams)
@@ -41,7 +81,6 @@ namespace MortierFu
             for (int i = 0; i < playerImages.Length; i++)
             {
                 playerImages[i].gameObject.SetActive(false);
-                scoreTexts[i].gameObject.SetActive(false);
             }
 
             foreach (var team in teams)
@@ -52,13 +91,11 @@ namespace MortierFu
                     continue;
 
                 playerImages[index].gameObject.SetActive(true);
-                scoreTexts[index].gameObject.SetActive(true);
 
                 playerImages[index].sprite = defaultSprites[index];
-                scoreTexts[index].text = team.Score.ToString();
             }
-            
-            // Team with the hoighest score  change his sprite to winner icon
+
+            // Team with the highest score  change his sprite to winner icon
             PlayerTeam highestScoreTeam = null;
             foreach (var team in teams)
             {
@@ -75,7 +112,7 @@ namespace MortierFu
                 playerImages[highestIndex].sprite = _winnerIconSprites[highestIndex];
             }
         }
-        
+
         private void DisplayWinner(PlayerTeam winningTeam)
         {
             if (winningTeam == null)
@@ -92,7 +129,7 @@ namespace MortierFu
             _winnerImageBackground.sprite = _winnerBackgroundSprites[index];
             _winnerImage.gameObject.SetActive(true);
             _winnerImageBackground.gameObject.SetActive(true);
-            
+
             // TODO: Set active false le gameobject
         }
 
@@ -106,7 +143,6 @@ namespace MortierFu
             for (int i = 0; i < playerImages.Length; i++)
             {
                 playerImages[i].gameObject.SetActive(false);
-                scoreTexts[i].gameObject.SetActive(false);
 
                 if (i < defaultSprites.Length)
                     playerImages[i].sprite = defaultSprites[i];
