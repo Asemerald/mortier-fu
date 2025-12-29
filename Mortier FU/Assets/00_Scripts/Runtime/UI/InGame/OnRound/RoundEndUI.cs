@@ -25,6 +25,10 @@ namespace MortierFu
         [SerializeField] private Sprite[] _winnerIconSprites;
         [SerializeField] private Sprite[] _winnerTextSprites;
         [SerializeField] private Sprite[] _winnerBackgroundSprites;
+        
+        [SerializeField] private float _animateSliderDelay = 1f;
+        [SerializeField] private float _sliderAnimationDuration = 1f;
+        [SerializeField] private float _reorderPlayerDelay = 0.3f;
 
         private void Awake()
         {
@@ -59,15 +63,18 @@ namespace MortierFu
                 }
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1));
+            await UniTask.Delay(TimeSpan.FromSeconds(_animateSliderDelay));
 
             foreach (var team in teams)
             {
                 int index = team.Index;
                 if (_sliders[index] == null) continue;
 
-                await AnimateSlider(_sliders[index], _sliders[index].value, team.Score, 1f);
+                await AnimateSlider(_sliders[index], _sliders[index].value, team.Score, _sliderAnimationDuration);
             }
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
+            ReorderPlayersByScore(teams);
         }
 
         private async UniTask AnimateSlider(Slider slider, float startValue, float endValue, float duration)
@@ -152,6 +159,20 @@ namespace MortierFu
             _winnerImageBackground.gameObject.SetActive(true);
 
             // TODO: Set active false le gameobject
+        }
+        
+        private void ReorderPlayersByScore(ReadOnlyCollection<PlayerTeam> teams)
+        {
+            var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
+
+            for (int i = 0; i < sortedTeams.Count; i++)
+            {
+                int index = sortedTeams[i].Index;
+
+                if (index < 0 || index >= playerImages.Length) continue;
+
+                playerImages[index].transform.SetSiblingIndex(i);
+            }
         }
 
         public void ResetUI()
