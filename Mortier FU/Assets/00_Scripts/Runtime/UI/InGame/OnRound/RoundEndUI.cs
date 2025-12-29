@@ -1,8 +1,10 @@
+using System;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 
 namespace MortierFu
@@ -35,33 +37,50 @@ namespace MortierFu
 
             var teams = gm.Teams;
 
+            ShowPlayerPlacesAndScore(teams, gm).Forget();
+
             DisplayPlayers(teams);
             DisplayWinner(round.WinningTeam);
-            UpdatePlaceTexts(teams, gm);
         }
 
-        private async UniTask ShowPlayerPlaces(RoundInfo round, GameModeBase gm)
-        {
-            var teams = gm.Teams;
-            DisplayPlayers(teams);
-            DisplayWinner(round.WinningTeam);
-
-            UpdatePlaceTexts(teams, gm);
-
-            await UniTask.Delay(2000);
-        }
-
-        private void UpdatePlaceTexts(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private async UniTask ShowPlayerPlacesAndScore(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
         {
             foreach (var team in teams)
             {
                 int index = team.Index;
-
                 if (index < 0 || index >= _placeTexts.Length) continue;
-                
+
                 int rankScore = gm.GetScorePerRank(team.Rank);
                 _placeTexts[index].text = GetPlaceText(team.Rank, rankScore);
+
+                if (_sliders[index] != null)
+                {
+                    _sliders[index].maxValue = gm.Data.ScoreToWin;
+                }
             }
+
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
+
+            foreach (var team in teams)
+            {
+                int index = team.Index;
+                if (_sliders[index] == null) continue;
+
+                await AnimateSlider(_sliders[index], _sliders[index].value, team.Score, 1f);
+            }
+        }
+
+        private async UniTask AnimateSlider(Slider slider, float startValue, float endValue, float duration)
+        {
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                slider.value = Mathf.Lerp(startValue, endValue, elapsed / duration);
+                await UniTask.Yield();
+            }
+
+            slider.value = endValue;
         }
 
         private string GetPlaceText(int rank, int rankScore)
