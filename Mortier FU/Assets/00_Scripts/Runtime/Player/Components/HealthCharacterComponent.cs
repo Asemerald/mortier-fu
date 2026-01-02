@@ -42,6 +42,12 @@ namespace MortierFu
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(-amount);
 
+            Character.Aspect?.PlayDamageBlink(
+                blinkColor: Color.white,
+                blinkCount: 5,
+                blinkDuration: 0.15f
+            );
+            
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
                 Character = Character,
