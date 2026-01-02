@@ -14,9 +14,6 @@ namespace MortierFu
         public int ForcedAugmentCount = 5;
         
         [Header("Timing")]
-        [Tooltip("Delay before starting the augment showcase (in seconds).")]
-        public float ShowcaseStartDelay = 2f;
-
         [Tooltip("Time it takes for each card to scale up from zero when the showcase starts.")]
         public float CardPopInDuration = 1.3f;
         

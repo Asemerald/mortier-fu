@@ -33,8 +33,6 @@ namespace MortierFu
 
         public async UniTask Showcase(Transform pivot, Vector3[] augmentPoints, int augmentCount)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.ShowcaseStartDelay));
-
             float alpha = (augmentCount - 3) / 2f;
             float cardScale = Mathf.Lerp(_system.Settings.DisplayedCardScaleRange.Min,
                                          _system.Settings.DisplayedCardScaleRange.Max,

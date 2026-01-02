@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -15,8 +16,8 @@ namespace MortierFu
         [SerializeField] private Camera _renderOnTopCamera;
 
         [SerializeField] private CinemachineCamera zoomCineCam;
-        
-        [SerializeField] private Vector3 _offset = new (3.5f, -1.2f, 0f); 
+
+        [SerializeField] private Vector3 _offset = new(3.5f, -1.2f, 0f);
 
         private float _currentOrthoSize;
         private Transform _endFightTarget;
@@ -65,7 +66,7 @@ namespace MortierFu
             _targetGroup.RemoveMember(playerTransform);
         }
 
-        public void ClearTargetGroupMember()
+        private void ClearTargetGroupMember()
         {
             for (int i = _targetGroup.Targets.Count - 1; i >= 0; i--)
             {
@@ -105,14 +106,40 @@ namespace MortierFu
             ApplyLens();
         }
 
-        public void ApplyCameraMapConfig(CameraMapConfig mapConfig)
+        public async UniTask ApplyCameraMapConfigAsync(CameraMapConfig mapConfig, float tolerance = 0.01f,
+            float maxWaitSeconds = 2f)
         {
             _isStaticRaceCamera = true;
+            ClearTargetGroupMember();
 
             _virtualTarget.localPosition = mapConfig.PositionForRace;
             _currentOrthoSize = mapConfig.OrthoSize;
 
             ApplyLens();
+
+            float elapsed = 0f;
+
+            while (true)
+            {
+                Vector3 camPos = _cinemachineCamera.transform.position;
+                float camOrtho = _cinemachineCamera.Lens.OrthographicSize;
+
+                bool positionReached = Vector3.Distance(camPos, mapConfig.PositionForRace) <= tolerance;
+                bool orthoReached = Mathf.Abs(camOrtho - mapConfig.OrthoSize) <= tolerance;
+
+                if (positionReached && orthoReached)
+                    break;
+
+                await UniTask.Yield();
+                elapsed += Time.deltaTime;
+
+                if (elapsed > maxWaitSeconds)
+                {
+                    Debug.LogWarning(
+                        "[CameraController] ApplyCameraMapConfigAsync: Camera did not reach target in time");
+                    break;
+                }
+            }
         }
 
         private void ResetCameraInstant()
@@ -179,52 +206,40 @@ namespace MortierFu
             return bounds;
         }
 
-        public void EndFightCameraMovement(Transform playerWin)
+        private void InitEndFightTarget()
         {
-         /*   if (_endFightTarget == null)
-            {
-                GameObject go = new ("EndFightCameraTarget");
-                _endFightTarget = go.transform;
-            }*/
-            
-//            _endFightTarget.position = playerWin.position + _offset;
+            if (_endFightTarget != null) return;
+            GameObject go = new("EndFightCameraTarget");
+            _endFightTarget = go.transform;
+        }
 
-            zoomCineCam.Target.TrackingTarget = playerWin;
+        public void EndFightCameraMovement(Transform playerWin, float zoomDuration = 1f)
+        {
+            InitEndFightTarget();
+
+            _endFightTarget.position = playerWin.position + _offset;
+
+            zoomCineCam.Target.TrackingTarget = _endFightTarget;
             zoomCineCam.gameObject.SetActive(true);
-            
-            //ADD SLOW MO EFFECT
+
+            float startOrtho = _cinemachineCamera.Lens.OrthographicSize;
+            float targetOrtho = startOrtho * 0.7f;
+            float elapsed = 0f;
+
+            while (elapsed < zoomDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / zoomDuration);
+
+                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t);
+                _cinemachineCamera.Lens.OrthographicSize = newOrtho;
+                _renderOnTopCamera.orthographicSize = newOrtho;
+            }
         }
 
         public void ResetToMainCamera()
         {
             zoomCineCam.gameObject.SetActive(false);
-        }
-        
-        private void DebugDrawBounds(Bounds b, Color c)
-        {
-            Vector3 v3FrontTopLeft = new Vector3(b.min.x, b.max.y, b.max.z);
-            Vector3 v3FrontTopRight = new Vector3(b.max.x, b.max.y, b.max.z);
-            Vector3 v3FrontBottomLeft = new Vector3(b.min.x, b.min.y, b.max.z);
-            Vector3 v3FrontBottomRight = new Vector3(b.max.x, b.min.y, b.max.z);
-            Vector3 v3BackTopLeft = new Vector3(b.min.x, b.max.y, b.min.z);
-            Vector3 v3BackTopRight = new Vector3(b.max.x, b.max.y, b.min.z);
-            Vector3 v3BackBottomLeft = new Vector3(b.min.x, b.min.y, b.min.z);
-            Vector3 v3BackBottomRight = new Vector3(b.max.x, b.min.y, b.min.z);
-
-            Debug.DrawLine(v3FrontTopLeft, v3FrontTopRight, c);
-            Debug.DrawLine(v3FrontTopRight, v3FrontBottomRight, c);
-            Debug.DrawLine(v3FrontBottomRight, v3FrontBottomLeft, c);
-            Debug.DrawLine(v3FrontBottomLeft, v3FrontTopLeft, c);
-
-            Debug.DrawLine(v3BackTopLeft, v3BackTopRight, c);
-            Debug.DrawLine(v3BackTopRight, v3BackBottomRight, c);
-            Debug.DrawLine(v3BackBottomRight, v3BackBottomLeft, c);
-            Debug.DrawLine(v3BackBottomLeft, v3BackTopLeft, c);
-
-            Debug.DrawLine(v3FrontTopLeft, v3BackTopLeft, c);
-            Debug.DrawLine(v3FrontTopRight, v3BackTopRight, c);
-            Debug.DrawLine(v3FrontBottomRight, v3BackBottomRight, c);
-            Debug.DrawLine(v3FrontBottomLeft, v3BackBottomLeft, c);
         }
     }
 }
