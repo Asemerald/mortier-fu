@@ -11,47 +11,50 @@ namespace MortierFu
 {
     public class RoundEndUI : MonoBehaviour
     {
-        [Header("Winner UI")]
-        [SerializeField] private Image _winnerTitleImage;
+        [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
 
-        [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")]
-        [SerializeField] private Image[] _playerSlots;
+        [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
+        private Image[] _playerSlots;
+
         [SerializeField] private TextMeshProUGUI[] _playerPlaceTexts;
         [SerializeField] private Slider[] _scoreSliders;
 
-        [Header("Assets")]
-        [SerializeField] private Sprite[] _playerDefaultSprites;
+        [Header("Assets")] [SerializeField] private Sprite[] _playerDefaultSprites;
         [SerializeField] private Sprite[] _playerWinnerIcons;
         [SerializeField] private Sprite[] _winnerTitleSprites;
         [SerializeField] private Sprite[] _winnerBackgrounds;
 
-        [Header("Animation Settings")]
-        [SerializeField] private float _animateSliderDelay = 0.3f;
+        [Header("Animation Settings")] [SerializeField]
+        private float _animateSliderDelay = 0.3f;
+
         [SerializeField] private float _sliderAnimationDuration = 0.3f;
         [SerializeField] private float _reorderPlayerDelay = 0.3f;
 
-        [Header("Tween Settings")]
-        [SerializeField] private float _leaderboardMoveDuration = 0.5f;
+        [Header("Tween Settings")] [SerializeField]
+        private float _leaderboardMoveDuration = 0.5f;
+
         [SerializeField] private float _topPlayerScaleDuration = 0.3f;
         [SerializeField] private float _topPlayerScaleFactor = 1.2f;
         [SerializeField] private Ease _leaderboardTweenEase = Ease.OutBack;
         [SerializeField] private Ease _scaleTweenEase = Ease.OutBack;
 
-        [Header("Leaderboard Positions")]
-        [SerializeField] private Vector2[] _leaderboardPositions;
+        [Header("Leaderboard Positions")] [SerializeField]
+        private Vector2[] _leaderboardPositions;
 
         private Vector3 _originalScale;
-        private int[] _cachedLeaderboardOrder;
+        private int[] _leaderboardOrder;
 
         private void Awake()
         {
             _originalScale = _playerSlots[0].transform.localScale;
-            _cachedLeaderboardOrder = Enumerable.Range(0, _playerSlots.Length).ToArray();
+            _leaderboardOrder = Enumerable.Range(0, _playerSlots.Length).ToArray();
 
             ResetUI();
-            SetPlayersToLeaderboardOrder(_cachedLeaderboardOrder);
+            SetPlayersToLeaderboardOrder(_leaderboardOrder);
         }
+
+        #region Round End Display
 
         public void OnRoundEnded(RoundInfo round, GameModeBase gm)
         {
@@ -59,13 +62,36 @@ namespace MortierFu
 
             var teams = gm.Teams;
 
-            InitializePlayerPanels(teams, _cachedLeaderboardOrder);
+            InitializePlayerPanels(teams, _leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
+
+            DisplayKillIndicators(teams);
 
             AnimateRoundEndSequence(teams, gm).Forget();
         }
 
-        #region Round Animation
+        private void DisplayKillIndicators(ReadOnlyCollection<PlayerTeam> teams)
+        {
+            foreach (var team in teams)
+            {
+                int idx = team.Index;
+                if (!IsValidPlayerIndex(idx)) continue;
+
+                int roundKills = team.Members.Sum(m => m.Metrics.RoundKills);
+
+                TextMeshProUGUI placeText = _playerPlaceTexts[idx];
+                int maxIndicators = Mathf.Min(placeText.transform.childCount, 3);
+
+                for (int i = 0; i < maxIndicators; i++)
+                {
+                    placeText.transform.GetChild(i).gameObject.SetActive(i < roundKills);
+                }
+            }
+        }
+        
+        #endregion
+
+        #region Slider & Leaderboard (existing code, unchanged)
 
         private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
         {
@@ -80,12 +106,8 @@ namespace MortierFu
 
             await AnimateLeaderboardPositions(sortedTeams);
 
-            _cachedLeaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
+            _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
         }
-
-        #endregion
-
-        #region Slider Methods
 
         private void UpdatePlayerPlaceAndScores(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
         {
@@ -120,25 +142,24 @@ namespace MortierFu
                 slider.value = Mathf.Lerp(start, end, elapsed / duration);
                 await UniTask.Yield();
             }
+
             slider.value = end;
         }
-
-        #endregion
-
-        #region Leaderboard Methods
 
         private async UniTask AnimateLeaderboardPositions(System.Collections.Generic.List<PlayerTeam> sortedTeams)
         {
             var animations = new UniTask[sortedTeams.Count];
 
             int topIdx = sortedTeams[0].Index;
-            await Tween.Scale(_playerSlots[topIdx].transform, _originalScale * _topPlayerScaleFactor, _topPlayerScaleDuration, _scaleTweenEase);
+            await Tween.Scale(_playerSlots[topIdx].transform, _originalScale * _topPlayerScaleFactor,
+                _topPlayerScaleDuration, _scaleTweenEase);
 
             for (int rank = 0; rank < sortedTeams.Count; rank++)
             {
                 int playerIdx = sortedTeams[rank].Index;
                 var rt = _playerSlots[playerIdx].rectTransform;
-                animations[rank] = TweenPlayerToPosition(rt, _leaderboardPositions[rank], _leaderboardMoveDuration, _leaderboardTweenEase);
+                animations[rank] = TweenPlayerToPosition(rt, _leaderboardPositions[rank], _leaderboardMoveDuration,
+                    _leaderboardTweenEase);
             }
 
             await UniTask.WhenAll(animations);
@@ -166,7 +187,7 @@ namespace MortierFu
 
         #endregion
 
-        #region Display Methods
+        #region Display / Helpers
 
         private void InitializePlayerPanels(ReadOnlyCollection<PlayerTeam> teams, int[] orderOverride = null)
         {
@@ -201,10 +222,6 @@ namespace MortierFu
             _winnerBackgroundImage.gameObject.SetActive(true);
         }
 
-        #endregion
-
-        #region Helpers
-
         private bool IsValidPlayerIndex(int idx) =>
             idx >= 0 && idx < _playerSlots.Length;
 
@@ -221,8 +238,6 @@ namespace MortierFu
             return $"{rankText} + {score}";
         }
 
-        #endregion
-
         public void ResetUI()
         {
             _winnerTitleImage.gameObject.SetActive(false);
@@ -238,7 +253,14 @@ namespace MortierFu
 
                 if (i < _leaderboardPositions.Length)
                     _playerSlots[i].rectTransform.anchoredPosition = _leaderboardPositions[i];
+
+                if (_playerPlaceTexts == null || i >= _playerPlaceTexts.Length) continue;
+                TextMeshProUGUI placeText = _playerPlaceTexts[i];
+                for (int k = 0; k < placeText.transform.childCount; k++)
+                    placeText.transform.GetChild(k).gameObject.SetActive(false);
             }
         }
+
+        #endregion
     }
 }
