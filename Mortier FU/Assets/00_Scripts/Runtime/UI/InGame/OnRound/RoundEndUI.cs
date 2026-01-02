@@ -27,24 +27,28 @@ namespace MortierFu
         [SerializeField] private Sprite[] _winnerTextSprites;
         [SerializeField] private Sprite[] _winnerBackgroundSprites;
 
-        [SerializeField] private float _animateSliderDelay = 1f;
-        [SerializeField] private float _sliderAnimationDuration = 1f;
+        [SerializeField] private float _animateSliderDelay = 0.3f;
+        [SerializeField] private float _sliderAnimationDuration = 0.3f;
         [SerializeField] private float _reorderPlayerDelay = 0.3f;
 
         [Header("Leaderboard Positions")]
-        [SerializeField] private Vector2[] _leaderboardAnchoredPositions; 
+        [SerializeField] private Vector2[] _leaderboardAnchoredPositions;
 
         private Vector3 _originalScale;
+        private int[] _previousLeaderboardOrder;
 
         private void Awake()
         {
             _originalScale = playerImages[0].transform.localScale;
+
+            _previousLeaderboardOrder = new int[playerImages.Length];
+            for (int i = 0; i < playerImages.Length; i++)
+                _previousLeaderboardOrder[i] = i;
+
             ResetUI();
 
             for (int i = 0; i < playerImages.Length; i++)
-            {
                 playerImages[i].rectTransform.anchoredPosition = _leaderboardAnchoredPositions[i];
-            }
         }
 
         public void OnRoundEnded(RoundInfo round, GameModeBase gm)
@@ -52,7 +56,7 @@ namespace MortierFu
             ResetUI();
             var teams = gm.Teams;
 
-            DisplayPlayers(teams);
+            DisplayPlayers(teams, _previousLeaderboardOrder);
             DisplayWinner(round.WinningTeam);
 
             ShowPlayerPlacesAndScore(teams, gm).Forget();
@@ -81,7 +85,10 @@ namespace MortierFu
 
             var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
 
-            await AnimateLeaderboard(sortedTeams);
+            await AnimateLeaderboardDynamic(sortedTeams);
+
+            for (int i = 0; i < sortedTeams.Count; i++)
+                _previousLeaderboardOrder[i] = sortedTeams[i].Index;
         }
 
         private async UniTask AnimateSlider(Slider slider, float start, float end, float duration)
@@ -109,7 +116,7 @@ namespace MortierFu
             return $"{rankText} + {rankScore}";
         }
 
-        private void DisplayPlayers(ReadOnlyCollection<PlayerTeam> teams)
+        private void DisplayPlayers(ReadOnlyCollection<PlayerTeam> teams, int[] orderOverride = null)
         {
             for (int i = 0; i < playerImages.Length; i++)
                 playerImages[i].gameObject.SetActive(false);
@@ -120,6 +127,16 @@ namespace MortierFu
                 if (idx < 0 || idx >= playerImages.Length) continue;
                 playerImages[idx].gameObject.SetActive(true);
                 playerImages[idx].sprite = defaultSprites[idx];
+            }
+
+            if (orderOverride != null)
+            {
+                for (int rank = 0; rank < orderOverride.Length; rank++)
+                {
+                    int playerIdx = orderOverride[rank];
+                    if (playerIdx >= 0 && playerIdx < playerImages.Length)
+                        playerImages[playerIdx].rectTransform.anchoredPosition = _leaderboardAnchoredPositions[rank];
+                }
             }
 
             var highestTeam = teams.OrderByDescending(t => t.Score).FirstOrDefault();
@@ -144,20 +161,20 @@ namespace MortierFu
             _winnerImageBackground.gameObject.SetActive(true);
         }
 
-        private async UniTask AnimateLeaderboard(System.Collections.Generic.List<PlayerTeam> sortedTeams)
+        private async UniTask AnimateLeaderboardDynamic(System.Collections.Generic.List<PlayerTeam> sortedTeams)
         {
             UniTask[] animations = new UniTask[sortedTeams.Count];
 
             int topIdx = sortedTeams[0].Index;
             await Tween.Scale(playerImages[topIdx].transform, _originalScale * 1.2f, 0.3f, Ease.OutBack);
 
-            for (int rank = 0; rank < sortedTeams.Count; rank++)
+            for (int newRank = 0; newRank < sortedTeams.Count; newRank++)
             {
-                int playerIdx = sortedTeams[rank].Index;
+                int playerIdx = sortedTeams[newRank].Index;
                 var rt = playerImages[playerIdx].rectTransform;
 
-                Vector2 target = _leaderboardAnchoredPositions[rank];
-                animations[rank] = TweenToAnchoredPositionSafe(rt, target, 0.5f);
+                Vector2 target = _leaderboardAnchoredPositions[newRank];
+                animations[newRank] = TweenToAnchoredPositionSafe(rt, target, 0.5f);
             }
 
             await UniTask.WhenAll(animations);
