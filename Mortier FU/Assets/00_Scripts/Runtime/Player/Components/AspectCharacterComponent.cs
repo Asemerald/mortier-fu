@@ -28,9 +28,6 @@ namespace MortierFu {
         }
         
         public override void Initialize() {
-            var lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            int playerCount = lobbyService.GetPlayers().Count;
-            
             // Retrieve this player's index
             //int index = character.Owner.PlayerIndex;
             //PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);\
