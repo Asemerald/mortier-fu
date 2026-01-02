@@ -1,8 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using MortierFu.Services;
-using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine.Serialization;
 
@@ -14,6 +12,10 @@ namespace MortierFu
         public string sceneName = "MainMenu";
 
         [Expandable] public SO_GameConfig config;
+        
+        private float _progress = 0f;
+
+        public float GetInitializationProgress() => _progress;
 
         private ServiceManager _serviceManager;
         private SystemManager _systemManager;
@@ -55,26 +57,32 @@ namespace MortierFu
             _systemManager = new SystemManager(this);
 
             await InitializeGameService();
-
+            _progress = 0.2f;
+            
             // Initialise les services de base avant les mods
             await _serviceManager.Initialize();
-
+            _progress = 0.3f;
+            
             // Initialise les systèmes de base avant les mods
             await _systemManager.Initialize();
-
+            _progress = 0.5f;
+            
             // --- Load mod resources
             await _loaderService.LoadAllModResources();
-
+            _progress = 0.7f;
+            
             // --- Load GameConfig banks
             await _audioService.LoadBanks(config.fmodBanks);
-
+            _progress = 0.85f;
+            
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
             await _audioService.LoadBanks(_modService.GetAllModFmodBanks());
-
+            _progress = 0.9f;
+            
 #if UNITY_EDITOR
             // --- Check for missing services (only in editor)
             await _serviceManager.CheckForMissingServices<IGameService>();
-
+            
             if (isPortableBootstrap)
             {
                 // Stay in current Scene
@@ -83,7 +91,8 @@ namespace MortierFu
 #endif
             // --- Load MainMenu Scene
             await _sceneService.LoadScene(sceneName, true);
-
+            
+            _progress = 1f;
             _sceneService.HideLoadingScreen();
         }
 
