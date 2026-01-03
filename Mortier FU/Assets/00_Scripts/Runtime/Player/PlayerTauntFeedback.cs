@@ -59,7 +59,7 @@ namespace MortierFu
 
         public async UniTask PlayTauntAsync()
         {
-            if (_isTaunting) return;
+            if (_isTaunting || _tauntImg == null) return;
 
             _isTaunting = true;
 
