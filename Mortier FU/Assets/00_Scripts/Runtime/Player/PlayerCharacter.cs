@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
@@ -23,13 +24,15 @@ namespace MortierFu
 
         [Header("References")] [SerializeField]
         private Animator _animator;
-
+        [SerializeField] private PlayerTauntFeedback _tauntFeedback;
+        
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
 
         private StateMachine _stateMachine;
 
         private InputAction _strikeAction;
         private InputAction _toggleAimAction;
+        private InputAction _tauntAction;
 
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
@@ -105,6 +108,7 @@ namespace MortierFu
             // Find and cache Input Actions
             FindInputAction("Strike", out _strikeAction);
             FindInputAction("ToggleAim", out _toggleAimAction);
+            FindInputAction("Taunt", out _tauntAction);
 
             // Initialize character components
             Health.Initialize();
@@ -114,6 +118,8 @@ namespace MortierFu
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
+
+            _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
         }
 
         public void Reset()

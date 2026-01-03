@@ -21,7 +21,7 @@ public class PlayerGameplayUI : MonoBehaviour
 
     [SerializeField] private Sprite[] _characterIcons;
 
-    [SerializeField] private float _fadeDuration = 0.5f;
+    [SerializeField] private float _tweenDuration = 0.5f;
     [SerializeField] private float _startFadeDelay = 2f;
 
     [SerializeField] private Ease _iconInEase = Ease.InBack;
@@ -89,9 +89,9 @@ public class PlayerGameplayUI : MonoBehaviour
 
         await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
 
-        await Tween.Scale(_characterIcon.transform, 0f, _fadeDuration, _iconInEase)
-            .Group(Tween.Scale(_healthFillImg.transform, _scaleOne, _fadeDuration, _healthBarEase)
-                .Group(Tween.Scale(_healthBackground.transform, _scaleOne, _fadeDuration, _healthBarEase)));
+        await Tween.Scale(_characterIcon.transform, 0f, _tweenDuration, _iconInEase)
+            .Group(Tween.Scale(_healthFillImg.transform, _scaleOne, _tweenDuration, _healthBarEase)
+                .Group(Tween.Scale(_healthBackground.transform, _scaleOne, _tweenDuration, _healthBarEase)));
 
         _characterIcon.enabled = false;
     }

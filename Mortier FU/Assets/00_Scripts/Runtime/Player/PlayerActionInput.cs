@@ -138,6 +138,15 @@ namespace MortierFu
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Taunt"",
+                    ""type"": ""Button"",
+                    ""id"": ""c0bb901f-e8fd-4eed-b240-12a980b97a3f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -336,6 +345,17 @@ namespace MortierFu
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleAim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a4ab0d74-a58d-46e7-a656-091619198311"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -972,6 +992,7 @@ namespace MortierFu
             m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
             m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
             m_Gameplay_ToggleAim = m_Gameplay.FindAction("ToggleAim", throwIfNotFound: true);
+            m_Gameplay_Taunt = m_Gameplay.FindAction("Taunt", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1073,6 +1094,7 @@ namespace MortierFu
         private readonly InputAction m_Gameplay_Shoot;
         private readonly InputAction m_Gameplay_Aim;
         private readonly InputAction m_Gameplay_ToggleAim;
+        private readonly InputAction m_Gameplay_Taunt;
         /// <summary>
         /// Provides access to input actions defined in input action map "Gameplay".
         /// </summary>
@@ -1104,6 +1126,10 @@ namespace MortierFu
             /// Provides access to the underlying input action "Gameplay/ToggleAim".
             /// </summary>
             public InputAction @ToggleAim => m_Wrapper.m_Gameplay_ToggleAim;
+            /// <summary>
+            /// Provides access to the underlying input action "Gameplay/Taunt".
+            /// </summary>
+            public InputAction @Taunt => m_Wrapper.m_Gameplay_Taunt;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1145,6 +1171,9 @@ namespace MortierFu
                 @ToggleAim.started += instance.OnToggleAim;
                 @ToggleAim.performed += instance.OnToggleAim;
                 @ToggleAim.canceled += instance.OnToggleAim;
+                @Taunt.started += instance.OnTaunt;
+                @Taunt.performed += instance.OnTaunt;
+                @Taunt.canceled += instance.OnTaunt;
             }
 
             /// <summary>
@@ -1171,6 +1200,9 @@ namespace MortierFu
                 @ToggleAim.started -= instance.OnToggleAim;
                 @ToggleAim.performed -= instance.OnToggleAim;
                 @ToggleAim.canceled -= instance.OnToggleAim;
+                @Taunt.started -= instance.OnTaunt;
+                @Taunt.performed -= instance.OnTaunt;
+                @Taunt.canceled -= instance.OnTaunt;
             }
 
             /// <summary>
@@ -1526,6 +1558,13 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnToggleAim(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Taunt" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
