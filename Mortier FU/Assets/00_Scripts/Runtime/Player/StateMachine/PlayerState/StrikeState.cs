@@ -8,7 +8,7 @@ namespace MortierFu
     public class StrikeState : BaseState
     {
         private Collider[] _overlapBuffer = new Collider[100];
-        
+
         private CountdownTimer _strikeCooldownTimer;
         private CountdownTimer _strikeTriggerTimer;
 
@@ -23,15 +23,16 @@ namespace MortierFu
 
         public bool InCooldown => _strikeCooldownTimer.IsRunning;
         public bool IsFinished => _strikeTriggerTimer.IsFinished;
-        
+
         public float StrikeCooldownProgress => _strikeCooldownTimer.Progress;
-        
-        
+
         public override void OnEnter()
         {
             _strikeCooldownTimer.Start();
             _strikeTriggerTimer.Start();
 
+            animator.CrossFade(StrikeHash, k_crossFadeDuration, 0);
+            
             EventBus<TriggerStrike>.Raise(new TriggerStrike()
             {
                 Character =  character,
@@ -41,7 +42,7 @@ namespace MortierFu
             if(debug)
                 Logs.Log("Entering Strike State");
             
-            Vector3 dashDir = new Vector3(character.Controller._moveDirection.x, 0, character.Controller._moveDirection.y);
+            Vector3 dashDir = new (character.Controller._moveDirection.x, 0, character.Controller._moveDirection.y);
             character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
         }
 
@@ -72,7 +73,7 @@ namespace MortierFu
             _strikeTriggerTimer.Reset();
             _strikeTriggerTimer.Stop();
         }
-        
+
         private void ExecuteStrike()
         {
             var origin = character.transform.position;
