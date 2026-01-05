@@ -162,7 +162,6 @@ namespace MortierFu
             await _countdownSequence;
         }
 
-
         private void ShowCountdownImage()
         {
             _countdownImage.transform.localScale = _initialCountdownScale;
