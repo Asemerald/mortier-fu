@@ -10,6 +10,7 @@ namespace MortierFu
         public E_AugmentRarity Rarity;
         public Sprite Icon;
         public Sprite RarityIcon;
+        public Sprite BackIcon;
         public Sprite LogoIcon;
         
         [Tooltip("The type of augment this is. Must implement IAugment interface.")]
