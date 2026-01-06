@@ -21,7 +21,7 @@ namespace MortierFu
             if (other.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
             {
                 bool success = _system.NotifyPlayerInteraction(character, _index);
-                if (success == false) return;
+                if (!success) return;
 
                 Hide();
             }

@@ -21,7 +21,8 @@ namespace MortierFu
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickupUI> pickups, ReadOnlyCollection<GameObject> pickupsVFX)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickupUI> pickups,
+            ReadOnlyCollection<GameObject> pickupsVFX)
         {
             _pickups = pickups;
             _pickupsVFX = pickupsVFX;
@@ -60,10 +61,11 @@ namespace MortierFu
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
-                
+
                 var pickupVFX = _pickupsVFX[i];
                 pickupVFX.transform.localPosition = pickup.transform.position;
-                
+                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+
                 GrowPickup(pickup, cardScale).Forget();
 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
@@ -95,6 +97,8 @@ namespace MortierFu
             {
                 var pickupVFX = _pickupsVFX[i];
 
+                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
                 augmentPoint.position = augmentPoints[i];
@@ -103,7 +107,7 @@ namespace MortierFu
                 pickupVFX.transform.SetParent(_augmentPoints[i]);
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, cardScale).Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, 4).Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
@@ -118,7 +122,7 @@ namespace MortierFu
         {
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
-                .Group(Tween.Scale(pickup.transform, scale, _system.Settings.CarouselCardScale, duration * 0.7f,
+                .Group(Tween.Scale(pickup.transform, scale, 1, duration * 0.7f,
                     Ease.OutBack));
             //.OnComplete(() => { pickup.SetFaceCameraEnabled(true); });
         }
@@ -142,7 +146,7 @@ namespace MortierFu
             Quaternion startRot = t.localRotation;
             Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
             Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
-            
+
             await Tween.LocalRotation(
                 t,
                 midRot,
