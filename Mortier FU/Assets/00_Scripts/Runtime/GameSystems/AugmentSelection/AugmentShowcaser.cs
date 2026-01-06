@@ -15,12 +15,12 @@ namespace MortierFu
         private readonly CameraSystem _cameraSystem;
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
-        private readonly ReadOnlyCollection<AugmentPickup> _pickups;
+        private readonly ReadOnlyCollection<NewAugmentPickup> _pickups;
         private readonly AugmentSelectionSystem _system;
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickup> pickups)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<NewAugmentPickup> pickups)
         {
             _pickups = pickups;
             _system = system;
@@ -72,6 +72,7 @@ namespace MortierFu
             foreach (var pickup in _pickups)
             {
                 await FlipPickup(pickup);
+                await pickup.PlayRevealSequence();
             }
 
             if (_pickups.Count != augmentPoints.Length)
@@ -100,12 +101,12 @@ namespace MortierFu
             }
         }
 
-        private async UniTaskVoid GrowPickup(AugmentPickup pickup, float scale)
+        private async UniTaskVoid GrowPickup(NewAugmentPickup pickup, float scale)
         {
             await Tween.Scale(pickup.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
         }
 
-        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale)
+        private async UniTask MovePickupToAugmentPoint(NewAugmentPickup pickup, int i, float duration, float scale)
         {
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
@@ -123,7 +124,7 @@ namespace MortierFu
             }
         }
 
-        private async UniTask FlipPickup(AugmentPickup pickup, float duration = 0.5f)
+        private async UniTask FlipPickup(NewAugmentPickup pickup, float duration = 0.5f)
         {
             pickup.SetFaceCameraEnabled(false);
 
@@ -132,13 +133,15 @@ namespace MortierFu
             Quaternion startRot = t.localRotation;
             Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
             Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
-
+            
             await Tween.LocalRotation(
                 t,
                 midRot,
                 duration * 0.5f,
                 Ease.InQuad
             );
+
+            pickup.DisableObjects();
 
             await Tween.LocalRotation(
                 t,

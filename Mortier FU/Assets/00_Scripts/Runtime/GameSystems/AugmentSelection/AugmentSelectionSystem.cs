@@ -17,7 +17,7 @@ namespace MortierFu
         
         private CancellationTokenSource _pressureTokenSource;
         
-        private List<AugmentPickup> _pickups;
+        private List<NewAugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
         
@@ -66,12 +66,12 @@ namespace MortierFu
         
         private async UniTask InstantiatePickups()
         {
-            _pickups = new  List<AugmentPickup>(_augmentCount);
+            _pickups = new  List<NewAugmentPickup>(_augmentCount);
             
             for (int i = 0; i < _augmentCount; i++)
             {
                 var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
-                var pickup = pickupGo.GetComponent<AugmentPickup>();
+                var pickup = pickupGo.GetComponent<NewAugmentPickup>();
                 
                 pickup.Initialize(this, i);
                 pickup.Hide();
