@@ -7,43 +7,28 @@ using TMPro;
 
 namespace MortierFu
 {
-    public class NewAugmentPickup : MonoBehaviour
+    public class AugmentPickupUI : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _nameTxt;
         [SerializeField] private TextMeshProUGUI _descTxt;
-        [SerializeField] private Image _iconImg;
+        [SerializeField] private Image _augmentIcon;
+        [SerializeField] private Image _augmentCard;
         [SerializeField] private Image _augmentBack;
-        [SerializeField] private Image _rarityBg;
         [SerializeField] private RarityData[] _rarityData;
 
-        [SerializeField] private GameObject _newAugmentIndicator;
-        [SerializeField] private Canvas _canvas;
-        [SerializeField] private ParticleSystem _augmentParticle;
+        [SerializeField] private CanvasGroup _canvasGroup;
 
         [SerializeField] private RectTransform _infoRoot;
+        
+        [SerializeField] private float _hideInfoDuration = 0.4f;
+        [SerializeField] private float _fadeOutDuration = 0.25f;
+        
+        [SerializeField] private Ease _slideOutEase = Ease.InQuad;
+        
         private FaceCamera _faceCamera;
-        private int _index;
 
-        private AugmentSelectionSystem _system;
-
-        void OnTriggerEnter(Collider other)
+        public void Initialize()
         {
-            if (other.attachedRigidbody == null) return;
-
-            if (other.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
-            {
-                bool success = _system.NotifyPlayerInteraction(character, _index);
-                if (success == false) return;
-
-                Hide();
-            }
-        }
-
-        public void Initialize(AugmentSelectionSystem system, int augmentIndex)
-        {
-            _system = system;
-            _index = augmentIndex;
-
             _faceCamera = GetComponent<FaceCamera>();
         }
 
@@ -56,16 +41,15 @@ namespace MortierFu
 
             var data = GetRarityData(augment.Rarity);
 
+            _augmentIcon.gameObject.SetActive(false);
+           // _augmentParticle.textureSheetAnimation.SetSprite(0, augment.Icon);
             _augmentBack.gameObject.SetActive(false);
-            _newAugmentIndicator.SetActive(false);
-            _augmentParticle.textureSheetAnimation.SetSprite(0, augment.BackIcon);
-
-            _rarityBg.sprite = data.BgSprite;
-            _iconImg.sprite = augment.Icon;
+            
             _nameTxt.SetText(augment.Name.ToUpper());
             _nameTxt.color = data.NameColor;
             _descTxt.SetText(augment.Description);
-            _augmentBack.sprite = augment.BackIcon;
+            _augmentIcon.sprite = augment.Icon;
+            _augmentCard.sprite = augment.AugmentCardVisual;
         }
 
         private RarityData GetRarityData(E_AugmentRarity augmentRarity) =>
@@ -73,7 +57,7 @@ namespace MortierFu
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
 
-        private async UniTask HideInfoUI(float duration = 0.4f)
+        private async UniTask HideInfoUI()
         {
             Vector2 startPos = _infoRoot.anchoredPosition;
             Vector2 targetPos = startPos + Vector2.down * 5000f;
@@ -81,54 +65,51 @@ namespace MortierFu
             await Tween.UIAnchoredPosition(
                 _infoRoot,
                 targetPos,
-                duration,
-                Ease.InQuad
+                _hideInfoDuration,
+                _slideOutEase
             );
-
-            _rarityBg.gameObject.SetActive(false);
         }
 
-        private async UniTask PlayBoonDropTransition()
+        private async UniTask PlayBoonDropTransition(GameObject pickupVFX)
         {
             SetFaceCameraEnabled(false);
 
             await Tween.Alpha(
-                _canvas.GetComponent<CanvasGroup>(),
+                _canvasGroup,
                 0f,
-                0.25f
+                _fadeOutDuration
             );
 
-            _newAugmentIndicator.SetActive(true);
-            _augmentParticle.Play();
-
-            Transform back = _augmentBack.transform;
-            back.localScale = Vector3.one;
+            Transform augmentIcon = _augmentIcon.transform;
+            augmentIcon.localScale = Vector3.one;
 
             await Tween.Scale(
-                back,
+                augmentIcon,
                 new Vector3(0.85f, 1.15f, 0.85f),
                 0.15f,
                 Ease.OutQuad
             );
 
             await Tween.Scale(
-                back,
+                augmentIcon,
                 Vector3.one,
                 0.25f,
                 Ease.OutElastic
             );
+            
+            pickupVFX.SetActive(true);
         }
 
         public void DisableObjects()
         {
             _nameTxt.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
-            _iconImg.gameObject.SetActive(false);
             
             _augmentBack.gameObject.SetActive(true);
+            _augmentIcon.gameObject.SetActive(true);
         }
 
-        public async UniTask PlayRevealSequence()
+        public async UniTask PlayRevealSequence(GameObject pickupVFX)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(0.4f));
 
@@ -136,7 +117,7 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.1f));
 
-            await PlayBoonDropTransition();
+            await PlayBoonDropTransition(pickupVFX);
         }
 
         public void Show() => gameObject.SetActive(true);
@@ -146,7 +127,6 @@ namespace MortierFu
         private struct RarityData
         {
             public E_AugmentRarity Rarity;
-            public Sprite BgSprite;
             public Color NameColor;
         }
     }

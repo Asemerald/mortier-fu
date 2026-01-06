@@ -95,7 +95,7 @@ namespace MortierFu
                     {
                         var logoImage = child.GetChild(0).GetComponent<Image>();
                         if (logoImage != null)
-                            logoImage.sprite = augment.LogoIcon;
+                            logoImage.sprite = augment.Icon;
                     }
 
                     child.gameObject.SetActive(true);

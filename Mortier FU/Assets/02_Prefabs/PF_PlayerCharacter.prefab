@@ -389,6 +389,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &1501980948306438806
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3142884630020978200}
+  m_Layer: 0
+  m_Name: FirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3142884630020978200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501980948306438806}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.84, y: 0, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8720793465372568431}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2480035117616147565
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,7 +471,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::Character
   _aimWidgetPrefab: {fileID: 5943473467255466114, guid: 004830d94ece65d4e91b896b0d48cd78, type: 3}
-  _firePoint: {fileID: 0}
+  _firePoint: {fileID: 3142884630020978200}
   _characterAspectMaterials:
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 95c374353b603e94eb36ba9075953c09, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: f6f5e5f8dcee5e442b4952fb8492ca7d, type: 2}
@@ -2626,7 +2657,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -5142942879534267643, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3142884630020978200}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
       insertIndex: -1
@@ -2664,3 +2698,8 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!4 &8720793465372568431 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5142942879534267643, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}

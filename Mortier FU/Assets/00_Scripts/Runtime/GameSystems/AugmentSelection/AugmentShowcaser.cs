@@ -15,14 +15,16 @@ namespace MortierFu
         private readonly CameraSystem _cameraSystem;
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
-        private readonly ReadOnlyCollection<NewAugmentPickup> _pickups;
+        private readonly ReadOnlyCollection<AugmentPickupUI> _pickups;
+        private readonly ReadOnlyCollection<GameObject> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<NewAugmentPickup> pickups)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickupUI> pickups, ReadOnlyCollection<GameObject> pickupsVFX)
         {
             _pickups = pickups;
+            _pickupsVFX = pickupsVFX;
             _system = system;
 
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
@@ -58,7 +60,10 @@ namespace MortierFu
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
-
+                
+                var pickupVFX = _pickupsVFX[i];
+                pickupVFX.transform.localPosition = pickup.transform.position;
+                
                 GrowPickup(pickup, cardScale).Forget();
 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
@@ -69,10 +74,13 @@ namespace MortierFu
             _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
             await _confirmationService.WaitUntilAllConfirmed();
 
-            foreach (var pickup in _pickups)
+            for (int i = 0; i < _pickups.Count; i++)
             {
+                var pickup = _pickups[i];
+                var pickupVFX = _pickupsVFX[i];
+
                 await FlipPickup(pickup);
-                await pickup.PlayRevealSequence();
+                await pickup.PlayRevealSequence(pickupVFX);
             }
 
             if (_pickups.Count != augmentPoints.Length)
@@ -85,33 +93,34 @@ namespace MortierFu
 
             for (var i = 0; i < _pickups.Count; i++)
             {
-                var pickup = _pickups[i];
+                var pickupVFX = _pickupsVFX[i];
 
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
                 augmentPoint.position = augmentPoints[i];
                 _augmentPoints[i] = augmentPoint;
 
-                pickup.transform.SetParent(_augmentPoints[i]);
+                pickupVFX.transform.SetParent(_augmentPoints[i]);
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickup, i, duration, cardScale).Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, cardScale).Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
         }
 
-        private async UniTaskVoid GrowPickup(NewAugmentPickup pickup, float scale)
+        private async UniTaskVoid GrowPickup(AugmentPickupUI pickupUI, float scale)
         {
-            await Tween.Scale(pickup.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
+            await Tween.Scale(pickupUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
         }
 
-        private async UniTask MovePickupToAugmentPoint(NewAugmentPickup pickup, int i, float duration, float scale)
+        private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale)
         {
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
                 .Group(Tween.Scale(pickup.transform, scale, _system.Settings.CarouselCardScale, duration * 0.7f,
-                    Ease.OutBack)).OnComplete(() => { pickup.SetFaceCameraEnabled(true); });
+                    Ease.OutBack));
+            //.OnComplete(() => { pickup.SetFaceCameraEnabled(true); });
         }
 
         public void StopShowcase()
@@ -124,11 +133,11 @@ namespace MortierFu
             }
         }
 
-        private async UniTask FlipPickup(NewAugmentPickup pickup, float duration = 0.5f)
+        private async UniTask FlipPickup(AugmentPickupUI pickupUI, float duration = 0.5f)
         {
-            pickup.SetFaceCameraEnabled(false);
+            pickupUI.SetFaceCameraEnabled(false);
 
-            Transform t = pickup.transform;
+            Transform t = pickupUI.transform;
 
             Quaternion startRot = t.localRotation;
             Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
@@ -141,7 +150,7 @@ namespace MortierFu
                 Ease.InQuad
             );
 
-            pickup.DisableObjects();
+            pickupUI.DisableObjects();
 
             await Tween.LocalRotation(
                 t,

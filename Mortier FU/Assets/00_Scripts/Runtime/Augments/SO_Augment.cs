@@ -8,10 +8,9 @@ namespace MortierFu
         public string Name;
         [TextArea] public string Description;
         public E_AugmentRarity Rarity;
-        public Sprite Icon;
+        public Sprite AugmentCardVisual;
         public Sprite RarityIcon;
-        public Sprite BackIcon;
-        public Sprite LogoIcon;
+        public Sprite Icon;
         
         [Tooltip("The type of augment this is. Must implement IAugment interface.")]
         [TypeFilter(typeof(IAugment))]

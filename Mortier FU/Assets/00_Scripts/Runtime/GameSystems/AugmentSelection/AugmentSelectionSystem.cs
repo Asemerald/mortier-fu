@@ -17,7 +17,8 @@ namespace MortierFu
         
         private CancellationTokenSource _pressureTokenSource;
         
-        private List<NewAugmentPickup> _pickups;
+        private List<AugmentPickupUI> _pickups;
+        private List<GameObject> _pickupsVFX;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
         
@@ -61,22 +62,30 @@ namespace MortierFu
             
             await InstantiatePickups();
             
-            _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly());
+            _augmentShowcaser = new AugmentShowcaser(this, _pickups.AsReadOnly(), _pickupsVFX.AsReadOnly());
         }
         
         private async UniTask InstantiatePickups()
         {
-            _pickups = new  List<NewAugmentPickup>(_augmentCount);
+            _pickups = new  List<AugmentPickupUI>(_augmentCount);
+            _pickupsVFX = new List<GameObject>(_lobbyService.CurrentPlayerCount);
             
             for (int i = 0; i < _augmentCount; i++)
             {
                 var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
-                var pickup = pickupGo.GetComponent<NewAugmentPickup>();
+                var pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
                 
-                pickup.Initialize(this, i);
+                var pickup = pickupGo.GetComponent<AugmentPickupUI>();
+                
+                pickup.Initialize();
                 pickup.Hide();
                 
+                var pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
+                pickupNewAugment.Initialize(this, i);
+                pickupNewAugment.Hide();
+                
                 _pickups.Add(pickup);
+                _pickupsVFX.Add(pickupVFX);
             }
         }
         
@@ -120,6 +129,13 @@ namespace MortierFu
                 });
                 
                 _pickups[i].SetAugmentVisual(augment);
+                
+                var vfxRoot = _pickupsVFX[i].transform;
+                var childVFX = vfxRoot.GetChild(0);
+
+                var ps = childVFX.GetComponent<ParticleSystem>();
+                ps.textureSheetAnimation.SetSprite(0, augment.Icon);
+
             }
 
             var augmentPivot = _levelSystem.GetAugmentPivot();
