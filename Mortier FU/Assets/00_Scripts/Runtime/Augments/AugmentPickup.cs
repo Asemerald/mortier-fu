@@ -5,15 +5,19 @@ namespace MortierFu
     public class AugmentPickup : MonoBehaviour
     {
         private int _index;
-        
+
         private AugmentSelectionSystem _system;
-        
+
+        private Quaternion _initialRotation;
+
         public void Initialize(AugmentSelectionSystem system, int augmentIndex)
         {
             _system = system;
             _index = augmentIndex;
+
+            _initialRotation = transform.rotation;
         }
-        
+
         private void OnTriggerEnter(Collider other)
         {
             if (other.attachedRigidbody == null) return;
@@ -23,10 +27,15 @@ namespace MortierFu
                 bool success = _system.NotifyPlayerInteraction(character, _index);
                 if (!success) return;
 
-                Hide();
+                Reset();
             }
         }
-        
-        public void Hide() => gameObject.SetActive(false);
+
+        public void Reset()
+        {
+            gameObject.SetActive(false);
+            
+            transform.rotation = _initialRotation;
+        }
     }
 }

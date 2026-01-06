@@ -7,7 +7,7 @@ using TMPro;
 
 namespace MortierFu
 {
-    public class AugmentPickupUI : MonoBehaviour
+    public class AugmentCardUI : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _nameTxt;
         [SerializeField] private TextMeshProUGUI _descTxt;
@@ -26,10 +26,25 @@ namespace MortierFu
         [SerializeField] private Ease _slideOutEase = Ease.InQuad;
         
         private FaceCamera _faceCamera;
+        
+        private Quaternion _initialRotation;
+        private Vector3 _initialScale;
+        private Vector2 _initialInfoPos;
+        private float _initialCanvasAlpha;
 
+        private bool _initialized;
+        
         public void Initialize()
         {
             _faceCamera = GetComponent<FaceCamera>();
+
+            if (_initialized)
+                return;
+
+            _initialRotation = transform.localRotation;
+            _initialScale = transform.localScale;
+            _initialInfoPos = _infoRoot.anchoredPosition;
+            _initialCanvasAlpha = _canvasGroup.alpha;
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -122,6 +137,24 @@ namespace MortierFu
 
         public void Show() => gameObject.SetActive(true);
         public void Hide() => gameObject.SetActive(false);
+        
+        public void ResetUI()
+        {
+            transform.localRotation = _initialRotation;
+            transform.localScale = _initialScale;
+
+            _canvasGroup.alpha = _initialCanvasAlpha;
+
+            _infoRoot.anchoredPosition = _initialInfoPos;
+
+            _nameTxt.gameObject.SetActive(true);
+            _descTxt.gameObject.SetActive(true);
+
+            _augmentBack.gameObject.SetActive(false);
+            _augmentIcon.gameObject.SetActive(false);
+
+            SetFaceCameraEnabled(true);
+        }
 
         [Serializable]
         private struct RarityData

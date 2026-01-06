@@ -15,13 +15,13 @@ namespace MortierFu
         private readonly CameraSystem _cameraSystem;
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
-        private readonly ReadOnlyCollection<AugmentPickupUI> _pickups;
+        private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
         private readonly ReadOnlyCollection<GameObject> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentPickupUI> pickups,
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
             ReadOnlyCollection<GameObject> pickupsVFX)
         {
             _pickups = pickups;
@@ -57,6 +57,7 @@ namespace MortierFu
             for (int i = 0; i < _pickups.Count; i++)
             {
                 var pickup = _pickups[i];
+                pickup.ResetUI(); 
                 pickup.SetFaceCameraEnabled(true);
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
                 pickup.transform.localScale = Vector3.zero;
@@ -113,9 +114,9 @@ namespace MortierFu
             }
         }
 
-        private async UniTaskVoid GrowPickup(AugmentPickupUI pickupUI, float scale)
+        private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale)
         {
-            await Tween.Scale(pickupUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
+            await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
         }
 
         private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale)
@@ -131,17 +132,23 @@ namespace MortierFu
         {
             _system.RestorePickupParent();
 
+            foreach (var pickup in _pickups)
+            {
+                pickup.ResetUI();
+                pickup.Hide();
+            }
+            
             for (int i = _augmentPoints.Length - 1; i >= 0; i--)
             {
                 Object.Destroy(_augmentPoints[i].gameObject);
             }
         }
 
-        private async UniTask FlipPickup(AugmentPickupUI pickupUI, float duration = 0.5f)
+        private async UniTask FlipPickup(AugmentCardUI cardUI, float duration = 0.5f)
         {
-            pickupUI.SetFaceCameraEnabled(false);
+            cardUI.SetFaceCameraEnabled(false);
 
-            Transform t = pickupUI.transform;
+            Transform t = cardUI.transform;
 
             Quaternion startRot = t.localRotation;
             Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
@@ -154,7 +161,7 @@ namespace MortierFu
                 Ease.InQuad
             );
 
-            pickupUI.DisableObjects();
+            cardUI.DisableObjects();
 
             await Tween.LocalRotation(
                 t,

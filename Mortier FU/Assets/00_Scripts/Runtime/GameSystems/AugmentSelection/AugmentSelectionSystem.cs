@@ -17,7 +17,7 @@ namespace MortierFu
 
         private CancellationTokenSource _pressureTokenSource;
 
-        private List<AugmentPickupUI> _pickups;
+        private List<AugmentCardUI> _pickups;
         private List<GameObject> _pickupsVFX;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
@@ -67,7 +67,7 @@ namespace MortierFu
 
         private async UniTask InstantiatePickups()
         {
-            _pickups = new List<AugmentPickupUI>(_augmentCount);
+            _pickups = new List<AugmentCardUI>(_augmentCount);
             _pickupsVFX = new List<GameObject>(_lobbyService.CurrentPlayerCount);
 
             for (int i = 0; i < _augmentCount; i++)
@@ -75,14 +75,14 @@ namespace MortierFu
                 var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
                 var pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
 
-                var pickup = pickupGo.GetComponent<AugmentPickupUI>();
+                var pickup = pickupGo.GetComponent<AugmentCardUI>();
 
                 pickup.Initialize();
                 pickup.Hide();
 
                 var pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
-                pickupNewAugment.Hide();
+                pickupNewAugment.Reset();
 
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupVFX);
@@ -201,8 +201,11 @@ namespace MortierFu
                          " to player " + picker.PlayerIndex);
             }
 
-            foreach (var pickup in _pickups)
-                pickup.Hide();
+            foreach (var pickup in _pickupsVFX)
+            {
+                var pickupVFX = pickup.GetComponent<AugmentPickup>();
+                pickupVFX.Reset();
+            }
 
             _augmentShowcaser.StopShowcase();
 
@@ -217,6 +220,9 @@ namespace MortierFu
             {
                 var pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
+                
+                var pickupVFX = _pickupsVFX[i];
+                pickupVFX.transform.SetParent(_pickupParent);
             }
         }
 
