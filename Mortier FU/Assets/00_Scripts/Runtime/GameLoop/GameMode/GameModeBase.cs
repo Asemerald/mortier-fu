@@ -329,11 +329,9 @@ namespace MortierFu
             timer.Start();
         }
 
-        protected async void HandleEndOfCountdown()
+        protected void HandleEndOfCountdown()
         {
             timer.OnTimerStop -= HandleEndOfCountdown;
-
-            await UniTask.Delay(TimeSpan.FromSeconds(Data.RoundStartDelay));
 
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
