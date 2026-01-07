@@ -118,7 +118,7 @@ namespace MortierFu
                 Owner = character,
                 StartPos = _firePoint.position,
                 TargetPos = AimWidget.transform.position,
-                TravelTime = Stats.BombshellTimeTravel.Value,
+                Speed = Stats.GetBombshellSpeed(),
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
                 Scale =  Stats.GetBombshellSize(),

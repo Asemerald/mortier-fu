@@ -56,8 +56,8 @@ MonoBehaviour:
     BombshellDamageMod:
       Value: 50
       ModType: 100
-    BombshellTimeTravelMod:
-      Value: 1.3
+    BombshellSpeedMod:
+      Value: -0.3
       ModType: 200
   FastReloadParams:
     FireRateMod:
@@ -78,17 +78,17 @@ MonoBehaviour:
       Value: -40
       ModType: 100
   MaximumVelocityParams:
-    BombshellTimeTravelMod:
-      Value: -0.25
+    BombshellSpeedMod:
+      Value: 0.25
       ModType: 200
     FireRateMod:
       Value: -0.05
       ModType: 200
   OverheatingParams:
-    BombshellTimeTravelMod:
+    BombshellSpeedMod:
       Value: -0.9
       ModType: 200
-    BombshellTimeTravelOnHitMod:
+    OnHitBombshellSpeedMod:
       Value: 0.05
       ModType: 200
   PoisonPuddleParams:
@@ -116,8 +116,8 @@ MonoBehaviour:
     FireRateMod:
       Value: 0.7
       ModType: 200
-    BombshellTimeTravelMod:
-      Value: 1.5
+    BombshellSpeedMod:
+      Value: -0.5
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:

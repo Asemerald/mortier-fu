@@ -5,7 +5,7 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod BombshellTimeTravelMod;
+            public AugmentStatMod BombshellSpeedMod;
             public AugmentStatMod FireRateMod;
         }
         
@@ -14,13 +14,13 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.BombshellTimeTravel.AddModifier(db.MaximumVelocityParams.BombshellTimeTravelMod.ToMod(this));
+            stats.BombshellSpeed.AddModifier(db.MaximumVelocityParams.BombshellSpeedMod.ToMod(this));
             stats.FireRate.AddModifier(db.MaximumVelocityParams.FireRateMod.ToMod(this));
         }
             
         public override void Dispose()
         {
-            stats.BombshellTimeTravel.RemoveAllModifiersFromSource(this);
+            stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
             stats.FireRate.RemoveAllModifiersFromSource(this);
         }
     }

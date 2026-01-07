@@ -14,43 +14,81 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.DA_CharacterData
   <MaxHealth>k__BackingField:
     baseValue: 100
+    clamp: 1
+    valueRange: {x: 1, y: 3.402823e+38}
   <MoveSpeed>k__BackingField:
     baseValue: 8
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <Accel>k__BackingField:
     baseValue: 100
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <Decel>k__BackingField:
     baseValue: 25
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <AvatarSize>k__BackingField:
     baseValue: 1
+    clamp: 1
+    valueRange: {x: 0.1, y: 10}
   <BombshellDamage>k__BackingField:
     baseValue: 40
+    clamp: 1
+    valueRange: {x: 0.5, y: 3.4028235e+38}
   <BombshellSize>k__BackingField:
     baseValue: 0.6
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <BombshellImpactRadius>k__BackingField:
     baseValue: 3.5
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <BombshellBounces>k__BackingField:
     baseValue: 0
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <FireRate>k__BackingField:
     baseValue: 2
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <ShotRange>k__BackingField:
     baseValue: 14
-  <BombshellTimeTravel>k__BackingField:
-    baseValue: 0.9
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <BombshellSpeed>k__BackingField:
+    baseValue: 30
+    clamp: 1
+    valueRange: {x: 5, y: 1000}
   <AimWidgetSpeed>k__BackingField:
     baseValue: 40
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikeDamage>k__BackingField:
     baseValue: 0
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikeDuration>k__BackingField:
     baseValue: 0.3
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikeCooldown>k__BackingField:
     baseValue: 2.5
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikeRadius>k__BackingField:
     baseValue: 2
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikePushForce>k__BackingField:
     baseValue: 1
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   StrikePushForceOffset: 9.5
   <KnockbackDuration>k__BackingField:
     baseValue: 0.5
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <KnockbackStunDuration>k__BackingField: 0.5
   <MaxHealthToAvatarSizeFactor>k__BackingField: 0.003
   <StrikePushForceToStrikeRadiusFactor>k__BackingField: 0.4
