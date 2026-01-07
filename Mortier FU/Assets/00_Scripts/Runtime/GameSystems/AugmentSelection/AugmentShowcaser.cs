@@ -108,7 +108,7 @@ namespace MortierFu
                 pickupVFX.transform.SetParent(_augmentPoints[i]);
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, 4).Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale).Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
             }
@@ -123,7 +123,7 @@ namespace MortierFu
         {
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
-                .Group(Tween.Scale(pickup.transform, scale, 1, duration * 0.7f,
+                .Group(Tween.Scale(pickup.transform, scale, 1, duration,
                     Ease.OutBack));
             //.OnComplete(() => { pickup.SetFaceCameraEnabled(true); });
         }

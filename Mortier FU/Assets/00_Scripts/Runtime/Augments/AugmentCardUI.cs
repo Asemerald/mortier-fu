@@ -20,8 +20,8 @@ namespace MortierFu
 
         [SerializeField] private RectTransform _infoRoot;
         
-        [SerializeField] private float _hideInfoDuration = 0.4f;
-        [SerializeField] private float _fadeOutDuration = 0.25f;
+        [SerializeField] private float _hideInfoDuration = 0.3f;
+        [SerializeField] private float _fadeOutDuration = 0.2f;
         
         [SerializeField] private Ease _slideOutEase = Ease.InQuad;
         
@@ -95,22 +95,7 @@ namespace MortierFu
                 _fadeOutDuration
             );
 
-            Transform augmentIcon = _augmentIcon.transform;
-            augmentIcon.localScale = Vector3.one;
-
-            await Tween.Scale(
-                augmentIcon,
-                new Vector3(0.85f, 1.15f, 0.85f),
-                0.15f,
-                Ease.OutQuad
-            );
-
-            await Tween.Scale(
-                augmentIcon,
-                Vector3.one,
-                0.25f,
-                Ease.OutElastic
-            );
+            _augmentIcon.transform.localScale = Vector3.one;
             
             pickupVFX.SetActive(true);
         }
@@ -126,11 +111,7 @@ namespace MortierFu
 
         public async UniTask PlayRevealSequence(GameObject pickupVFX)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(0.4f));
-
             await HideInfoUI();
-
-            await UniTask.Delay(TimeSpan.FromSeconds(0.1f));
 
             await PlayBoonDropTransition(pickupVFX);
         }
