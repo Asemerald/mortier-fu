@@ -44,6 +44,8 @@ namespace MortierFu
 
         private Vector3 _originalScale;
         private int[] _leaderboardOrder;
+        
+        private int _previousTopPlayerIndex = 0;
 
         private void Awake()
         {
@@ -150,9 +152,18 @@ namespace MortierFu
         {
             var animations = new UniTask[sortedTeams.Count];
 
-            int topIdx = sortedTeams[0].Index;
-            await Tween.Scale(_playerSlots[topIdx].transform, _originalScale * _topPlayerScaleFactor,
-                _topPlayerScaleDuration, _scaleTweenEase);
+            int currentTopIdx = sortedTeams[0].Index;
+            bool isSameTopPlayer = currentTopIdx == _previousTopPlayerIndex;
+            
+            if (!isSameTopPlayer)
+            {
+                await Tween.Scale(
+                    _playerSlots[currentTopIdx].transform,
+                    _originalScale * _topPlayerScaleFactor,
+                    _topPlayerScaleDuration,
+                    _scaleTweenEase
+                );
+            }
 
             for (int rank = 0; rank < sortedTeams.Count; rank++)
             {
@@ -163,7 +174,18 @@ namespace MortierFu
             }
 
             await UniTask.WhenAll(animations);
-            await Tween.Scale(_playerSlots[topIdx].transform, _originalScale, _topPlayerScaleDuration, _scaleTweenEase);
+            
+            if (!isSameTopPlayer)
+            {
+                await Tween.Scale(
+                    _playerSlots[currentTopIdx].transform,
+                    _originalScale,
+                    _topPlayerScaleDuration,
+                    _scaleTweenEase
+                );
+            }
+            
+            _previousTopPlayerIndex = currentTopIdx;
         }
 
         private UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease)
