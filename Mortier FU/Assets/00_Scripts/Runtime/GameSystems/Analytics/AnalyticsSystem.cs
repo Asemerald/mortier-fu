@@ -8,10 +8,13 @@ namespace MortierFu.Analytics
         private EventBinding<TriggerHit> _triggerHitBinding;
         private EventBinding<TriggerShootBombshell> _triggerShootBombshellBinding;
         private EventBinding<TriggerHealthChanged> _triggerHealthChangedBinding;
+        private EventBinding<TriggerStrike> _triggerStrikeBinding;
 
         public UniTask OnInitialize()
         {
-            throw new System.NotImplementedException();
+            RegisterEvents();
+            IsInitialized = true;
+            return UniTask.CompletedTask;
         }
 
         private void RegisterEvents()
@@ -24,6 +27,9 @@ namespace MortierFu.Analytics
             
             _triggerHealthChangedBinding = new EventBinding<TriggerHealthChanged>(OnTriggerHealthChanged);
             EventBus<TriggerHealthChanged>.Register(_triggerHealthChangedBinding);
+            
+            _triggerStrikeBinding = new EventBinding<TriggerStrike>(OnTriggerStrike);
+            EventBus<TriggerStrike>.Register(_triggerStrikeBinding);
         }
 
         private void OnTriggerShootBombshell(TriggerShootBombshell shootBombshell)
@@ -36,6 +42,11 @@ namespace MortierFu.Analytics
         }
         
         private void OnTriggerHealthChanged(TriggerHealthChanged healthChanged)
+        {
+            
+        }
+        
+        private void OnTriggerStrike(TriggerStrike strike)
         {
             
         }
