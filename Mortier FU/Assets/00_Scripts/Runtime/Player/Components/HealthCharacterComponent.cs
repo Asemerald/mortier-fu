@@ -50,6 +50,7 @@ namespace MortierFu
             
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
+                Instigator = source as PlayerCharacter, // Si ça ça marche jsuis content
                 Character = Character,
                 PreviousHealth = previousHealth,
                 NewHealth = _currentHealth,
@@ -79,6 +80,7 @@ namespace MortierFu
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
+                Instigator = null,
                 Character = Character,
                 PreviousHealth = previousHealth,
                 NewHealth = _currentHealth,
