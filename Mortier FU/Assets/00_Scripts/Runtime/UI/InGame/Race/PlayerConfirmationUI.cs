@@ -49,7 +49,6 @@ namespace MortierFu
         [Header("Race Animation Settings")] [SerializeField]
         private float _racePopDuration = 0.5f;
 
-        [SerializeField] private float _racePopScale = 1f;
         [SerializeField] private float _raceDisableDelay = 0.5f;
 
         #endregion
