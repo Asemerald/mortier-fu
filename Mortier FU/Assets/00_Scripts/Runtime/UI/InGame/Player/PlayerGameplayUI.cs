@@ -13,13 +13,14 @@ public class PlayerGameplayUI : MonoBehaviour
     private PlayerCharacter _character;
 
     [SerializeField] private Image _healthFillImg;
-    [SerializeField] private Image _healthBackground;
+    [SerializeField] private Image _playerHUD;
     [SerializeField] private Image _strikeCdImage;
     [SerializeField] private Image _shootCdImage;
     [SerializeField] private Image _characterIcon;
     [SerializeField] private TMP_Text _playerIndexText;
 
     [SerializeField] private Sprite[] _characterIcons;
+    [SerializeField] private Sprite[] _playerHUDSprites;
 
     [SerializeField] private float _tweenDuration = 0.5f;
     [SerializeField] private float _startFadeDelay = 2f;
@@ -49,6 +50,7 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void Start()
     {
+        _playerHUD.sprite = _playerHUDSprites[_character.Owner.PlayerIndex];
         GetColorAndIndex().Forget();
     }
 
@@ -58,10 +60,10 @@ public class PlayerGameplayUI : MonoBehaviour
         float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
         float shootProgress = 1 - _character.Mortar.ShootCooldownProgress;
 
-        _strikeCdImage.enabled = strikeProgress < 1f;
+        // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
 
-        _shootCdImage.enabled = shootProgress < 1f;
+        // _shootCdImage.enabled = shootProgress >= 0f;
         _shootCdImage.fillAmount = shootProgress;
     }
 
@@ -69,8 +71,7 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         await UniTask.Yield();
 
-        _healthFillImg.transform.localScale = Vector3.zero;
-        _healthBackground.transform.localScale = Vector3.zero;
+        _playerHUD.transform.localScale = Vector3.zero;
 
         _characterIcon.transform.localScale = _scaleOne;
 
@@ -89,9 +90,9 @@ public class PlayerGameplayUI : MonoBehaviour
 
         await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
 
-        await Tween.Scale(_characterIcon.transform, 0f, _tweenDuration, _iconInEase)
-            .Group(Tween.Scale(_healthFillImg.transform, _scaleOne, _tweenDuration, _healthBarEase)
-                .Group(Tween.Scale(_healthBackground.transform, _scaleOne, _tweenDuration, _healthBarEase)));
+        await Tween.Scale(_characterIcon.transform, 0f, _tweenDuration, _iconInEase);
+
+        await Tween.Scale(_playerHUD.transform, _scaleOne, _tweenDuration, _healthBarEase);
 
         _characterIcon.enabled = false;
     }
