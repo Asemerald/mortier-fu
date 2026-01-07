@@ -13,6 +13,8 @@ namespace MortierFu
         public Material TrailFatMat;
         public ParticleSystem.MinMaxGradient LightColor;
         [ColorUsage(true)] public Color PlayerColor;
+        public Material PlayerMaterial;
+        public SkinnedMeshRenderer[] PlayerMeshes;
     }
 
     public class AspectCharacterComponent : CharacterComponent
@@ -36,16 +38,14 @@ namespace MortierFu
         public override void Initialize()
         {
             var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>();
-            if (renderers.Length <= 0) return;
+            if (renderers.Length <= 0)
+                return;
 
-            _materialInstance = new Material(renderers[0].material.shader)
-            {
-                color = PlayerColor
-            };
+            _materialInstance = new Material(AspectMaterials.PlayerMaterial);
 
-            foreach (var rend in renderers)
+            foreach (var mesh in AspectMaterials.PlayerMeshes)
             {
-                rend.material = _materialInstance;
+                mesh.material = _materialInstance;
             }
         }
 
