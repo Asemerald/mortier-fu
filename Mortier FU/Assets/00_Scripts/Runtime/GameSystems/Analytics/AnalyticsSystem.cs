@@ -297,6 +297,18 @@ namespace MortierFu.Analytics
             }
         }
 
+        public void OnAugmentSelected(PlayerCharacter character, SO_Augment augment = null)
+        {
+            var playerData = GetOrCreatePlayerData(character);
+            playerData.selectedAugment = augment;
+        }
+        
+        public void OnScoreChanged(PlayerCharacter character, int newScore)
+        {
+            var playerData = GetOrCreatePlayerData(character);
+            playerData.score = newScore;
+        }
+
         private bool IsGameOver()
         {
             return GameService.CurrentGameMode.IsGameOver(out _);
