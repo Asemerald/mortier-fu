@@ -5,7 +5,7 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod StrikeStunDurationMod;
+            public AugmentStatMod StrikePushForceMod;
             public AugmentStatMod StrikeCooldownMod;
         }
         
@@ -14,13 +14,13 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.StrikeStunDuration.AddModifier(db.BigStrikeParams.StrikeStunDurationMod.ToMod(this));
+            stats.StrikePushForce.AddModifier(db.BigStrikeParams.StrikePushForceMod.ToMod(this));
             stats.StrikeCooldown.AddModifier(db.BigStrikeParams.StrikeCooldownMod.ToMod(this));
         }
         
         public override void Dispose()
         {
-            stats.StrikeStunDuration.RemoveAllModifiersFromSource(this);
+            stats.StrikePushForce.RemoveAllModifiersFromSource(this);
             stats.StrikeCooldown.RemoveAllModifiersFromSource(this);
         }
     }

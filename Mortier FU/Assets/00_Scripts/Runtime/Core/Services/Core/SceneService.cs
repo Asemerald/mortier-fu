@@ -11,8 +11,30 @@ namespace MortierFu
         public void ShowLoadingScreen() => _loadingGO.SetActive(true);
         public void HideLoadingScreen() => _loadingGO.SetActive(false);
         
-        public async UniTask LoadScene(string sceneName, bool active = false) {
+        // TODO:  mieux docummenter parce que le active faudrait plus dire "load en aditive ?" et que ça soit false par default 
+        public async UniTask LoadScene(string sceneName, bool active = false, bool single = false) {
             Logs.Log($"[SceneService]: Loading {sceneName}...");
+            if (single)
+            {
+                var handleSingle = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+                if (handleSingle == null) {
+                    Logs.LogError($"[SceneService]: Failed to load the following scene {sceneName} !");
+                    return;
+                }
+                
+                await handleSingle;
+                Logs.Log($"[SceneService]: Successfully loaded {sceneName}.");
+                
+                if (active) {
+                    var activeScene = SceneManager.GetSceneByName(sceneName);
+                    if (activeScene.IsValid())
+                    {
+                        SceneManager.SetActiveScene(activeScene);
+                    }   
+                }
+                return;
+            }
+            
             var handle =  SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             if (handle == null) {
                 Logs.LogError($"[SceneService]: Failed to load the following scene {sceneName} !");

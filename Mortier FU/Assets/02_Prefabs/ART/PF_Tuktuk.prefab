@@ -161,6 +161,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3533699136081474132}
   - component: {fileID: 8750503750550894336}
+  - component: {fileID: 2118872632059761690}
   m_Layer: 0
   m_Name: PF_Tuktuk
   m_TagString: Untagged
@@ -207,6 +208,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.82, y: 3.48, z: 3.31}
   m_Center: {x: 0, y: 1.86, z: -0.54}
+--- !u!114 &2118872632059761690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5105145202112277349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50d72619aa94a78498776dfaa79205d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Bumper
+  _bumpForce: 10.5
+  _bumpDuration: 0.5
+  _stunDuration: 0.75
 --- !u!1 &7813954971283880379
 GameObject:
   m_ObjectHideFlags: 0

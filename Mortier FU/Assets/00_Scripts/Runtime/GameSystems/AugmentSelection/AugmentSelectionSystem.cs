@@ -1,17 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
-
     public class AugmentSelectionSystem : IGameSystem
     {
+        public event Action<float> OnPressureStart;
+        public event Action OnPressureStop;
+        public event Action OnStopShowcase;
+        
+        private CancellationTokenSource _pressureTokenSource;
+        
         private List<AugmentPickup> _pickups;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
@@ -33,7 +38,11 @@ namespace MortierFu
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
         
-        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished)); // TODO Better condition?
+        private Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
+        
+        public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
+        
+        public bool IsSelectionOver => !_showcaseInProgress && (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished));
         
         public async UniTask OnInitialize()
         {
@@ -120,7 +129,8 @@ namespace MortierFu
             _showcaseInProgress = true;
             await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
             _showcaseInProgress = false;
-
+            
+            OnStopShowcase?.Invoke();
             await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
             
             var gm = GameService.CurrentGameMode as GameModeBase;
@@ -128,14 +138,32 @@ namespace MortierFu
             
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
+
+            _pressureTokenSource = new CancellationTokenSource();
+            HandlePressure(duration).Forget();
         }
 
-        public void EndRace()
-        {
-            // Give a random augment to remaining pickers
+        private async UniTaskVoid HandlePressure(float duration) {
+            float pressureStartTime = 5f;
+            float delay = Mathf.Max(0, duration - pressureStartTime);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: _pressureTokenSource.Token);
+
+            _pressureTokenSource = null;
+            OnPressureStart?.Invoke(pressureStartTime);
+        }
+
+        public void EndRace() {
+            _pressureTokenSource?.Cancel();
+            OnPressureStop?.Invoke();
+
             var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
+
             foreach (var picker in _pickers)
             {
+                if (!_pickedAugments.ContainsKey(picker.Character))
+                    _pickedAugments[picker.Character] = new List<SO_Augment>();
+
                 if (remainingAugments.Count == 0)
                 {
                     Logs.LogWarning("[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
@@ -144,21 +172,24 @@ namespace MortierFu
 
                 var randomAugment = remainingAugments.RandomElement();
                 picker.Character.AddAugment(randomAugment.Augment);
+
+                _pickedAugments[picker.Character].Add(randomAugment.Augment);
+
                 randomAugment.IsPicked = true;
                 remainingAugments.Remove(randomAugment);
+
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
             }
-            
+
             foreach (var pickup in _pickups)
-            {
                 pickup.Hide();
-            }
 
             _augmentShowcaser.StopShowcase();
-            
+
             _augmentBag.Clear();
             _augmentTimer = null;
         }
+
         
         public void RestorePickupParent()
         {
@@ -182,13 +213,17 @@ namespace MortierFu
 
             augment.IsPicked = true;
             _pickers.Remove(picker);
-            
+
             character.AddAugment(augment.Augment);
+
+            if (!_pickedAugments.ContainsKey(character))
+                _pickedAugments[character] = new List<SO_Augment>();
+            _pickedAugments[character].Add(augment.Augment);
 
             return true;
         }
         
-        public class AugmentState // TODO Better rename
+        private class AugmentState // TODO Better rename
         {
             public SO_Augment Augment;
             public bool IsPicked;

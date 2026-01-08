@@ -20,6 +20,8 @@ namespace MortierFu
         private bool _isAiming;
 
         public bool CanShoot => !_shootCooldownTimer.IsRunning;
+        
+        public float ShootCooldownProgress => _shootCooldownTimer.Progress;
 
         public bool IsShooting { get; private set; }
 
@@ -77,6 +79,7 @@ namespace MortierFu
 
         public override void Reset()
         {
+            _shootCooldownTimer.Reset();
             _shootCooldownTimer?.Stop();
             
             ResetAimWidget();
@@ -94,6 +97,7 @@ namespace MortierFu
         }
 
         public override void Dispose() {
+            
             Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
             
             _shootCooldownTimer.Dispose();
@@ -117,7 +121,7 @@ namespace MortierFu
                 TravelTime = Stats.BombshellTimeTravel.Value,
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
-                Scale =  Stats.BombshellSize.Value,
+                Scale =  Stats.GetBombshellSize(),
                 AoeRange = Stats.BombshellImpactRadius.Value,
                 Bounces = Mathf.RoundToInt(Stats.BombshellBounces.Value)
             };
@@ -142,7 +146,7 @@ namespace MortierFu
             if (!PlayerCharacter.AllowGameplayActions) return;
             if (!Character.Health.IsAlive) return;
             
-            Logs.Log("[MortarCharacterComponent]: Begin Aiming");
+            //Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
@@ -150,7 +154,7 @@ namespace MortierFu
 
         public void EndAiming(InputAction.CallbackContext ctx)
         {
-            Logs.Log("[MortarCharacterComponent]: End Aiming");
+            //Logs.Log("[MortarCharacterComponent]: End Aiming");
             AimWidget.Hide();
             _shootStrategy?.EndAiming();
             _shootAction.Disable();

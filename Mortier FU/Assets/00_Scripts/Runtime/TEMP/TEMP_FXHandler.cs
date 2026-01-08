@@ -32,7 +32,7 @@ public class TEMP_FXHandler : MonoBehaviour
     private async UniTaskVoid StrikeTimingPreview(ParticleSystem preview, float travelTime)
     {
         await UniTask.Delay(TimeSpan.FromSeconds(Mathf.Max(0f, travelTime - 0.3f)));
-        
+
         var col = preview.colorOverLifetime;
 
         //COLOR CHANGES

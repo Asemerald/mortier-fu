@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 2822536691377792198}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.4730301, y: 1.02, z: -1.2054615}
+  m_LocalPosition: {x: -3.2230306, y: 1.02, z: 32.29454}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -139,7 +139,7 @@ Transform:
   m_GameObject: {fileID: 7436767443972811064}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.1269684, y: 1.02, z: -1.435461}
+  m_LocalPosition: {x: 3.6269686, y: 1.02, z: -32.18546}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -270,6 +270,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   startingPoint: {fileID: 9072643556310370661}
   endPoint: {fileID: 308013138943271183}
-  vehicule: {fileID: 9664911604637783, guid: dfd59fbf6448bf04d9054a860a1cce60, type: 3}
-  vehiculeSpeed: 50
-  vehiculteRate: 2
+  vehicule: {fileID: 3272717844674581917, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
+  redLight: {fileID: 0}
+  vehiculeSpeed: 100
+  vehiculteRate: {x: 0.6, y: 1}
+  redLightTime: {x: 10, y: 15}
+  redLightMat: {fileID: 2100000, guid: 11c2fbc0904164e4a84cf6403135cf3d, type: 2}
+  greenLightMat: {fileID: 2100000, guid: b88158913f300e64688585e3685a845f, type: 2}

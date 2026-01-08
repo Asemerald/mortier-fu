@@ -19,11 +19,7 @@ namespace MortierFu
         [Header("Mortar")] [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        [Header("Aspect")]
-        [Tooltip("Will extract the hue, saturation and value to colorize the player characters.")]
-        [SerializeField]
-        private Color _characterColorConfig = Color.white;
-        [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
+        [Header("Aspect")] [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
 
         [Header("References")] [SerializeField]
         private Animator _animator;
@@ -58,14 +54,11 @@ namespace MortierFu
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
-        
+
         public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
 
-        /// <summary>
-        /// Tells the character who possesses it.
-        /// </summary>
         public void Initialize(PlayerManager owner)
         {
             if (owner == null)
@@ -73,27 +66,25 @@ namespace MortierFu
                 Logs.LogError("Cannot initialize player with null Owner !");
                 return;
             }
-            
+
             Owner = owner;
 
             var playerIndex = owner.PlayerIndex;
-            if(playerIndex < 0 || playerIndex >= _characterAspectMaterials.Length)
+            if (playerIndex < 0 || playerIndex >= _characterAspectMaterials.Length)
             {
                 Logs.LogError($"Player index {playerIndex} is out of bounds for character aspect materials.");
                 return;
             }
+
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
         }
 
         void Awake()
         {
-            // Extract HSV from the character color config
-            Color.RGBToHSV(_characterColorConfig, out float hue, out float saturation, out float value);
-            
             // Create character components
             Health = new HealthCharacterComponent(this);
             Controller = new ControllerCharacterComponent(this);
-            Aspect = new AspectCharacterComponent(this, hue, saturation, value);
+            Aspect = new AspectCharacterComponent(this);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
 
             // Create a unique instance of CharacterData for this character
@@ -202,9 +193,10 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveKnockback(float duration, Vector3 direction)
+        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
         {
-            _knockbackState.ReceiveKnockback(duration, direction);
+            force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
+            _knockbackState.ReceiveKnockback(duration, force, stunDuration);
         }
 
         public void ReceiveStun(float duration)
@@ -251,7 +243,7 @@ namespace MortierFu
         }
 
         private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
-        
+
         // Could also implement a RemoveAugment method if needed
 
         public void ClearAugments()
@@ -289,16 +281,29 @@ namespace MortierFu
         {
             if (_knockbackState.IsActive && other.impulse.magnitude > 5)
             {
-                ReceiveStun(Controller.Stats.StrikeStunDuration.Value);
+                ReceiveStun(_knockbackState.StunDuration);
+                //temp ajout destruction barriere
+                if (other.gameObject.GetComponent<Breakable>())
+                {
+                    other.gameObject.GetComponent<Breakable>().Interact();
+                }
             }
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Health?.OnDrawGizmos();
             Controller?.OnDrawGizmos();
             Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
+
+            if (Owner != null)
+            {
+                Gizmos.color = Color.white;
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
+                    $"Player {Owner.PlayerIndex + 1}");
+            }
         }
 
         private void OnDrawGizmosSelected()
@@ -307,7 +312,16 @@ namespace MortierFu
             Controller?.OnDrawGizmosSelected();
             Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
+
+            if (Owner != null)
+            {
+                Gizmos.color = Color.white;
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
+                    $"Player {Owner.PlayerIndex + 1}");
+            }
         }
+
+#endif
 
         #endregion
 
@@ -320,7 +334,7 @@ namespace MortierFu
         {
             if (HasEffect(effect))
                 return;
-            
+
             _activeEffects.Add(effect);
             effect.OnCompleted += RemoveEffect;
             effect.Apply(this);

@@ -1,5 +1,7 @@
+using System.Data;
 using UnityEngine.InputSystem;
 using MortierFu.Shared;
+using PrimeTween;
 using UnityEngine;
 
 namespace MortierFu
@@ -8,12 +10,14 @@ namespace MortierFu
     {
         [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
 
-        protected Rigidbody rigidbody;
+        public Rigidbody rigidbody;
 
-        private Vector3 _moveDirection;
+        public Vector3 _moveDirection;
         
         private InputAction _moveAction;
 
+        private Tween _avatarSizeTween;
+        
         public float SpeedRatio => Mathf.Clamp01(rigidbody.linearVelocity.magnitude / Stats.MoveSpeed.Value); 
         
         public ControllerCharacterComponent(PlayerCharacter character) : base(character)
@@ -32,6 +36,7 @@ namespace MortierFu
             character.FindInputAction("Move", out _moveAction);
 
             Stats.AvatarSize.OnDirtyUpdated += UpdateAvatarSize;
+            Stats.MaxHealth.OnDirtyUpdated += UpdateAvatarSize;
             UpdateAvatarSize();
         }
 
@@ -43,6 +48,7 @@ namespace MortierFu
 
         public override void Dispose() {
             Stats.AvatarSize.OnDirtyUpdated -= UpdateAvatarSize;
+            Stats.MaxHealth.OnDirtyUpdated -= UpdateAvatarSize;
         }
         
         public override void Update()
@@ -53,7 +59,14 @@ namespace MortierFu
 
         private void UpdateAvatarSize()
         {
-            character.transform.localScale = Vector3.one * Stats.AvatarSize.Value;
+            if (_avatarSizeTween.isAlive) {
+                _avatarSizeTween.Stop();
+            }
+            
+            float targetSize = Stats.GetAvatarSize();
+            if (Mathf.Approximately(targetSize, character.transform.localScale.x)) return;
+            
+            _avatarSizeTween = Tween.Scale(character.transform, targetSize, 0.25f, Ease.OutQuad);
         }
         
         // LocomotionState methods
@@ -87,26 +100,36 @@ namespace MortierFu
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
 
-        public void HandleMovementUpdate(float factor = 1.0f) // TODO: Improve the speed factor
+        public void HandleMovementUpdate(float factor = 1.0f)
         {
-            var horizontal = _moveAction.ReadValue<Vector2>().x;
-            var vertical = _moveAction.ReadValue<Vector2>().y;
-            
-            var targetDirection = (new Vector2(horizontal, vertical)).normalized;
-            var targetSpeed = Stats.MoveSpeed.Value * factor;
+            Vector2 input = _moveAction.ReadValue<Vector2>();
 
-            // Targetted Velocity
-            var targetVelocity = targetDirection * targetSpeed;
+            // Deadzone stricte
+            if (input.sqrMagnitude < 0.01f)
+                input = Vector2.zero;
 
-            // Accel/Decel if moving or not
-            float rate = (targetDirection.sqrMagnitude > 0.01f) ? Stats.Accel.Value : Stats.Decel.Value;
+            Vector2 targetDirection = input.normalized;
+            float targetSpeed = Stats.MoveSpeed.Value * factor;
 
-            // Apply smooth Interpolation
-            _moveDirection = Vector2.Lerp(_moveDirection, targetVelocity, Time.deltaTime * rate);
+            Vector2 targetVelocity = targetDirection * targetSpeed;
+
+            // Choix accel / decel basé sur la distance
+            float maxDelta = (
+                targetVelocity.magnitude > _moveDirection.magnitude
+                    ? Stats.Accel.Value
+                    : Stats.Decel.Value
+            ) * Time.deltaTime;
+
+            // Mouvement stable, sans ambiguïté
+            _moveDirection = Vector2.MoveTowards(
+                _moveDirection,
+                targetVelocity,
+                maxDelta
+            );
+
+            // Rotation basée sur la vélocité réelle
+            Vector3 velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
             
-            var velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
-            
-            // Smooth rotation apply to character
             if (velocity3D.sqrMagnitude > 0.001f)
             {
                 character.transform.rotation = Quaternion.Slerp(
@@ -116,12 +139,13 @@ namespace MortierFu
                 );
             }
         }
+
         
         // Debugs
         public override void OnDrawGizmos()
         {
             Gizmos.color = _debugStrikeColor;
-            Gizmos.DrawWireSphere(character.transform.position, Stats.StrikeRadius.Value);
+            Gizmos.DrawWireSphere(character.transform.position, Stats.GetStrikeRadius());
         }
 
         public void ResetVelocity()

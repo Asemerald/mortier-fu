@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7742613307655279501}
   - component: {fileID: 2616741705894184103}
+  - component: {fileID: 8317487993482914717}
   m_Layer: 0
   m_Name: PF_Barriere_Travaux
   m_TagString: Untagged
@@ -53,7 +54,21 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.2, y: 1.87, z: 4.15}
-  m_Center: {x: -0.12, y: 0.85, z: 0}
+  m_Center: {x: -0.12, y: 0, z: 0}
+--- !u!114 &8317487993482914717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8841251068694913602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b84889fd6f1f60645a9d6a6f4ce16c60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Breakable
+  _life: 1
+  _mat: {fileID: 0}
 --- !u!1001 &5966747544984900433
 PrefabInstance:
   m_ObjectHideFlags: 0

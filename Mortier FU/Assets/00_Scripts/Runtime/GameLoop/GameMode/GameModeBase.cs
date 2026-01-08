@@ -6,21 +6,27 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.InputSystem;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = UnityEngine.Object;
 using Vector3 = UnityEngine.Vector3;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MortierFu
 {
+    // TODO: Le GameMode de salopard, il fait bientôt 600 lignes, il faudrait peut-être mettre le bébé au régime
     public abstract class GameModeBase : IGameMode
     {
         protected List<PlayerTeam> teams;
+        public List<RoundInfo> RoundHistory { get; protected set; } = new List<RoundInfo>();
+        private RoundInfo _currentRound;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
         protected List<PlayerCharacter> alivePlayers;
         public ReadOnlyCollection<PlayerCharacter> AlivePlayers;
         
-        protected int currentRound;
         protected int currentRank;
         protected bool oneTeamStanding;
         protected GameState currentState;
@@ -40,11 +46,12 @@ namespace MortierFu
 
         private AsyncOperationHandle<SO_StormSettings> _stormSettingsHandle;
         public SO_StormSettings StormSettings => _stormSettingsHandle.Result;
-        
             
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
         public SO_GameModeData Data => _dataHandle.Result;
 
+        private EventBinding<EventPlayerDeath> _playerDeathBinding;
+        
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
@@ -58,15 +65,25 @@ namespace MortierFu
         }
 
         public GameState CurrentState => currentState;
-        public int CurrentRoundCount => currentRound;
+        public int CurrentRoundCount => _currentRound.RoundIndex;
         public float CountdownRemainingTime => timer.CurrentTime;
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
-        public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
+        
+        /// <summary>
+        /// Invoked when a player kills another player.
+        /// <remarks>Killer / Victim</remarks>
+        /// </summary>
+        public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
-        public event Action<int> OnRoundStarted;
-        public event Action<int> OnRoundEnded;
+        public event Action<RoundInfo> OnRoundStarted;
+        public event Action OnScoreDisplayOver;
+        public event Action<RoundInfo> OnRoundEnded;
+        
+        public event Func<UniTask> OnRaceEndedUI;
+        
+        public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
         private const string k_uiActionMap = "UI";
@@ -92,12 +109,13 @@ namespace MortierFu
                 var player = players[i];
                 player.SpawnInGame(new Vector3(i, 5, i) * 2f);
                 
-                player.Character.Health.OnDeath += source => OnDeath(player, source); // Memory leak ? Can be improved
+                // Use event bus to prevent closure and weird on Death subscriptions
+                // player.Character.Health. += source => OnDeath(player, source);
                 
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
-
+            
             if (!IsReady)
             {
                 Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
@@ -106,7 +124,7 @@ namespace MortierFu
                 return;
             }
 
-            currentRound = 0;
+            _currentRound = new RoundInfo();
             gameVictor = null;
 
             GameplayCoroutine().Forget();
@@ -134,6 +152,15 @@ namespace MortierFu
                 augmentSelectionSys.EndRace();
                 EndRace();
                 
+                if (OnRaceEndedUI != null)
+                {
+                    foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
+                    {
+                        var handler = (Func<UniTask>)@delegate;
+                        await handler.Invoke();
+                    }
+                }
+                
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -146,7 +173,9 @@ namespace MortierFu
 
                 UpdateGameState(GameState.DisplayScores);
                 DisplayScores();
-
+                
+                await UniTask.Delay(TimeSpan.FromSeconds(Data.DisplayScoresDuration));
+                
                 HideScores();
 
                 if (IsGameOver(out gameVictor))
@@ -185,7 +214,7 @@ namespace MortierFu
 
         private void SpawnPlayers()
         {
-            bool opposite = currentRound % 2 == 0;
+            bool opposite = _currentRound.RoundIndex % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
 
             foreach (var team in teams.OrderByDescending(t => t.Rank))
@@ -235,7 +264,14 @@ namespace MortierFu
         {
             UpdateGameState(GameState.Round);
 
-            currentRound++;
+            _currentRound = new RoundInfo
+            {
+                RoundIndex = RoundHistory.Count + 1,
+                WinningTeam = teams.FirstOrDefault(t => t.Rank == 1)
+            };
+            
+            RoundHistory.Add(_currentRound);
+            
             currentRank = teams.Count;
             oneTeamStanding = false;
             
@@ -257,6 +293,8 @@ namespace MortierFu
             var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
             cameraSystem.Controller.PopulateTargetGroup(groupMembers);
             
+            EventBus<EventPlayerDeath>.Register(_playerDeathBinding);
+            
             HandleCountdown();
         }
 
@@ -264,12 +302,18 @@ namespace MortierFu
         {
             float duration = Data.RoundStartCountdown;
             #if UNITY_EDITOR
-            // duration *= 0.25f;
+            int speedMult = EditorPrefs.GetInt("CountdownSpeedMult", 1);
+            duration *= 1f / speedMult;
             #endif
 
             timer.Reset(duration - 0.01f);
+            
+            timer.OnTimerStart -= HandleStartOfCountdown;
+            timer.OnTimerStop -= HandleEndOfCountdown;
+
             timer.OnTimerStart += HandleStartOfCountdown;
             timer.OnTimerStop += HandleEndOfCountdown;
+            
             timer.Start();
         }
 
@@ -282,7 +326,7 @@ namespace MortierFu
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
 
-            Logs.Log($"Round #{currentRound} is starting...");
+            Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
             
             // timer.Reset(_gameModeData.StormSpawnTime);
             // timer.OnTimerStop += SpawnStorm;
@@ -291,13 +335,15 @@ namespace MortierFu
         
         protected void HandleStartOfCountdown()
         {
-            OnRoundStarted?.Invoke(currentRound);
+            OnRoundStarted?.Invoke(_currentRound);
         }
 
         protected virtual void EndRound()
         {
             timer.OnTimerStop -= SpawnStorm;
             timer.Stop();
+            
+            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
             
             bombshellSys.ClearActiveBombshells();
             puddleSys.ClearActivePuddles();
@@ -308,14 +354,20 @@ namespace MortierFu
             }
             
             ResetPlayers();
+            SpawnPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
             alivePlayers.Clear();
             
             EvaluateScores();
+            
+            _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
+            
+            //TEMPORARY
+            cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform);
 
-            OnRoundEnded?.Invoke(currentRound);
+            OnRoundEnded?.Invoke(_currentRound);
         }
 
         private void SpawnStorm() => SpawnStormTask().Forget();
@@ -342,7 +394,7 @@ namespace MortierFu
                 {
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
-                    team.Score = Math.Min(rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
                 }
             }
         }
@@ -377,9 +429,13 @@ namespace MortierFu
 
         protected virtual void HideScores()
         {
+            //TEMPORARY
+            cameraSystem.Controller.ResetToMainCamera();
+            
             timer.Stop();
 
             // Hide UI
+            OnScoreDisplayOver?.Invoke();
         }
 
         protected virtual void StartRace()
@@ -387,8 +443,8 @@ namespace MortierFu
             UpdateGameState(GameState.RaceInProgress);
             
             cameraSystem.Controller.ClearTargetGroupMember();
-            cameraSystem.Controller.ResetCameraInstant();
-            
+
+            ResetPlayers();
             SpawnPlayers();
 
             // Hide previous showcase UI            
@@ -411,8 +467,17 @@ namespace MortierFu
 
         protected virtual void EndGame()
         {
-            // The game state is already set to EndGame at that point
-            // Show the victory screen
+            OnGameEnded?.Invoke(GetWinnerPlayerIndex());
+            Logs.Log("Game has ended.");
+            ReturnToMainMenuAfterDelay(5f).Forget();
+        }
+        
+        private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            await sceneService.LoadScene("MainMenu", true, true);
+            //TODO: a full check, je pense que ATM le SystemManager est pas Dispose
+            ServiceManager.Instance.Get<GameService>().Dispose();
         }
 
         protected virtual void UpdateGameState(GameState newState)
@@ -434,8 +499,9 @@ namespace MortierFu
             _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
             
             timer = new CountdownTimer(0f);
-            Debug.Log("CREATE TIMER");
 
+            _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
+            
             Logs.Log("Game mode initialized successfully.");
         }
 
@@ -451,20 +517,24 @@ namespace MortierFu
             
             Addressables.Release(_dataHandle);
             Addressables.Release(_stormSettingsHandle);
+
+            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
+            _playerDeathBinding = null;
             
             teams.Clear();
             timer.Dispose();
         }
 
-        protected void OnDeath(PlayerManager player, object source)
-        {
+        protected void OnPlayerDeath(EventPlayerDeath evt) {
+            var player = evt.Character.Owner;
+            
             player.Metrics.TotalDeaths++;
             alivePlayers.Remove(player.Character);
             cameraSystem.Controller.RemoveTarget(player.transform);
 
-            if (source is PlayerCharacter killer)
+            if (evt.Source is PlayerCharacter killer)
             {
-                OnPlayerKill(killer, player.Character);
+                OnPlayerKill(killer, evt.Character);
             }
 
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
@@ -478,6 +548,8 @@ namespace MortierFu
             {
                 victimTeam.Rank = currentRank;
                 currentRank--;
+                
+                Logs.Log("This eliminated, assigned rank #" + victimTeam.Rank);
             }
 
             // Check if there is one team standing
@@ -519,5 +591,16 @@ namespace MortierFu
 
             OnPlayerKilled?.Invoke(killer, victim);
         }
+        
+        public int GetWinnerPlayerIndex()
+        {
+            if (IsGameOver(out var victor))
+            {
+                return victor?.Index ?? -1;
+            }
+            
+            return -1; // Aucun gagnant pour l'instant
+        }
+
     }
 }

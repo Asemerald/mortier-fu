@@ -286,6 +286,28 @@ namespace MortierFu
                 },
                 {
                     ""name"": """",
+                    ""id"": ""880f37a6-05b3-46ef-ae35-313e20595bd1"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Strike"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b9f87bcc-4301-4fe5-93f6-2bc57a8363e4"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Strike"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""2436f8d4-bb1f-4fba-93a5-7d1b7083d08e"",
                     ""path"": ""<Gamepad>/rightTrigger"",
                     ""interactions"": """",
@@ -417,6 +439,24 @@ namespace MortierFu
                     ""name"": ""Confirm"",
                     ""type"": ""Button"",
                     ""id"": ""35a20aed-63d3-44bd-8913-0230d27665ed"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Join"",
+                    ""type"": ""Button"",
+                    ""id"": ""367aea59-d655-4d17-a013-62e63d56a272"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""StartGame"",
+                    ""type"": ""Button"",
+                    ""id"": ""04b129e0-e024-4b74-bd92-617fcafb36b4"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -852,6 +892,28 @@ namespace MortierFu
                     ""action"": ""Confirm"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bb7acb98-93d7-43ac-bac2-3473dc4d2b64"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Join"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8ee5ebe1-bc1d-4815-bf03-58c45a17f814"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StartGame"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -923,6 +985,8 @@ namespace MortierFu
             m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
             m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
             m_UI_Confirm = m_UI.FindAction("Confirm", throwIfNotFound: true);
+            m_UI_Join = m_UI.FindAction("Join", throwIfNotFound: true);
+            m_UI_StartGame = m_UI.FindAction("StartGame", throwIfNotFound: true);
         }
 
         ~@PlayerActionInput()
@@ -1155,6 +1219,8 @@ namespace MortierFu
         private readonly InputAction m_UI_TrackedDevicePosition;
         private readonly InputAction m_UI_TrackedDeviceOrientation;
         private readonly InputAction m_UI_Confirm;
+        private readonly InputAction m_UI_Join;
+        private readonly InputAction m_UI_StartGame;
         /// <summary>
         /// Provides access to input actions defined in input action map "UI".
         /// </summary>
@@ -1210,6 +1276,14 @@ namespace MortierFu
             /// Provides access to the underlying input action "UI/Confirm".
             /// </summary>
             public InputAction @Confirm => m_Wrapper.m_UI_Confirm;
+            /// <summary>
+            /// Provides access to the underlying input action "UI/Join".
+            /// </summary>
+            public InputAction @Join => m_Wrapper.m_UI_Join;
+            /// <summary>
+            /// Provides access to the underlying input action "UI/StartGame".
+            /// </summary>
+            public InputAction @StartGame => m_Wrapper.m_UI_StartGame;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1269,6 +1343,12 @@ namespace MortierFu
                 @Confirm.started += instance.OnConfirm;
                 @Confirm.performed += instance.OnConfirm;
                 @Confirm.canceled += instance.OnConfirm;
+                @Join.started += instance.OnJoin;
+                @Join.performed += instance.OnJoin;
+                @Join.canceled += instance.OnJoin;
+                @StartGame.started += instance.OnStartGame;
+                @StartGame.performed += instance.OnStartGame;
+                @StartGame.canceled += instance.OnStartGame;
             }
 
             /// <summary>
@@ -1313,6 +1393,12 @@ namespace MortierFu
                 @Confirm.started -= instance.OnConfirm;
                 @Confirm.performed -= instance.OnConfirm;
                 @Confirm.canceled -= instance.OnConfirm;
+                @Join.started -= instance.OnJoin;
+                @Join.performed -= instance.OnJoin;
+                @Join.canceled -= instance.OnJoin;
+                @StartGame.started -= instance.OnStartGame;
+                @StartGame.performed -= instance.OnStartGame;
+                @StartGame.canceled -= instance.OnStartGame;
             }
 
             /// <summary>
@@ -1525,6 +1611,20 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnConfirm(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Join" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnJoin(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "StartGame" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnStartGame(InputAction.CallbackContext context);
         }
     }
 }

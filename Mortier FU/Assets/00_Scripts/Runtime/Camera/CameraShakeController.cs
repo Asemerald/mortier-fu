@@ -31,7 +31,7 @@ namespace MortierFu
 
         public void CallCameraShake(float aoeRange, float power, float travelTime, float delay = 0)
         {
-            float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 5f, 10f);
+            float intensity = Mathf.Clamp((aoeRange * power * travelTime) / 40, 1f, 10f);
             float time = intensity * 0.07f;
             StartCoroutine(ShakeCamera(intensity, time, intensity, time / 2f, delay));
         }
@@ -48,11 +48,11 @@ namespace MortierFu
                 yield return new WaitForSeconds(delay);
 
             _shakeTimer = shakeTime;
-            _shakeIntensity = intensity;
-            _shakeMult = 1f / _shakeTimer;
+            _shakeIntensity = intensity * 0.25f;
+            _shakeMult = 1f / _shakeTimer * 0.5f;
 
-            _zoomTimer = zoomTime;
-            _zoomValue = value;
+            _zoomTimer = zoomTime * 0.5f;
+            _zoomValue = value * 0.25f;
         }
 
         private void ShakeUpdate()

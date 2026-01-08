@@ -26,22 +26,41 @@ namespace MortierFu
     
         [field: Header("Lobby References")]
         [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
-		[field: SerializeField] public Button LobbyPlayButton { get; private set; }	
 
         [Header("Utils")] 
-        [field: SerializeField] private GameObject BlackFader; 
-        
+        [field: SerializeField] private GameObject blackFader;
+
+        [field: SerializeField] private MainMenuCameraManager cameraManager;
+         
         private EventSystem _eventSystem;
         
         private PlayerActionInput _playerActions; 
+        private GameService _gameService;
+        
+        
+        public static MenuManager Instance { get; private set; }
     
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Logs.LogWarning("[MenuManager]: Multiple instances detected. Destroying duplicate.", this);
+                Destroy(this.gameObject);
+                return;
+            }
+            Instance = this;
+            
+            _gameService = ServiceManager.Instance.Get<GameService>();
+            if (_gameService == null)
+            {
+                Logs.LogError("[MenuManager]: GameService could not be found in ServiceManager.", this);
+            }
+            
             CheckReferences();
             CheckActivePanels();
             
             // Create PlayerActionInput and enable Menu action map
-            _playerActions = new PlayerActionInput();
+            _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
         }
     
         private void Start()
@@ -59,12 +78,38 @@ namespace MortierFu
         {
             _playerActions.UI.Enable();
             _playerActions.UI.Cancel.performed += OnCancel;
+            //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            _playerActions.UI.StartGame.performed += OnStartGame;
         }
         
         private void OnDisable()
         {
             _playerActions.UI.Disable();
             _playerActions.UI.Cancel.performed -= OnCancel;
+            //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            _playerActions.UI.StartGame.performed -= OnStartGame;
+        }
+        
+        public async UniTask StartGame()
+        {
+            Logs.Log("MenuManager: Starting Game...");
+            // When game mode is selected
+            await _gameService.InitializeGameMode<GM_FFA>();
+            
+            // Should handle game mode teams
+
+            _gameService.ExecuteGameplayPipeline().Forget();
+        }
+        
+        //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+        private void OnStartGame(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            Logs.Log("[MenuManager]: OnStartGame triggered via TEMP implementation.");
+            if (LobbyPanel.IsVisible())
+            {
+                StartGame().Forget();
+            }
         }
 
         public void OnCancel(InputAction.CallbackContext context)
@@ -87,6 +132,7 @@ namespace MortierFu
             }
             else if (LobbyPanel.IsVisible())
             {
+                SwitchCameraPosition();
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
@@ -112,6 +158,10 @@ namespace MortierFu
             if (LobbyPanel == null)
             {
                 Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
+            }
+            if (cameraManager == null)
+            {
+                Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
             }
         }
 
@@ -144,9 +194,14 @@ namespace MortierFu
         [ContextMenu("Trigger Black Fade")]
         public async UniTaskVoid TriggerBlackFade()
         {
-            BlackFader.SetActive(true);
+            blackFader.SetActive(true);
             await UniTask.Delay(TimeSpan.FromSeconds(2));
-            BlackFader.SetActive(false);
+            blackFader.SetActive(false);
+        }
+
+        public void SwitchCameraPosition()
+        {
+            cameraManager.MoveToNextPosition();
         }
         
         public void ChangeSelectedButton(Button newSelected)

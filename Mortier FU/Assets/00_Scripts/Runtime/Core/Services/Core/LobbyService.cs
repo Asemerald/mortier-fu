@@ -16,6 +16,8 @@ namespace MortierFu
         public event Action<PlayerManager> OnPlayerJoined;
         public event Action<PlayerManager> OnPlayerLeft;
         
+        public int CurrentPlayerCount => _players.Count;
+        
         public void Dispose()
         {
             _players.Clear();

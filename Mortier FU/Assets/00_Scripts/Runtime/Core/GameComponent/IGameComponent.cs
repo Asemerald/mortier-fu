@@ -33,13 +33,11 @@ namespace MortierFu
     /// For services that should be unique and persist across scenes (e.g., AudioService, InputService).
     /// </summary>
     public interface IGameService : IGameComponent
-    {
-    }
+    { }
     
     /// <summary>
     /// For systems that are scene-specific and can be re-initialized when a new scene is loaded (e.g., EnemyManager, LevelManager).
     /// </summary>
     public interface IGameSystem : IGameComponent
-    {
-    }
+    { }
 }

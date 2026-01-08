@@ -19,11 +19,18 @@ namespace MortierFu
     public interface IGameMode : IDisposable
     {
         /// EVENTS
+        ///  TODO: ça sert meme? genre ça s'implemente des actions ? 
         public event Action<GameState> OnGameStateChanged;
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled; // (killer, victim)
         public event Action OnGameStarted;
-        public event Action<int> OnRoundStarted;
-        public event Action<int> OnRoundEnded;
+        public event Action<RoundInfo> OnRoundStarted;
+        public event Action<RoundInfo> OnRoundEnded;
+        
+        /// <summary>
+        /// Event called when the game ends.
+        /// <remarks>The int parameter represents the index of the winning player or team.</remarks>
+        /// </summary>
+        public event Action<int> OnGameEnded; 
         
         /// <summary>
         /// The minimum number of players required to launch the game.
@@ -68,5 +75,10 @@ namespace MortierFu
         /// <param name="victor"></param>
         /// <returns></returns>
         public bool IsGameOver(out PlayerTeam victor);
+        
+        /// <summary>
+        /// Determines and returns the index of the winning player or team.
+        /// </summary>
+        public int GetWinnerPlayerIndex();
     }
 }

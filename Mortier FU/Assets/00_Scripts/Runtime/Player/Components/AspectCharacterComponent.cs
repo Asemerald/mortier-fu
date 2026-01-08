@@ -9,22 +9,18 @@ namespace MortierFu {
         public Material OrangeSpikesMat;
         public Material TrailThinMat;
         public Material TrailFatMat;
+        public ParticleSystem.MinMaxGradient LightColor;
+        [ColorUsage(true)] public Color PlayerColor;
     }
     
-    public class AspectCharacterComponent : CharacterComponent
+    public class AspectCharacterComponent : CharacterComponent 
     {
-        public Color PlayerColor { get; private set; }
-        private float _hueOffset;
-        private float _saturation;
-        private float _value;
+        public Color PlayerColor => AspectMaterials.PlayerColor;
         
         public CharacterAspectMaterials AspectMaterials { get; private set; }
         
-        public AspectCharacterComponent(PlayerCharacter character, float hueOffset, float saturation, float value) : base(character) {
-            _hueOffset = hueOffset;
-            _saturation = saturation;
-            _value = value;
-        }
+        public AspectCharacterComponent(PlayerCharacter character) : base(character) 
+        { }
 
         public void SetAspectMaterials(CharacterAspectMaterials aspectMaterials)
         {
@@ -36,9 +32,9 @@ namespace MortierFu {
             int playerCount = lobbyService.GetPlayers().Count;
             
             // Retrieve this player's index
-            int index = character.Owner.PlayerIndex;
-            PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);
-
+            //int index = character.Owner.PlayerIndex;
+            //PlayerColor = GetColorForPlayerIndex(index, playerCount, _hueOffset, _saturation, _value);\
+            
             var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>();
             if (renderers.Length > 0)
             {
@@ -55,13 +51,12 @@ namespace MortierFu {
         public override void Dispose()
         { }
 
-        private static Color GetColorForPlayerIndex(int index, int totalPlayers,
-            float hueOffset = 0f, float saturation = 1f, float value = 1f)
-        {
-            float segment = 1f / Mathf.Max(1, totalPlayers);
-            float hue = (segment * index + hueOffset) % 1f;
-            return Color.HSVToRGB(hue, saturation, value);
-        }
+        // private static Color GetColorForPlayerIndex(int index, int totalPlayers,
+        //     float hueOffset = 0f, float saturation = 1f, float value = 1f)
+        // {
+        //     float segment = 1f / Mathf.Max(1, totalPlayers);
+        //     float hue = (segment * index + hueOffset) % 1f;
+        //     return Color.HSVToRGB(hue, saturation, value);
+        // }
     }
-   
 }

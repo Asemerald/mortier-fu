@@ -24,7 +24,7 @@ namespace MortierFu
             public float GravityScale;
         
             // Damage
-            public int Damage;
+            public float Damage;
             public float AoeRange;
             public int Bounces;
         }
@@ -47,7 +47,7 @@ namespace MortierFu
         public PlayerCharacter Owner => _data.Owner;
         
         #region API // TODO: This can be improved to faciliate alteration of Bombshell behaviours in augments and mods
-        public int Damage
+        public float Damage
         {
             get => _data.Damage;
             set => _data.Damage = value;
@@ -61,6 +61,12 @@ namespace MortierFu
         {
             get => _data.Bounces;
             set => _data.Bounces = value;
+        }
+
+        public void MultiplyScale(float scalar)
+        {
+            _data.Scale *= scalar;
+            transform.localScale = Vector3.one * _data.Scale;
         }
         #endregion
         
@@ -164,9 +170,15 @@ namespace MortierFu
                     {
                         _data.Bounces--;
                         
+                        EventBus<TriggerBounce>.Raise(new TriggerBounce()
+                        {
+                            Bombshell = this
+                        });
+                        
                         // Reflect velocity using the collider normal
-                        _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceDampingFactor;
-
+                        _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceSpeedDampingFactor;
+                        _data.Damage *= _system.Settings.BounceDamageDampingFactor;
+                        
                         // Recompute movement for the remaining distance after the hit:
                         // Subtract the distance we already travelled to the hit point.
                         remainingDistance -= hit.distance;

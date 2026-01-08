@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu;
 using Discord.Sdk;
 using MortierFu.Shared;
-using UnityEngine.UI;
 
 public class DiscordService : IGameService
 {
