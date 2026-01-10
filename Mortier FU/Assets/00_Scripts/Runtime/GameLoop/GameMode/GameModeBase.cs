@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using MortierFu.Analytics;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -406,6 +407,10 @@ namespace MortierFu
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    
+                    // notify analytics system
+                    var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
+                    analyticsSys?.OnScoreChanged(team.Members[0].Character, team.Score);
                 }
             }
         }
