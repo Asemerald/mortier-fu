@@ -1,6 +1,7 @@
 ﻿using Codice.Client.BaseCommands;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,6 +9,8 @@ namespace MortierFu.Analytics
 {
     public class AnalyticsSystem : IGameSystem
     {
+        private const string GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbweVP5xpPXn1yIb4mxnllOAtJM8LTol0cVZU5_Unl4Q--GwPC3WhOXVvPjAMfwlgJSF/exec";
+        
         private EventBinding<TriggerHit> _triggerHitBinding;
         private EventBinding<TriggerShootBombshell> _triggerShootBombshellBinding;
         private EventBinding<TriggerHealthChanged> _triggerHealthChangedBinding;
@@ -283,6 +286,9 @@ namespace MortierFu.Analytics
             
             // Assigner les rangs
             AssignRanks(currentRound.players);
+            
+            // Envoyer les données du round à Google Sheets
+            SendRoundDataToGoogleSheets(currentRound).Forget();
         }
 
         private void AssignRanks(List<AnalyticsPlayerData> players)
@@ -325,13 +331,74 @@ namespace MortierFu.Analytics
                 _gameData.winner = winnerId;
             }
             
-            // Exporter vers Excel
+            // Exporter vers Excel (backup local)
             ExportToExcel();
+        }
+
+        private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
+        {
+            if (roundData == null || roundData.players == null) return;
+
+            foreach (var player in roundData.players)
+            {
+                try
+                {
+                    WWWForm form = new WWWForm();
+                    
+                    // Ajouter toutes les données selon le format attendu par Google Sheets
+                    form.AddField("gameId", _gameData.gameId);
+                    form.AddField("date", _gameData.date);
+                    form.AddField("gameVersion", _gameData.gameVersion);
+                    form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
+                    form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
+                    form.AddField("winner", _gameData.winner);
+                    form.AddField("roundNumber", roundData.roundNumber.ToString());
+                    form.AddField("roundWinner", roundData.roundWinner);
+                    form.AddField("playerId", player.playerId);
+                    form.AddField("rank", player.rank.ToString());
+                    form.AddField("score", player.score.ToString());
+                    form.AddField("kills", player.kills.ToString());
+                    form.AddField("augment", player.selectedAugment != null ? player.selectedAugment.name : "None");
+                    form.AddField("damageDealt", player.damageDealt.ToString("F2"));
+                    form.AddField("damageTaken", player.damageTaken.ToString("F2"));
+                    form.AddField("shotsFired", player.shotsFired.ToString());
+                    form.AddField("shotsHit", player.shotsHit.ToString());
+                    
+                    // Calculer l'accuracy
+                    float accuracy = player.shotsFired > 0 ? (float)player.shotsHit / player.shotsFired * 100f : 0f;
+                    form.AddField("accuracy", accuracy.ToString("F2"));
+                    
+                    form.AddField("dashesPerformed", player.dashesPerformed.ToString());
+                    form.AddField("bumpsMade", player.bumpsMade.ToString());
+                    form.AddField("deathCause", player.deathCause.ToString());
+
+                    using (UnityWebRequest www = UnityWebRequest.Post(GOOGLE_SHEETS_URL, form))
+                    {
+                        await www.SendWebRequest();
+
+                        if (www.result != UnityWebRequest.Result.Success)
+                        {
+                            Debug.LogError($"Error sending data to Google Sheets: {www.error}");
+                        }
+                        else
+                        {
+                            Debug.Log($"Successfully sent data for player {player.playerId} to Google Sheets");
+                        }
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Exception while sending data to Google Sheets: {ex.Message}");
+                }
+                
+                // Petit délai entre chaque requête pour éviter de surcharger l'API
+                await UniTask.Delay(100);
+            }
         }
 
         private void ExportToExcel()
         {
-            // TODO: Implémenter l'export Excel
+            // Backup local en JSON
             Debug.Log($"Exporting game data: {_gameData.gameId}");
             
             string json = JsonUtility.ToJson(_gameData, true);
