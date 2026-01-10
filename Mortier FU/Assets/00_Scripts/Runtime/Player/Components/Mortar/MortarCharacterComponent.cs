@@ -2,6 +2,7 @@ using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -25,7 +26,7 @@ namespace MortierFu
 
         public bool IsShooting { get; private set; }
 
-        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab, Transform firePoint) : base(character)
+        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab,Transform firePoint) : base(character)
         {
             if (character == null) return;
 
@@ -43,6 +44,7 @@ namespace MortierFu
             
             AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable?
             _firePoint = firePoint;
+            
         }
 
         public override void Initialize()
@@ -150,6 +152,8 @@ namespace MortierFu
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
+
+            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = true;
         }
 
         public void EndAiming(InputAction.CallbackContext ctx)
@@ -158,6 +162,8 @@ namespace MortierFu
             AimWidget.Hide();
             _shootStrategy?.EndAiming();
             _shootAction.Disable();
+            
+            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
         }
     }
 }
