@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
@@ -7,6 +8,7 @@ using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -30,7 +32,7 @@ namespace MortierFu
 
         private StateMachine _stateMachine;
 
-        private InputAction _dashAction;
+        private InputAction _strikeAction;
         private InputAction _toggleAimAction;
         private InputAction _tauntAction;
 
@@ -52,7 +54,7 @@ namespace MortierFu
         private LocomotionState _locomotionState;
         private KnockbackState _knockbackState;
         private StunState _stunState;
-        private DashState _dashState;
+        private StrikeState _strikeState;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
@@ -60,7 +62,7 @@ namespace MortierFu
 
         public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
-        public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
+        public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
 
         public void Initialize(PlayerManager owner)
         {
@@ -89,7 +91,7 @@ namespace MortierFu
             Controller = new ControllerCharacterComponent(this);
             Aspect = new AspectCharacterComponent(this);
             // TODO a virer c'est pour que ça compile pour clem
-            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
+            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, tempAimIndicator: new TEMP_AimIndicatorSystem(), _firePoint);
 
             // Create a unique instance of CharacterData for this character
             Stats = Instantiate(_characterStatsTemplate);
@@ -107,7 +109,7 @@ namespace MortierFu
         void Start()
         {
             // Find and cache Input Actions
-            FindInputAction("Dash", out _dashAction);
+            FindInputAction("Strike", out _strikeAction);
             FindInputAction("ToggleAim", out _toggleAimAction);
             FindInputAction("Taunt", out _tauntAction);
 
@@ -117,7 +119,7 @@ namespace MortierFu
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
             //TEMP Initialiser l'aimindicator
-          //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
+            GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
@@ -148,7 +150,7 @@ namespace MortierFu
 
             _activeEffects.Clear();
 
-            _dashState.Reset();
+            _strikeState.Reset();
 
             _stateMachine.SetState(_locomotionState);
         }
@@ -178,19 +180,19 @@ namespace MortierFu
             var shootState = new ShootState(this, _animator);
             _knockbackState = new KnockbackState(this, _animator);
             _stunState = new StunState(this, _animator);
-            _dashState = new DashState(this, _animator);
+            _strikeState = new StrikeState(this, _animator);
             var deathState = new DeathState(this, _animator);
 
             // Define transitions
             At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
-            At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
-                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+            At(_strikeState, _locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
+            At(_locomotionState, _strikeState,
+                new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered && 
-                _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+            At(aimState, _strikeState,
+                new GameplayFuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
             At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
@@ -202,16 +204,15 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
+        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
         {
             force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
-            _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
+            _knockbackState.ReceiveKnockback(duration, force, stunDuration);
         }
 
         public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
-            Controller.ResetVelocity();
         }
 
         public void FindInputAction(string actionName, out InputAction action)
@@ -293,30 +294,13 @@ namespace MortierFu
 
         private void OnCollisionEnter(Collision other)
         {
-            // C'est affreux mais asshoul
-            if (_knockbackState.IsActive
-                && Controller.rigidbody.linearVelocity.sqrMagnitude > 5 * 5
-                && (_knockbackState.LastBumpSource is not PlayerCharacter character
-                    || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar)
-                    || character != otherChar))
+            if (_knockbackState.IsActive && other.impulse.magnitude > 5)
             {
                 ReceiveStun(_knockbackState.StunDuration);
-                
                 //temp ajout destruction barriere
                 if (other.gameObject.GetComponent<Breakable>())
                 {
                     other.gameObject.GetComponent<Breakable>().Interact();
-                }
-
-                if (_knockbackState.LastBumpSource != null)
-                {
-                    EventBus<TriggerSuccessfulPush>.Raise(new TriggerSuccessfulPush()
-                    {
-                        Character = this,
-                        Source = _knockbackState.LastBumpSource,
-                    });
-                    
-                    _knockbackState.ClearLastBumpSource();
                 }
             }
         }
