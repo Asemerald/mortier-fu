@@ -11,6 +11,7 @@ namespace MortierFu
         
         protected static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
         protected static readonly int ShootHash = Animator.StringToHash("Shoot");
+        protected static readonly int StrikeHash = Animator.StringToHash("Strike");
         
         protected const float k_crossFadeDuration = 0.1f; 
         

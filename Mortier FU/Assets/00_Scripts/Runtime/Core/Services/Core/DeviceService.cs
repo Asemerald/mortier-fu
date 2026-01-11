@@ -51,16 +51,18 @@ namespace MortierFu
             int playerIndex = input.playerIndex;
             InputDevice device = input.devices.Count > 0 ? input.devices[0] : null;
 
+#if !UNITY_EDITOR 
             if (device == null)
             {
                 Logs.LogWarning($"[DeviceService] Player {playerIndex} joined without device.");
                 return;
             }
+#endif
 
             _playerInputs[playerIndex] = input;
             RegisterPlayerDevice(playerIndex, device);
 
-            Logs.Log($"[DeviceService] Player {playerIndex} registered with device {device.displayName}.");
+            Logs.Log($"[DeviceService] Player {playerIndex} registered with {device?.name ?? "no device"}");
         }
 
         public void UnregisterPlayerInput(PlayerInput input)
@@ -125,6 +127,10 @@ namespace MortierFu
             // Désactiver temporairement les entrées du joueur
             if (_playerInputs.TryGetValue(playerIndex, out var playerInput))
                 playerInput.DeactivateInput();
+            
+#if UNITY_EDITOR
+            PlayerInputSwapper.Instance.UpdateActivePlayer();
+#endif
         }
 
         private void OnDeviceRestored(InputDevice device)

@@ -98,6 +98,7 @@ namespace MortierFu
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
                 {
+                    ShooterId = bombshell.Owner,
                     Bombshell = bombshell,
                     HitCharacters = hitCharacters.ToArray(),
                 });

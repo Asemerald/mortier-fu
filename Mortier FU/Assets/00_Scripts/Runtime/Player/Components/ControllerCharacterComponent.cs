@@ -18,6 +18,10 @@ namespace MortierFu
 
         private Tween _avatarSizeTween;
         
+        private Vector3 _knockback;
+        private float _knockbackDecay = 2.2f;          // vitesse à laquelle le bump se dissipe
+        private float _moveDuringKnockbackFactor = 0.75f; 
+        
         public float SpeedRatio => Mathf.Clamp01(rigidbody.linearVelocity.magnitude / Stats.MoveSpeed.Value); 
         
         public ControllerCharacterComponent(PlayerCharacter character) : base(character)
@@ -83,7 +87,7 @@ namespace MortierFu
                 rigidbody.AddForce(_knockback, ForceMode.VelocityChange);
 
                 // Le knockback décroit progressivement
-                _knockback = Vector3.Lerp(_knockback, Vector3.zero, knockbackDecay * Time.fixedDeltaTime);
+                _knockback = Vector3.Lerp(_knockback, Vector3.zero, _knockbackDecay * Time.fixedDeltaTime);
             }
 
             // -------------------------------
@@ -93,7 +97,7 @@ namespace MortierFu
 
             // Le contrôle est réduit quand knockback actif
             if (_knockback.sqrMagnitude > 0.01f)
-                velocityChange *= moveDuringKnockbackFactor;
+                velocityChange *= _moveDuringKnockbackFactor;
 
             velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
 
@@ -139,7 +143,6 @@ namespace MortierFu
                 );
             }
         }
-
         
         // Debugs
         public override void OnDrawGizmos()
@@ -152,13 +155,11 @@ namespace MortierFu
         {
             rigidbody.linearVelocity = Vector3.zero;
         }
-
-        private Vector3 _knockback;
-        private float knockbackDecay = 2.2f;          // vitesse à laquelle le bump se dissipe
-        private float moveDuringKnockbackFactor = 0.75f; 
         
         public void ApplyKnockback(Vector3 force)
         {
+            force.y = 0f;
+            
             rigidbody.AddForce(force, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }

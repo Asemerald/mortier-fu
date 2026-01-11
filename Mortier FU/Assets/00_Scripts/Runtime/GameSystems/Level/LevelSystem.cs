@@ -51,8 +51,6 @@ namespace MortierFu
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
 
                     CurrentCameraMapConfig = _boundReporter.CameraConfig;
-
-                    _cameraSystem.Controller.ApplyCameraMapConfig(CurrentCameraMapConfig);
                     
                     return;
                 }
@@ -72,10 +70,8 @@ namespace MortierFu
 
             if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
-            
-            CurrentCameraMapConfig = _boundReporter.CameraConfig;
 
-            _cameraSystem.Controller.ApplyCameraMapConfig(CurrentCameraMapConfig);
+            CurrentCameraMapConfig = _boundReporter.CameraConfig;
         }
 
         public async UniTask LoadArenaMap()

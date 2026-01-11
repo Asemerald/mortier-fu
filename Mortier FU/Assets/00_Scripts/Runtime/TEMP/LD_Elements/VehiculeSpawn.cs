@@ -12,6 +12,7 @@ public class VehiculeSpawn : MonoBehaviour
     [SerializeField] private Vector2 vehiculteRate;
     [SerializeField] private Vector2 redLightTime;
     private bool canMove = true;
+    private Transform carParent;
 
     [SerializeField] private Material redLightMat;
     [SerializeField] private Material greenLightMat;
@@ -23,6 +24,9 @@ public class VehiculeSpawn : MonoBehaviour
     {
         vehiculList = new List<GameObject>();
         StartCoroutine(ActivateCarMovement());
+
+        carParent = new GameObject("Cars").transform;
+        carParent.parent = transform;
     }
 
     // Update is called once per frame
@@ -45,10 +49,11 @@ public class VehiculeSpawn : MonoBehaviour
         }
     }
 
-    private IEnumerator CreateCar()
-    {
-        vehiculList.Add(Instantiate(vehicule, startingPoint.position,
-            Quaternion.LookRotation((endPoint.position - startingPoint.position).normalized)));
+    private IEnumerator CreateCar() {
+        var rot = Quaternion.LookRotation((endPoint.position - startingPoint.position).normalized);
+        var car = Instantiate(vehicule, startingPoint.position, rot, carParent);
+        
+        vehiculList.Add(car);
         yield return new WaitForSeconds(Random.Range(vehiculteRate.x, vehiculteRate.y));
         StartCoroutine(CreateCar());
     }
