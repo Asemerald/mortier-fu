@@ -91,7 +91,7 @@ namespace MortierFu
             Controller = new ControllerCharacterComponent(this);
             Aspect = new AspectCharacterComponent(this);
             // TODO a virer c'est pour que ça compile pour clem
-            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, tempAimIndicator: new TEMP_AimIndicatorSystem(), _firePoint);
+            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
 
             // Create a unique instance of CharacterData for this character
             Stats = Instantiate(_characterStatsTemplate);
