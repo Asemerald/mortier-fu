@@ -25,7 +25,7 @@ namespace MortierFu
 
         public bool IsShooting { get; private set; }
 
-        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab,TEMP_AimIndicatorSystem tempAimIndicator, Transform firePoint) : base(character)
+        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab,Transform firePoint) : base(character)
         {
             if (character == null) return;
 
