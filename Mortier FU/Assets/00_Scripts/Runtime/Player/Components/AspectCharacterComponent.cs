@@ -59,7 +59,7 @@ namespace MortierFu
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
             _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
-
+            
             foreach (var mesh in AspectMaterials.PlayerMeshes)
             {
                 mesh.material = _materialInstance;
@@ -69,21 +69,24 @@ namespace MortierFu
             {
                 mesh.material = _outlineMaterialInstance;
             }
-
+            
             _startingOutlineColor = _outlineMaterialInstance.color;
             _startingColor = _materialInstance.color;
-
+            
             if (SpawnVFXPrefab)
             {
-                _spawnVFXInstance = Object.Instantiate(SpawnVFXPrefab, character.transform.position,
-                    SpawnVFXPrefab.transform.rotation);
+                _spawnVFXInstance = Object.Instantiate(SpawnVFXPrefab, character.transform.position, SpawnVFXPrefab.transform.rotation);
                 _spawnVFXInstance.SetActive(false);
-
+                
                 _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
             }
         }
 
-        public void PlayDamageBlink(Color blinkColor, int blinkCount = 5, float blinkDuration = 0.08f)
+        public void PlayDamageBlink(
+            Color blinkColor,
+            int blinkCount = 5,
+            float blinkDuration = 0.08f
+        )
         {
             if (_materialInstance == null || _outlineMaterialInstance == null)
                 return;
@@ -91,11 +94,11 @@ namespace MortierFu
             if (_blinkTween.isAlive)
                 _blinkTween.Stop();
 
-            if (_materialInstance.color == blinkColor && _outlineMaterialInstance.color == blinkColor)
-                return;
+            Color baseColor = _startingColor;
+            Color outlineColor = _startingOutlineColor;
 
-            _materialInstance.color = _startingColor;
-            _outlineMaterialInstance.color = _startingOutlineColor;
+            _materialInstance.color = baseColor;
+            _outlineMaterialInstance.color = outlineColor;
 
             _blinkTween = Sequence.Create()
                 .Group(
@@ -120,8 +123,8 @@ namespace MortierFu
                 )
                 .OnComplete(() =>
                 {
-                    _materialInstance.color = _startingColor;
-                    _outlineMaterialInstance.color = _startingOutlineColor;
+                    _materialInstance.color = baseColor;
+                    _outlineMaterialInstance.color = outlineColor;
                 });
         }
 
@@ -138,12 +141,12 @@ namespace MortierFu
 
                 _spawnVFXInstance.transform.position = character.transform.position;
                 _spawnVFXInstance.SetActive(true);
-
+                
                 _particleSystemInstance?.Play();
-
+                
                 float totalDuration = 2f;
                 float onCompleteDelay = 0.5f;
-
+                
                 _ = UniTask.Delay(TimeSpan.FromSeconds(totalDuration)).ContinueWith(() =>
                 {
                     _spawnVFXInstance.SetActive(false);
