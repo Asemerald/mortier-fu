@@ -1,5 +1,8 @@
+using System;
+using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -17,21 +20,31 @@ namespace MortierFu
         public Material PlayerOutlineMaterial;
         public SkinnedMeshRenderer[] PlayerMeshes;
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
+        public GameObject SpawnVFXPrefab;
     }
 
     public class AspectCharacterComponent : CharacterComponent
     {
-        public Color PlayerColor => AspectMaterials.PlayerColor;
-
-        public CharacterAspectMaterials AspectMaterials { get; private set; }
+        private Sequence _blinkTween;
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
-        private Sequence _blinkTween;
+
+        private ParticleSystem _particleSystemInstance;
+
+        private GameObject _spawnVFXInstance;
+        private Color _startingColor;
+
+        private Color _startingOutlineColor;
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
         {
         }
+
+        public Color PlayerColor => AspectMaterials.PlayerColor;
+        private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
+
+        public CharacterAspectMaterials AspectMaterials { get; private set; }
 
         public void SetAspectMaterials(CharacterAspectMaterials aspectMaterials)
         {
@@ -46,7 +59,7 @@ namespace MortierFu
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
             _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
-
+            
             foreach (var mesh in AspectMaterials.PlayerMeshes)
             {
                 mesh.material = _materialInstance;
@@ -56,12 +69,23 @@ namespace MortierFu
             {
                 mesh.material = _outlineMaterialInstance;
             }
+            
+            _startingOutlineColor = _outlineMaterialInstance.color;
+            _startingColor = _materialInstance.color;
+            
+            if (SpawnVFXPrefab)
+            {
+                _spawnVFXInstance = Object.Instantiate(SpawnVFXPrefab, character.transform.position, SpawnVFXPrefab.transform.rotation);
+                _spawnVFXInstance.SetActive(false);
+                
+                _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
+            }
         }
 
         public void PlayDamageBlink(
             Color blinkColor,
             int blinkCount = 5,
-            float blinkDuration = 0.15f
+            float blinkDuration = 0.08f
         )
         {
             if (_materialInstance == null || _outlineMaterialInstance == null)
@@ -70,8 +94,8 @@ namespace MortierFu
             if (_blinkTween.isAlive)
                 _blinkTween.Stop();
 
-            Color baseColor = PlayerColor;
-            Color outlineColor = _outlineMaterialInstance.color;
+            Color baseColor = _startingColor;
+            Color outlineColor = _startingOutlineColor;
 
             _materialInstance.color = baseColor;
             _outlineMaterialInstance.color = outlineColor;
@@ -102,6 +126,36 @@ namespace MortierFu
                     _materialInstance.color = baseColor;
                     _outlineMaterialInstance.color = outlineColor;
                 });
+        }
+
+        public async UniTask PlayVFXSequential(PlayerCharacter[] characters,
+            Action<PlayerCharacter> onVFXCompleted = null)
+        {
+            foreach (var character in characters)
+            {
+                if (_spawnVFXInstance == null)
+                {
+                    onVFXCompleted?.Invoke(character);
+                    continue;
+                }
+
+                _spawnVFXInstance.transform.position = character.transform.position;
+                _spawnVFXInstance.SetActive(true);
+                
+                _particleSystemInstance?.Play();
+                
+                float totalDuration = 2f;
+                float onCompleteDelay = 0.5f;
+                
+                _ = UniTask.Delay(TimeSpan.FromSeconds(totalDuration)).ContinueWith(() =>
+                {
+                    _spawnVFXInstance.SetActive(false);
+                    _particleSystemInstance.Stop();
+                });
+
+                await UniTask.Delay(TimeSpan.FromSeconds(onCompleteDelay));
+                onVFXCompleted?.Invoke(character);
+            }
         }
 
         public override void Dispose()
