@@ -38,3 +38,24 @@ jobs:
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
+
+      # Zip le build
+      - name: Zip build
+        run: |
+          mkdir -p dist
+          zip -r dist/MortarGame.zip build/${{ matrix.targetPlatform }}
+
+      # Upload sur Google Drive en remplaçant le fichier existant
+      - name: Upload to Google Drive
+        env:
+          GDRIVE_SERVICE_KEY: ${{ secrets.GOOGLE_DRIVE_API_KEY }}
+          GDRIVE_FILE_ID: ${{ secrets.GOOGLE_DRIVE_FILE_ID }}
+        run: |
+          # Installer gdrive (CLI) si pas déjà disponible
+          sudo apt-get update && sudo apt-get install -y wget unzip
+          wget -O gdrive https://github.com/prasmussen/gdrive/releases/download/2.1.0/gdrive-linux-x64
+          chmod +x gdrive
+          sudo mv gdrive /usr/local/bin/gdrive
+
+          # Upload en remplaçant le fichier existant par ID
+          ./gdrive update $FILE_ID dist/MortarGame.zip
