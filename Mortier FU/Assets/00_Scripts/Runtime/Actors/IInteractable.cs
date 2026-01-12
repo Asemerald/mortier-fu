@@ -2,7 +2,7 @@
 {
     public interface IInteractable
     {
-        bool IsStrikeInteractable { get; }
+        bool IsDashInteractable { get; }
         bool IsBombshellInteractable { get; }
 
         void Interact();

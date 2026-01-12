@@ -26,7 +26,7 @@ namespace MortierFu
             if(_mat) _meshRenderer.material = _mat;
         }
 
-        public bool IsStrikeInteractable => true;
+        public bool IsDashInteractable => true;
         public bool IsBombshellInteractable => true;
     }   
 }

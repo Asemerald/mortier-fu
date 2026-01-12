@@ -30,7 +30,7 @@ namespace MortierFu
         {
             character.Controller.ResetVelocity();
             
-            EventBus<TriggerGetStrike>.Raise(new TriggerGetStrike()
+            EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {
                 Character = character,
             });

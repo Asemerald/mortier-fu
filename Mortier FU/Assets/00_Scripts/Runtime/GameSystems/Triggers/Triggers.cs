@@ -54,12 +54,12 @@ namespace MortierFu
         public float Delta;
     }
     
-    public struct TriggerStrike : ITrigger // Check
+    public struct TriggerDash : ITrigger // Check
     {
         public PlayerCharacter Character;
     }
     
-    public struct TriggerStrikeHit : ITrigger // Check
+    public struct TriggerStrike : ITrigger // Check
     {
         public PlayerCharacter Character;
         public PlayerCharacter[] HitCharacters;
@@ -77,7 +77,7 @@ namespace MortierFu
     public struct TriggerStopMoving : ITrigger // TODO
     { }
 
-    public struct TriggerGetStrike : ITrigger // Check
+    public struct TriggerBumpedByPlayer : ITrigger // Check
     {
         public PlayerCharacter Character;
     }

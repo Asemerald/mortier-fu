@@ -96,7 +96,7 @@ namespace MortierFu
 
         void UpdateHealth()
         {
-            float newMaxHealth = Mathf.Max(1f, Stats.MaxHealth.Value);
+            float newMaxHealth = Stats.MaxHealth.Value;
 
             // Calculate gain or loss in max health
             float delta = newMaxHealth - _maxHealth;

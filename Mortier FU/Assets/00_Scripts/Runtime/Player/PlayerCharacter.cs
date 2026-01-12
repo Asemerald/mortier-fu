@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
@@ -8,7 +7,6 @@ using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -54,7 +52,7 @@ namespace MortierFu
         private LocomotionState _locomotionState;
         private KnockbackState _knockbackState;
         private StunState _stunState;
-        private StrikeState _strikeState;
+        private DashState _dashState;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
@@ -62,7 +60,7 @@ namespace MortierFu
 
         public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
-        public float GetStrikeCooldownProgress => _strikeState.StrikeCooldownProgress;
+        public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
 
         public void Initialize(PlayerManager owner)
         {
@@ -118,7 +116,7 @@ namespace MortierFu
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
             //TEMP Initialiser l'aimindicator
-            GetComponent<TEMP_AimIndicatorSystem>().Initialize();
+          //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
@@ -149,7 +147,7 @@ namespace MortierFu
 
             _activeEffects.Clear();
 
-            _strikeState.Reset();
+            _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);
         }
@@ -179,19 +177,19 @@ namespace MortierFu
             var shootState = new ShootState(this, _animator);
             _knockbackState = new KnockbackState(this, _animator);
             _stunState = new StunState(this, _animator);
-            _strikeState = new StrikeState(this, _animator);
+            _dashState = new DashState(this, _animator);
             var deathState = new DeathState(this, _animator);
 
             // Define transitions
             At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(_strikeState, _locomotionState, new FuncPredicate(() => _strikeState.IsFinished));
-            At(_locomotionState, _strikeState,
-                new FuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
+            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
+            At(_locomotionState, _dashState,
+                new FuncPredicate(() => _strikeAction.triggered && !_dashState.InCooldown));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _strikeState,
-                new GameplayFuncPredicate(() => _strikeAction.triggered && !_strikeState.InCooldown));
+            At(aimState, _dashState,
+                new GameplayFuncPredicate(() => _strikeAction.triggered && !_dashState.InCooldown));
             At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
