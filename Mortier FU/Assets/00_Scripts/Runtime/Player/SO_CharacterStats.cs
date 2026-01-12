@@ -35,7 +35,7 @@ namespace MortierFu
         public CharacterStat BombshellBounces { get; private set; } = new( 0.0f);
         
         [field: SerializeField, Tooltip("Cooldown between each shot.")]
-        public CharacterStat FireRate { get; private set; } = new(2.0f);
+        public CharacterStat FireRate { get; private set; } = new(5.0f);
         
         [field: SerializeField, Tooltip("Maximum effective range of mortar shots.")]
         public CharacterStat ShotRange { get; private set; } = new(20.0f);
@@ -95,6 +95,7 @@ namespace MortierFu
         public float GetStrikeRadius()    => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetShotRange()       => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
         public float GetBombshellSize()   => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
+        public float GetFireRate() => 10f / FireRate.Value;
         public float GetKnockbackStunDuration()
         {
             float factor = KnockbackStunDuration / StrikePushForce.BaseValue;

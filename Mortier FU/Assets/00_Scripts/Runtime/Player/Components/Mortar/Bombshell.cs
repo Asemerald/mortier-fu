@@ -250,6 +250,8 @@ namespace MortierFu
 
             angle = Mathf.Atan(b * time / xt);
             v0 = b / Mathf.Sin(angle);
+            
+            Debug.Log("Time / Height: " + height + "/" + time);
         }
         
         private static Vector3 ComputeVelocityAtTime(Vector3 dir, float angle, float v0, float gravityScale, float t)

@@ -70,7 +70,7 @@ namespace MortierFu
             ResetAimWidget();
             
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
-            _shootCooldownTimer = new CountdownTimer(Stats.FireRate.Value);
+            _shootCooldownTimer = new CountdownTimer(Stats.GetFireRate());
             Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
             
             _shootStrategy.Initialize();
@@ -86,7 +86,7 @@ namespace MortierFu
         }
 
         private void UpdateFireRate() {
-            float fireRate = Stats.FireRate.Value;
+            float fireRate = Stats.GetFireRate();
             _shootCooldownTimer.DynamicUpdate(fireRate);
         }
         
