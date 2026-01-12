@@ -29,6 +29,7 @@ namespace MortierFu
         public override void OnEnter()
         {
             character.Controller.ResetVelocity();
+            character.Controller.rigidbody.isKinematic = true;
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {
@@ -40,7 +41,9 @@ namespace MortierFu
         }
 
         public override void OnExit()
-        {
+        {            
+            character.Controller.rigidbody.isKinematic = false;
+
             if(debug) 
                 Logs.Log("Exiting Stun State");
         }
