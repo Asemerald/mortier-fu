@@ -49,7 +49,7 @@ namespace MortierFu
             _isActivated = true;
         }
 
-        public bool IsStrikeInteractable => true;
+        public bool IsDashInteractable => true;
         public bool IsBombshellInteractable => false;
     }
 }

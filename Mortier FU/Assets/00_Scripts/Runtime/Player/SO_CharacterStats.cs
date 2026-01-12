@@ -49,23 +49,23 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Damage of the Strike attack.")]
         public CharacterStat StrikeDamage { get; private set; } = new(.0f);
         
-        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
-        public CharacterStat StrikeDuration { get; private set; } = new( 0.2f);
-        
         [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
-        public CharacterStat StrikeCooldown { get; private set; } = new( 2.0f);
+        public CharacterStat DashCooldown { get; private set; } = new( 2.0f);
         
-        [field: SerializeField, Tooltip("Radius of the Strike attack.")]
+        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
+        public CharacterStat DashDuration { get; private set; } = new( 0.2f);
+        
+        [field: SerializeField, Tooltip("Radius of the Strike while dashing.")]
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
-        [field: SerializeField, Tooltip("Duration of the Stun.")]
+        [field: SerializeField, Tooltip("The force used to push other characters.")]
         public CharacterStat StrikePushForce { get; private set; } = new( 2f);
 
         [field: SerializeField, Tooltip("Offset the strength to make it more scalable.")]
         public float StrikePushForceOffset = 8.5f;
 
         [field: SerializeField, Tooltip("Duration of the Knockback effect.")]
-        public CharacterStat KnockbackDuration { get; private set; } = new(0.5f);
+        public CharacterStat StrikeKnockbackDuration { get; private set; } = new(0.5f);
         
         [field: SerializeField, Tooltip("Stun duration caused when colliding into an obstacle during knockback.")]
         public float KnockbackStunDuration { get; private set; } = 0.5f;
@@ -89,13 +89,14 @@ namespace MortierFu
         public float AvatarSizeToForceMitigationFactor { get; private set; } = 0.2f;
         
         // Complex stats calculations
-        public float GetBombshellSpeed()  => BombshellSpeed.Value * 0.1f;
-        public float GetStrikePushForce() => StrikePushForceOffset + StrikePushForce.Value;
-        public float GetAvatarSize()      => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
-        public float GetStrikeRadius()    => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
-        public float GetShotRange()       => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
-        public float GetBombshellSize()   => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
-        public float GetFireRate() => 10f / FireRate.Value;
+        public float GetBombshellSpeed() => BombshellSpeed.Value * 0.1f;
+        public float GetAvatarSize()     => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
+        public float GetFireRate()       => 10f / FireRate.Value;
+        public float GetShotRange()      => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
+        public float GetBombshellSize()  => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
+        public float GetDashCooldown()   => 10f / DashCooldown.Value;
+        public float GetDashPushForce()  => StrikePushForceOffset + StrikePushForce.Value;
+        public float GetStrikeRadius()   => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetKnockbackStunDuration()
         {
             float factor = KnockbackStunDuration / (StrikePushForce.BaseValue + StrikePushForceOffset);

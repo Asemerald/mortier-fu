@@ -14,8 +14,8 @@ namespace MortierFu.Analytics
         private EventBinding<TriggerHit> _triggerHitBinding;
         private EventBinding<TriggerShootBombshell> _triggerShootBombshellBinding;
         private EventBinding<TriggerHealthChanged> _triggerHealthChangedBinding;
+        private EventBinding<TriggerDash> _triggerDashBinding;
         private EventBinding<TriggerStrike> _triggerStrikeBinding;
-        private EventBinding<TriggerStrikeHit> _triggerStrikeHitBinding;
         private EventBinding<EventPlayerDeath> _triggerDeathBinding;
         private EventBinding<TriggerEndRound> _triggerEndRoundBinding;
         
@@ -42,11 +42,11 @@ namespace MortierFu.Analytics
             _triggerHealthChangedBinding = new EventBinding<TriggerHealthChanged>(OnTriggerHealthChanged);
             EventBus<TriggerHealthChanged>.Register(_triggerHealthChangedBinding);
             
+            _triggerDashBinding = new EventBinding<TriggerDash>(OnTriggerDash);
+            EventBus<TriggerDash>.Register(_triggerDashBinding);
+            
             _triggerStrikeBinding = new EventBinding<TriggerStrike>(OnTriggerStrike);
             EventBus<TriggerStrike>.Register(_triggerStrikeBinding);
-            
-            _triggerStrikeHitBinding = new EventBinding<TriggerStrikeHit>(OnTriggerStrikeHit);
-            EventBus<TriggerStrikeHit>.Register(_triggerStrikeHitBinding);
             
             _triggerDeathBinding = new EventBinding<EventPlayerDeath>(OnTriggerDeath);
             EventBus<EventPlayerDeath>.Register(_triggerDeathBinding);
@@ -187,24 +187,24 @@ namespace MortierFu.Analytics
             }
         }
         
+        private void OnTriggerDash(TriggerDash dash)
+        {
+            if (dash.Character == null) return;
+            
+            var playerData = GetOrCreatePlayerData(dash.Character);
+            playerData.dashesPerformed++;
+        }
+        
         private void OnTriggerStrike(TriggerStrike strike)
         {
             if (strike.Character == null) return;
             
             var playerData = GetOrCreatePlayerData(strike.Character);
-            playerData.dashesPerformed++;
-        }
-        
-        private void OnTriggerStrikeHit(TriggerStrikeHit strikeHit)
-        {
-            if (strikeHit.Character == null) return;
-            
-            var playerData = GetOrCreatePlayerData(strikeHit.Character);
             
             // Compter le nombre de bumps (coups réussis)
-            if (strikeHit.HitCharacters != null)
+            if (strike.HitCharacters != null)
             {
-                playerData.bumpsMade += strikeHit.HitCharacters.Length;
+                playerData.bumpsMade += strike.HitCharacters.Length;
             }
         }
         
@@ -419,8 +419,8 @@ namespace MortierFu.Analytics
             EventBus<TriggerShootBombshell>.Deregister(_triggerShootBombshellBinding);
             EventBus<TriggerHit>.Deregister(_triggerHitBinding);
             EventBus<TriggerHealthChanged>.Deregister(_triggerHealthChangedBinding);
+            EventBus<TriggerDash>.Deregister(_triggerDashBinding);
             EventBus<TriggerStrike>.Deregister(_triggerStrikeBinding);
-            EventBus<TriggerStrikeHit>.Deregister(_triggerStrikeHitBinding);
             EventBus<EventPlayerDeath>.Deregister(_triggerDeathBinding);
             EventBus<TriggerEndRound>.Deregister(_triggerEndRoundBinding);
             
