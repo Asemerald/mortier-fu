@@ -298,7 +298,7 @@ namespace MortierFu
         {
             // C'est affreux mais asshoul
             if (_knockbackState.IsActive
-                && other.impulse.magnitude > 5
+                && Controller.rigidbody.linearVelocity.sqrMagnitude > 5 * 5
                 && (_knockbackState.LastBumpSource is not PlayerCharacter character
                     || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar)
                     || character != otherChar))
