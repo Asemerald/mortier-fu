@@ -59,7 +59,7 @@ namespace MortierFu
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
             _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
-            
+
             foreach (var mesh in AspectMaterials.PlayerMeshes)
             {
                 mesh.material = _materialInstance;
