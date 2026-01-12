@@ -31,8 +31,6 @@ namespace MortierFu
             _dashCooldownTimer.Start();
             _dashTriggerTimer.Start();
             
-            Debug.Log("CD: " + _dashCooldownTimer.CurrentTime);
-
             animator.CrossFade(DashHash, k_crossFadeDuration, 0);
             
             EventBus<TriggerDash>.Raise(new TriggerDash()
@@ -44,7 +42,7 @@ namespace MortierFu
             if(debug)
                 Logs.Log("Entering Dash State");
             
-            Vector3 dashDir = new (character.Controller._moveDirection.x, 0, character.Controller._moveDirection.y);
+            Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
         }
 
