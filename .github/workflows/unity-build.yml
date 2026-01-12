@@ -1,0 +1,43 @@
+name: Unity Windows Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+
+      - name: Build project with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 6000.2.6f2
+          targetPlatform: StandaloneWindows64
+          buildMethod: BuildScript.BuildWindows
+
+      - name: Zip Windows build
+        run: |
+          cd Build/Windows
+          zip -r ../../MyGame_Windows.zip .
+
+      - name: Upload build to Google Drive
+        uses: adrianjost/files-upload-action@v2
+        with:
+          service-account-json: ${{ secrets.GDRIVE_SERVICE_KEY }}
+          upload-files: |
+            MyGame_Windows.zip:${{ secrets.GDRIVE_FILE_ID }}
