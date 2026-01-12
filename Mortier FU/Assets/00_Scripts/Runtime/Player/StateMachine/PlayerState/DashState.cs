@@ -23,8 +23,7 @@ namespace MortierFu
             character.Stats.DashDuration.OnDirtyUpdated += UpdateDashDuration;
             character.Stats.DashCharges.OnDirtyUpdated += UpdateDashCharges;
         }
-
-        public bool InCooldown => _dashCooldownTimer.IsRunning;
+        
         public bool IsFinished => _dashTriggerTimer.IsFinished;
         public int AvailableCharges => _availableCharges;
 

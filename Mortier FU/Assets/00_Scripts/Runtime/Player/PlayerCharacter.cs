@@ -185,11 +185,11 @@ namespace MortierFu
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
             At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
             At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
-                && !_dashState.InCooldown && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
             At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered && 
-                !_dashState.InCooldown && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+                _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
             At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 

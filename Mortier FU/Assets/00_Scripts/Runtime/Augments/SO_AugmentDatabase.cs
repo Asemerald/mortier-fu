@@ -29,6 +29,7 @@ namespace MortierFu
         public AGM_BigStrike.Params BigStrikeParams;
         public AGM_FastStrike.Params FastStrikeParams;
         public AGM_PerfectPush.Params PerfectPushParams;
+        public AGM_DoubleDash.Params DoubleDashParams;
     }
 
 }
