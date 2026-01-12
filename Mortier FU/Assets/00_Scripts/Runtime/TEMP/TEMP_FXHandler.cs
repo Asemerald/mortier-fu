@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using PrimeTween;
+using UnityEngine.Serialization;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -11,7 +12,7 @@ public class TEMP_FXHandler : MonoBehaviour
     
     [SerializeField] private ParticleSystem _bombshellPreview;
     [SerializeField] private ParticleSystem[] _bombshellExplosionColors;
-    [SerializeField] private ParticleSystem _strike;
+    [SerializeField] private ParticleSystem _dash;
     
     private void Awake()
     {
@@ -55,9 +56,9 @@ public class TEMP_FXHandler : MonoBehaviour
         ps.transform.localScale = Vector3.one * (range * 0.5f);
     }
 
-    public void InstantiateStrikeFX(Transform player, float size)
+    public void InstantiateDashFX(Transform player, float size)
     {
-        ParticleSystem strikeFX = Instantiate(_strike, player);
+        ParticleSystem strikeFX = Instantiate(_dash, player);
         strikeFX.transform.localScale = Vector3.one * size;
     }
 

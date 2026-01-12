@@ -14,7 +14,9 @@ namespace MortierFu
         public ParticleSystem.MinMaxGradient LightColor;
         [ColorUsage(true)] public Color PlayerColor;
         public Material PlayerMaterial;
+        public Material PlayerOutlineMaterial;
         public SkinnedMeshRenderer[] PlayerMeshes;
+        public SkinnedMeshRenderer[] PlayerOutlineMeshes;
     }
 
     public class AspectCharacterComponent : CharacterComponent
@@ -24,7 +26,8 @@ namespace MortierFu
         public CharacterAspectMaterials AspectMaterials { get; private set; }
 
         private Material _materialInstance;
-        private Tween _blinkTween;
+        private Material _outlineMaterialInstance;
+        private Sequence _blinkTween;
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
         {
@@ -42,10 +45,16 @@ namespace MortierFu
                 return;
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
+            _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
 
             foreach (var mesh in AspectMaterials.PlayerMeshes)
             {
                 mesh.material = _materialInstance;
+            }
+
+            foreach (var mesh in AspectMaterials.PlayerOutlineMeshes)
+            {
+                mesh.material = _outlineMaterialInstance;
             }
         }
 
@@ -55,22 +64,44 @@ namespace MortierFu
             float blinkDuration = 0.15f
         )
         {
-            if (_materialInstance == null)
+            if (_materialInstance == null || _outlineMaterialInstance == null)
                 return;
 
             if (_blinkTween.isAlive)
                 _blinkTween.Stop();
 
-            _materialInstance.color = PlayerColor;
+            Color baseColor = PlayerColor;
+            Color outlineColor = _outlineMaterialInstance.color;
 
-            _blinkTween = Tween.MaterialColor(
-                target: _materialInstance,
-                endValue: blinkColor,
-                duration: blinkDuration,
-                ease: Ease.InBack,
-                cycles: (blinkCount * 2),
-                cycleMode: CycleMode.Yoyo
-            ).OnComplete(() => { _materialInstance.color = PlayerColor; });
+            _materialInstance.color = baseColor;
+            _outlineMaterialInstance.color = outlineColor;
+
+            _blinkTween = Sequence.Create()
+                .Group(
+                    Tween.MaterialColor(
+                        _materialInstance,
+                        blinkColor,
+                        blinkDuration,
+                        ease: Ease.InBack,
+                        cycles: blinkCount * 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .Group(
+                    Tween.MaterialColor(
+                        _outlineMaterialInstance,
+                        blinkColor,
+                        blinkDuration,
+                        ease: Ease.InBack,
+                        cycles: blinkCount * 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .OnComplete(() =>
+                {
+                    _materialInstance.color = baseColor;
+                    _outlineMaterialInstance.color = outlineColor;
+                });
         }
 
         public override void Dispose()

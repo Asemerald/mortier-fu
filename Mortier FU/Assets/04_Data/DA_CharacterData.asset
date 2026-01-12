@@ -18,8 +18,8 @@ MonoBehaviour:
     valueRange: {x: 1, y: 3.402823e+38}
   <MoveSpeed>k__BackingField:
     baseValue: 8
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 4, y: 24}
   <Accel>k__BackingField:
     baseValue: 100
     clamp: 0
@@ -42,8 +42,8 @@ MonoBehaviour:
     valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <BombshellImpactRadius>k__BackingField:
     baseValue: 3.5
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 1.2, y: 17.5}
   <BombshellBounces>k__BackingField:
     baseValue: 0
     clamp: 0
@@ -51,15 +51,15 @@ MonoBehaviour:
   <FireRate>k__BackingField:
     baseValue: 5
     clamp: 1
-    valueRange: {x: 1, y: 3.4028235e+38}
+    valueRange: {x: 1, y: 30}
   <ShotRange>k__BackingField:
     baseValue: 14
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 5, y: 70}
   <BombshellSpeed>k__BackingField:
     baseValue: 30
     clamp: 1
-    valueRange: {x: 5, y: 1000}
+    valueRange: {x: 5, y: 120}
   <AimWidgetSpeed>k__BackingField:
     baseValue: 40
     clamp: 0
@@ -68,24 +68,24 @@ MonoBehaviour:
     baseValue: 0
     clamp: 0
     valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
-  <StrikeDuration>k__BackingField:
-    baseValue: 0.3
+  <DashCooldown>k__BackingField:
+    baseValue: 4
     clamp: 0
     valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
   <StrikeCooldown>k__BackingField:
     baseValue: 2.5
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 0.15, y: 7}
   <StrikeRadius>k__BackingField:
     baseValue: 2
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 1.5, y: 8}
   <StrikePushForce>k__BackingField:
     baseValue: 1
-    clamp: 0
-    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+    clamp: 1
+    valueRange: {x: 0.25, y: 3}
   StrikePushForceOffset: 9.5
-  <KnockbackDuration>k__BackingField:
+  <StrikeKnockbackDuration>k__BackingField:
     baseValue: 0.5
     clamp: 0
     valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}

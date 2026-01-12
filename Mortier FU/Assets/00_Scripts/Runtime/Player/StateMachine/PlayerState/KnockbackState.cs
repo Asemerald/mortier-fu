@@ -53,7 +53,7 @@ namespace MortierFu
             //Apply Knockback
             character.Controller.ApplyKnockback(_currentBumpForce);
             
-            EventBus<TriggerGetStrike>.Raise(new TriggerGetStrike()
+            EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {
                 Character = character,
             });

@@ -8,8 +8,6 @@ namespace MortierFu
 {
     public class ControllerCharacterComponent : CharacterComponent
     {
-        [Header("Debug"), SerializeField] private Color _debugStrikeColor = Color.green;
-
         public Rigidbody rigidbody;
 
         public Vector3 _moveDirection;
@@ -142,13 +140,6 @@ namespace MortierFu
                     Time.deltaTime * 10f
                 );
             }
-        }
-        
-        // Debugs
-        public override void OnDrawGizmos()
-        {
-            Gizmos.color = _debugStrikeColor;
-            Gizmos.DrawWireSphere(character.transform.position, Stats.GetStrikeRadius());
         }
 
         public void ResetVelocity()

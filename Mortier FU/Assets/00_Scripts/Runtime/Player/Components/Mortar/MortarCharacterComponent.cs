@@ -2,7 +2,6 @@ using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -153,7 +152,7 @@ namespace MortierFu
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
 
-            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = true;
+//            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = true;
         }
 
         public void EndAiming(InputAction.CallbackContext ctx)
@@ -163,7 +162,7 @@ namespace MortierFu
             _shootStrategy?.EndAiming();
             _shootAction.Disable();
             
-            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
+          //  character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
         }
     }
 }
