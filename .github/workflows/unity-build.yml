@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-windows:
@@ -35,9 +36,20 @@ jobs:
           cd Build/Windows
           zip -r ../../MyGame_Windows.zip .
 
-      - name: Upload build to Google Drive
-        uses: adrianjost/files-upload-action@v2
-        with:
-          service-account-json: ${{ secrets.GDRIVE_SERVICE_KEY }}
-          upload-files: |
-            MyGame_Windows.zip:${{ secrets.GDRIVE_FILE_ID }}
+      - name: Install rclone
+        run: sudo apt-get update && sudo apt-get install -y rclone
+
+      - name: Configure rclone for Google Drive
+        run: |
+          mkdir -p ~/.config/rclone
+          echo '${{ secrets.GDRIVE_SERVICE_KEY }}' > ~/.config/rclone/service_account.json
+          cat <<EOF > ~/.config/rclone/rclone.conf
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = ~/.config/rclone/service_account.json
+          EOF
+
+      - name: Upload build to Google Drive (replace file)
+        run: |
+          rclone copy MyGame_Windows.zip gdrive: --drive-file-id=${{ secrets.GDRIVE_FILE_ID }}
