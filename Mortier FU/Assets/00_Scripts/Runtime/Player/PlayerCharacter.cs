@@ -17,8 +17,6 @@ namespace MortierFu
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
 
-        [SerializeField] private SO_Augment _augment;
-        
         [Header("Mortar")] [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
@@ -82,8 +80,6 @@ namespace MortierFu
             }
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
-            
-            AddAugment(_augment);
         }
 
         void Awake()
