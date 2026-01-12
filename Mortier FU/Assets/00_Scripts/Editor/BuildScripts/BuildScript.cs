@@ -5,6 +5,7 @@ namespace MortierFu.Editor
 {
     public static class BuildScript
     {
+        // Only call by Github Actions CI
         public static void BuildWindows()
         {
             var scenes = EditorBuildSettings.scenes
