@@ -116,7 +116,7 @@ namespace MortierFu
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
             //TEMP Initialiser l'aimindicator
-            GetComponent<TEMP_AimIndicatorSystem>().Initialize();
+          //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
