@@ -58,11 +58,6 @@ jobs:
           cd ../..
           ls -lh dist/
 
-      - name: Clean build folder
-        run: |
-          rm -rf build
-          df -h
-
       - name: Upload to Google Drive
         env:
           GDRIVE_SERVICE_KEY: ${{ secrets.GOOGLE_DRIVE_API_KEY }}
