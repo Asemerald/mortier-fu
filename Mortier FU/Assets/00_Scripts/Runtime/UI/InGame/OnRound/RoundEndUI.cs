@@ -55,7 +55,7 @@ namespace MortierFu
         private void Awake()
         {
             _originalScale = _playerSlots[0].transform.localScale;
-            
+
             _leaderboardOrder = Enumerable.Range(0, _playerSlots.Length).ToArray();
 
             ResetUI();
@@ -194,12 +194,12 @@ namespace MortierFu
             _previousTopPlayerIndex = currentTopIdx;
         }
 
-        private UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease)
+        private async UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease)
         {
             if (Vector2.Distance(rt.anchoredPosition, target) < 0.01f)
-                return UniTask.CompletedTask;
+                return;
 
-            return Tween.UIAnchoredPosition(rt, target, duration, ease).ToUniTask();
+            await Tween.UIAnchoredPosition(rt, target, duration, ease);
         }
 
         private void SetPlayersToLeaderboardOrder(int[] order)
@@ -280,7 +280,7 @@ namespace MortierFu
             for (int i = 0; i < _playerIcons.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
-                
+
                 if (i < _playerIcons.Length)
                     _playerIcons[i].sprite = _playerDefaultSprites[i];
 
@@ -288,7 +288,7 @@ namespace MortierFu
                 var placeText = _playerPlaceTexts[i];
                 for (int k = 0; k < placeText.transform.childCount; k++)
                     placeText.transform.GetChild(k).gameObject.SetActive(false);
-                
+
                 if (i < _scoreSliders.Length && _scoreSliders[i] != null)
                     _scoreSliders[i].value = 0f;
             }
