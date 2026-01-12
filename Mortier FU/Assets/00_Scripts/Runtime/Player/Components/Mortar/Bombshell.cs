@@ -107,12 +107,27 @@ namespace MortierFu
             var yTargetPos = new Vector3(groundDir.magnitude, _toTarget.y, 0);
             
             // Calculate the trajectory
-            ComputePathWithHeight(yTargetPos, _system.Settings.BombshellHeight, _data.GravityScale, out float initialSpeed, out float angle, out _travelTime);
+            float bombshellHeight = CalculateBombshellHeight(groundDir.magnitude);
+            
+            ComputePathWithHeight(yTargetPos, bombshellHeight, _data.GravityScale, out float initialSpeed, out float angle, out _travelTime);
             _velocity = ComputeVelocityAtTime(_direction, angle, initialSpeed, _data.GravityScale, 0f);
             
             // Place the projectile according to the computed trajectory
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
+            
+            Debug.Log($"Trajectory: Dist {groundDir.magnitude} issues {bombshellHeight}m and {_travelTime}s");
+        }
+        
+        private float CalculateBombshellHeight(float targetDistance)
+        {
+            Vector2 distRange = _system.Settings.BombshellHeightDistance;
+            Vector2 valueRange = _system.Settings.BombshellHeightValue;
+            
+            float alpha = Mathf.InverseLerp(distRange.x, distRange.y, targetDistance);
+            float curvedAlpha = _system.Settings.BombshellHeightCurve.Evaluate(alpha);
+            
+            return Mathf.Lerp(valueRange.x, valueRange.y, alpha);
         }
 
         public void OnGet()
@@ -249,8 +264,6 @@ namespace MortierFu
 
             angle = Mathf.Atan(b * time / xt);
             v0 = b / Mathf.Sin(angle);
-            
-            Debug.Log("Time / Height: " + height + "/" + time);
         }
         
         private static Vector3 ComputeVelocityAtTime(Vector3 dir, float angle, float v0, float gravityScale, float t)
