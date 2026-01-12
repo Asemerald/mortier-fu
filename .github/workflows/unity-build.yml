@@ -46,7 +46,7 @@ jobs:
         with:
           projectPath: Mortier FU
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: UnityBuilderAction.BuildScript.Build
+          buildMethod: UnityBuilderAction.BuildScript.BuildWindows
       
       - name: Check disk space
         run: df -h
