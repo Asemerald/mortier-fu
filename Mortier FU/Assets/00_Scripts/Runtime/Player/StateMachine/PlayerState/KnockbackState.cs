@@ -5,11 +5,11 @@ namespace MortierFu
 {
     public class KnockbackState : BaseState
     {
-        private CountdownTimer _stunTimer;
+        private CountdownTimer _knockbackTimer;
 
         public KnockbackState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
-            _stunTimer = new CountdownTimer(0f);
+            _knockbackTimer = new CountdownTimer(0f);
         }
 
         private object _lastBumpSource;
@@ -17,7 +17,9 @@ namespace MortierFu
         
         public float StunDuration { get; private set; }
 
-        public bool IsActive => _stunTimer.IsRunning;
+        public bool IsActive => _knockbackTimer.IsRunning;
+        
+        public object LastBumpSource => _lastBumpSource;
         
         public override void Update()
         {
@@ -45,8 +47,8 @@ namespace MortierFu
             
             StunDuration = stunDuration;
             
-            _stunTimer.Reset(duration);
-            _stunTimer.Start();
+            _knockbackTimer.Reset(duration);
+            _knockbackTimer.Start();
             
             character.Controller.ResetVelocity();
             
@@ -67,8 +69,12 @@ namespace MortierFu
 
         public override void OnExit()
         {
+            _knockbackTimer.Stop();
+            
             if(debug) 
                 Logs.Log("Exiting Knockback State");
         }
+
+        public void ClearLastBumpSource() => _lastBumpSource = null;
     }
 }

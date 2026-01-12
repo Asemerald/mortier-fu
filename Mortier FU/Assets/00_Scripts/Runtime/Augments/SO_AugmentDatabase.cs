@@ -28,7 +28,7 @@ namespace MortierFu
         [Header("Strike")]
         public AGM_BigStrike.Params BigStrikeParams;
         public AGM_FastStrike.Params FastStrikeParams;
-        public AGM_PerfectParry.Params PerfectParryParams;
+        public AGM_PerfectPush.Params PerfectPushParams;
     }
 
 }

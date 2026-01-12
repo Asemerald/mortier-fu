@@ -65,6 +65,12 @@ namespace MortierFu
         public PlayerCharacter[] HitCharacters;
     }
 
+    public struct TriggerSuccessfulPush : ITrigger
+    {
+        public PlayerCharacter Character;
+        public object Source; 
+    }
+    
     public struct TriggerStrikeHitBombshell : ITrigger // Check
     {
         public PlayerCharacter Character;

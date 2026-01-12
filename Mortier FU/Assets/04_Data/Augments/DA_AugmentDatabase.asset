@@ -123,23 +123,17 @@ MonoBehaviour:
     StrikePushForceMod:
       Value: 1.5
       ModType: 200
-    StrikeCooldownMod:
+    DashCooldownMod:
       Value: 0.85
       ModType: 200
   FastStrikeParams:
-    StrikeCooldownMod:
+    DashCooldownMod:
       Value: -0.15
       ModType: 200
-  PerfectParryParams:
-    StrikeCooldownMod:
-      Value: -0.1
+  PerfectPushParams:
+    OnSuccessfulPushMaxHealthMod:
+      Value: 0.05
       ModType: 200
-    MaxHealthMod:
-      Value: -2
-      ModType: 100
-    ParryMaxHealthGain:
-      Value: 1
-      ModType: 100
   references:
     version: 2
     RefIds:

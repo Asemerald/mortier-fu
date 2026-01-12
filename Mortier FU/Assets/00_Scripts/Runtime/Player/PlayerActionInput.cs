@@ -104,7 +104,7 @@ namespace MortierFu
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Strike"",
+                    ""name"": ""Dash"",
                     ""type"": ""Button"",
                     ""id"": ""6c2ab1b8-8984-453a-af3d-a3c78ae1679a"",
                     ""expectedControlType"": """",
@@ -289,7 +289,7 @@ namespace MortierFu
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Strike"",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -300,7 +300,7 @@ namespace MortierFu
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Strike"",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -311,7 +311,7 @@ namespace MortierFu
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Strike"",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -988,7 +988,7 @@ namespace MortierFu
             // Gameplay
             m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
             m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
-            m_Gameplay_Strike = m_Gameplay.FindAction("Strike", throwIfNotFound: true);
+            m_Gameplay_Dash = m_Gameplay.FindAction("Dash", throwIfNotFound: true);
             m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
             m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
             m_Gameplay_ToggleAim = m_Gameplay.FindAction("ToggleAim", throwIfNotFound: true);
@@ -1090,7 +1090,7 @@ namespace MortierFu
         private readonly InputActionMap m_Gameplay;
         private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
         private readonly InputAction m_Gameplay_Move;
-        private readonly InputAction m_Gameplay_Strike;
+        private readonly InputAction m_Gameplay_Dash;
         private readonly InputAction m_Gameplay_Shoot;
         private readonly InputAction m_Gameplay_Aim;
         private readonly InputAction m_Gameplay_ToggleAim;
@@ -1111,9 +1111,9 @@ namespace MortierFu
             /// </summary>
             public InputAction @Move => m_Wrapper.m_Gameplay_Move;
             /// <summary>
-            /// Provides access to the underlying input action "Gameplay/Strike".
+            /// Provides access to the underlying input action "Gameplay/Dash".
             /// </summary>
-            public InputAction @Strike => m_Wrapper.m_Gameplay_Strike;
+            public InputAction @Dash => m_Wrapper.m_Gameplay_Dash;
             /// <summary>
             /// Provides access to the underlying input action "Gameplay/Shoot".
             /// </summary>
@@ -1159,9 +1159,9 @@ namespace MortierFu
                 @Move.started += instance.OnMove;
                 @Move.performed += instance.OnMove;
                 @Move.canceled += instance.OnMove;
-                @Strike.started += instance.OnStrike;
-                @Strike.performed += instance.OnStrike;
-                @Strike.canceled += instance.OnStrike;
+                @Dash.started += instance.OnDash;
+                @Dash.performed += instance.OnDash;
+                @Dash.canceled += instance.OnDash;
                 @Shoot.started += instance.OnShoot;
                 @Shoot.performed += instance.OnShoot;
                 @Shoot.canceled += instance.OnShoot;
@@ -1188,9 +1188,9 @@ namespace MortierFu
                 @Move.started -= instance.OnMove;
                 @Move.performed -= instance.OnMove;
                 @Move.canceled -= instance.OnMove;
-                @Strike.started -= instance.OnStrike;
-                @Strike.performed -= instance.OnStrike;
-                @Strike.canceled -= instance.OnStrike;
+                @Dash.started -= instance.OnDash;
+                @Dash.performed -= instance.OnDash;
+                @Dash.canceled -= instance.OnDash;
                 @Shoot.started -= instance.OnShoot;
                 @Shoot.performed -= instance.OnShoot;
                 @Shoot.canceled -= instance.OnShoot;
@@ -1531,12 +1531,12 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnMove(InputAction.CallbackContext context);
             /// <summary>
-            /// Method invoked when associated input action "Strike" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// Method invoked when associated input action "Dash" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
             /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnStrike(InputAction.CallbackContext context);
+            void OnDash(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Shoot" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
