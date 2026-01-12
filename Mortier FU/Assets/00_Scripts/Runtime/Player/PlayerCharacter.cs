@@ -17,6 +17,8 @@ namespace MortierFu
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
 
+        [SerializeField] private SO_Augment _augment;
+        
         [Header("Mortar")] [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
@@ -80,6 +82,8 @@ namespace MortierFu
             }
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
+            
+            AddAugment(_augment);
         }
 
         void Awake()
@@ -294,7 +298,7 @@ namespace MortierFu
         {
             // C'est affreux mais asshoul
             if (_knockbackState.IsActive
-                && Controller.rigidbody.linearVelocity.sqrMagnitude > 5 * 5
+                && other.impulse.magnitude > 5
                 && (_knockbackState.LastBumpSource is not PlayerCharacter character
                     || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar)
                     || character != otherChar))
