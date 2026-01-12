@@ -72,7 +72,7 @@ namespace MortierFu
             ResetAimWidget();
             
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
-            _shootCooldownTimer = new CountdownTimer(Stats.FireRate.Value);
+            _shootCooldownTimer = new CountdownTimer(Stats.GetFireRate());
             Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
             
             _shootStrategy.Initialize();
@@ -88,7 +88,7 @@ namespace MortierFu
         }
 
         private void UpdateFireRate() {
-            float fireRate = Stats.FireRate.Value;
+            float fireRate = Stats.GetFireRate();
             _shootCooldownTimer.DynamicUpdate(fireRate);
         }
         
@@ -120,7 +120,7 @@ namespace MortierFu
                 Owner = character,
                 StartPos = _firePoint.position,
                 TargetPos = AimWidget.transform.position,
-                TravelTime = Stats.BombshellTimeTravel.Value,
+                Speed = Stats.GetBombshellSpeed(),
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
                 Scale =  Stats.GetBombshellSize(),

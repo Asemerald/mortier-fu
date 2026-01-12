@@ -92,12 +92,13 @@ namespace MortierFu
             else Logs.LogWarning("No FX Handler");
 
             _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
-                bombshell.Owner.Stats.BombshellTimeTravel.Value);
+                bombshell.GetTravelTime());
             
             if (hitCharacters.Count > 0)
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
                 {
+                    ShooterId = bombshell.Owner,
                     Bombshell = bombshell,
                     HitCharacters = hitCharacters.ToArray(),
                 });

@@ -19,8 +19,7 @@ namespace MortierFu
             public Vector3 StartPos;
             public Vector3 TargetPos;
             public float Scale;
-            // public float Speed;
-            public float TravelTime;
+            public float Speed;
             public float GravityScale;
         
             // Damage
@@ -35,8 +34,6 @@ namespace MortierFu
         private Vector3 _velocity;
         private Vector3 _toTarget;
         private float _travelTime;
-        private float _timeFactor;
-        private float _resolvedTravelTime;
         
         private BombshellSystem _system;
         private Rigidbody _rb;
@@ -68,6 +65,9 @@ namespace MortierFu
             _data.Scale *= scalar;
             transform.localScale = Vector3.one * _data.Scale;
         }
+        
+        public float GetTravelTime() => _travelTime / _data.Speed;
+        
         #endregion
         
         public void Initialize(BombshellSystem system)
@@ -110,10 +110,6 @@ namespace MortierFu
             ComputePathWithHeight(yTargetPos, _system.Settings.BombshellHeight, _data.GravityScale, out float initialSpeed, out float angle, out _travelTime);
             _velocity = ComputeVelocityAtTime(_direction, angle, initialSpeed, _data.GravityScale, 0f);
             
-            // Apply time modifications
-            _timeFactor = _travelTime / _data.TravelTime;
-            _resolvedTravelTime = _travelTime / _timeFactor;
-            
             // Place the projectile according to the computed trajectory
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
@@ -134,7 +130,7 @@ namespace MortierFu
         
         // Move FixedUpdate to be called by the system (requires to be injected in the player loop or to be tailored to a MB)
         void FixedUpdate() {
-			float dT = Time.deltaTime * _timeFactor;
+			float dT = Time.deltaTime * _data.Speed;
 
             // Apply gravity
             _velocity += Physics.gravity * (_data.GravityScale * dT);
@@ -215,12 +211,13 @@ namespace MortierFu
         
         private async UniTask HandleImpactPreview()
         {
-            float delay = _resolvedTravelTime * _system.Settings.ImpactPreviewDelayFactor;
+            float resolvedTravelTime = _travelTime / _data.Speed;
+            float delay = resolvedTravelTime * _system.Settings.ImpactPreviewDelayFactor;
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             
             if (TEMP_FXHandler.Instance)
             {
-                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, _resolvedTravelTime - delay, _data.AoeRange);
+                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, resolvedTravelTime - delay, _data.AoeRange);
             }
             else Logs.LogWarning("No FX Handler");
             
@@ -253,6 +250,8 @@ namespace MortierFu
 
             angle = Mathf.Atan(b * time / xt);
             v0 = b / Mathf.Sin(angle);
+            
+            Debug.Log("Time / Height: " + height + "/" + time);
         }
         
         private static Vector3 ComputeVelocityAtTime(Vector3 dir, float angle, float v0, float gravityScale, float t)

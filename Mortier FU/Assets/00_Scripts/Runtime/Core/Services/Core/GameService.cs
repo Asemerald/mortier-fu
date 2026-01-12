@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using MortierFu.Analytics;
 using MortierFu.Shared;
 using UnityEngine.SceneManagement;
 
@@ -61,6 +62,7 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
+            SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
 
             await SystemManager.Instance.Initialize();
             

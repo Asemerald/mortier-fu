@@ -6,7 +6,7 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod BombshellDamageMod;
-            public AugmentStatMod BombshellTimeTravelMod;
+            public AugmentStatMod BombshellSpeedMod;
         }
         
         public AGM_Confidence(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
@@ -15,13 +15,13 @@ namespace MortierFu
         public override void Initialize()
         {
             stats.BombshellDamage.AddModifier(db.ConfidenceParams.BombshellDamageMod.ToMod(this));
-            stats.BombshellTimeTravel.AddModifier(db.ConfidenceParams.BombshellTimeTravelMod.ToMod(this));
+            stats.BombshellSpeed.AddModifier(db.ConfidenceParams.BombshellSpeedMod.ToMod(this));
         }
         
         public override void Dispose()
         {
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
-            stats.BombshellTimeTravel.RemoveAllModifiersFromSource(this);
+            stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
         }
     }
 }
