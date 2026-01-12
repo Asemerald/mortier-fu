@@ -13,7 +13,8 @@ namespace MortierFu
     {
         [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
-
+        [SerializeField] private Image _winnerBackgroundColorImage;
+        
         [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
         private Image[] _playerSlots;
 
@@ -24,6 +25,7 @@ namespace MortierFu
         [SerializeField] private Sprite[] _playerWinnerIcons;
         [SerializeField] private Sprite[] _winnerTitleSprites;
         [SerializeField] private Sprite[] _winnerBackgrounds;
+        [SerializeField] private Sprite[] _winnerBackgroundColors;
 
         [Header("Animation Settings")] [SerializeField]
         private float _animateSliderDelay = 0.3f;
@@ -44,7 +46,7 @@ namespace MortierFu
 
         private Vector3 _originalScale;
         private int[] _leaderboardOrder;
-        
+
         private int _previousTopPlayerIndex = 0;
 
         private void Awake()
@@ -90,7 +92,7 @@ namespace MortierFu
                 }
             }
         }
-        
+
         #endregion
 
         #region Slider & Leaderboard (existing code, unchanged)
@@ -154,7 +156,7 @@ namespace MortierFu
 
             int currentTopIdx = sortedTeams[0].Index;
             bool isSameTopPlayer = currentTopIdx == _previousTopPlayerIndex;
-            
+
             if (!isSameTopPlayer)
             {
                 await Tween.Scale(
@@ -174,7 +176,7 @@ namespace MortierFu
             }
 
             await UniTask.WhenAll(animations);
-            
+
             if (!isSameTopPlayer)
             {
                 await Tween.Scale(
@@ -184,7 +186,7 @@ namespace MortierFu
                     _scaleTweenEase
                 );
             }
-            
+
             _previousTopPlayerIndex = currentTopIdx;
         }
 
@@ -240,8 +242,11 @@ namespace MortierFu
 
             _winnerTitleImage.sprite = _winnerTitleSprites[winningTeam.Index];
             _winnerBackgroundImage.sprite = _winnerBackgrounds[winningTeam.Index];
+            _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[winningTeam.Index];
+            
             _winnerTitleImage.gameObject.SetActive(true);
             _winnerBackgroundImage.gameObject.SetActive(true);
+            _winnerBackgroundColorImage.gameObject.SetActive(true);
         }
 
         private bool IsValidPlayerIndex(int idx) =>
@@ -264,9 +269,8 @@ namespace MortierFu
         {
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
-            _winnerTitleImage.material = null;
-            _winnerBackgroundImage.material = null;
-
+            _winnerBackgroundColorImage.gameObject.SetActive(false);
+            
             for (int i = 0; i < _playerSlots.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
