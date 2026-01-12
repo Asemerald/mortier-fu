@@ -45,7 +45,7 @@ namespace MortierFu
             Character.Aspect?.PlayDamageBlink(
                 blinkColor: Color.white,
                 blinkCount: 5,
-                blinkDuration: 0.15f
+                blinkDuration: 0.08f
             );
             
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()

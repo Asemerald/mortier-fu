@@ -3,6 +3,7 @@ using PrimeTween;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.UI;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -11,58 +12,10 @@ namespace MortierFu
 {
     public class RoundAnnouncementUI : MonoBehaviour
     {
-        #region References
-
-        [Header("UI References")] [SerializeField]
-        private GameObject _goldenBombshellGameObject;
-
-        [SerializeField] private GameObject _playGameObject;
-        [SerializeField] private Image _countdownImage;
-
-        [Header("Canvas Groups")] [SerializeField]
-        private CanvasGroup _countdownCanvasGroup;
-
-        [SerializeField] private CanvasGroup _playCanvasGroup;
-
-        #endregion
-
         #region Assets
 
         [Header("Countdown Sprites")] [SerializeField]
         private List<Sprite> _countdownSprites;
-
-        #endregion
-
-        #region Countdown Animation
-
-        [Header("Countdown Animation Settings")] [SerializeField]
-        private float _countdownSlideOffset = 150f;
-
-        [SerializeField] private float _showCountdownDelay = 0.3f;
-        [SerializeField] private float _countdownInDuration = 0.35f;
-        [SerializeField] private float _countdownOutDuration = 0.3f;
-        [SerializeField] private float _countdownStartingScale = 1.3f;
-
-        private const float COUNTDOWN_TOTAL_DURATION = 1f;
-
-        private float CountdownHoldDuration =>
-            COUNTDOWN_TOTAL_DURATION - _countdownInDuration - _countdownOutDuration;
-
-        private Sequence _countdownSequence;
-        private Vector3 _initialCountdownScale;
-
-        #endregion
-
-        #region Play Animation
-
-        [Header("Play Animation Settings")] [SerializeField]
-        private float _playDropOffset = 250f;
-
-        [SerializeField] private float _playShowDelay = 0.2f;
-        [SerializeField] private float _playPopDuration = 0.4f;
-        [SerializeField] private float _playStartingScale = 1.3f;
-        [SerializeField] private float _playScaleUp = 1.7f;
-        [SerializeField] private float _playFadeOutDuration = 0.3f;
 
         #endregion
 
@@ -84,7 +37,7 @@ namespace MortierFu
         public void OnRoundStarted(GameModeBase gm)
         {
             UpdateMatchPointIndicator(gm);
-            PlayCountdown().Forget();
+            PlayCountdown(gm).Forget();
         }
 
         private void UpdateMatchPointIndicator(GameModeBase gm)
@@ -144,23 +97,41 @@ namespace MortierFu
         }
 
 
-        private async UniTask PlayCountdown(int seconds = 3)
+        private async UniTask PlayCountdown(GameModeBase gm, int seconds = 3)
         {
+            foreach (var character in gm.AlivePlayers)
+            {
+                character.gameObject.SetActive(false);
+            }
+
             await UniTask.Delay(TimeSpan.FromSeconds(_showCountdownDelay));
 
             ShowCountdownImage();
             _countdownImage.sprite = _countdownSprites[0];
 
-            for (int t = seconds; t > 0; t--)
+            var countdownTask = RunCountdown(seconds);
+
+            foreach (var character in gm.AlivePlayers)
             {
-                SetCountdownVisual(t);
-                await AnimateCountdown();
+                await character.Aspect.PlayVFXSequential(new[] { character }, 
+                    c => c.gameObject.SetActive(true));
             }
+
+            await countdownTask;
 
             _countdownImage.gameObject.SetActive(false);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_playShowDelay));
             await ShowPlay();
+        }
+
+        private async UniTask RunCountdown(int seconds)
+        {
+            for (int t = seconds; t > 0; t--)
+            {
+                SetCountdownVisual(t);
+                await AnimateCountdown();
+            }
         }
 
         private void ShowCountdownImage()
@@ -224,6 +195,54 @@ namespace MortierFu
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
         }
+
+        #region References
+
+        [Header("UI References")] [SerializeField]
+        private GameObject _goldenBombshellGameObject;
+
+        [SerializeField] private GameObject _playGameObject;
+        [SerializeField] private Image _countdownImage;
+
+        [Header("Canvas Groups")] [SerializeField]
+        private CanvasGroup _countdownCanvasGroup;
+
+        [SerializeField] private CanvasGroup _playCanvasGroup;
+
+        #endregion
+
+        #region Countdown Animation
+
+        [Header("Countdown Animation Settings")] [SerializeField]
+        private float _countdownSlideOffset = 150f;
+
+        [SerializeField] private float _showCountdownDelay = 0.3f;
+        [SerializeField] private float _countdownInDuration = 0.35f;
+        [SerializeField] private float _countdownOutDuration = 0.3f;
+        [SerializeField] private float _countdownStartingScale = 1.3f;
+
+        private const float COUNTDOWN_TOTAL_DURATION = 1f;
+
+        private float CountdownHoldDuration =>
+            COUNTDOWN_TOTAL_DURATION - _countdownInDuration - _countdownOutDuration;
+
+        private Sequence _countdownSequence;
+        private Vector3 _initialCountdownScale;
+
+        #endregion
+
+        #region Play Animation
+
+        [Header("Play Animation Settings")] [SerializeField]
+        private float _playDropOffset = 250f;
+
+        [SerializeField] private float _playShowDelay = 0.2f;
+        [SerializeField] private float _playPopDuration = 0.4f;
+        [SerializeField] private float _playStartingScale = 1.3f;
+        [SerializeField] private float _playScaleUp = 1.7f;
+        [SerializeField] private float _playFadeOutDuration = 0.3f;
+
+        #endregion
 
         /* private async UniTask AnimateCountdownNumber()
  {
