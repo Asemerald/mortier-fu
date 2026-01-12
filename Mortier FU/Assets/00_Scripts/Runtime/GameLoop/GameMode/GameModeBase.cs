@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using MortierFu.Analytics;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -140,6 +141,7 @@ namespace MortierFu
 
             while (currentState != GameState.EndGame)
             {
+                EnablePlayerGravity(false);
                 await levelSystem.LoadRaceMap();
 
                 UpdateGameState(GameState.RaceInProgress);
@@ -156,6 +158,8 @@ namespace MortierFu
                 augmentSelectionSys.EndRace();
                 EndRace();
                 
+                EnablePlayerGravity(false);
+                 
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -164,7 +168,7 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-                
+            
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -216,6 +220,17 @@ namespace MortierFu
             return pickers;
         }
 
+        private void EnablePlayerGravity(bool enabled = true)
+        {
+            foreach (var team in teams)
+            {
+                foreach (var member in team.Members)
+                {
+                    member.Character.Controller.rigidbody.useGravity = enabled;
+                }
+            }
+        }
+        
         private void SpawnPlayers()
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
@@ -289,6 +304,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            EnablePlayerGravity();
             EnablePlayerInputs(false);
 
             foreach (var team in teams)
@@ -329,11 +345,9 @@ namespace MortierFu
             timer.Start();
         }
 
-        protected async void HandleEndOfCountdown()
+        protected void HandleEndOfCountdown()
         {
             timer.OnTimerStop -= HandleEndOfCountdown;
-
-            await UniTask.Delay(TimeSpan.FromSeconds(Data.RoundStartDelay));
 
             EnablePlayerInputs();
             PlayerCharacter.AllowGameplayActions = true;
@@ -408,6 +422,10 @@ namespace MortierFu
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    
+                    // notify analytics system
+                    var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
+                    analyticsSys?.OnScoreChanged(team.Members[0].Character, team.Score);
                 }
             }
         }
@@ -459,6 +477,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            EnablePlayerGravity();
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);

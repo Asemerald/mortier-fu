@@ -34,6 +34,7 @@ namespace MortierFu
 
     public struct TriggerHit : ITrigger // Check
     {
+        public PlayerCharacter ShooterId;
         public Bombshell Bombshell;
         public PlayerCharacter[] HitCharacters;
     }
@@ -45,6 +46,7 @@ namespace MortierFu
     
     public struct TriggerHealthChanged : ITrigger // Check
     {
+        public PlayerCharacter Instigator;
         public PlayerCharacter Character;
         public float PreviousHealth;
         public float NewHealth;

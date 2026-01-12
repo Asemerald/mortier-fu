@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
+using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -115,6 +117,8 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
+            //TEMP Initialiser l'aimindicator
+            GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
@@ -199,10 +203,10 @@ namespace MortierFu
             _stateMachine.SetState(_locomotionState);
         }
 
-        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration)
+        public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
         {
             force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
-            _knockbackState.ReceiveKnockback(duration, force, stunDuration);
+            _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
         public void ReceiveStun(float duration)
@@ -233,6 +237,10 @@ namespace MortierFu
                     SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
             augmentInstance.Initialize();
             _augments.Add(augmentInstance);
+            
+            // Notify Analytics System
+            var analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
+            analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
         public void AddPuddleEffect(Ability ability)
