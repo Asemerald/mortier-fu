@@ -1,3 +1,4 @@
+using UnityEngine.Serialization;
 namespace MortierFu
 {
     public class AGM_PerfectParry : AugmentBase
@@ -5,7 +6,8 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod StrikeCooldownMod;
+            [FormerlySerializedAs("StrikeCooldownMod")]
+            public AugmentStatMod DashCooldownMod;
             public AugmentStatMod MaxHealthMod;
             public AugmentStatMod ParryMaxHealthGain;
         }
@@ -24,7 +26,7 @@ namespace MortierFu
             _endRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
             
-            stats.StrikeCooldown.AddModifier(db.PerfectParryParams.StrikeCooldownMod.ToMod(this));
+            stats.DashCooldown.AddModifier(db.PerfectParryParams.DashCooldownMod.ToMod(this));
             stats.MaxHealth.AddModifier(db.PerfectParryParams.MaxHealthMod.ToMod(this));
         }
         
@@ -38,7 +40,7 @@ namespace MortierFu
         private void OnTriggerEndRound(TriggerEndRound evt)
         {
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
-            stats.StrikeCooldown.AddModifier(db.PerfectParryParams.StrikeCooldownMod.ToMod(this));
+            stats.DashCooldown.AddModifier(db.PerfectParryParams.DashCooldownMod.ToMod(this));
         }
         
         public override void Dispose()
@@ -47,7 +49,7 @@ namespace MortierFu
             EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
             
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
-            stats.StrikeCooldown.RemoveAllModifiersFromSource(this);
+            stats.DashCooldown.RemoveAllModifiersFromSource(this);
         }
     }
 }

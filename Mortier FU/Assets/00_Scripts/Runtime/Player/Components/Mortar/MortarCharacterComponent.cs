@@ -2,7 +2,6 @@ using System;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
