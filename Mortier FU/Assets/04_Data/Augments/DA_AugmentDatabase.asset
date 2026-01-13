@@ -51,9 +51,15 @@ MonoBehaviour:
       ModType: 100
     ExtraBombshellBounces: 1
   BouncyBoomerangParams:
-    OnBounceUpMinAngle: 0
+    OnBounceUpMinAngle: 30
     OnBounceUpMaxAngle: 30
-    ExtraBombshellBounces: 5
+    ExtraBombshellBounces: 1
+  BouncySnowballParams:
+    BombshellImpactRadius:
+      Value: -0.3
+      ModType: 200
+    OnBounceImpactRadiusScalar: 0.125
+    ExtraBombshellBounces: 1
   ConfidenceParams:
     BombshellDamageMod:
       Value: 30

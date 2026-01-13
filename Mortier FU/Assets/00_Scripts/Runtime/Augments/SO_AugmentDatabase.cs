@@ -15,6 +15,7 @@ namespace MortierFu
         public AGM_BigBullets.Params BigBulletsParams;
         public AGM_BouncyPrototype.Params BouncyPrototypeParams;
         public AGM_BouncyBoomerang.Params BouncyBoomerangParams;
+        public AGM_BouncySnowball.Params BouncySnowballParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
         public AGM_FreezePuddle.Params FreezePuddleParams;
