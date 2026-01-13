@@ -34,8 +34,9 @@ namespace MortierFu
         void Update()
         {
             // Spawn dummy avec clavier
-            if (Keyboard.current.pKey.wasPressedThisFrame)
+            if (Input.GetKeyDown(KeyCode.P))
             {
+                Logs.Log("[PlayerInputSwapper] Spawning dummy player...");
                 SpawnDummy();
             }
 
@@ -64,7 +65,7 @@ namespace MortierFu
                     pairWithDevices: Gamepad.current
                 );
 
-                Debug.Log($"Dummy player spawned: {newPlayer?.name}");
+                Logs.Log($"[PlayerInputSwapper] Dummy player spawned: {newPlayer?.name}");
                 
                 // Désactive le nouveau player immédiatement
                 if (newPlayer != null)
