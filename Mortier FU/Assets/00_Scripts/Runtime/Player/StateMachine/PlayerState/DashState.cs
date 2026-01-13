@@ -9,19 +9,29 @@ namespace MortierFu
     {
         private Collider[] _overlapBuffer = new Collider[100];
 
+        private HashSet<GameObject> _processedRoots;
+        private HashSet<PlayerCharacter> _hitCharacters;
+        
         private int _availableCharges;
         private CountdownTimer _dashCooldownTimer;
         private CountdownTimer _dashTriggerTimer;
 
+        private LayerMask _whatIsStrikable;
+
         public DashState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
+            _processedRoots = new HashSet<GameObject>();
+            _hitCharacters = new HashSet<PlayerCharacter>();
+            
             _dashCooldownTimer = new CountdownTimer(character.Stats.GetDashCooldown());
             _dashCooldownTimer.OnTimerStop += OnCooldownTimerStop;
             _dashTriggerTimer = new CountdownTimer(character.Stats.DashDuration.Value);
-
+            
             character.Stats.DashCooldown.OnDirtyUpdated += UpdateDashCooldown;
             character.Stats.DashDuration.OnDirtyUpdated += UpdateDashDuration;
             character.Stats.DashCharges.OnDirtyUpdated += UpdateDashCharges;
+
+            _whatIsStrikable = LayerMask.GetMask("DynamicActors");
         }
         
         public bool IsFinished => _dashTriggerTimer.IsFinished;
@@ -46,12 +56,16 @@ namespace MortierFu
                 Character =  character,
             });
             
-            TEMP_FXHandler.Instance.InstantiateDashFX(character.transform, character.Stats.GetStrikeRadius() * 0.5f);
+            TEMP_FXHandler.Instance.InstantiateDashFX(character.GetStrikePoint(), character.Stats.GetStrikeRadius() * 0.5f);
             if(debug)
                 Logs.Log("Entering Dash State");
             
             Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
+            
+            // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
+            _processedRoots.Clear();
+            _hitCharacters.Clear();
         }
 
         public override void Update()
@@ -83,47 +97,40 @@ namespace MortierFu
 
             _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
         }
-
+        
         // While dashing, the strike is executed every frame to bump other players or interact with objects.
         private void ExecuteStrike()
         {
-            var origin = character.transform.position;
-            var count = Physics.OverlapSphereNonAlloc(origin, character.Stats.GetStrikeRadius(), _overlapBuffer);
+            var strikePosition = character.GetStrikePoint().position;
+            float radius = character.Stats.GetStrikeRadius();
             
-            // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
-            var processedRoots = new HashSet<GameObject>();
-            var hitCharacters = new HashSet<PlayerCharacter>();
-            // var blockedBombshells = new HashSet<Bombshell>();
+            var count = Physics.OverlapSphereNonAlloc(strikePosition, radius, 
+                _overlapBuffer, _whatIsStrikable);
             
             for (var i = 0; i < count; i++)
             {
                 var hit = _overlapBuffer[i];
                 if (hit == null) continue;
                  
-                var root = hit.transform.root.gameObject;
+                var root = hit.attachedRigidbody;
+                if (root == null) continue;
+                if (root == character.Controller.rigidbody) continue; // Skip self
                 
-                if (!processedRoots.Add(root)) continue;
-
-                // WAS USED TO DESTROY BOMBSHELLS
-                // if (hit.TryGetComponent(out Bombshell bombshell))
-                // {
-                //     blockedBombshells.Add(bombshell);
-                //     bombshell.ReturnToPool();
-                //
-                //     continue;
-                // }
+                if (!_processedRoots.Add(root.gameObject)) continue;
                 
-                if (hit.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
+                Debug.Log("Processing " + root.gameObject.name);
+                
+                if (root.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
                 {
                     interactable.Interact();
                     continue;
                 }
 
-                var other = hit.GetComponentInParent<PlayerCharacter>();
+                var other = root.GetComponentInParent<PlayerCharacter>();
                 if (other == null) continue;
                 if (other == character) continue;
 
-                hitCharacters.Add(other);
+                _hitCharacters.Add(other);
                 
                 int dashDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
                 if (dashDamage > 0 && other.Health.IsAlive)
@@ -138,12 +145,12 @@ namespace MortierFu
                 other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration, character);
             }
 
-            if (hitCharacters.Count > 0)
+            if (_hitCharacters.Count > 0)
             {
                 EventBus<TriggerStrike>.Raise(new TriggerStrike()
                 {
                     Character =  character,
-                    HitCharacters = hitCharacters.ToArray(),
+                    HitCharacters = _hitCharacters.ToArray(),
                 });
             }
 

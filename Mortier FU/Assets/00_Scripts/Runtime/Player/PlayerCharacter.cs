@@ -25,8 +25,8 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private Animator _animator;
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
-        
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
+        [SerializeField] private Transform _strikePoint;
 
         private StateMachine _stateMachine;
 
@@ -62,6 +62,8 @@ namespace MortierFu
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
 
+        public Transform GetStrikePoint() => _strikePoint;
+        
         public void Initialize(PlayerManager owner)
         {
             if (owner == null)

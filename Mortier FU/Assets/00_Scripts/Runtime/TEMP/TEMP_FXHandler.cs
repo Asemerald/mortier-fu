@@ -56,9 +56,9 @@ public class TEMP_FXHandler : MonoBehaviour
         ps.transform.localScale = Vector3.one * (range * 0.5f);
     }
 
-    public void InstantiateDashFX(Transform player, float size)
+    public void InstantiateDashFX(Transform strikePoint, float size)
     {
-        ParticleSystem strikeFX = Instantiate(_dash, player);
+        ParticleSystem strikeFX = Instantiate(_dash, strikePoint);
         strikeFX.transform.localScale = Vector3.one * size;
     }
 
