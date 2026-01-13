@@ -49,6 +49,9 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Damage of the Strike attack.")]
         public CharacterStat StrikeDamage { get; private set; } = new(.0f);
         
+        [field: SerializeField, Tooltip("Amount of charges of dash.")]
+        public CharacterStat DashCharges { get; private set; } = new( 1.0f);
+        
         [field: SerializeField, Tooltip("Cooldown of the Strike attack.")]
         public CharacterStat DashCooldown { get; private set; } = new( 2.0f);
         

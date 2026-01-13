@@ -30,7 +30,7 @@ namespace MortierFu
 
         private StateMachine _stateMachine;
 
-        private InputAction _strikeAction;
+        private InputAction _dashAction;
         private InputAction _toggleAimAction;
         private InputAction _tauntAction;
 
@@ -106,7 +106,7 @@ namespace MortierFu
         void Start()
         {
             // Find and cache Input Actions
-            FindInputAction("Strike", out _strikeAction);
+            FindInputAction("Dash", out _dashAction);
             FindInputAction("ToggleAim", out _toggleAimAction);
             FindInputAction("Taunt", out _tauntAction);
 
@@ -184,12 +184,12 @@ namespace MortierFu
             At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
             At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
-            At(_locomotionState, _dashState,
-                new FuncPredicate(() => _strikeAction.triggered && !_dashState.InCooldown));
+            At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
+                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _dashState,
-                new GameplayFuncPredicate(() => _strikeAction.triggered && !_dashState.InCooldown));
+            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered && 
+                _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
             At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
@@ -210,6 +210,7 @@ namespace MortierFu
         public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
+            Controller.ResetVelocity();
         }
 
         public void FindInputAction(string actionName, out InputAction action)
@@ -291,13 +292,30 @@ namespace MortierFu
 
         private void OnCollisionEnter(Collision other)
         {
-            if (_knockbackState.IsActive && other.impulse.magnitude > 5)
+            // C'est affreux mais asshoul
+            if (_knockbackState.IsActive
+                && Controller.rigidbody.linearVelocity.sqrMagnitude > 5 * 5
+                && (_knockbackState.LastBumpSource is not PlayerCharacter character
+                    || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar)
+                    || character != otherChar))
             {
                 ReceiveStun(_knockbackState.StunDuration);
+                
                 //temp ajout destruction barriere
                 if (other.gameObject.GetComponent<Breakable>())
                 {
                     other.gameObject.GetComponent<Breakable>().Interact();
+                }
+
+                if (_knockbackState.LastBumpSource != null)
+                {
+                    EventBus<TriggerSuccessfulPush>.Raise(new TriggerSuccessfulPush()
+                    {
+                        Character = this,
+                        Source = _knockbackState.LastBumpSource,
+                    });
+                    
+                    _knockbackState.ClearLastBumpSource();
                 }
             }
         }

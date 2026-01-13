@@ -13,7 +13,9 @@ namespace MortierFu
         public AGM_Ballista.Params BallistaParams;
         public AGM_Berserker.Params BerserkerParams;
         public AGM_BigBullets.Params BigBulletsParams;
-        public AGM_Bouncy.Params BouncyParams;
+        public AGM_BouncyPrototype.Params BouncyPrototypeParams;
+        public AGM_BouncyBoomerang.Params BouncyBoomerangParams;
+        public AGM_BouncySnowball.Params BouncySnowballParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
         public AGM_FreezePuddle.Params FreezePuddleParams;
@@ -27,8 +29,9 @@ namespace MortierFu
         
         [Header("Strike")]
         public AGM_BigStrike.Params BigStrikeParams;
+        public AGM_DoubleDash.Params DoubleDashParams;
         public AGM_FastStrike.Params FastStrikeParams;
-        public AGM_PerfectParry.Params PerfectParryParams;
+        public AGM_PerfectPush.Params PerfectPushParams;
     }
 
 }

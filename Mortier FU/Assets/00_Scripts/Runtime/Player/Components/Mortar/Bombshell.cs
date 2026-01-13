@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using MathUtils = MortierFu.Shared.MathUtils;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -180,14 +181,24 @@ namespace MortierFu
                     if (_data.Bounces > 0)
                     {
                         _data.Bounces--;
-                        
+
+                        BounceContext bounceContext = new();
                         EventBus<TriggerBounce>.Raise(new TriggerBounce()
                         {
-                            Bombshell = this
+                            Bombshell = this,
+                            Context = bounceContext
                         });
                         
                         // Reflect velocity using the collider normal
                         _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceSpeedDampingFactor;
+                        
+                        if(bounceContext.UpRotationMinAngle != 0 || bounceContext.RotationMaxAngle != 0f)
+                        {
+                            // Apply random rotation within specified angle range
+                            float randomAngle = Random.Range(bounceContext.UpRotationMinAngle, bounceContext.RotationMaxAngle);
+                            _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
+                        }
+                        
                         _data.Damage *= _system.Settings.BounceDamageDampingFactor;
                         
                         // Recompute movement for the remaining distance after the hit:

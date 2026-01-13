@@ -9,30 +9,36 @@ namespace MortierFu
     {
         private Collider[] _overlapBuffer = new Collider[100];
 
+        private int _availableCharges;
         private CountdownTimer _dashCooldownTimer;
         private CountdownTimer _dashTriggerTimer;
 
         public DashState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
             _dashCooldownTimer = new CountdownTimer(character.Stats.GetDashCooldown());
+            _dashCooldownTimer.OnTimerStop += OnCooldownTimerStop;
             _dashTriggerTimer = new CountdownTimer(character.Stats.DashDuration.Value);
 
             character.Stats.DashCooldown.OnDirtyUpdated += UpdateDashCooldown;
             character.Stats.DashDuration.OnDirtyUpdated += UpdateDashDuration;
+            character.Stats.DashCharges.OnDirtyUpdated += UpdateDashCharges;
         }
-
-        public bool InCooldown => _dashCooldownTimer.IsRunning;
+        
         public bool IsFinished => _dashTriggerTimer.IsFinished;
+        public int AvailableCharges => _availableCharges;
 
         public float DashCooldownProgress => _dashCooldownTimer.Progress;
 
         public override void OnEnter()
         {
-            _dashCooldownTimer.Start();
+            _availableCharges -= 1;
+            if (!_dashCooldownTimer.IsRunning)
+            {
+                _dashCooldownTimer.Start();
+            }
+            
             _dashTriggerTimer.Start();
             
-            Debug.Log("CD: " + _dashCooldownTimer.CurrentTime);
-
             animator.CrossFade(DashHash, k_crossFadeDuration, 0);
             
             EventBus<TriggerDash>.Raise(new TriggerDash()
@@ -44,7 +50,7 @@ namespace MortierFu
             if(debug)
                 Logs.Log("Entering Dash State");
             
-            Vector3 dashDir = new (character.Controller._moveDirection.x, 0, character.Controller._moveDirection.y);
+            Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
         }
 
@@ -74,6 +80,8 @@ namespace MortierFu
             
             _dashTriggerTimer.Reset();
             _dashTriggerTimer.Stop();
+
+            _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
         }
 
         // While dashing, the strike is executed every frame to bump other players or interact with objects.
@@ -158,10 +166,43 @@ namespace MortierFu
             float dashDuration = character.Stats.DashDuration.Value;
             _dashTriggerTimer.DynamicUpdate(dashDuration);
         }
+        
+        private void UpdateDashCharges()
+        {
+            int maxCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
+            if (_availableCharges > maxCharges)
+            {
+                _availableCharges = maxCharges;
+            }
+
+            if (!_dashCooldownTimer.IsRunning)
+            {
+                _dashCooldownTimer.Start();
+            }
+        }
+        
+        private void OnCooldownTimerStop()
+        {
+            _availableCharges += 1;
+            
+            // If more charges to refill restart
+            int maxCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
+            if (_availableCharges < maxCharges)
+            {
+                _dashCooldownTimer.Reset();
+                _dashCooldownTimer.Start();
+            }
+        }
 
         public override void Dispose() {
             character.Stats.DashCooldown.OnDirtyUpdated -= UpdateDashCooldown;
             character.Stats.DashDuration.OnDirtyUpdated -= UpdateDashDuration;
+            character.Stats.DashCharges.OnDirtyUpdated -= UpdateDashCharges;
+            
+            _dashCooldownTimer.OnTimerStop -= OnCooldownTimerStop;
+            
+            _dashCooldownTimer.Dispose();
+            _dashTriggerTimer.Dispose();
         }
     }
 }
