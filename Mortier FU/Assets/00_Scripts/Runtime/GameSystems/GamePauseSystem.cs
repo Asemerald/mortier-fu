@@ -1,13 +1,44 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public class PauseSystem : IGameSystem
+    public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
+        
+        private bool IsPaused { get; set; }
 
+        public event Action Paused;
+        public event Action Resumed;
+
+        public void TogglePause(InputAction.CallbackContext ctx)
+        {
+            if (IsPaused) Resume();
+            else Pause();
+        }
+        
+        public void Resume()
+        {
+            if (!IsPaused) return;
+
+            IsPaused = false;
+            Time.timeScale = 1f;
+            Resumed?.Invoke();
+        }
+        
+        private void Pause()
+        {
+            if (IsPaused) return;
+
+            IsPaused = true;
+            Time.timeScale = 0f;
+            Paused?.Invoke();
+        }
+        
         public void RestoreSettingsFromSave()
         {
             var s = _saveService.Settings;

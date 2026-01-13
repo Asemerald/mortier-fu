@@ -20,6 +20,9 @@ namespace MortierFu
         public GameObject CharacterGO => _inGameCharacter;
 
         private PlayerCharacter _playerCharacter;
+        
+        private GamePauseSystem _gamePauseSystem;
+        private InputAction _pauseAction;
 
         public PlayerCharacter Character
         {
@@ -46,11 +49,25 @@ namespace MortierFu
         {
             ServiceManager.Instance.Get<LobbyService>().RegisterPlayer(this);
             OnPlayerInitialized?.Invoke(this);
+            
+           
         }
 
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);
+            
+            if (_pauseAction != null)
+                _pauseAction.performed -= Pause;
+        }
+        
+        
+        private void Pause(InputAction.CallbackContext ctx)
+        {
+            if (PlayerIndex != 0)
+                return;
+
+            _gamePauseSystem.TogglePause(ctx);
         }
 
         /// <summary>
@@ -79,6 +96,20 @@ namespace MortierFu
             {
                 Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
             }
+            
+            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+            if (_gamePauseSystem == null)
+            {
+                Debug.LogError("wesh");
+            }
+            _pauseAction = PlayerInput.actions.FindAction("Pause");
+
+            if (_pauseAction == null)
+            {
+                Debug.LogError("error");
+            }
+
+            if (_pauseAction != null) _pauseAction.performed += Pause;
         }
 
         /// <summary>
