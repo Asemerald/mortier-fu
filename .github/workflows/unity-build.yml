@@ -32,8 +32,8 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: Library
-          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('**/ProjectVersion.txt') }}
+          path: Mortier FU/Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Mortier FU/**/ProjectVersion.txt') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
             Library-
