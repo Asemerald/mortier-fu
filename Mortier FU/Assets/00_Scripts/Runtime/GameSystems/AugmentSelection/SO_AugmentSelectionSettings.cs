@@ -21,7 +21,7 @@ namespace MortierFu
         public MinMaxRange CardPopInStagger = new(0.2f, 0.4f);
 
         [Tooltip("Delay before restoring player input after all animations have finished.")]
-        public float PlayerInputReenableDelay = 0.5f;
+        public float PlayerInputReenableDelay = 4.8f;
 
         [Header("Card Animation Ranges")]
         [Tooltip("Randomized duration range for the movement and scaling animation when each card moves to its target position.")]

@@ -89,7 +89,7 @@ namespace MortierFu
         {
             var origin = character.transform.position;
             var count = Physics.OverlapSphereNonAlloc(origin, character.Stats.GetStrikeRadius(), _overlapBuffer);
-
+            
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             var processedRoots = new HashSet<GameObject>();
             var hitCharacters = new HashSet<PlayerCharacter>();

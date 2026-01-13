@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
+using NaughtyAttributes;
 
 namespace MortierFu
 {
@@ -15,6 +16,10 @@ namespace MortierFu
 
         [Header("Player Image References")] [SerializeField]
         private Image[] _playerImages;
+        
+        [Header("Factory Reference")]
+        [SerializeField, Required]
+        private RarityBgSpriteFactory _rarityBgSpriteFactory;
 
         #endregion
 
@@ -89,13 +94,16 @@ namespace MortierFu
 
                     var rarityImage = child.GetComponent<Image>();
                     if (rarityImage != null)
-                        rarityImage.sprite = augment.RarityIcon;
+                    {
+                        var rarity = augment.Rarity;
+                        rarityImage.sprite = _rarityBgSpriteFactory.GetRarityBgSpriteFromRarity(rarity);
+                    }
 
                     if (child.childCount > 0)
                     {
                         var logoImage = child.GetChild(0).GetComponent<Image>();
                         if (logoImage != null)
-                            logoImage.sprite = augment.Icon;
+                            logoImage.sprite = augment.SmallSprite;
                     }
 
                     child.gameObject.SetActive(true);
