@@ -56,7 +56,7 @@ jobs:
       - name: Zip build
         run: |
           mkdir -p MortarGame
-          mv build/${{ matrix.targetPlatform }}/* MortarGame/
+          cp -r build/${{ matrix.targetPlatform }}/* MortarGame/
           zip -r MortarGame.zip MortarGame -x "*.pdb" "*/Logs/*" "*/crash.dmp"
           ls -lh MortarGame.zip
 
