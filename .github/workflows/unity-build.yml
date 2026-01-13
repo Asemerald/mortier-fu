@@ -55,9 +55,9 @@ jobs:
 
       - name: Zip build
         run: |
-          cd build/${{ matrix.targetPlatform }}
-          zip -r ../../MortarGame.zip . -x "*.pdb" "*/Logs/*" "*/crash.dmp"
-          cd ../..
+          mkdir -p MortarGame
+          mv build/${{ matrix.targetPlatform }}/* MortarGame/
+          zip -r MortarGame.zip MortarGame -x "*.pdb" "*/Logs/*" "*/crash.dmp"
           ls -lh MortarGame.zip
 
       - name: Extract PR title for version
