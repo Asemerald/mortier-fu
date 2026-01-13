@@ -63,8 +63,8 @@ namespace MortierFu
             _nameTxt.SetText(augment.Name.ToUpper());
             _nameTxt.color = data.NameColor;
             _descTxt.SetText(augment.Description);
-            _augmentIcon.sprite = augment.Icon;
-            _augmentCard.sprite = augment.AugmentCardVisual;
+            _augmentIcon.sprite = augment.SmallSprite;
+            _augmentCard.sprite = augment.CardSprite;
         }
 
         private RarityData GetRarityData(E_AugmentRarity augmentRarity) =>
