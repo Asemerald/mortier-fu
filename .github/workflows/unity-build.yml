@@ -1,4 +1,4 @@
-name: Build project
+name: Build and Release
 
 on:
   push:
@@ -52,35 +52,31 @@ jobs:
 
       - name: Zip build
         run: |
-          mkdir -p dist
           cd build/${{ matrix.targetPlatform }}
-          zip -r ../../dist/MortarGame.zip . -x "*.pdb" "*/Logs/*" "*/crash.dmp"
+          zip -r ../../MortarGame.zip . -x "*.pdb" "*/Logs/*" "*/crash.dmp"
           cd ../..
-          ls -lh dist/
+          ls -lh MortarGame.zip
 
-      - name: Upload to Google Drive
-        env:
-          GDRIVE_SERVICE_KEY: ${{ secrets.GOOGLE_DRIVE_API_KEY }}
-          GDRIVE_FILE_ID: ${{ secrets.GOOGLE_DRIVE_FILE_ID }}
+      - name: Extract PR title for version
+        id: pr_info
         run: |
-          # Installer rclone (plus moderne et maintenu que gdrive)
-          curl https://rclone.org/install.sh | sudo bash
-          
-          # Configurer rclone avec le service account
-          echo "$GDRIVE_SERVICE_KEY" > /tmp/service-account.json
-          
-          rclone config create gdrive drive \
-            scope drive \
-            service_account_file /tmp/service-account.json
-          
-          # Upload en remplaçant le fichier
-          rclone copy dist/MortarGame.zip gdrive:/ --drive-use-trash=false
-          
-          # Nettoyer
-          rm /tmp/service-account.json
+          PR_TITLE=$(git log -1 --pretty=%s)
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "Version: $PR_TITLE"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.pr_info.outputs.pr_title }}
+          name: ${{ steps.pr_info.outputs.pr_title }}
+          files: MortarGame.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: dist/MortarGame.zip
+          path: MortarGame.zip
           retention-days: 7
