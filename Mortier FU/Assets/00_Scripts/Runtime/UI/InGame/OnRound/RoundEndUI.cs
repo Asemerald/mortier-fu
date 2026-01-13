@@ -288,9 +288,6 @@ namespace MortierFu
                 var placeText = _playerPlaceTexts[i];
                 for (int k = 0; k < placeText.transform.childCount; k++)
                     placeText.transform.GetChild(k).gameObject.SetActive(false);
-
-                if (i < _scoreSliders.Length && _scoreSliders[i] != null)
-                    _scoreSliders[i].value = 0f;
             }
         }
 

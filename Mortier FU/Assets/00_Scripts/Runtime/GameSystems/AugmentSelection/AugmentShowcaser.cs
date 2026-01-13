@@ -135,6 +135,7 @@ namespace MortierFu
             foreach (var pickup in _pickups)
             {
                 pickup.ResetUI();
+                pickup.Reset();
                 pickup.Hide();
             }
             
@@ -161,7 +162,7 @@ namespace MortierFu
                 Ease.InQuad
             );
 
-            cardUI.DisableObjects();
+            cardUI.DisableObjectsOnFlip();
 
             await Tween.LocalRotation(
                 t,

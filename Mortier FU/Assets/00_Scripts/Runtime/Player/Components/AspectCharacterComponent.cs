@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
-    [System.Serializable]
+    [Serializable]
     public struct CharacterAspectMaterials
     {
         public Material BurnBaseVoronoiMat;
@@ -36,10 +36,9 @@ namespace MortierFu
         private Color _startingColor;
 
         private Color _startingOutlineColor;
-
+        
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        {
-        }
+        { }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
