@@ -57,7 +57,9 @@ namespace MortierFu
                 hits.Add(hitCollider.gameObject);
 
                 var rb = hitCollider.attachedRigidbody;
-                if (rb && rb.TryGetComponent(out PlayerCharacter character))
+                if (rb == null) continue;
+                
+                if (rb.TryGetComponent(out PlayerCharacter character))
                 {
                     // Prevent self-damage
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
@@ -76,7 +78,7 @@ namespace MortierFu
                     }
                 }
                 // temp check for breakable object
-                else if (hitCollider.TryGetComponent(out IInteractable interactable) &&
+                else if (rb.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
                     interactable.Interact();
