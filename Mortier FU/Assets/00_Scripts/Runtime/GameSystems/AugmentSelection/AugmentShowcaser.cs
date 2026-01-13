@@ -34,7 +34,6 @@ namespace MortierFu
             _cam = _cameraSystem.Controller.Camera;
         }
 
-
         public void Dispose()
         {
             // Noop

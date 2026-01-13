@@ -207,6 +207,8 @@ namespace MortierFu
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration));
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(3));
 
             await PlayCountdown();
         }
