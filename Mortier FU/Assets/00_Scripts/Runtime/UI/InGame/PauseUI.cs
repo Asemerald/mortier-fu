@@ -12,24 +12,37 @@ namespace MortierFu
         [SerializeField] private Slider _masterVolumeSlider;
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
+        
+        [SerializeField] private GameObject _pauseMenu;
 
-        private PauseSystem _pauseSystem;
+        private GamePauseSystem _gamePauseSystem;
 
-        private void Awake()
+        private void OnDestroy()
         {
-            Hide();
-            
-            _pauseSystem = SystemManager.Instance.Get<PauseSystem>();
-            _pauseSystem.RestoreSettingsFromSave();
-            _pauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
-                _sfxVolumeSlider);
-            _pauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
-                _sfxVolumeSlider);
+            _gamePauseSystem.Paused -= Show;
+            _gamePauseSystem.Resumed -= Hide;
+        }
+        
+        public void OnResumeButton()
+        {
+            _gamePauseSystem.Resume();
         }
 
         private void Start()
         {
-            _pauseSystem.SaveSettings();
+            Hide();
+            
+            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+          //  _gamePauseSystem.RestoreSettingsFromSave();
+           // _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
+           //     _sfxVolumeSlider);
+            _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
+                _sfxVolumeSlider);
+            
+            //_gamePauseSystem.SaveSettings();
+            
+            _gamePauseSystem.Paused += Show;
+            _gamePauseSystem.Resumed += Hide;
         }
 
         private void Resume()
@@ -42,8 +55,8 @@ namespace MortierFu
             Show();
         }
 
-        private void Hide() => gameObject.SetActive(false);
-        private void Show() => gameObject.SetActive(true);
+        private void Hide() => _pauseMenu.SetActive(false);
+        private void Show() => _pauseMenu.SetActive(true);
         
     }
 }
