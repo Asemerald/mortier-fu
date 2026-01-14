@@ -110,12 +110,12 @@ namespace MortierFu
         }
 
         public void Reset() {
-            _dashCooldownTimer.Reset();
-            _dashCooldownTimer.Stop();
-            
-            _dashTriggerTimer.Reset();
             _dashTriggerTimer.Stop();
 
+            _dashCooldownTimer.OnTimerStop -= OnCooldownTimerStop;
+            _dashCooldownTimer.Stop();
+            _dashCooldownTimer.OnTimerStop += OnCooldownTimerStop;
+            
             _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
         }
         
