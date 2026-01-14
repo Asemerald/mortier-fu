@@ -13,6 +13,8 @@ public class PlayerGameplayUI : MonoBehaviour
     private PlayerCharacter _character;
 
     [SerializeField] private Image _healthFillImg;
+    [SerializeField] private Image _healthTicksImg;
+    private Material _ticksMaterialInstance;
     [SerializeField] private Image _playerHUD;
     [SerializeField] private Image _strikeCdImage;
     [SerializeField] private Image _shootCdImage;
@@ -36,6 +38,9 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private readonly Vector3 _scaleOne = Vector3.one;
 
+    private static readonly int FillID = Shader.PropertyToID("_Fill");
+    private static readonly int ScalingYID = Shader.PropertyToID("_ScalingY");
+    
     private void OnEnable()
     {
         if (_character == null)
@@ -45,7 +50,11 @@ public class PlayerGameplayUI : MonoBehaviour
             return;
         }
 
+        _ticksMaterialInstance = new Material(_healthTicksImg.material);
+        _healthTicksImg.material = _ticksMaterialInstance;
+        
         _character.Health.OnHealthChanged += OnHealthChanged;
+        _character.Health.OnMaxHealthChanged += OnMaxHealthChanged;
         _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
     }
 
@@ -61,6 +70,9 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         _playerHUD.sprite = _playerHUDSprites[_character.Owner.PlayerIndex];
         GetColorAndIndex().Forget();
+
+        OnHealthChanged(1f);
+        OnMaxHealthChanged(1f);
     }
 
     private void Update()
@@ -110,7 +122,21 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void OnHealthChanged(float amount)
     {
-        _healthFillImg.fillAmount = _character.Health.HealthRatio;
+        float fillAmount = _character.Health.HealthRatio;
+        
+        _healthFillImg.fillAmount = fillAmount;
+        _ticksMaterialInstance.SetFloat(FillID, fillAmount);
+    }
+    
+    private void OnMaxHealthChanged(float _)
+    {
+        float baseHealth = _character.Stats.MaxHealth.BaseValue;
+        float maxHealth = _character.Stats.MaxHealth.Value;
+
+        float delta = maxHealth - baseHealth;
+        float scalingY = 0.5f + delta / baseHealth * 0.5f;
+        
+        _ticksMaterialInstance.SetFloat(ScalingYID, scalingY);
     }
     
     private void OnDashChargeUpdated()

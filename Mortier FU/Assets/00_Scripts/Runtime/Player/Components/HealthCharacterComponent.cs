@@ -9,6 +9,7 @@ namespace MortierFu
     {
         /// Sent every time health changes. Provide the amount of change (positive or negative).
         public Action<float> OnHealthChanged;
+        public Action<float> OnMaxHealthChanged;
 
         public Action<object> OnDeath;
 
@@ -111,6 +112,9 @@ namespace MortierFu
 
             // Always clamp to ensure we stay inside valid bounds
             _currentHealth = Mathf.Clamp(_currentHealth, 0f, _maxHealth);
+
+            OnHealthChanged?.Invoke(delta);
+            OnMaxHealthChanged?.Invoke(_maxHealth);
         }
 
         public override void Dispose()
