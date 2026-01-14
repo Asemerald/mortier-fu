@@ -17,10 +17,14 @@ namespace MortierFu
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
 
+        [Header("Dash Trail")]
+        [SerializeField] private GameObject _dashTrailPrefab;
+        
         [Header("Mortar")] [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        [Header("Aspect")] [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
+        [Header("Aspect")]
+        [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
 
         [Header("References")] [SerializeField]
         private Animator _animator;
@@ -61,6 +65,7 @@ namespace MortierFu
         public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
+        public int AvailableDashCharges => _dashState.AvailableCharges;
 
         public Transform GetStrikePoint() => _strikePoint;
         
@@ -82,6 +87,9 @@ namespace MortierFu
             }
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
+            
+            // Now that player materials are populated to the Aspect Component, we can initialize the trail.
+            _dashState.InitializeTrail(_dashTrailPrefab);
         }
 
         void Awake()
@@ -118,7 +126,7 @@ namespace MortierFu
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
             //TEMP Initialiser l'aimindicator
-          //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
+            //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
 
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine.UI;
@@ -20,11 +21,6 @@ namespace MortierFu
 
         [SerializeField] private RectTransform _infoRoot;
 
-        [SerializeField] private float _hideInfoDuration = 0.3f;
-        [SerializeField] private float _fadeOutDuration = 0.2f;
-
-        [SerializeField] private Ease _slideOutEase = Ease.InQuad;
-
         [SerializeField] private GameObject _explosionCardVFXPrefab;
 
         [SerializeField] private float _showExplosionDelay = 0.1f;
@@ -39,6 +35,8 @@ namespace MortierFu
 
         private bool _initialized;
 
+        private CancellationTokenSource _cts;
+
         public void Initialize()
         {
             _faceCamera = GetComponent<FaceCamera>();
@@ -50,6 +48,18 @@ namespace MortierFu
             _initialScale = transform.localScale;
             _initialInfoPos = _infoRoot.anchoredPosition;
             _initialCanvasAlpha = _canvasGroup.alpha;
+        }
+
+        private void OnDisable()
+        {
+            _cts?.Cancel();
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -79,15 +89,18 @@ namespace MortierFu
 
         private async UniTask PlayBoonDropTransition(GameObject pickupVFX)
         {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay));
-
+            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay), cancellationToken: token);
             _explosionCardVFXPrefab.SetActive(true);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
             pickupVFX.SetActive(true);
         }
@@ -117,7 +130,12 @@ namespace MortierFu
         }
 
         public void Show() => gameObject.SetActive(true);
-        public void Hide() => gameObject.SetActive(false);
+
+        public void Hide()
+        {
+            _cts?.Cancel();
+            gameObject.SetActive(false);
+        }
 
         public void ResetUI()
         {

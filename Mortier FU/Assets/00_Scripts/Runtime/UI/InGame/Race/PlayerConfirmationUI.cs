@@ -1,9 +1,10 @@
-using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using UnityEngine.UI;
-using UnityEngine;
-using PrimeTween;
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
+using PrimeTween;
 
 namespace MortierFu
 {
@@ -71,6 +72,8 @@ namespace MortierFu
 
         private Sequence _countdownSequence;
 
+        private CancellationTokenSource _cts;
+
         #endregion
 
         #endregion
@@ -78,42 +81,65 @@ namespace MortierFu
         private void Awake()
         {
             _initialCountdownScale = _countdownImage.transform.localScale;
-
             _initialRaceScale = _raceGameObject.transform.localScale;
-            _raceGameObject.SetActive(false);
 
+            _raceGameObject.SetActive(false);
             _countdownImage.gameObject.SetActive(false);
+        }
+
+        private void OnEnable()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
         }
 
         private void OnDisable()
         {
+            CleanupTweens();
+            _cts?.Cancel();
+        }
+
+        private void OnDestroy()
+        {
+            CleanupTweens();
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+        }
+
+        private void CleanupTweens()
+        {
             if (_countdownSequence.isAlive)
                 _countdownSequence.Stop();
+
+            foreach (var slot in _playerSlots)
+            {
+                slot.ATween.Stop();
+                slot.ScaleTween.Stop();
+            }
         }
 
         private async UniTask PlayCountdown(int seconds = 3)
         {
             ShowCountdownImage();
-
             _countdownImage.gameObject.SetActive(true);
-
             _countdownImage.sprite = _countdownSprites[0];
 
             for (int t = seconds; t > 0; t--)
             {
                 SetCountdownVisual(t);
-                await AnimateCountdownNumber();
+                await AnimateCountdownNumber(_cts.Token);
             }
 
             _countdownImage.gameObject.SetActive(false);
 
-            await ShowPlay();
+            await ShowPlay(_cts.Token);
         }
 
-        private async UniTask ShowPlay()
+        private async UniTask ShowPlay(CancellationToken ct)
         {
             _raceGameObject.SetActive(true);
-
             _raceGameObject.transform.localScale = Vector3.zero;
 
             await Tween.Scale(
@@ -122,9 +148,9 @@ namespace MortierFu
                 _initialRaceScale,
                 _racePopDuration,
                 _playEaseIn
-            );
+            ).ToUniTask(cancellationToken: ct);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_raceDisableDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(_raceDisableDelay), cancellationToken: ct);
 
             _raceGameObject.SetActive(false);
             gameObject.SetActive(false);
@@ -136,7 +162,7 @@ namespace MortierFu
             _countdownImage.sprite = _countdownSprites[index];
         }
 
-        private async UniTask AnimateCountdownNumber()
+        private async UniTask AnimateCountdownNumber(CancellationToken ct)
         {
             if (_countdownSequence.isAlive)
                 _countdownSequence.Stop();
@@ -145,20 +171,29 @@ namespace MortierFu
 
             const float growthDuration = 0.3f;
             const float shrinkDuration = 0.3f;
-            float bumpDuration = 0.4f;
+            const float bumpDuration = 0.4f;
 
             _countdownSequence = Sequence.Create()
                 .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, growthDuration, Ease.OutBack))
-                .Group(Tween.Rotation(_countdownImage.transform, Quaternion.Euler(0f, 0f, 180),
+                .Group(Tween.Rotation(
+                    _countdownImage.transform,
+                    Quaternion.Euler(0f, 0f, 180),
                     Quaternion.Euler(0f, 0f, 0f),
-                    growthDuration * 0.9f, Ease.OutBack, startDelay: growthDuration * 0.1f))
+                    growthDuration * 0.9f,
+                    Ease.OutBack,
+                    startDelay: growthDuration * 0.1f
+                ))
                 .ChainDelay(bumpDuration)
                 .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, shrinkDuration, Ease.InBack))
-                .Group(Tween.Rotation(_countdownImage.transform,
-                    Quaternion.Euler(0f, 0f, 180f), shrinkDuration * 0.9f, Ease.InBack,
-                    startDelay: shrinkDuration * 0.1f));
+                .Group(Tween.Rotation(
+                    _countdownImage.transform,
+                    Quaternion.Euler(0f, 0f, 180),
+                    shrinkDuration * 0.9f,
+                    Ease.InBack,
+                    startDelay: shrinkDuration * 0.1f
+                ));
 
-            await _countdownSequence;
+            await _countdownSequence.ToUniTask(cancellationToken: ct);
         }
 
         private void ShowCountdownImage()
@@ -183,32 +218,26 @@ namespace MortierFu
             StartButtonsAnimation(activePlayerCount);
         }
 
-        public void OnConfirmation()
-        {
-            HideConfirmation().Forget();
-        }
+        public void OnConfirmation() => HideConfirmation(_cts.Token).Forget();
 
-        private async UniTaskVoid HideConfirmation()
+        private async UniTask HideConfirmation(CancellationToken ct)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(0.25f));
+            await UniTask.Delay(TimeSpan.FromSeconds(0.25f), cancellationToken: ct);
 
             foreach (var slot in _playerSlots)
             {
                 if (!slot.IsActive) continue;
 
-                if (slot.ATween.isAlive)
-                    slot.ATween.Stop();
-                if (slot.ScaleTween.isAlive)
-                    slot.ScaleTween.Complete();
+                slot.ATween.Stop();
+                slot.ScaleTween.Stop();
 
-                slot.ScaleTween = Tween
-                    .Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, _slotEaseIn)
-                    .OnComplete(() => { slot.Animator.enabled = false; });
+                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, _slotEaseIn)
+                    .OnComplete(() => slot.Animator.enabled = false);
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration));
-            
-            await UniTask.Delay(TimeSpan.FromSeconds(3));
+            await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(3), cancellationToken: ct);
 
             await PlayCountdown();
         }
@@ -227,7 +256,7 @@ namespace MortierFu
                 if (slot.ATween.isAlive)
                     slot.ATween.Stop();
                 if (slot.ScaleTween.isAlive)
-                    slot.ScaleTween.Complete();
+                    slot.ScaleTween.Stop();
 
                 if (!slot.IsActive) continue;
 
@@ -251,7 +280,6 @@ namespace MortierFu
                 return;
 
             var slot = _playerSlots[playerIndex];
-
             if (slot.ATween.isAlive)
                 slot.ATween.Stop();
 

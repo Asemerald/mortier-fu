@@ -5,12 +5,21 @@ namespace MortierFu {
     /// <summary>
     /// Credits: <see href="https://www.youtube.com/@git-amend">git-amend</see>
     /// </summary>
-    public abstract class Timer : IDisposable {
+    public abstract class Timer : IDisposable
+    {
         public float InitialTime { get; protected set; }
         public float CurrentTime { get; protected set; }
         public bool IsRunning { get; private set; }
 
-        public virtual float Progress => InitialTime == 0f ? 0 : Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
+        public virtual float Progress
+        {
+            get
+            {
+                // If timer is stopped
+                if (!IsRunning || InitialTime == 0f) return 0f;
+                return Mathf.Clamp(CurrentTime / InitialTime, 0f, 1f);
+            }
+        }
         
         public Action OnTimerStart = delegate { };
         public Action OnTimerStop = delegate { };
