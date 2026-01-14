@@ -20,11 +20,6 @@ namespace MortierFu
 
         [SerializeField] private RectTransform _infoRoot;
 
-        [SerializeField] private float _hideInfoDuration = 0.3f;
-        [SerializeField] private float _fadeOutDuration = 0.2f;
-
-        [SerializeField] private Ease _slideOutEase = Ease.InQuad;
-
         [SerializeField] private GameObject _explosionCardVFXPrefab;
 
         [SerializeField] private float _showExplosionDelay = 0.1f;

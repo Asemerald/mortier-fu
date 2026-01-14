@@ -1,7 +1,11 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -33,8 +37,11 @@ namespace MortierFu
         private float _headYOffset = 80f;
 
         [SerializeField] private float _headPulseOffset = 15f;
-        [SerializeField] private float _headMoveDuration = 0.8f;
+        [SerializeField] private float _headMoveDuration = 0.4f;
         [SerializeField] private float _headPulseDuration = 0.4f;
+        [SerializeField] private float _minRandomDelay = 0.01f;
+        [SerializeField] private float _maxRandomDelay = 0.2f;
+
         [SerializeField] private Ease _headMoveEase = Ease.OutCubic;
         [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
 
@@ -49,6 +56,8 @@ namespace MortierFu
         private GameModeBase _gm;
         private GamePauseSystem _gamePauseSystem;
 
+        private CancellationTokenSource _animateCancellation;
+
         private void OnDestroy()
         {
             if (_gamePauseSystem != null)
@@ -56,6 +65,10 @@ namespace MortierFu
                 _gamePauseSystem.Paused -= Pause;
                 _gamePauseSystem.Resumed -= UnPause;
             }
+            
+            _mortarHandsInitialPositions = null;
+            _mortarHeadsInitialPositions = null;
+            _mortarInitialRotations = null;
         }
 
         private void Start()
@@ -157,8 +170,12 @@ namespace MortierFu
             }
         }
 
-        private void RandomizeAndAnimateMortars()
+        private async UniTask RandomizeAndAnimateMortars(CancellationToken ct)
         {
+            for (int i = 0; i < _activeHeadTweens.Length; i++)
+                if (_activeHeadTweens[i].isAlive)
+                    _activeHeadTweens[i].Stop();
+
             int playerCount = Mathf.Min(_lobbyService.CurrentPlayerCount, _mortarHands.Length);
 
             int[] indices = new int[_mortarHandsInitialPositions.Length];
@@ -167,6 +184,8 @@ namespace MortierFu
 
             for (int i = 0; i < playerCount; i++)
             {
+                if (ct.IsCancellationRequested) return;
+
                 int positionIndex = indices[i];
                 var hand = _mortarHands[i];
                 var head = _mortarHeads[i];
@@ -174,7 +193,6 @@ namespace MortierFu
                 Vector3 handTargetPos = _mortarHandsInitialPositions[positionIndex];
                 hand.transform.position = handTargetPos;
                 hand.transform.rotation = _mortarInitialRotations[i];
-
                 bool shouldRotate = (i % 2) != (positionIndex % 2);
                 if (shouldRotate) hand.transform.Rotate(0f, 0f, 180f);
                 hand.SetActive(true);
@@ -185,30 +203,31 @@ namespace MortierFu
 
                 Vector3 wallNormal = (positionIndex % 2 == 0) ? Vector3.down : Vector3.up;
                 Vector3 headStartPos = headTargetPos + wallNormal * _headYOffset;
-
                 head.transform.position = headStartPos;
                 head.SetActive(true);
 
-                int capturedIndex = i;
-
-                Tween.Position(
+                await Tween.Position(
                     head.transform,
                     headTargetPos,
                     _headMoveDuration,
                     _headMoveEase,
                     useUnscaledTime: true
-                ).OnComplete(() =>
-                {
-                    _activeHeadTweens[capturedIndex] = Tween.Position(
-                        head.transform,
-                        headTargetPos + wallNormal * _headPulseOffset,
-                        _headPulseDuration,
-                        _headPulseEase,
-                        cycles: -1,
-                        cycleMode: CycleMode.Yoyo,
-                        useUnscaledTime: true
-                    );
-                });
+                ).ToUniTask(cancellationToken: ct);
+
+                if (ct.IsCancellationRequested) return;
+
+                _activeHeadTweens[i] = Tween.Position(
+                    head.transform,
+                    headTargetPos + wallNormal * _headPulseOffset,
+                    _headPulseDuration,
+                    _headPulseEase,
+                    cycles: -1,
+                    cycleMode: CycleMode.Yoyo,
+                    useUnscaledTime: true
+                );
+
+                float delay = Random.Range(_minRandomDelay, _maxRandomDelay);
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), ignoreTimeScale: true, cancellationToken: ct);
             }
         }
 
@@ -225,7 +244,12 @@ namespace MortierFu
         {
             _pausePanel.SetActive(true);
             _pauseBackground.SetActive(true);
-            RandomizeAndAnimateMortars();
+
+            _animateCancellation?.Cancel();
+            _animateCancellation?.Dispose();
+            _animateCancellation = new CancellationTokenSource();
+
+            RandomizeAndAnimateMortars(_animateCancellation.Token).Forget();
         }
     }
 }
