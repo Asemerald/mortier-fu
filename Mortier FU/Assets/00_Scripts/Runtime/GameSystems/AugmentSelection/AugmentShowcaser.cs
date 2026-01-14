@@ -3,6 +3,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using PrimeTween;
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Object = UnityEngine.Object;
 using Vector3 = UnityEngine.Vector3;
@@ -18,6 +19,7 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
         private readonly ReadOnlyCollection<GameObject> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
+        private CancellationTokenSource _cts;
 
         private Transform[] _augmentPoints;
 
@@ -36,11 +38,16 @@ namespace MortierFu
 
         public void Dispose()
         {
-            // Noop
+            StopShowcase();
         }
 
         public async UniTask Showcase(Transform pivot, Vector3[] augmentPoints, int augmentCount)
         {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+
             float alpha = (augmentCount - 3) / 2f;
             float cardScale = Mathf.Lerp(_system.Settings.DisplayedCardScaleRange.Min,
                 _system.Settings.DisplayedCardScaleRange.Max,
@@ -55,8 +62,10 @@ namespace MortierFu
 
             for (int i = 0; i < _pickups.Count; i++)
             {
+                ct.ThrowIfCancellationRequested();
+
                 var pickup = _pickups[i];
-                pickup.ResetUI(); 
+                pickup.ResetUI();
                 pickup.SetFaceCameraEnabled(true);
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
                 pickup.transform.localScale = Vector3.zero;
@@ -66,22 +75,26 @@ namespace MortierFu
                 pickupVFX.transform.localPosition = pickup.transform.position;
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
 
-                GrowPickup(pickup, cardScale).Forget();
+                GrowPickup(pickup, cardScale, ct).Forget();
 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
-                await UniTask.Delay(TimeSpan.FromSeconds(stagger));
+                await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration));
+            ct.ThrowIfCancellationRequested();
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration), cancellationToken: ct);
+
             _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
             await _confirmationService.WaitUntilAllConfirmed();
 
             for (int i = 0; i < _pickups.Count; i++)
             {
+                ct.ThrowIfCancellationRequested();
+
                 var pickup = _pickups[i];
                 var pickupVFX = _pickupsVFX[i];
 
-                await FlipPickup(pickup);
+                await FlipPickup(pickup, ct);
                 await pickup.PlayRevealSequence(pickupVFX);
             }
 
@@ -95,6 +108,8 @@ namespace MortierFu
 
             for (var i = 0; i < _pickups.Count; i++)
             {
+                ct.ThrowIfCancellationRequested();
+
                 var pickupVFX = _pickupsVFX[i];
 
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
@@ -107,47 +122,31 @@ namespace MortierFu
                 pickupVFX.transform.SetParent(_augmentPoints[i]);
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale).Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct).Forget();
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()));
+                await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
+                    cancellationToken: ct);
             }
         }
 
-        private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale)
+        private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
-            await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce);
+            await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
+                .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale)
+        private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale,
+            CancellationToken ct)
         {
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
                 .Group(Tween.Scale(pickup.transform, scale, 1, duration,
-                    Ease.OutBack));
-            //.OnComplete(() => { pickup.SetFaceCameraEnabled(true); });
+                    Ease.OutBack)).ToUniTask(cancellationToken: ct);
         }
 
-        public void StopShowcase()
-        {
-            _system.RestorePickupParent();
-
-            foreach (var pickup in _pickups)
-            {
-                pickup.ResetUI();
-                pickup.Reset();
-                pickup.Hide();
-            }
-            
-            for (int i = _augmentPoints.Length - 1; i >= 0; i--)
-            {
-                Object.Destroy(_augmentPoints[i].gameObject);
-            }
-        }
-
-        private async UniTask FlipPickup(AugmentCardUI cardUI, float duration = 0.5f)
+        private async UniTask FlipPickup(AugmentCardUI cardUI, CancellationToken ct, float duration = 0.5f)
         {
             cardUI.SetFaceCameraEnabled(false);
-
             Transform t = cardUI.transform;
 
             Quaternion startRot = t.localRotation;
@@ -159,7 +158,9 @@ namespace MortierFu
                 midRot,
                 duration * 0.5f,
                 Ease.InQuad
-            );
+            ).ToUniTask(cancellationToken: ct);
+
+            ct.ThrowIfCancellationRequested();
 
             cardUI.DisableObjectsOnFlip();
 
@@ -168,7 +169,33 @@ namespace MortierFu
                 endRot,
                 duration * 0.5f,
                 Ease.OutQuad
-            );
+            ).ToUniTask(cancellationToken: ct);
+        }
+
+        public void StopShowcase()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+
+            _system.RestorePickupParent();
+
+            foreach (var pickup in _pickups)
+            {
+                pickup.ResetUI();
+                pickup.Reset();
+                pickup.Hide();
+            }
+
+            if (_augmentPoints == null) return;
+            
+            for (int i = _augmentPoints.Length - 1; i >= 0; i--)
+            {
+                if (_augmentPoints[i] != null)
+                    Object.Destroy(_augmentPoints[i].gameObject);
+            }
+
+            _augmentPoints = null;
         }
     }
 }
