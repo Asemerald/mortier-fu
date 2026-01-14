@@ -58,19 +58,6 @@ namespace MortierFu
 
         private CancellationTokenSource _animateCancellation;
 
-        private void OnDestroy()
-        {
-            if (_gamePauseSystem != null)
-            {
-                _gamePauseSystem.Paused -= Pause;
-                _gamePauseSystem.Resumed -= UnPause;
-            }
-            
-            _mortarHandsInitialPositions = null;
-            _mortarHeadsInitialPositions = null;
-            _mortarInitialRotations = null;
-        }
-
         private void Start()
         {
             _eventSystem = EventSystem.current;
@@ -100,6 +87,7 @@ namespace MortierFu
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
             _mortarHeadsInitialPositions = new Vector3[_mortarHeads.Length];
             _mortarInitialRotations = new Quaternion[_mortarHands.Length];
+            _activeHeadTweens = new Tween[_mortarHeads.Length];
 
             for (int i = 0; i < _mortarHands.Length; i++)
             {
@@ -111,18 +99,61 @@ namespace MortierFu
                 _mortarHands[i].SetActive(false);
             }
 
-            _activeHeadTweens = new Tween[_mortarHeads.Length];
-
             Hide();
         }
 
-        private void UnPause() => Hide();
+        private void OnDestroy()
+        {
+            if (_gamePauseSystem != null)
+            {
+                _gamePauseSystem.Paused -= Pause;
+                _gamePauseSystem.Resumed -= UnPause;
+            }
+
+            _animateCancellation?.Cancel();
+            _animateCancellation?.Dispose();
+
+            _mortarHandsInitialPositions = null;
+            _mortarHeadsInitialPositions = null;
+            _mortarInitialRotations = null;
+
+            if (_activeHeadTweens == null) return;
+
+            foreach (var tween in _activeHeadTweens)
+            {
+                if (tween.isAlive)
+                    tween.Stop();
+            }
+        }
+
+        private void OnDisable()
+        {
+            StopAllAnimations();
+        }
+
+        private void StopAllAnimations()
+        {
+            if (_activeHeadTweens != null)
+            {
+                foreach (var tween in _activeHeadTweens)
+                {
+                    if (tween.isAlive)
+                        tween.Stop();
+                }
+            }
+
+            _animateCancellation?.Cancel();
+            _animateCancellation?.Dispose();
+            _animateCancellation = null;
+        }
 
         private void Pause()
         {
             Show();
             _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
         }
+
+        private void UnPause() => Hide();
 
         private void ShowSettingsPanel()
         {
@@ -142,20 +173,26 @@ namespace MortierFu
             _eventSystem.SetSelectedGameObject(null);
         }
 
+        private void Show()
+        {
+            _pausePanel.SetActive(true);
+            _pauseBackground.SetActive(true);
+
+            _animateCancellation?.Cancel();
+            _animateCancellation?.Dispose();
+            _animateCancellation = new CancellationTokenSource();
+
+            RandomizeAndAnimateMortars(_animateCancellation.Token).Forget();
+        }
+
         private void Hide()
         {
+            _pausePanel.SetActive(false);
+            _pauseBackground.SetActive(false);
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
-            _pauseBackground.SetActive(false);
-            _pausePanel.SetActive(false);
 
-            if (_activeHeadTweens != null)
-            {
-                foreach (var tween in _activeHeadTweens)
-                {
-                    tween.Stop();
-                }
-            }
+            StopAllAnimations();
 
             for (int i = 0; i < _mortarHands.Length; i++)
             {
@@ -238,18 +275,6 @@ namespace MortierFu
                 int j = Random.Range(0, i + 1);
                 (array[i], array[j]) = (array[j], array[i]);
             }
-        }
-
-        private void Show()
-        {
-            _pausePanel.SetActive(true);
-            _pauseBackground.SetActive(true);
-
-            _animateCancellation?.Cancel();
-            _animateCancellation?.Dispose();
-            _animateCancellation = new CancellationTokenSource();
-
-            RandomizeAndAnimateMortars(_animateCancellation.Token).Forget();
         }
     }
 }
