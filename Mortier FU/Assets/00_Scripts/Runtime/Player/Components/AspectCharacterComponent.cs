@@ -21,6 +21,7 @@ namespace MortierFu
         public SkinnedMeshRenderer[] PlayerMeshes;
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
         public GameObject SpawnVFXPrefab;
+        public Material DashTrailMaterial;
     }
 
     public class AspectCharacterComponent : CharacterComponent
@@ -38,11 +39,11 @@ namespace MortierFu
         private Color _startingOutlineColor;
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        {
-        }
+        { }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
+        public Material GetDashTrailMaterial() => AspectMaterials.DashTrailMaterial;
 
         public CharacterAspectMaterials AspectMaterials { get; private set; }
 
@@ -154,17 +155,10 @@ namespace MortierFu
                 onVFXCompleted?.Invoke(character);
             }
         }
-
+        
         public override void Dispose()
         {
             _blinkTween.Stop();
         }
-        // private static Color GetColorForPlayerIndex(int index, int totalPlayers,
-        //     float hueOffset = 0f, float saturation = 1f, float value = 1f)
-        // {
-        //     float segment = 1f / Mathf.Max(1, totalPlayers);
-        //     float hue = (segment * index + hueOffset) % 1f;
-        //     return Color.HSVToRGB(hue, saturation, value);
-        // }
     }
 }

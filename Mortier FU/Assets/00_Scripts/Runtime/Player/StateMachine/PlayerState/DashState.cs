@@ -17,6 +17,7 @@ namespace MortierFu
         private CountdownTimer _dashTriggerTimer;
 
         private LayerMask _whatIsStrikable;
+        private TrailRenderer _trailInstance;
 
         public DashState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
@@ -32,6 +33,20 @@ namespace MortierFu
             character.Stats.DashCharges.OnDirtyUpdated += UpdateDashCharges;
 
             _whatIsStrikable = LayerMask.GetMask("DynamicActors");
+        }
+
+        public void InitializeTrail(GameObject trailPrefab)
+        {
+            if (!trailPrefab)
+            {
+                Logs.LogError("Null trail prefab in dash state !");
+                return;
+            }
+            
+            var vfxGO = Object.Instantiate(trailPrefab, character.transform);
+            _trailInstance = vfxGO.GetComponent<TrailRenderer>();
+            _trailInstance.material = character.Aspect.GetDashTrailMaterial();
+            _trailInstance.emitting = false;
         }
         
         public bool IsFinished => _dashTriggerTimer.IsFinished;
@@ -66,6 +81,9 @@ namespace MortierFu
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();
             _hitCharacters.Clear();
+
+            if (_trailInstance)
+                _trailInstance.emitting = true;
         }
 
         public override void Update()
@@ -83,6 +101,9 @@ namespace MortierFu
         public override void OnExit()
         {
             _dashTriggerTimer.Stop();
+            
+            if(_trailInstance)
+                _trailInstance.emitting = false;
             
             if(debug) 
                 Logs.Log("Exiting Dash State");
@@ -201,7 +222,11 @@ namespace MortierFu
             }
         }
 
-        public override void Dispose() {
+        public override void Dispose()
+        {
+            if (_trailInstance)
+                Object.Destroy(_trailInstance.gameObject);
+            
             character.Stats.DashCooldown.OnDirtyUpdated -= UpdateDashCooldown;
             character.Stats.DashDuration.OnDirtyUpdated -= UpdateDashDuration;
             character.Stats.DashCharges.OnDirtyUpdated -= UpdateDashCharges;

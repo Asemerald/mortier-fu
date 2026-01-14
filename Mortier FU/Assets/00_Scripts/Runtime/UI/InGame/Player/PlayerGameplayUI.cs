@@ -28,6 +28,12 @@ public class PlayerGameplayUI : MonoBehaviour
     [SerializeField] private Ease _iconInEase = Ease.InBack;
     [SerializeField] private Ease _healthBarEase = Ease.OutBack;
 
+    [Header("Dash")]
+    [SerializeField] private GameObject _dashChargeBg;
+    [SerializeField] private RawImage _dashChargeTiledImg;
+    private int _currentDashCharges = 0;
+    private const int k_maxDashCharges = 7;
+
     private readonly Vector3 _scaleOne = Vector3.one;
 
     private void OnEnable()
@@ -40,12 +46,15 @@ public class PlayerGameplayUI : MonoBehaviour
         }
 
         _character.Health.OnHealthChanged += OnHealthChanged;
+        _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
     }
 
     private void OnDisable()
     {
         if (_character == null) return;
+        
         _character.Health.OnHealthChanged -= OnHealthChanged;
+        _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
     }
 
     private void Start()
@@ -65,6 +74,8 @@ public class PlayerGameplayUI : MonoBehaviour
 
         // _shootCdImage.enabled = shootProgress >= 0f;
         _shootCdImage.fillAmount = shootProgress;
+
+        UpdateDashChargeSprite();
     }
 
     private async UniTaskVoid GetColorAndIndex()
@@ -100,5 +111,29 @@ public class PlayerGameplayUI : MonoBehaviour
     private void OnHealthChanged(float amount)
     {
         _healthFillImg.fillAmount = _character.Health.HealthRatio;
+    }
+    
+    private void OnDashChargeUpdated()
+    {
+        int dashCharges = Mathf.RoundToInt(_character.Stats.DashCharges.Value);
+        
+        _dashChargeBg.SetActive(dashCharges > 1);
+        UpdateDashChargeSprite();
+    }
+    
+    private void UpdateDashChargeSprite()
+    {
+        // Retrieve from character the amount of charges.
+        int dashCharges = _character.AvailableDashCharges;
+        
+        // If we the amount hasn't change, no reason to change the sprite.
+        if (_currentDashCharges == dashCharges)
+            return;
+
+        _currentDashCharges = dashCharges;
+        
+        Rect rect = _dashChargeTiledImg.uvRect;
+        rect.x = 1f / k_maxDashCharges * dashCharges;
+        _dashChargeTiledImg.uvRect = rect;
     }
 }
