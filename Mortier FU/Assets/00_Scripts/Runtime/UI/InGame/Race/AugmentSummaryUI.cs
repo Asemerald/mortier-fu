@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
@@ -16,9 +17,8 @@ namespace MortierFu
 
         [Header("Player Image References")] [SerializeField]
         private Image[] _playerImages;
-        
-        [Header("Factory Reference")]
-        [SerializeField, Required]
+
+        [Header("Factory Reference")] [SerializeField, Required]
         private RarityBgSpriteFactory _rarityBgSpriteFactory;
 
         #endregion
@@ -54,21 +54,53 @@ namespace MortierFu
 
         #region Runtime State
 
-        private Tween _tween;
+        private List<Tween> _activeTweens = new List<Tween>();
+        private CancellationTokenSource _cts;
 
         #endregion
 
         #endregion
+
+        private void OnEnable()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+        }
+
+        private void OnDisable()
+        {
+            CancelAnimations();
+        }
+
+        private void OnDestroy()
+        {
+            CancelAnimations();
+            _cts?.Dispose();
+            _cts = null;
+        }
+
+        private void CancelAnimations()
+        {
+            foreach (var tween in _activeTweens)
+                tween.Stop();
+
+            _activeTweens.Clear();
+
+            _cts?.Cancel();
+        }
 
         public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments)
         {
+            if (_cts == null) _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+
             int playerCount = playerAugments.Count;
 
             for (int i = 0; i < _playerImages.Length; i++)
             {
                 bool active = i < playerCount;
                 var playerImage = _playerImages[i];
-
                 playerImage.gameObject.SetActive(active);
                 if (!active) continue;
 
@@ -91,7 +123,6 @@ namespace MortierFu
                     }
 
                     var augment = augments[augments.Count - 1 - c];
-
                     var rarityImage = child.GetComponent<Image>();
                     if (rarityImage != null)
                     {
@@ -112,28 +143,26 @@ namespace MortierFu
 
             for (int i = 0; i < playerCount; i++)
             {
-                var playerTransform = _playerImages[i].transform;
+                ct.ThrowIfCancellationRequested();
 
-                _tween = Tween.Scale(
-                    playerTransform,
-                    Vector3.zero,
-                    Vector3.one * _playerTargetScale,
-                    _playerScaleDuration,
-                    _playerScaleEase
-                );
+                var playerTransform = _playerImages[i].transform;
+                var playerTween = Tween.Scale(playerTransform, Vector3.zero, Vector3.one * _playerTargetScale,
+                    _playerScaleDuration, _playerScaleEase);
+                _activeTweens.Add(playerTween);
 
                 await UniTask.Yield();
-                await AnimateChildren(playerTransform);
-                await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay));
+                await AnimateChildren(playerTransform, ct);
+                await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay), cancellationToken: ct);
             }
 
-            if (_tween.isAlive)
-                await _tween;
+            foreach (var tween in _activeTweens)
+                if (tween.isAlive)
+                    await tween.ToUniTask(cancellationToken: ct);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration));
+            await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration), cancellationToken: ct);
         }
 
-        private async UniTask AnimateChildren(Transform parent)
+        private async UniTask AnimateChildren(Transform parent, CancellationToken ct)
         {
             int childCount = parent.childCount;
             if (childCount == 0) return;
@@ -154,26 +183,18 @@ namespace MortierFu
 
             for (int i = 0; i < childCount; i++)
             {
+                ct.ThrowIfCancellationRequested();
+                
                 Transform child = parent.GetChild(i);
                 if (!child.gameObject.activeSelf) continue;
 
-                Tween.Scale(
-                    child,
-                    Vector3.zero,
-                    Vector3.one,
-                    _augmentIconAnimDuration,
-                    _augmentIconScaleEase
-                );
+                var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _augmentIconAnimDuration, _augmentIconScaleEase);
+                var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _augmentIconAnimDuration, _augmentIconMoveEase);
 
-                Tween.LocalPosition(
-                    child,
-                    Vector3.zero,
-                    finalPositions[i],
-                    _augmentIconAnimDuration,
-                    _augmentIconMoveEase
-                );
+                _activeTweens.Add(scaleTween);
+                _activeTweens.Add(moveTween);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_childAnimDelay));
+                await UniTask.Delay(TimeSpan.FromSeconds(_childAnimDelay), cancellationToken: ct);
             }
         }
     }

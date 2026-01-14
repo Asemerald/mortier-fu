@@ -1,8 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -101,9 +99,11 @@ namespace MortierFu
         {
             _saveService.SaveSettings().Forget();
         }
-        
+
         public void Dispose()
-        { }
+        {
+            
+        }
 
         public UniTask OnInitialize()
         {

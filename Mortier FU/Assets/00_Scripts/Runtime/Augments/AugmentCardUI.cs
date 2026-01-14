@@ -34,7 +34,7 @@ namespace MortierFu
         private float _initialCanvasAlpha;
 
         private bool _initialized;
-        
+
         private CancellationTokenSource _cts;
 
         public void Initialize()
@@ -50,9 +50,16 @@ namespace MortierFu
             _initialCanvasAlpha = _canvasGroup.alpha;
         }
 
+        private void OnDisable()
+        {
+            _cts?.Cancel();
+        }
+
         private void OnDestroy()
         {
             _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -85,7 +92,7 @@ namespace MortierFu
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
-            
+
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;
@@ -123,7 +130,12 @@ namespace MortierFu
         }
 
         public void Show() => gameObject.SetActive(true);
-        public void Hide() => gameObject.SetActive(false);
+
+        public void Hide()
+        {
+            _cts?.Cancel();
+            gameObject.SetActive(false);
+        }
 
         public void ResetUI()
         {
