@@ -1,13 +1,39 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public class PauseSystem : IGameSystem
+    public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
+        
+        private bool IsPaused { get; set; }
 
+        public event Action Paused;
+        public event Action Resumed;
+
+        public void UnPause()
+        {
+            if (!IsPaused) return;
+
+            IsPaused = false;
+            Time.timeScale = 1f;
+            Resumed?.Invoke();
+        }
+        
+        public void Pause()
+        {
+            if (IsPaused) return;
+
+            IsPaused = true;
+            Time.timeScale = 0f;
+            Paused?.Invoke();
+        }
+        
         public void RestoreSettingsFromSave()
         {
             var s = _saveService.Settings;
@@ -77,8 +103,7 @@ namespace MortierFu
         }
         
         public void Dispose()
-        {
-        }
+        { }
 
         public UniTask OnInitialize()
         {

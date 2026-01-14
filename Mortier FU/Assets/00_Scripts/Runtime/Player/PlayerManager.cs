@@ -20,6 +20,10 @@ namespace MortierFu
         public GameObject CharacterGO => _inGameCharacter;
 
         private PlayerCharacter _playerCharacter;
+        
+        private GamePauseSystem _gamePauseSystem;
+        private InputAction _pauseAction;
+        private InputAction _unPauseAction;
 
         public PlayerCharacter Character
         {
@@ -51,6 +55,31 @@ namespace MortierFu
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);
+            
+            if (_pauseAction != null)
+                _pauseAction.performed -= Pause;
+            
+            if(_unPauseAction != null)
+                _unPauseAction.performed -= UnPause;
+        }
+        
+        
+        private void Pause(InputAction.CallbackContext ctx)
+        {
+            if (PlayerIndex != 0)
+                return;
+
+            _gamePauseSystem.Pause();
+            PlayerInput.SwitchCurrentActionMap("UI");
+        }
+        
+        private void UnPause(InputAction.CallbackContext ctx)
+        {
+            if (PlayerIndex != 0)
+                return;
+
+            _gamePauseSystem.UnPause();
+            PlayerInput.SwitchCurrentActionMap("Gameplay");
         }
 
         /// <summary>
@@ -79,6 +108,23 @@ namespace MortierFu
             {
                 Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
             }
+            
+            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+            if (_gamePauseSystem == null)
+            {
+                Debug.LogError("wesh");
+            }
+            
+            _pauseAction = PlayerInput.actions.FindAction("Pause");
+            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
+            
+            if (_pauseAction == null)
+            {
+                Debug.LogError("error");
+            }
+
+            if (_pauseAction != null) _pauseAction.performed += Pause;
+            if (_unPauseAction != null) _unPauseAction.performed += UnPause;
         }
 
         /// <summary>
