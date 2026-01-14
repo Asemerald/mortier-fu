@@ -998,6 +998,12 @@ namespace MortierFu
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Nothing"",
+            ""id"": ""e85f4505-6147-4ba7-b5eb-fb77df66acb4"",
+            ""actions"": [],
+            ""bindings"": []
         }
     ],
     ""controlSchemes"": [
@@ -1072,12 +1078,15 @@ namespace MortierFu
             m_UI_Join = m_UI.FindAction("Join", throwIfNotFound: true);
             m_UI_StartGame = m_UI.FindAction("StartGame", throwIfNotFound: true);
             m_UI_UnPause = m_UI.FindAction("UnPause", throwIfNotFound: true);
+            // Nothing
+            m_Nothing = asset.FindActionMap("Nothing", throwIfNotFound: true);
         }
 
         ~@PlayerActionInput()
         {
             UnityEngine.Debug.Assert(!m_Gameplay.enabled, "This will cause a leak and performance issues, PlayerActionInput.Gameplay.Disable() has not been called.");
             UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, PlayerActionInput.UI.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Nothing.enabled, "This will cause a leak and performance issues, PlayerActionInput.Nothing.Disable() has not been called.");
         }
 
         /// <summary>
@@ -1550,6 +1559,91 @@ namespace MortierFu
         /// Provides a new <see cref="UIActions" /> instance referencing this action map.
         /// </summary>
         public UIActions @UI => new UIActions(this);
+
+        // Nothing
+        private readonly InputActionMap m_Nothing;
+        private List<INothingActions> m_NothingActionsCallbackInterfaces = new List<INothingActions>();
+        /// <summary>
+        /// Provides access to input actions defined in input action map "Nothing".
+        /// </summary>
+        public struct NothingActions
+        {
+            private @PlayerActionInput m_Wrapper;
+
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public NothingActions(@PlayerActionInput wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_Nothing; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="NothingActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(NothingActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="NothingActions" />
+            public void AddCallbacks(INothingActions instance)
+            {
+                if (instance == null || m_Wrapper.m_NothingActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_NothingActionsCallbackInterfaces.Add(instance);
+            }
+
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="NothingActions" />
+            private void UnregisterCallbacks(INothingActions instance)
+            {
+            }
+
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="NothingActions.UnregisterCallbacks(INothingActions)" />.
+            /// </summary>
+            /// <seealso cref="NothingActions.UnregisterCallbacks(INothingActions)" />
+            public void RemoveCallbacks(INothingActions instance)
+            {
+                if (m_Wrapper.m_NothingActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="NothingActions.AddCallbacks(INothingActions)" />
+            /// <seealso cref="NothingActions.RemoveCallbacks(INothingActions)" />
+            /// <seealso cref="NothingActions.UnregisterCallbacks(INothingActions)" />
+            public void SetCallbacks(INothingActions instance)
+            {
+                foreach (var item in m_Wrapper.m_NothingActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_NothingActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        /// <summary>
+        /// Provides a new <see cref="NothingActions" /> instance referencing this action map.
+        /// </summary>
+        public NothingActions @Nothing => new NothingActions(this);
         private int m_GamepadSchemeIndex = -1;
         /// <summary>
         /// Provides access to the input control scheme.
@@ -1764,6 +1858,14 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnUnPause(InputAction.CallbackContext context);
+        }
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Nothing" which allows adding and removing callbacks.
+        /// </summary>
+        /// <seealso cref="NothingActions.AddCallbacks(INothingActions)" />
+        /// <seealso cref="NothingActions.RemoveCallbacks(INothingActions)" />
+        public interface INothingActions
+        {
         }
     }
 }

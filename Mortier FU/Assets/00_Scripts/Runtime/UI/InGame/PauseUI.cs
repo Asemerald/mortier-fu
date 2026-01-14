@@ -26,6 +26,8 @@ namespace MortierFu
         
         private EventSystem _eventSystem;
         
+        private GameModeBase _gm;
+        
         private GamePauseSystem _gamePauseSystem;
 
         private void OnDestroy()
@@ -38,7 +40,7 @@ namespace MortierFu
         {
             Hide();
             _eventSystem = EventSystem.current;
-            
+            _gm = GameService.CurrentGameMode as GameModeBase;
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
           //  _gamePauseSystem.RestoreSettingsFromSave();
            // _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
@@ -53,6 +55,15 @@ namespace MortierFu
             
             _settingsButton.onClick.AddListener(ShowSettingsPanel);
             _controlsButton.onClick.AddListener(ShowControlsPanel);
+            _quitButton.onClick.AddListener(Application.Quit);
+
+            if (_gm == null) return;
+            
+            _endGameButton.onClick.AddListener(_gm.EndGame);
+            _endGameButton.onClick.AddListener(_gamePauseSystem.UnPause);
+                
+            _mainMenuButton.onClick.AddListener(_gm.EndGame);
+            _mainMenuButton.onClick.AddListener(_gamePauseSystem.UnPause);
         }
 
         private void UnPause()

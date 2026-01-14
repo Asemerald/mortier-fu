@@ -258,6 +258,8 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
+                    // TODO: Trouver comment faire pour que le joueur ne puisse pas faire pause du coup lorsqu'on veut disable les inputs puisque là on switch sur UI
+                    // TODO: Sauf que sur UI on peut UnPause -_-
                     member.PlayerInput.SwitchCurrentActionMap(enabled
                         ? k_gameplayActionMap
                         : k_uiActionMap); // Utiliser ça et faire un helper qu'on met ici pour vérifier
@@ -497,7 +499,7 @@ namespace MortierFu
             ResetPlayers();
         }
 
-        protected virtual void EndGame()
+        public virtual void EndGame()
         {
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
