@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -14,23 +15,21 @@ namespace MortierFu
         [SerializeField] private Slider _sfxVolumeSlider;
         
         [SerializeField] private GameObject _pauseMenu;
-
+        
+        private EventSystem _eventSystem;
+        
         private GamePauseSystem _gamePauseSystem;
 
         private void OnDestroy()
         {
-            _gamePauseSystem.Paused -= Show;
-            _gamePauseSystem.Resumed -= Hide;
-        }
-        
-        public void OnResumeButton()
-        {
-            _gamePauseSystem.Resume();
+            _gamePauseSystem.Paused -= Pause;
+            _gamePauseSystem.Resumed -= UnPause;
         }
 
         private void Start()
         {
             Hide();
+            _eventSystem = EventSystem.current;
             
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
           //  _gamePauseSystem.RestoreSettingsFromSave();
@@ -41,18 +40,20 @@ namespace MortierFu
             
             //_gamePauseSystem.SaveSettings();
             
-            _gamePauseSystem.Paused += Show;
-            _gamePauseSystem.Resumed += Hide;
+            _gamePauseSystem.Paused += Pause;
+            _gamePauseSystem.Resumed += UnPause;
         }
 
-        private void Resume()
+        private void UnPause()
         {
             Hide();
         }
 
-        private void PauseGame()
+        private void Pause()
         {
             Show();
+
+            _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
         }
 
         private void Hide() => _pauseMenu.SetActive(false);

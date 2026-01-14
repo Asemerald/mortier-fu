@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -15,13 +16,7 @@ namespace MortierFu
         public event Action Paused;
         public event Action Resumed;
 
-        public void TogglePause(InputAction.CallbackContext ctx)
-        {
-            if (IsPaused) Resume();
-            else Pause();
-        }
-        
-        public void Resume()
+        public void UnPause()
         {
             if (!IsPaused) return;
 
@@ -30,7 +25,7 @@ namespace MortierFu
             Resumed?.Invoke();
         }
         
-        private void Pause()
+        public void Pause()
         {
             if (IsPaused) return;
 
@@ -108,8 +103,7 @@ namespace MortierFu
         }
         
         public void Dispose()
-        {
-        }
+        { }
 
         public UniTask OnInitialize()
         {

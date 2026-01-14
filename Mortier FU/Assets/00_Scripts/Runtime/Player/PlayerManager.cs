@@ -23,6 +23,7 @@ namespace MortierFu
         
         private GamePauseSystem _gamePauseSystem;
         private InputAction _pauseAction;
+        private InputAction _unPauseAction;
 
         public PlayerCharacter Character
         {
@@ -49,8 +50,6 @@ namespace MortierFu
         {
             ServiceManager.Instance.Get<LobbyService>().RegisterPlayer(this);
             OnPlayerInitialized?.Invoke(this);
-            
-           
         }
 
         private void OnDestroy()
@@ -59,6 +58,9 @@ namespace MortierFu
             
             if (_pauseAction != null)
                 _pauseAction.performed -= Pause;
+            
+            if(_unPauseAction != null)
+                _unPauseAction.performed -= UnPause;
         }
         
         
@@ -67,7 +69,17 @@ namespace MortierFu
             if (PlayerIndex != 0)
                 return;
 
-            _gamePauseSystem.TogglePause(ctx);
+            _gamePauseSystem.Pause();
+            PlayerInput.SwitchCurrentActionMap("UI");
+        }
+        
+        private void UnPause(InputAction.CallbackContext ctx)
+        {
+            if (PlayerIndex != 0)
+                return;
+
+            _gamePauseSystem.UnPause();
+            PlayerInput.SwitchCurrentActionMap("Gameplay");
         }
 
         /// <summary>
@@ -102,14 +114,17 @@ namespace MortierFu
             {
                 Debug.LogError("wesh");
             }
+            
             _pauseAction = PlayerInput.actions.FindAction("Pause");
-
+            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
+            
             if (_pauseAction == null)
             {
                 Debug.LogError("error");
             }
 
             if (_pauseAction != null) _pauseAction.performed += Pause;
+            if (_unPauseAction != null) _unPauseAction.performed += UnPause;
         }
 
         /// <summary>

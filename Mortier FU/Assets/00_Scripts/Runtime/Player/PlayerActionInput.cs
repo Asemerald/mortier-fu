@@ -514,7 +514,7 @@ namespace MortierFu
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Pause"",
+                    ""name"": ""UnPause"",
                     ""type"": ""Button"",
                     ""id"": ""1a3488c5-c72b-4d37-a7cb-e136c8b8e3c4"",
                     ""expectedControlType"": """",
@@ -982,7 +982,7 @@ namespace MortierFu
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Pause"",
+                    ""action"": ""UnPause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -993,7 +993,7 @@ namespace MortierFu
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Pause"",
+                    ""action"": ""UnPause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1071,7 +1071,7 @@ namespace MortierFu
             m_UI_Confirm = m_UI.FindAction("Confirm", throwIfNotFound: true);
             m_UI_Join = m_UI.FindAction("Join", throwIfNotFound: true);
             m_UI_StartGame = m_UI.FindAction("StartGame", throwIfNotFound: true);
-            m_UI_Pause = m_UI.FindAction("Pause", throwIfNotFound: true);
+            m_UI_UnPause = m_UI.FindAction("UnPause", throwIfNotFound: true);
         }
 
         ~@PlayerActionInput()
@@ -1328,7 +1328,7 @@ namespace MortierFu
         private readonly InputAction m_UI_Confirm;
         private readonly InputAction m_UI_Join;
         private readonly InputAction m_UI_StartGame;
-        private readonly InputAction m_UI_Pause;
+        private readonly InputAction m_UI_UnPause;
         /// <summary>
         /// Provides access to input actions defined in input action map "UI".
         /// </summary>
@@ -1393,9 +1393,9 @@ namespace MortierFu
             /// </summary>
             public InputAction @StartGame => m_Wrapper.m_UI_StartGame;
             /// <summary>
-            /// Provides access to the underlying input action "UI/Pause".
+            /// Provides access to the underlying input action "UI/UnPause".
             /// </summary>
-            public InputAction @Pause => m_Wrapper.m_UI_Pause;
+            public InputAction @UnPause => m_Wrapper.m_UI_UnPause;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1461,9 +1461,9 @@ namespace MortierFu
                 @StartGame.started += instance.OnStartGame;
                 @StartGame.performed += instance.OnStartGame;
                 @StartGame.canceled += instance.OnStartGame;
-                @Pause.started += instance.OnPause;
-                @Pause.performed += instance.OnPause;
-                @Pause.canceled += instance.OnPause;
+                @UnPause.started += instance.OnUnPause;
+                @UnPause.performed += instance.OnUnPause;
+                @UnPause.canceled += instance.OnUnPause;
             }
 
             /// <summary>
@@ -1514,9 +1514,9 @@ namespace MortierFu
                 @StartGame.started -= instance.OnStartGame;
                 @StartGame.performed -= instance.OnStartGame;
                 @StartGame.canceled -= instance.OnStartGame;
-                @Pause.started -= instance.OnPause;
-                @Pause.performed -= instance.OnPause;
-                @Pause.canceled -= instance.OnPause;
+                @UnPause.started -= instance.OnUnPause;
+                @UnPause.performed -= instance.OnUnPause;
+                @UnPause.canceled -= instance.OnUnPause;
             }
 
             /// <summary>
@@ -1758,12 +1758,12 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnStartGame(InputAction.CallbackContext context);
             /// <summary>
-            /// Method invoked when associated input action "Pause" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// Method invoked when associated input action "UnPause" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
             /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnPause(InputAction.CallbackContext context);
+            void OnUnPause(InputAction.CallbackContext context);
         }
     }
 }
