@@ -14,7 +14,15 @@ namespace MortierFu
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
         
-        [SerializeField] private GameObject _pauseMenu;
+        [SerializeField] private GameObject _pausePanel;
+        [SerializeField] private GameObject _settingsPanel;
+        [SerializeField] private GameObject _controlsPanel;
+        
+        [SerializeField] private Button _settingsButton;
+        [SerializeField] private Button _controlsButton;
+        [SerializeField] private Button _endGameButton;
+        [SerializeField] private Button _mainMenuButton;
+        [SerializeField] private Button _quitButton;
         
         private EventSystem _eventSystem;
         
@@ -42,6 +50,9 @@ namespace MortierFu
             
             _gamePauseSystem.Paused += Pause;
             _gamePauseSystem.Resumed += UnPause;
+            
+            _settingsButton.onClick.AddListener(ShowSettingsPanel);
+            _controlsButton.onClick.AddListener(ShowControlsPanel);
         }
 
         private void UnPause()
@@ -53,11 +64,35 @@ namespace MortierFu
         {
             Show();
 
+            _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+        }
+        
+        private void ShowSettingsPanel()
+        {
+            _settingsPanel.SetActive(true);
+            _controlsPanel.SetActive(false);
+            _pausePanel.SetActive(false);
+            
             _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
         }
+        
+        private void ShowControlsPanel()
+        {
+            _controlsPanel.SetActive(true);
+            _pausePanel.SetActive(true);
+            _settingsPanel.SetActive(false);
+            
+            _eventSystem.SetSelectedGameObject(null);
+        }
 
-        private void Hide() => _pauseMenu.SetActive(false);
-        private void Show() => _pauseMenu.SetActive(true);
+        private void Hide()
+        {
+            _settingsPanel.SetActive(false);
+            _controlsPanel.SetActive(false);
+            _pausePanel.SetActive(false);
+        }
+
+        private void Show() => _pausePanel.SetActive(true);
         
     }
 }
