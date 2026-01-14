@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine.UI;
@@ -33,6 +34,8 @@ namespace MortierFu
         private float _initialCanvasAlpha;
 
         private bool _initialized;
+        
+        private CancellationTokenSource _cts;
 
         public void Initialize()
         {
@@ -45,6 +48,11 @@ namespace MortierFu
             _initialScale = transform.localScale;
             _initialInfoPos = _infoRoot.anchoredPosition;
             _initialCanvasAlpha = _canvasGroup.alpha;
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -74,15 +82,18 @@ namespace MortierFu
 
         private async UniTask PlayBoonDropTransition(GameObject pickupVFX)
         {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+            
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay));
-
+            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay), cancellationToken: token);
             _explosionCardVFXPrefab.SetActive(true);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay));
+            await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
             pickupVFX.SetActive(true);
         }
