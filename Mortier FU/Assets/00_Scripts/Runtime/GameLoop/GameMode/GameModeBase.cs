@@ -508,8 +508,8 @@ namespace MortierFu
         {
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             await sceneService.LoadScene("MainMenu", true, true);
-            //TODO: a full check, je pense que ATM le SystemManager est pas Dispose
-            ServiceManager.Instance.Get<GameService>().Dispose();
+            //TODO: a full check au cas ou
+            SystemManager.Instance.Dispose();
         }
 
         protected virtual void UpdateGameState(GameState newState)
