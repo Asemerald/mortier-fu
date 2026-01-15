@@ -69,7 +69,8 @@ namespace MortierFu
 
             _gamePauseSystem.Paused += Pause;
             _gamePauseSystem.Resumed += UnPause;
-
+            _gamePauseSystem.Canceled += Return;
+            
             _settingsButton.onClick.AddListener(ShowSettingsPanel);
             _controlsButton.onClick.AddListener(ShowControlsPanel);
             _quitButton.onClick.AddListener(Application.Quit);
@@ -105,6 +106,7 @@ namespace MortierFu
             {
                 _gamePauseSystem.Paused -= Pause;
                 _gamePauseSystem.Resumed -= UnPause;
+                _gamePauseSystem.Canceled -= Return;
             }
 
             _animateCancellation?.Cancel();
@@ -270,6 +272,24 @@ namespace MortierFu
                 float delay = Random.Range(_minRandomDelay, _maxRandomDelay);
                 await UniTask.Delay(TimeSpan.FromSeconds(delay), ignoreTimeScale: true, cancellationToken: ct);
             }
+        }
+
+        private void Return()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+
+            if (_settingsPanel.activeSelf)
+            {
+                _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+            }
+            else if (_controlsPanel.activeSelf)
+            {
+                _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
+            }
+
+            _settingsPanel.SetActive(false);
+            _controlsPanel.SetActive(false);
+            _pausePanel.SetActive(true);
         }
 
         private void Shuffle(int[] array)

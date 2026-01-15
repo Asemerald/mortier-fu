@@ -6,8 +6,7 @@ namespace MortierFu
 {
     public class PlayerManager : MonoBehaviour
     {
-        [Header("Setup")]
-        [Tooltip("Prefab du personnage à instancier en jeu.")]
+        [Header("Setup")] [Tooltip("Prefab du personnage à instancier en jeu.")]
         public GameObject playerInGamePrefab;
 
         public PlayerTeam Team { get; private set; }
@@ -20,10 +19,11 @@ namespace MortierFu
         public GameObject CharacterGO => _inGameCharacter;
 
         private PlayerCharacter _playerCharacter;
-        
+
         private GamePauseSystem _gamePauseSystem;
         private InputAction _pauseAction;
         private InputAction _unPauseAction;
+        private InputAction _cancelUIAction;
 
         public PlayerCharacter Character
         {
@@ -55,31 +55,42 @@ namespace MortierFu
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);
-            
+
             if (_pauseAction != null)
                 _pauseAction.performed -= Pause;
-            
-            if(_unPauseAction != null)
+
+            if (_unPauseAction != null)
                 _unPauseAction.performed -= UnPause;
+
+            if (_cancelUIAction != null)
+                _cancelUIAction.performed -= CancelUI;
         }
-        
-        
+
+        // TODO: Faire un input manager plus tard
         private void Pause(InputAction.CallbackContext ctx)
         {
             if (PlayerIndex != 0)
                 return;
 
-            _gamePauseSystem.Pause();
             PlayerInput.SwitchCurrentActionMap("UI");
+            _gamePauseSystem.Pause();
         }
-        
+
         private void UnPause(InputAction.CallbackContext ctx)
         {
             if (PlayerIndex != 0)
                 return;
 
-            _gamePauseSystem.UnPause();
             PlayerInput.SwitchCurrentActionMap("Gameplay");
+            _gamePauseSystem.UnPause();
+        }
+
+        private void CancelUI(InputAction.CallbackContext ctx)
+        {
+            if (PlayerIndex != 0)
+                return;
+
+            _gamePauseSystem.Cancel();
         }
 
         /// <summary>
@@ -108,23 +119,16 @@ namespace MortierFu
             {
                 Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
             }
-            
+
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
-            if (_gamePauseSystem == null)
-            {
-                Debug.LogError("wesh");
-            }
-            
+
             _pauseAction = PlayerInput.actions.FindAction("Pause");
             _unPauseAction = PlayerInput.actions.FindAction("UnPause");
-            
-            if (_pauseAction == null)
-            {
-                Debug.LogError("error");
-            }
+            _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
 
             if (_pauseAction != null) _pauseAction.performed += Pause;
             if (_unPauseAction != null) _unPauseAction.performed += UnPause;
+            if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
         }
 
         /// <summary>
@@ -149,7 +153,7 @@ namespace MortierFu
                 Logs.LogError("Trying to remove a player from his team although he is not part of any team !");
                 return;
             }
-            
+
             if (!Team.Members.Remove(this))
                 Logs.LogWarning("Trying to remove a player from a team where he isn't part of !");
 
