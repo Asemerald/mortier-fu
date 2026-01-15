@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using FMOD.Studio;
 using FMODUnity;
 using MortierFu.Shared;
 using UnityEngine;
@@ -19,9 +20,44 @@ namespace MortierFu
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
         
-        public static void PlayOneShot(EventReference eventRef)
+        public static EventInstance PlayOneShot(EventReference eventRef, float panning = 0)
         {
-            RuntimeManager.PlayOneShot(eventRef);
+            EventInstance instance = RuntimeManager.CreateInstance(eventRef);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
+            instance.setParameterByName("Pan", panning);
+            instance.start();
+            instance.release();
+
+            return instance;
+        }
+        
+        public static void PlayBombshellAudio(EventReference eventRef, Bombshell bombshell, Vector3 position)
+        {
+            float panning = GetPanningFromWorldSpace(position);
+            float power = GetPowerFromBombshell(bombshell);
+            
+            var instance = PlayOneShot(eventRef, panning);
+            instance.setParameterByName("ShotPower", power);
+            instance.release();
+        }
+
+        private static float GetPanningFromWorldSpace(Vector3 position)
+        {
+            //AJOUTER LOGIQUE
+            var screenPos = Camera.main.WorldToScreenPoint(position);
+            float pan = (screenPos.x - (Screen.width/2)) / Screen.width * 2;
+            
+            Debug.LogWarning($"{pan}");
+            
+            return pan;
+        }
+        
+        private static float GetPowerFromBombshell(Bombshell bombshell)
+        {
+            float rangeValue = FMODEvents.rangeCurve.Evaluate(bombshell.AoeRange);
+            float damageValue = FMODEvents.damageCurve.Evaluate(bombshell.Damage);
+
+            return (rangeValue + damageValue) * 0.5f;
         }
 
         public async UniTask LoadBanks(AssetReference[] banksToLoad)

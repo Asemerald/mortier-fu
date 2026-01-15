@@ -14,32 +14,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MortierFu.FMODEvents
   <SFX_Player_Stun>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -1127832828
+      Data2: 1079637098
+      Data3: 550995585
+      Data4: 412069637
+    Path: event:/GAMEPLAY/Player/SFX_Player_Stun
   <SFX_Player_Fall>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -16773516
+      Data2: 1286301647
+      Data3: -2112540525
+      Data4: -1281900441
+    Path: event:/GAMEPLAY/Player/SFX_Player_Fall
   <SFX_Player_Death>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -517208390
+      Data2: 1136640582
+      Data3: -1452761726
+      Data4: 863504356
+    Path: event:/GAMEPLAY/Player/SFX_Player_Death
   <SFX_Mortar_Shot>k__BackingField:
     Guid:
-      Data1: 2115937242
-      Data2: 1152053974
-      Data3: -1266473041
-      Data4: 348239211
-    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactNone
+      Data1: 590025872
+      Data2: 1235120864
+      Data3: -1244002686
+      Data4: -2054735148
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_Shot
   <SFX_Mortar_ImpactNone>k__BackingField:
     Guid:
       Data1: 2115937242
@@ -49,57 +49,141 @@ MonoBehaviour:
     Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactNone
   <SFX_Mortar_ImpactProps>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -298078503
+      Data2: 1308462701
+      Data3: -182566001
+      Data4: 930932326
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactProps
   <SFX_Mortar_ImpactPlayer>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -1637108698
+      Data2: 1279477545
+      Data3: -2133366125
+      Data4: -791170706
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactPlayer
   <SFX_Mortar_ImpactKill>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -812077020
+      Data2: 1299409054
+      Data3: 1861569951
+      Data4: -142550595
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactKill
   <SFX_Mortar_Cant>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -1737776146
+      Data2: 1287693919
+      Data3: 1747551374
+      Data4: 1205621984
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_Cant
   <SFX_Mortar_ReloadComplete>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -316558542
+      Data2: 1340288418
+      Data3: 1281591190
+      Data4: 690298853
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ReloadComplete
   <SFX_Strike_Dash>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -2111586960
+      Data2: 1141427852
+      Data3: 670776250
+      Data4: 1234680546
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Dash
   <SFX_Strike_Cant>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1431664256
+      Data2: 1241999329
+      Data3: 1003939225
+      Data4: 140171145
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Cant
   <SFX_Strike_Knockback>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1626565837
+      Data2: 1317018892
+      Data3: -1769087326
+      Data4: 1690326175
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Knockback
+  rangeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.2
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0.12908773
+    - serializedVersion: 3
+      time: 3.5
+      value: 0.3
+      inSlope: 0.14362434
+      outSlope: 0.14362434
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.04736468
+    - serializedVersion: 3
+      time: 17.5
+      value: 1
+      inSlope: 0.012372179
+      outSlope: 0.012372179
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.16629325
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  damageCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.0058873137
+      outSlope: 0.0058873137
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.4751945
+    - serializedVersion: 3
+      time: 40
+      value: 0.3
+      inSlope: 0.014345822
+      outSlope: 0.014345822
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.21192113
+    - serializedVersion: 3
+      time: 80
+      value: 1
+      inSlope: 0.011300115
+      outSlope: 0
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.1544077
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1000
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

@@ -100,15 +100,15 @@ namespace MortierFu
 
             if (hitCharacters.Count > 0)
             {
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell, hit.point);
             }
             else if (hits.Count > 0)
             {
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactNone);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactProps, bombshell, hit.point);
             }
             else 
             {
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactNone);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactNone, bombshell, hit.point);
             }
             
             if (hitCharacters.Count > 0)

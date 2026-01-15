@@ -8,6 +8,7 @@ namespace MortierFu
     [CreateAssetMenu(fileName = "FMODEvents", menuName = "Mortier Fu/FMOD")]
     public class FMODEventsSO : ScriptableObject
     {
+        //EVENT REFERENCES
         [field: SerializeField] public EventReference SFX_Player_Stun { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_Fall { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_Death { get; private set; }
@@ -23,5 +24,11 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Strike_Dash { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Cant { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Knockback { get; private set; }
+        
+        
+        //ANIMATION CURVES
+        [Header("Bombshell")]
+        public AnimationCurve rangeCurve;
+        public AnimationCurve damageCurve;
     }
 }

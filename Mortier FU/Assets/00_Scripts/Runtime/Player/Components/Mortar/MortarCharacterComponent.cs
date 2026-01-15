@@ -129,6 +129,8 @@ namespace MortierFu
             
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);
             
+            AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_Shot, bombshell, character.transform.position);
+            
             EventBus<TriggerShootBombshell>.Raise(new TriggerShootBombshell() 
             {
                 Character =  character,
