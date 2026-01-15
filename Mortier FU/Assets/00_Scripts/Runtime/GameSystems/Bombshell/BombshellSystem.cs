@@ -92,6 +92,11 @@ namespace MortierFu
                 {
                     AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
                 }
+
+                if (bombshell.Bounces > 0)
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
+                }
             }
 
             //GAMEFEEL CALLS
