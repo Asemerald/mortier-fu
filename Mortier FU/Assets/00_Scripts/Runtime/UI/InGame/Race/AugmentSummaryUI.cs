@@ -6,6 +6,7 @@ using PrimeTween;
 using UnityEngine;
 using UnityEngine.UI;
 using NaughtyAttributes;
+using UnityEngine.Serialization;
 
 namespace MortierFu
 {
@@ -19,7 +20,7 @@ namespace MortierFu
         private Image[] _playerImages;
 
         [Header("Factory Reference")] [SerializeField, Required]
-        private RarityBgSpriteFactory _rarityBgSpriteFactory;
+        private SO_RaritySpritesFactory _soRaritySpritesFactory;
 
         #endregion
 
@@ -127,7 +128,7 @@ namespace MortierFu
                     if (rarityImage != null)
                     {
                         var rarity = augment.Rarity;
-                        rarityImage.sprite = _rarityBgSpriteFactory.GetRarityBgSpriteFromRarity(rarity);
+                        rarityImage.sprite = _soRaritySpritesFactory.GetRarityBgSpriteFromRarity(rarity);
                     }
 
                     if (child.childCount > 0)
