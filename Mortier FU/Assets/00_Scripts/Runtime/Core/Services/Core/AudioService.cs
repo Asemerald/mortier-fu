@@ -19,6 +19,11 @@ namespace MortierFu
         {
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
+        
+        public static void PlayOneShot(EventReference eventRef)
+        {
+            RuntimeManager.PlayOneShot(eventRef);
+        }
 
         #region EventInstance functions
         
