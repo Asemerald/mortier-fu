@@ -131,6 +131,7 @@ namespace MortierFu
 
         private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
             await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
                 .ToUniTask(cancellationToken: ct);
         }
@@ -138,6 +139,8 @@ namespace MortierFu
         private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale,
             CancellationToken ct)
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
+            
             await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
                     Ease.InOutQuad)
                 .Group(Tween.Scale(pickup.transform, scale, 1, duration,
@@ -153,6 +156,8 @@ namespace MortierFu
             Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
             Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
 
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, cardUI.transform.position);
+            
             await Tween.LocalRotation(
                 t,
                 midRot,

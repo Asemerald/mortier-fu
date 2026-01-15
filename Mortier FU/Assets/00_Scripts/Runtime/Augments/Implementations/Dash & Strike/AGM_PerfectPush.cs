@@ -36,6 +36,7 @@ namespace MortierFu
             Debug.Log("AGM_PerfectPush: OnSuccessfulPush triggered: " + evt.Character.Owner.PlayerIndex + " was pushed by + " + sourceCharacter.Owner.PlayerIndex);
             
             stats.MaxHealth.AddModifier(db.PerfectPushParams.OnSuccessfulPushMaxHealthMod.ToMod(this));
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
 
         private void OnTriggerEndRound(TriggerEndRound evt)

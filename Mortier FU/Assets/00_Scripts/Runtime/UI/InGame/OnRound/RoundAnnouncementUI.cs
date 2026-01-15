@@ -55,6 +55,7 @@ namespace MortierFu
             }
 
             _goldenBombshellGameObject.SetActive(isMatchPoint);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_MatchPoint);
         }
 
         private async UniTask AnimateCountdown()
@@ -130,6 +131,7 @@ namespace MortierFu
             for (int t = seconds; t > 0; t--)
             {
                 SetCountdownVisual(t);
+                // TODO: Add sound effect here or maybe in AnimateCountdown
                 await AnimateCountdown();
             }
         }

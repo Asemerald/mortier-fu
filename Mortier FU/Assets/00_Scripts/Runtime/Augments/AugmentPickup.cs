@@ -25,6 +25,7 @@ namespace MortierFu
             if (other.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
             {
                 bool success = _system.NotifyPlayerInteraction(character, _index);
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
                 if (!success) return;
 
                 Reset();
