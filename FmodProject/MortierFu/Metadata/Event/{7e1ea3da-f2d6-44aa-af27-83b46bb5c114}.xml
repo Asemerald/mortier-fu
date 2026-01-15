@@ -180,7 +180,7 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{5b2397ee-1f26-4f50-8271-fc453ad309ba}">
 		<relationship name="effects">
-			<destination>{e67d544d-9e77-413f-be02-ac531e6ca48f}</destination>
+			<destination>{688bf9f1-c9dd-46ff-adc5-d834671ed609}</destination>
 			<destination>{a284b53a-fc90-4d21-9767-f901243f3155}</destination>
 			<destination>{15d9bd14-d303-4645-961f-7c27278c771d}</destination>
 			<destination>{8a7ffe06-4213-4df7-92cd-e7cea4057034}</destination>
@@ -216,7 +216,7 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{7bd8f7c5-43b0-46b8-95ec-5fc135a7718f}" />
-	<object class="PannerEffect" id="{e67d544d-9e77-413f-be02-ac531e6ca48f}">
+	<object class="PannerEffect" id="{688bf9f1-c9dd-46ff-adc5-d834671ed609}">
 		<property name="surroundPanExtent">
 			<value>0</value>
 		</property>
@@ -233,9 +233,9 @@
 			<value>1</value>
 		</property>
 		<relationship name="automators">
-			<destination>{2110bea9-359e-4911-90c1-6c1aa0d27f2d}</destination>
-			<destination>{ae4d4d10-6449-465e-bf0a-dcc7f9579948}</destination>
-			<destination>{7428e297-6e60-4e6f-b5e4-7f53b5a51048}</destination>
+			<destination>{91f0a0af-dd30-4e57-82ee-af4744971d0a}</destination>
+			<destination>{f472d984-96e7-4159-bb03-bdd0ff84d7f9}</destination>
+			<destination>{8120777b-dd8a-4606-a77b-efa67254c7ac}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{a284b53a-fc90-4d21-9767-f901243f3155}" />
@@ -274,25 +274,25 @@
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{9082c92c-97a8-4d9d-9a5c-bd70d375c6b7}" />
-	<object class="Automator" id="{2110bea9-359e-4911-90c1-6c1aa0d27f2d}">
+	<object class="Automator" id="{91f0a0af-dd30-4e57-82ee-af4744971d0a}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanDirection</value>
 		</property>
 		<relationship name="automationCurves">
-			<destination>{cbed3db6-49b3-4740-9b2a-6145d14fa1d1}</destination>
+			<destination>{06b92be2-f55a-4af6-bbbb-30f5a269b12e}</destination>
 		</relationship>
 	</object>
-	<object class="Automator" id="{ae4d4d10-6449-465e-bf0a-dcc7f9579948}">
+	<object class="Automator" id="{f472d984-96e7-4159-bb03-bdd0ff84d7f9}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanExtent</value>
 		</property>
 	</object>
-	<object class="Automator" id="{7428e297-6e60-4e6f-b5e4-7f53b5a51048}">
+	<object class="Automator" id="{8120777b-dd8a-4606-a77b-efa67254c7ac}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>stereoPan</value>
 		</property>
 		<relationship name="automationCurves">
-			<destination>{5f13f5e8-876d-46fc-8795-363cf051affc}</destination>
+			<destination>{fbd65b77-1109-457b-8d05-ad11f8582eb9}</destination>
 		</relationship>
 	</object>
 	<object class="Automator" id="{34386dff-18aa-4ae6-9cd9-baf1ecbf2e0e}">
@@ -351,23 +351,23 @@
 			<value>-80</value>
 		</property>
 	</object>
-	<object class="AutomationCurve" id="{cbed3db6-49b3-4740-9b2a-6145d14fa1d1}">
+	<object class="AutomationCurve" id="{06b92be2-f55a-4af6-bbbb-30f5a269b12e}">
 		<relationship name="parameter">
 			<destination>{436bcbc2-147a-411f-b780-d9922d23f47b}</destination>
 		</relationship>
 		<relationship name="automationPoints">
-			<destination>{50de6144-374b-4642-b134-1fca8cc174a6}</destination>
-			<destination>{6b9ddf3b-db12-4ffa-8a62-c58d129d1690}</destination>
+			<destination>{e11dd041-9119-4402-81e4-a39b35f7e661}</destination>
+			<destination>{2d954466-8ce3-4bc9-b5f2-027a1b1efd91}</destination>
 		</relationship>
 	</object>
-	<object class="AutomationCurve" id="{5f13f5e8-876d-46fc-8795-363cf051affc}">
+	<object class="AutomationCurve" id="{fbd65b77-1109-457b-8d05-ad11f8582eb9}">
 		<relationship name="parameter">
 			<destination>{436bcbc2-147a-411f-b780-d9922d23f47b}</destination>
 		</relationship>
 		<relationship name="automationPoints">
-			<destination>{ea4b28a6-59a4-48a0-bb0e-89fc7b736325}</destination>
-			<destination>{348b7307-9f50-400e-a974-baf26069af1a}</destination>
-			<destination>{400a8a71-c4d6-4a86-98f1-a5690ca1c81c}</destination>
+			<destination>{32b3719c-8607-4896-8630-5520d4b1e820}</destination>
+			<destination>{c3eafab5-fe86-404a-a8bc-0f72fd2f3c55}</destination>
+			<destination>{c8b04b54-ef6f-4b17-b33a-189fab4c8966}</destination>
 		</relationship>
 	</object>
 	<object class="AutomationCurve" id="{2403f6a7-6522-4fda-8c3d-c15d01323219}">
@@ -380,7 +380,7 @@
 			<destination>{3f9862e1-fd38-4652-8bd8-e1dca086acab}</destination>
 		</relationship>
 	</object>
-	<object class="AutomationPoint" id="{50de6144-374b-4642-b134-1fca8cc174a6}">
+	<object class="AutomationPoint" id="{e11dd041-9119-4402-81e4-a39b35f7e661}">
 		<property name="position">
 			<value>-1</value>
 		</property>
@@ -388,7 +388,7 @@
 			<value>75.6720657</value>
 		</property>
 	</object>
-	<object class="AutomationPoint" id="{6b9ddf3b-db12-4ffa-8a62-c58d129d1690}">
+	<object class="AutomationPoint" id="{2d954466-8ce3-4bc9-b5f2-027a1b1efd91}">
 		<property name="position">
 			<value>1</value>
 		</property>
@@ -396,7 +396,7 @@
 			<value>180</value>
 		</property>
 	</object>
-	<object class="AutomationPoint" id="{ea4b28a6-59a4-48a0-bb0e-89fc7b736325}">
+	<object class="AutomationPoint" id="{32b3719c-8607-4896-8630-5520d4b1e820}">
 		<property name="position">
 			<value>0</value>
 		</property>
@@ -404,21 +404,18 @@
 			<value>0</value>
 		</property>
 		<property name="curveShape">
-			<value>-0.573761761</value>
+			<value>0.0534008332</value>
 		</property>
 	</object>
-	<object class="AutomationPoint" id="{348b7307-9f50-400e-a974-baf26069af1a}">
+	<object class="AutomationPoint" id="{c3eafab5-fe86-404a-a8bc-0f72fd2f3c55}">
 		<property name="position">
 			<value>-1</value>
 		</property>
 		<property name="value">
 			<value>-90</value>
 		</property>
-		<property name="curveShape">
-			<value>0.943967104</value>
-		</property>
 	</object>
-	<object class="AutomationPoint" id="{400a8a71-c4d6-4a86-98f1-a5690ca1c81c}">
+	<object class="AutomationPoint" id="{c8b04b54-ef6f-4b17-b33a-189fab4c8966}">
 		<property name="position">
 			<value>1</value>
 		</property>
