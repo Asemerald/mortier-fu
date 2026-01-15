@@ -29,6 +29,8 @@ namespace MortierFu
         public override void OnEnter()
         {
             character.Controller.ResetVelocity();
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {

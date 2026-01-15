@@ -112,7 +112,11 @@ namespace MortierFu
         
         public void Shoot()
         {
-            if (_shootCooldownTimer.IsRunning) return;
+            if (_shootCooldownTimer.IsRunning)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Cant, character.transform.position);
+                return;
+            }
             
             Bombshell.Data bombshellData = new Bombshell.Data
             {
