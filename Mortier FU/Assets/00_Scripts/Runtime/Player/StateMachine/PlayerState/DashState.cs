@@ -112,6 +112,8 @@ namespace MortierFu
         }
 
         public void Reset() {
+            _trailInstance.emitting = false;
+            
             _dashTriggerTimer.Stop();
 
             _dashCooldownTimer.OnTimerStop -= OnCooldownTimerStop;
