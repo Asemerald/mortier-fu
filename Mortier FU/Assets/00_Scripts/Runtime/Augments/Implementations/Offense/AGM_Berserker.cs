@@ -18,6 +18,7 @@ namespace MortierFu
         protected override void OnEnterThreshold()
         {
             stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageMod.ToMod(this));
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
 
         protected override void OnExitThreshold()

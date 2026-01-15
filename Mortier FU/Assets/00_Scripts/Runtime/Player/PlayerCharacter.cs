@@ -132,6 +132,8 @@ namespace MortierFu
             _toggleAimAction.canceled += Mortar.EndAiming;
 
             _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
+
+            _dashAction.started += PlayDashSFX;
         }
 
         public void Reset()
@@ -171,6 +173,8 @@ namespace MortierFu
             Aspect.Dispose();
             Mortar.Dispose();
 
+            _dashAction.started -= PlayDashSFX;
+            
             if (_toggleAimAction == null || Mortar == null) return;
 
             _toggleAimAction.started -= Mortar.BeginAiming;
@@ -384,6 +388,12 @@ namespace MortierFu
         {
             effect.OnCompleted -= RemoveEffect;
             _activeEffects.Remove(effect);
+        }
+
+        private void PlayDashSFX(InputAction.CallbackContext context)
+        {
+            if(_dashState.DashCooldownProgress > 0f)
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
         }
 
         private void At(IState from, IState to, IPredicate condition) =>

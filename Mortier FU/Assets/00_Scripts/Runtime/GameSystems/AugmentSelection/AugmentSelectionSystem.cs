@@ -195,6 +195,10 @@ namespace MortierFu
                 _augmentProviderSys?.ApplyDamping(randomAugment.Augment);
 
                 randomAugment.IsPicked = true;
+
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
+                    picker.Character.transform.position);
+
                 remainingAugments.Remove(randomAugment);
 
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
@@ -220,7 +224,7 @@ namespace MortierFu
             {
                 var pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
-                
+
                 var pickupVFX = _pickupsVFX[i];
                 pickupVFX.transform.SetParent(_pickupParent);
             }

@@ -129,6 +129,7 @@ namespace MortierFu
             for (int t = seconds; t > 0; t--)
             {
                 SetCountdownVisual(t);
+                // TODO: Add sound effect here or maybe in AnimateCountdownNumber
                 await AnimateCountdownNumber(_cts.Token);
             }
 

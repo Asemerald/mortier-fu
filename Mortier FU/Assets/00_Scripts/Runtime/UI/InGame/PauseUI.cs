@@ -77,6 +77,7 @@ namespace MortierFu
 
             if (_gm != null)
             {
+                // TODO: Mettre le son sur endgame main menu et quit
                 _endGameButton.onClick.AddListener(_gm.EndGame);
                 _endGameButton.onClick.AddListener(_gamePauseSystem.UnPause);
 
@@ -149,14 +150,20 @@ namespace MortierFu
 
         private void Pause()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause);
             Show();
             _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
         }
 
-        private void UnPause() => Hide();
+        private void UnPause()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+            Hide();
+        }
 
         private void ShowSettingsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _settingsPanel.SetActive(true);
             _controlsPanel.SetActive(false);
             _pausePanel.SetActive(false);
@@ -166,6 +173,7 @@ namespace MortierFu
 
         private void ShowControlsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _controlsPanel.SetActive(true);
             _pausePanel.SetActive(true);
             _settingsPanel.SetActive(false);

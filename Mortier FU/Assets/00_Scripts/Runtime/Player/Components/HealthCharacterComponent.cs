@@ -68,6 +68,8 @@ namespace MortierFu
                     Character = Character,
                     Source = source
                 });
+
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
             }
         }
 
