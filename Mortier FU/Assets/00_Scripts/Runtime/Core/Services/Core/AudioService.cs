@@ -19,11 +19,25 @@ namespace MortierFu
         {
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
+
+        #region EventInstance functions
         
         public static EventInstance PlayOneShot(EventReference eventRef, float panning = 0)
         {
             EventInstance instance = RuntimeManager.CreateInstance(eventRef);
             instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
+            instance.setParameterByName("Pan", panning);
+            instance.start();
+            instance.release();
+
+            return instance;
+        }
+        
+        public static EventInstance PlayOneShot(EventReference eventRef, Vector3 position)
+        {
+            EventInstance instance = RuntimeManager.CreateInstance(eventRef);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
+            var panning = GetPanningFromWorldSpace(position);
             instance.setParameterByName("Pan", panning);
             instance.start();
             instance.release();
@@ -59,6 +73,8 @@ namespace MortierFu
 
             return (rangeValue + damageValue) * 0.5f;
         }
+        
+        #endregion
 
         public async UniTask LoadBanks(AssetReference[] banksToLoad)
         {

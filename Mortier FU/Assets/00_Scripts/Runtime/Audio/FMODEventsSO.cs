@@ -25,6 +25,29 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Strike_Cant { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Knockback { get; private set; }
         
+        [field: SerializeField] public EventReference SFX_Augment_Grab { get; private set; }
+        [field: SerializeField] public EventReference SFX_Augment_Bounce { get; private set; }
+        [field: SerializeField] public EventReference SFX_Augment_Buff { get; private set; }
+        
+        
+        [field: SerializeField] public EventReference SFX_UI_Navigate { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Select { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Return { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Tick { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Slider { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Join { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_ChangeSkin { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Ready { get; private set; }
+        [field: SerializeField] public EventReference SFX_UI_Pause { get; private set; }
+        
+        [field: SerializeField] public EventReference MUS_MainMenu { get; private set; }
+        [field: SerializeField] public EventReference MUS_Gameplay { get; private set; }
+        [field: SerializeField] public EventReference MUS_Victory { get; private set; }
+        
+        [field: SerializeField] public EventReference AMBI_Day { get; private set; }
+        [field: SerializeField] public EventReference AMBI_Night { get; private set; }
+        [field: SerializeField] public EventReference AMBI_Tuktuk_Drift { get; private set; }
+        
         
         //ANIMATION CURVES
         [Header("Bombshell")]
