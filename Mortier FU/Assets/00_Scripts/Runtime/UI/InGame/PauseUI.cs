@@ -27,7 +27,6 @@ namespace MortierFu
         [Header("Buttons")] [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
-        [SerializeField] private Button _mainMenuButton;
         [SerializeField] private Button _quitButton;
 
         [Header("Mortars")] [SerializeField] private GameObject[] _mortarHands;
@@ -80,9 +79,6 @@ namespace MortierFu
                 // TODO: Mettre le son sur endgame main menu et quit
                 _endGameButton.onClick.AddListener(_gm.EndGame);
                 _endGameButton.onClick.AddListener(_gamePauseSystem.UnPause);
-
-                _mainMenuButton.onClick.AddListener(_gm.EndGame);
-                _mainMenuButton.onClick.AddListener(_gamePauseSystem.UnPause);
             }
 
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
