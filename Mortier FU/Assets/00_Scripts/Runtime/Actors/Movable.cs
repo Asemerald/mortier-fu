@@ -44,7 +44,7 @@ namespace MortierFu
             character.transform.SetParent(null);
         }
 
-        public void Interact()
+        public void Interact(Vector3 contactPoint)
         {
             _isActivated = true;
         }

@@ -143,7 +143,10 @@ namespace MortierFu
                 
                 if (root.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
                 {
-                    interactable.Interact();
+                    Vector3 contactPoint = Physics.ClosestPoint(strikePosition, hit,
+                        hit.transform.position, hit.transform.rotation);
+                    
+                    interactable.Interact(contactPoint);
                     continue;
                 }
 
