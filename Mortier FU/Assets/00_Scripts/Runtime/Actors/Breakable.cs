@@ -15,8 +15,11 @@ namespace MortierFu
 
         void Awake()
         {
-            _intactMesh.SetActive(true);
-            _shatteredMesh.SetActive(false);
+            if(_intactMesh)
+                _intactMesh?.SetActive(true);
+            
+            if(_shatteredMesh)
+                _shatteredMesh.SetActive(false);
 
             _isIntact = true;
         }
@@ -35,6 +38,15 @@ namespace MortierFu
         {
             if (!_isIntact) return;
             _isIntact = false;
+
+            if (!_intactMesh)
+                return;
+
+            if (!_shatteredMesh)
+            {
+                Destroy(_intactMesh);
+                return;
+            }
             
             _intactMesh.SetActive(false);
             _shatteredMesh.SetActive(true);

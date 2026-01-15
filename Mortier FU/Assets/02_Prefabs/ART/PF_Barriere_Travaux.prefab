@@ -47,7 +47,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.Breakable
   _life: 1
-  _mat: {fileID: 0}
+  _explosionForce: 50
+  _explosionRadius: 5
+  _upwardsModifier: 1
+  _intactMesh: {fileID: 6777720173749038592}
+  _shatteredMesh: {fileID: 0}
 --- !u!54 &8099068248487216393
 Rigidbody:
   m_ObjectHideFlags: 0
