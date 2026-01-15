@@ -5,7 +5,7 @@
 			<value>SFX_Mortar_ImpactNone</value>
 		</property>
 		<property name="outputFormat">
-			<value>2</value>
+			<value>1</value>
 		</property>
 		<relationship name="folder">
 			<destination>{022bb662-350f-4920-8d75-e4dd2d80007f}</destination>
@@ -88,9 +88,6 @@
 		<relationship name="modules">
 			<destination>{9aeb2c70-a063-4bf1-a014-9c2f67c676a0}</destination>
 			<destination>{8985d27e-ad32-432a-96ae-67085020996f}</destination>
-		</relationship>
-		<relationship name="markers">
-			<destination>{2856f248-63f2-4496-8a9d-bf7d1bf2237e}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{6505d5ce-817e-40cb-a312-7597be369e8e}">
@@ -181,27 +178,12 @@
 			<destination>{6505d5ce-817e-40cb-a312-7597be369e8e}</destination>
 		</relationship>
 	</object>
-	<object class="LoopRegion" id="{2856f248-63f2-4496-8a9d-bf7d1bf2237e}">
-		<property name="position">
-			<value>0</value>
-		</property>
-		<property name="length">
-			<value>1.7460880773361975</value>
-		</property>
-		<relationship name="timeline">
-			<destination>{311d6144-59d7-44d5-82a0-a2f16a9a0c51}</destination>
-		</relationship>
-		<relationship name="markerTrack">
-			<destination>{efcb65fe-ee44-4dea-b078-09c7b5aea1cc}</destination>
-		</relationship>
-	</object>
 	<object class="MixerBusEffectChain" id="{5b2397ee-1f26-4f50-8271-fc453ad309ba}">
 		<relationship name="effects">
 			<destination>{e67d544d-9e77-413f-be02-ac531e6ca48f}</destination>
 			<destination>{a284b53a-fc90-4d21-9767-f901243f3155}</destination>
 			<destination>{15d9bd14-d303-4645-961f-7c27278c771d}</destination>
 			<destination>{8a7ffe06-4213-4df7-92cd-e7cea4057034}</destination>
-			<destination>{4815a733-fd41-488a-878c-3cae909b87e2}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{51432598-00e1-4fdc-833e-ebcbb10f8f9c}" />
@@ -270,7 +252,6 @@
 			<value>-6</value>
 		</property>
 	</object>
-	<object class="SpatialiserEffect" id="{4815a733-fd41-488a-878c-3cae909b87e2}" />
 	<object class="AutomationCurve" id="{78ffb25f-077e-4d26-bc35-97f13e3d5dc8}">
 		<relationship name="parameter">
 			<destination>{97363d43-4b2d-48a6-b86b-c53ce62a6185}</destination>

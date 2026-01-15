@@ -2,7 +2,9 @@
 using Cysharp.Threading.Tasks;
 using FMODUnity;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
+
 
 namespace MortierFu
 {
@@ -10,9 +12,16 @@ namespace MortierFu
     {
         private List<AssetReference> Banks = new List<AssetReference>();
 
+        public static FMODEventsSO FMODEvents;
+
         public void PlayMainMenuMusic()
         {
             RuntimeManager.PlayOneShot("event:/Serachan");
+        }
+        
+        public static void PlayOneShot(EventReference eventRef)
+        {
+            RuntimeManager.PlayOneShot(eventRef);
         }
 
         public async UniTask LoadBanks(AssetReference[] banksToLoad)
@@ -46,6 +55,7 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
+            FMODEvents = Resources.Load<FMODEventsSO>("FMODEvents");
             return UniTask.CompletedTask;
         }
 

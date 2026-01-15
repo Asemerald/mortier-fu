@@ -96,6 +96,21 @@ namespace MortierFu
             _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.GetTravelTime());
             
+            // ---------------- SFX CALLS ----------------
+
+            if (hitCharacters.Count > 0)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer);
+            }
+            else if (hits.Count > 0)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactNone);
+            }
+            else 
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ImpactNone);
+            }
+            
             if (hitCharacters.Count > 0)
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
