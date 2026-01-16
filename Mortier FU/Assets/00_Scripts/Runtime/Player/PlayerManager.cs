@@ -90,6 +90,8 @@ namespace MortierFu
             if (PlayerIndex != 0)
                 return;
 
+            if (!_gamePauseSystem.IsPaused) return;
+
             _gamePauseSystem.Cancel();
         }
 
