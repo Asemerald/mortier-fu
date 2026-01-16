@@ -21,6 +21,7 @@ namespace MortierFu
 
         [Header("Panels")] [SerializeField] private GameObject _pausePanel;
         [SerializeField] private GameObject _pauseBackground;
+        [SerializeField] private GameObject _blackPanel;
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private GameObject _controlsPanel;
 
@@ -44,18 +45,18 @@ namespace MortierFu
         [SerializeField] private Ease _headMoveEase = Ease.OutCubic;
         [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
 
+        private Tween[] _activeHeadTweens;
+
+        private CancellationTokenSource _animateCancellation;
+
+        private EventSystem _eventSystem;
+        private GamePauseSystem _gamePauseSystem;
+        private GameModeBase _gm;
+        private LobbyService _lobbyService;
+
         private Vector3[] _mortarHandsInitialPositions;
         private Vector3[] _mortarHeadsInitialPositions;
         private Quaternion[] _mortarInitialRotations;
-
-        private Tween[] _activeHeadTweens;
-
-        private EventSystem _eventSystem;
-        private LobbyService _lobbyService;
-        private GameModeBase _gm;
-        private GamePauseSystem _gamePauseSystem;
-
-        private CancellationTokenSource _animateCancellation;
 
         private void Start()
         {
@@ -70,7 +71,7 @@ namespace MortierFu
             _gamePauseSystem.Paused += Pause;
             _gamePauseSystem.Resumed += UnPause;
             _gamePauseSystem.Canceled += Return;
-            
+
             _settingsButton.onClick.AddListener(ShowSettingsPanel);
             _controlsButton.onClick.AddListener(ShowControlsPanel);
             _quitButton.onClick.AddListener(Application.Quit);
@@ -100,6 +101,11 @@ namespace MortierFu
             Hide();
         }
 
+        private void OnDisable()
+        {
+            StopAllAnimations();
+        }
+
         private void OnDestroy()
         {
             if (_gamePauseSystem != null)
@@ -123,11 +129,6 @@ namespace MortierFu
                 if (tween.isAlive)
                     tween.Stop();
             }
-        }
-
-        private void OnDisable()
-        {
-            StopAllAnimations();
         }
 
         private void StopAllAnimations()
@@ -174,6 +175,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _controlsPanel.SetActive(true);
             _pausePanel.SetActive(true);
+            _blackPanel.SetActive(false);
             _settingsPanel.SetActive(false);
 
             _eventSystem.SetSelectedGameObject(null);
@@ -183,6 +185,7 @@ namespace MortierFu
         {
             _pausePanel.SetActive(true);
             _pauseBackground.SetActive(true);
+            _blackPanel.SetActive(true);
 
             _animateCancellation?.Cancel();
             _animateCancellation?.Dispose();
@@ -197,6 +200,7 @@ namespace MortierFu
             _pauseBackground.SetActive(false);
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
+            _blackPanel.SetActive(false);
 
             StopAllAnimations();
 
@@ -285,6 +289,7 @@ namespace MortierFu
             else if (_controlsPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
+                _blackPanel.SetActive(true);
             }
 
             _settingsPanel.SetActive(false);
