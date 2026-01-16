@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using Unity.Mathematics;
 
 namespace MortierFu
 {
@@ -25,6 +26,9 @@ namespace MortierFu
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private GameObject _controlsPanel;
 
+        [SerializeField] private RawImage _pauseTopText;
+        [SerializeField] private RawImage _pauseBottomText;
+        
         [Header("Buttons")] [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
@@ -45,6 +49,8 @@ namespace MortierFu
         [SerializeField] private Ease _headMoveEase = Ease.OutCubic;
         [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
 
+        [SerializeField] private float _tilablePauseSpeed = 0.5f;
+        
         private Tween[] _activeHeadTweens;
 
         private CancellationTokenSource _animateCancellation;
@@ -131,6 +137,21 @@ namespace MortierFu
             }
         }
 
+        private void Update()
+        {
+            if (!_gamePauseSystem.IsPaused) return;
+
+            AnimateTilableImage(_pauseTopText, -_tilablePauseSpeed);
+            AnimateTilableImage(_pauseBottomText, _tilablePauseSpeed);
+        }
+
+        private void AnimateTilableImage(RawImage image, float speed)
+        {
+            var rect = image.uvRect;
+            rect.x = math.frac(rect.x + speed * Time.unscaledDeltaTime) ;
+            image.uvRect = rect;
+        }
+
         private void StopAllAnimations()
         {
             if (_activeHeadTweens != null)
@@ -186,6 +207,8 @@ namespace MortierFu
             _pausePanel.SetActive(true);
             _pauseBackground.SetActive(true);
             _blackPanel.SetActive(true);
+            _pauseTopText.transform.parent.gameObject.SetActive(true);
+            _pauseBottomText.transform.parent.gameObject.SetActive(true);
 
             _animateCancellation?.Cancel();
             _animateCancellation?.Dispose();
@@ -201,7 +224,9 @@ namespace MortierFu
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
             _blackPanel.SetActive(false);
-
+            _pauseTopText.transform.parent.gameObject.SetActive(false);
+            _pauseBottomText.transform.parent.gameObject.SetActive(false);
+            
             StopAllAnimations();
 
             for (int i = 0; i < _mortarHands.Length; i++)

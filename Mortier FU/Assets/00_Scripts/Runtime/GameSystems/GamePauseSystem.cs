@@ -8,8 +8,8 @@ namespace MortierFu
     public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
-
-        private bool _isPaused;
+        
+        public bool IsPaused { get; private set; }
 
         public event Action Paused;
         public event Action Resumed;
@@ -17,18 +17,18 @@ namespace MortierFu
 
         public void UnPause()
         {
-            if (!_isPaused) return;
+            if (!IsPaused) return;
 
-            _isPaused = false;
+            IsPaused = false;
             Time.timeScale = 1f;
             Resumed?.Invoke();
         }
         
         public void Pause()
         {
-            if (_isPaused) return;
+            if (IsPaused) return;
             
-            _isPaused = true;
+            IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke();
         }
