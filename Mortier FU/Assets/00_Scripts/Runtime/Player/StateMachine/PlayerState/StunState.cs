@@ -45,6 +45,8 @@ namespace MortierFu
 
         public override void OnExit()
         {
+            _stunTimer.Stop();
+            
             if(debug) 
                 Logs.Log("Exiting Stun State");
         }
