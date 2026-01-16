@@ -8,7 +8,7 @@ namespace MortierFu
         [SerializeField] private RoundAnnouncementUI _roundAnnouncementUI;
         [SerializeField] private RoundEndUI _roundEndUI;
         [SerializeField] private GameEndUI _gameEndUI;
-        [SerializeField] private GameplayInfoUI _gameplayInfoUI;
+       // [SerializeField] private GameplayInfoUI _gameplayInfoUI;
         
         private LobbyService _lobbyService;
         
@@ -53,7 +53,7 @@ namespace MortierFu
         {
             _roundAnnouncementUI.gameObject.SetActive(true);
             _roundAnnouncementUI.OnRoundStarted(_gm);
-            _gameplayInfoUI.OnRoundStarted(currentRound);
+            //_gameplayInfoUI.OnRoundStarted(currentRound);
         }
 
         private void HandleRoundEnded(RoundInfo round)
@@ -65,7 +65,7 @@ namespace MortierFu
         private void HandleGameEnded(int winnerIndex)
         {
             _gameEndUI.gameObject.SetActive(true);
-            _gameEndUI.DisplayVictoryScreen(_lobbyService.GetPlayers().Count,winnerIndex);
+            _gameEndUI.DisplayVictoryScreen(winnerIndex, _lobbyService.GetPlayers().Count);
         }
         
         private void HandleScoreDisplayOver()

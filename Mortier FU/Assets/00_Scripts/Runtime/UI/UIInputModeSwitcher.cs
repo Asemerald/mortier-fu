@@ -6,7 +6,6 @@ namespace MortierFu
 {
     public class UIInputModeSwitcher : MonoBehaviour
     {
-
         private EventSystem eventSystem;
         private bool usingController = false;
 
@@ -29,7 +28,7 @@ namespace MortierFu
             var gamepad = Gamepad.current;
 
             // --- Detect mouse movement or click ---
-            if (mouse != null && 
+            if (mouse != null &&
                 (mouse.delta.ReadValue() != Vector2.zero || mouse.leftButton.wasPressedThisFrame))
             {
                 if (usingController)
@@ -40,7 +39,7 @@ namespace MortierFu
             }
 
             // --- Detect gamepad / keyboard navigation ---
-            if (gamepad != null && 
+            if (gamepad != null &&
                 (gamepad.leftStick.ReadValue() != Vector2.zero ||
                  gamepad.dpad.ReadValue() != Vector2.zero ||
                  gamepad.buttonSouth.wasPressedThisFrame))
@@ -53,5 +52,4 @@ namespace MortierFu
             }
         }
     }
-
 }
