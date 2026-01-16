@@ -26,6 +26,7 @@ namespace MortierFu
             {
                 bool success = _system.NotifyPlayerInteraction(character, _index);
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
+                ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
                 if (!success) return;
 
                 Reset();

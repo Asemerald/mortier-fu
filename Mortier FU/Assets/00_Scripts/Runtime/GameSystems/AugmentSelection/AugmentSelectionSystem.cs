@@ -198,6 +198,7 @@ namespace MortierFu
 
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
                     picker.Character.transform.position);
+              // ShakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
 
                 remainingAugments.Remove(randomAugment);
 
