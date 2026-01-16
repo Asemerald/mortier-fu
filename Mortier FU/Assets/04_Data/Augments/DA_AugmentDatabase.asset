@@ -33,7 +33,7 @@ MonoBehaviour:
   BerserkerParams:
     HealthThreshold: 0.5
     BombshellDamageMod:
-      Value: 40
+      Value: 45
       ModType: 100
   BigBulletsParams:
     FireRateMod:
@@ -69,7 +69,7 @@ MonoBehaviour:
       ModType: 100
   FastReloadParams:
     FireRateMod:
-      Value: 3
+      Value: 2.85
       ModType: 100
   FreezePuddleParams:
     Ability:
@@ -81,6 +81,9 @@ MonoBehaviour:
   GunslingerParams:
     FireRateMod:
       Value: 4.25
+      ModType: 100
+    ShotRangeMod:
+      Value: 5
       ModType: 100
     HealthLooseMod:
       Value: -20
@@ -115,9 +118,12 @@ MonoBehaviour:
       Value: 0.095
       ModType: 300
   TsarBombaParams:
-    BombshellImpactRadius:
+    BombshellImpactRadiusMult:
       Value: 0.25
       ModType: 300
+    BombshellImpactRadiusFlat:
+      Value: 0.5
+      ModType: 100
     BombshellDamageMod:
       Value: 10
       ModType: 100

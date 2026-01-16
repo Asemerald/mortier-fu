@@ -5,7 +5,8 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod BombshellImpactRadius;
+            public AugmentStatMod BombshellImpactRadiusMult;
+            public AugmentStatMod BombshellImpactRadiusFlat;
             public AugmentStatMod BombshellDamageMod;
             public AugmentStatMod FireRateMod;
             public AugmentStatMod BombshellSpeedMod;
@@ -16,7 +17,8 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.BombshellImpactRadius.AddModifier(db.TsarBombaParams.BombshellImpactRadius.ToMod(this));
+            stats.BombshellImpactRadius.AddModifier(db.TsarBombaParams.BombshellImpactRadiusMult.ToMod(this));
+            stats.BombshellImpactRadius.AddModifier(db.TsarBombaParams.BombshellImpactRadiusFlat.ToMod(this));
             stats.BombshellDamage.AddModifier(db.TsarBombaParams.BombshellDamageMod.ToMod(this));
             stats.FireRate.AddModifier(db.TsarBombaParams.FireRateMod.ToMod(this));
             stats.BombshellSpeed.AddModifier(db.TsarBombaParams.BombshellSpeedMod.ToMod(this));
