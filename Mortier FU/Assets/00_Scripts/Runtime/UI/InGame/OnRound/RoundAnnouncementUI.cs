@@ -197,6 +197,7 @@ namespace MortierFu
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
             
+            // TODO: Désolé c'est horrible
             gm?.EnablePlayerInputs();
         }
 

@@ -137,6 +137,7 @@ namespace MortierFu
 
             await ShowPlay(_cts.Token);
             
+            // TODO: Désolé c'est horrible
             var gm = GameService.CurrentGameMode as GameModeBase;
             gm?.EnablePlayerInputs();
         }
