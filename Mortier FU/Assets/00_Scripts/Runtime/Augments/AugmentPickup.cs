@@ -7,6 +7,7 @@ namespace MortierFu
         private int _index;
 
         private AugmentSelectionSystem _system;
+        private ShakeService _shakeService;
 
         private Quaternion _initialRotation;
 
@@ -14,7 +15,7 @@ namespace MortierFu
         {
             _system = system;
             _index = augmentIndex;
-
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
             _initialRotation = transform.rotation;
         }
 
@@ -26,7 +27,7 @@ namespace MortierFu
             {
                 bool success = _system.NotifyPlayerInteraction(character, _index);
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
-                ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+                _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
                 if (!success) return;
 
                 Reset();

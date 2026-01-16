@@ -23,6 +23,7 @@ namespace MortierFu
         private List<PlayerManager> _pickers;
 
         private LobbyService _lobbyService;
+        private ShakeService _shakeService;
         private LevelSystem _levelSystem;
         private AugmentProviderSystem _augmentProviderSys;
         private AugmentShowcaser _augmentShowcaser;
@@ -53,6 +54,7 @@ namespace MortierFu
             _pickupParent = new GameObject("AugmentPickups").transform;
 
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _augmentProviderSys = SystemManager.Instance.Get<AugmentProviderSystem>();
             _playerCount = _lobbyService.GetPlayers().Count;
@@ -194,7 +196,7 @@ namespace MortierFu
 
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
                     picker.Character.transform.position);
-              // ShakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
+                _shakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
 
                 remainingAugments.Remove(randomAugment);
 

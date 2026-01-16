@@ -728,6 +728,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8742894567064811976, guid: 2b74c3c1fb3ad5d43a755420e7ee511e, type: 3}
   m_PrefabInstance: {fileID: 856341674}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &864737142 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5951699068508088162, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+  m_PrefabInstance: {fileID: 1925171432}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1049058243
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1265,6 +1270,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1764034119}
   m_Mesh: {fileID: -3107727534596147394, guid: 9602c92ec2d2eac4d9cfa990cf856062, type: 3}
+--- !u!1 &1833906480 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2808234224322190203, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+  m_PrefabInstance: {fileID: 1925171432}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1843615927
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1339,6 +1349,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 303259891949543204, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_Name
+      value: CarSpawnRight
+      objectReference: {fileID: 0}
     - target: {fileID: 304268847981342573, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -1347,10 +1361,46 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1703693006}
+    - target: {fileID: 438319003560153357, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpeed
+      value: 2900
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _redTimeDuration
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _greenTimeDuration
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpawnCooldown
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpawnVariance
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 607370718506333665, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpeedVariance
+      value: 0.02
+      objectReference: {fileID: 0}
     - target: {fileID: 964678585704423735, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 139691713}
+    - target: {fileID: 1257523380356311142, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392671485552092751, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_Name
+      value: CarSpawnLeft
+      objectReference: {fileID: 0}
     - target: {fileID: 1422355245879354649, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -1363,6 +1413,46 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 461353436}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _endPoint
+      value: 
+      objectReference: {fileID: 1925171435}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _redLight
+      value: 
+      objectReference: {fileID: 864737142}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _greenLight
+      value: 
+      objectReference: {fileID: 1833906480}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _startPoint
+      value: 
+      objectReference: {fileID: 1925171436}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpeed
+      value: 2900
+      objectReference: {fileID: 0}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _redTimeDuration
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _greenTimeDuration
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpawnCooldown
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpawnVariance
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2237011824218754186, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: _vehicleSpeedVariance
+      value: 0.02
+      objectReference: {fileID: 0}
     - target: {fileID: 2344377186302848547, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
       propertyPath: m_Name
       value: LD4_temp
@@ -1435,6 +1525,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 510929503}
+    - target: {fileID: 7556292187678490636, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.04
+      objectReference: {fileID: 0}
     - target: {fileID: 8286442414369351818, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -1443,11 +1537,25 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 139691713}
+    - target: {fileID: 9204215933072161127, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.04
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+--- !u!4 &1925171435 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9204215933072161127, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+  m_PrefabInstance: {fileID: 1925171432}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1925171436 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 438319003560153357, guid: c7cd99ec78b03684e8cb160b7317cb05, type: 3}
+  m_PrefabInstance: {fileID: 1925171432}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1939977608
 Mesh:
   m_ObjectHideFlags: 0

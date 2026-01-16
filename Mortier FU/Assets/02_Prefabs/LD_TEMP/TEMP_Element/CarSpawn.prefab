@@ -268,12 +268,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a330317f79cd4649a988296f5659620, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  startingPoint: {fileID: 9072643556310370661}
-  endPoint: {fileID: 308013138943271183}
-  vehicule: {fileID: 3272717844674581917, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
-  redLight: {fileID: 0}
-  vehiculeSpeed: 100
-  vehiculteRate: {x: 0.6, y: 1}
-  redLightTime: {x: 10, y: 15}
-  redLightMat: {fileID: 2100000, guid: 11c2fbc0904164e4a84cf6403135cf3d, type: 2}
-  greenLightMat: {fileID: 2100000, guid: b88158913f300e64688585e3685a845f, type: 2}
+  _carPrototypes:
+  - {fileID: 901249704426078097, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+  - {fileID: 7783497374717560335, guid: 67276e5a2d3115243b5d67c661db00a9, type: 3}
+  - {fileID: 7783497374717560335, guid: c95cec9b02ab82c4cb1faf92eace9007, type: 3}
+  _startPoint: {fileID: 9072643556310370661}
+  _endPoint: {fileID: 308013138943271183}
+  _greenLight: {fileID: 0}
+  _redLight: {fileID: 0}
+  _greenTimeDuration: 10
+  _redTimeDuration: 10
+  _vehicleSpawnCooldown: 2
+  _spawnVariance: 0.3
+  _vehicleSpeed: 100
+  _vehicleSpeedVariance: 0.2
+  _collectionCheck: 1
+  _defaultCapacity: 10
+  _maxSize: 1000
