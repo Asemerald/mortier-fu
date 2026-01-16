@@ -29,6 +29,7 @@ namespace MortierFu
         private DiscordService _discordService;
         private SceneService _sceneService;
         private SaveService _saveService;
+        private ShakeService _shakeService;
         
 #if UNITY_EDITOR
         [Header("Debug")] public bool isPortableBootstrap = false;
@@ -110,6 +111,7 @@ namespace MortierFu
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
             _saveService = new SaveService();
+            _shakeService = new ShakeService();
             
             // --- Register services
             _serviceManager.Register(_modService);
@@ -122,6 +124,7 @@ namespace MortierFu
             _serviceManager.Register(_confirmationService);
             _serviceManager.Register(_sceneService);
             _serviceManager.Register(_saveService);
+            _serviceManager.Register(_shakeService);
             
             return UniTask.CompletedTask;
         }

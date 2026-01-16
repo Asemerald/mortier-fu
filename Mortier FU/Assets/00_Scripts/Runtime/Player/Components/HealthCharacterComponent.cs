@@ -58,6 +58,8 @@ namespace MortierFu
                 MaxHealth = _maxHealth,
                 Delta = -amount
             });
+            
+            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
             if (!IsAlive)
             {

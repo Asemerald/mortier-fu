@@ -50,7 +50,7 @@ namespace MortierFu
             _knockbackTimer.Reset(duration);
             _knockbackTimer.Start();
             
-            character.Controller.ResetVelocity();
+            //character.Controller.ResetVelocity();
             
             //Apply Knockback
             character.Controller.ApplyKnockback(_currentBumpForce);
