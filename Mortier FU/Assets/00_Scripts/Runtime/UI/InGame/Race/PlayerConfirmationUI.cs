@@ -136,6 +136,9 @@ namespace MortierFu
             _countdownImage.gameObject.SetActive(false);
 
             await ShowPlay(_cts.Token);
+            
+            var gm = GameService.CurrentGameMode as GameModeBase;
+            gm?.EnablePlayerInputs();
         }
 
         private async UniTask ShowPlay(CancellationToken ct)

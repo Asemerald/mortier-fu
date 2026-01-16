@@ -146,10 +146,6 @@ namespace MortierFu
             _showcaseInProgress = false;
 
             OnStopShowcase?.Invoke();
-            await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
-
-            var gm = GameService.CurrentGameMode as GameModeBase;
-            gm?.EnablePlayerInputs();
 
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();

@@ -123,7 +123,7 @@ namespace MortierFu
             _countdownImage.gameObject.SetActive(false);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_playShowDelay));
-            await ShowPlay();
+            await ShowPlay(gm);
         }
 
         private async UniTask RunCountdown(int seconds)
@@ -149,7 +149,7 @@ namespace MortierFu
             _countdownImage.sprite = _countdownSprites[index];
         }
 
-        private async UniTask ShowPlay()
+        private async UniTask ShowPlay(GameModeBase gm)
         {
             var t = _playGameObject.transform;
 
@@ -196,6 +196,8 @@ namespace MortierFu
 
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
+            
+            gm?.EnablePlayerInputs();
         }
 
         #region References
