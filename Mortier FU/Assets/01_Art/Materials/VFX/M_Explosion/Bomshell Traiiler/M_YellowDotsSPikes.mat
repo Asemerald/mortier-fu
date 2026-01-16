@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_WhiteSpikes 1
+  m_Name: M_YellowDotsSPikes
   m_Shader: {fileID: -6465566751694194690, guid: 200fb838b46eca44794fe9b2f049e907, type: 3}
   m_Parent: {fileID: 2100000, guid: 36466ee140156a84a90a731f9512ac39, type: 2}
   m_ModifiedSerializedProperties: 16
@@ -29,7 +29,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3011
+  m_CustomRenderQueue: 3001
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -37,32 +37,32 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Main_Texture:
-        m_Texture: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
+    - _Texture2D:
+        m_Texture: {fileID: 2800000, guid: 43aeedc2256732945bb9f4080795248d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_3b7bb5670b834ff0b33c174008d519bb_Texture_1_Texture2D:
+    - _Texture2D_1:
         m_Texture: {fileID: 2800000, guid: 768311a826d506845b83d81a84c3fa49, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_99ddf82329e242c6ad4b2b9cfdc4427f_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: 768311a826d506845b83d81a84c3fa49, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_ec340e96e6394b3b85be277ea1db8621_Texture_1_Texture2D:
-        m_Texture: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Boolean: 0
+    - _Boolean_Faded: 0
     - _Boolean_Voronoi_mouvment: 0
-    - _QueueOffset: 11
+    - _QueueOffset: 1
+    - _Smoothness_Fade_Edge_01: 1.17
+    - _Smoothness_Fade_Edge_02: 1.26
+    - _Value_Fade: -0.04
+    - _contrast_texture: 0.56
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color_2: {r: 0.990566, g: 0.990566, b: 0.990566, a: 0}
-    - _Color_Gradient: {r: 1, g: 1, b: 1, a: 1}
-    - _Speed_direction: {r: 4, g: 0, b: 0, a: 0}
+    - _Color: {r: 1, g: 0.8238507, b: 0, a: 1}
+    - _Color_1: {r: 1, g: 0.87986755, b: 0, a: 0}
+    - _Color_2: {r: 1, g: 1, b: 1, a: 0}
+    - _Color_Gradient: {r: 0.8679245, g: 0.48718405, b: 0.556332, a: 1}
+    - _Dots_Tilings: {r: 2.24, g: 4.76, b: 0, a: 0}
+    - _Tiling: {r: -5.66, g: 1, b: 0, a: 0}
     - _Voronoi_Color_01: {r: 1, g: 1, b: 1, a: 0}
-    - _Voronoi_Color_02: {r: 1, g: 1, b: 1, a: 0}
+    - _tiling: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

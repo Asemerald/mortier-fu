@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_YellowSpikes 1
+  m_Name: M_YellowSpikes
   m_Shader: {fileID: -6465566751694194690, guid: 200fb838b46eca44794fe9b2f049e907, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -70,7 +70,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Main_Texture:
-        m_Texture: {fileID: 2800000, guid: 668041989c25c83478ce3135f48b54c5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 43aeedc2256732945bb9f4080795248d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -170,6 +170,7 @@ Material:
     - _Boolean_Color_Fill_2: 0
     - _Boolean_Dots: 0
     - _Boolean_Dots_Alpha: 1
+    - _Boolean_Fade_2_sided: 1
     - _Boolean_Faded: 1
     - _Boolean_Voronoi_mouvment: 0
     - _Boolean_dot_in_spikes: 1
@@ -198,14 +199,14 @@ Material:
     - _Rotate_Fade: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _Smoothness_Fade_Edge_01: 1
-    - _Smoothness_Fade_Edge_02: 0.28
+    - _Smoothness_Fade_Edge_01: 1.6
+    - _Smoothness_Fade_Edge_02: 1.57
     - _SpecularHighlights: 1
     - _Speed_Flames: 0.2
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _Value_Fade: 0.17
+    - _Value_Fade: 0.28
     - _Visibility_Pattern: 0
     - _Voronoi_Value_Alpha: 0.78
     - _WorkflowMode: 1
@@ -228,7 +229,7 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Speed_and_Direction: {r: -1, g: 0, b: 0, a: 0}
     - _Speed_direction: {r: 0.5, g: 0, b: 0, a: 0}
-    - _Tiling: {r: -1, g: 1, b: 0, a: 0}
+    - _Tiling: {r: 2.33, g: 1, b: 0, a: 0}
     - _Tiling_Spikes: {r: 1, g: 1, b: 0, a: 0}
     - _Tilingee: {r: -1, g: 1, b: 0, a: 0}
     - _Vector2: {r: 0.77, g: 0.5, b: 0, a: 0}
