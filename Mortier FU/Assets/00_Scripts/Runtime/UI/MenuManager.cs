@@ -12,34 +12,39 @@ namespace MortierFu
     public class MenuManager : MonoBehaviour
     {
         [field: Header("MainMenu References")]
-        [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
+        [field: SerializeField]
+        public MainMenuPanel MainMenuPanel { get; private set; }
+
         [field: SerializeField] public Button PlayButton { get; private set; }
         [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button CreditsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
-    
-        [field: Header("Settings References")]
-        [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
-    
-        [field: Header("Credits References")]
-        [field: SerializeField] public CreditsPanel CreditsPanel { get; private set; }
-    
-        [field: Header("Lobby References")]
-        [field: SerializeField] public LobbyPanel LobbyPanel { get; private set; }
 
-        [Header("Utils")] 
-        [field: SerializeField] private GameObject blackFader;
+        [field: Header("Settings References")]
+        [field: SerializeField]
+        public SettingsPanel SettingsPanel { get; private set; }
+
+        [field: Header("Credits References")]
+        [field: SerializeField]
+        public CreditsPanel CreditsPanel { get; private set; }
+
+        [field: Header("Lobby References")]
+        [field: SerializeField]
+        public LobbyPanel LobbyPanel { get; private set; }
+
+        [Header("Utils")] [field: SerializeField]
+        private GameObject blackFader;
 
         [field: SerializeField] private MainMenuCameraManager cameraManager;
-         
+
         private EventSystem _eventSystem;
-        
-        private PlayerActionInput _playerActions; 
+
+        private PlayerActionInput _playerActions;
         private GameService _gameService;
-        
-        
+
+
         public static MenuManager Instance { get; private set; }
-    
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -48,21 +53,22 @@ namespace MortierFu
                 Destroy(this.gameObject);
                 return;
             }
+
             Instance = this;
-            
+
             _gameService = ServiceManager.Instance.Get<GameService>();
             if (_gameService == null)
             {
                 Logs.LogError("[MenuManager]: GameService could not be found in ServiceManager.", this);
             }
-            
+
             CheckReferences();
             CheckActivePanels();
-            
+
             // Create PlayerActionInput and enable Menu action map
             _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
         }
-    
+
         private void Start()
         {
             _eventSystem = EventSystem.current;
@@ -70,7 +76,7 @@ namespace MortierFu
             {
                 Logs.LogError("[MenuManager]: No EventSystem found in the scene.", this);
             }
-        
+
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
         }
 
@@ -81,7 +87,7 @@ namespace MortierFu
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed += OnStartGame;
         }
-        
+
         private void OnDisable()
         {
             _playerActions.UI.Disable();
@@ -89,18 +95,18 @@ namespace MortierFu
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed -= OnStartGame;
         }
-        
+
         public async UniTask StartGame()
         {
             Logs.Log("MenuManager: Starting Game...");
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
-            
+
             // Should handle game mode teams
 
             _gameService.ExecuteGameplayPipeline().Forget();
         }
-        
+
         //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         private void OnStartGame(InputAction.CallbackContext context)
         {
@@ -115,10 +121,10 @@ namespace MortierFu
         public void OnCancel(InputAction.CallbackContext context)
         {
             Logs.Log("[MenuManager]: OnCancel triggered.");
-            if (!context.performed) return; 
+            if (!context.performed) return;
 
             // Hide Current Panel and go back to Main Menu
-            if (SettingsPanel.IsVisible()) 
+            if (SettingsPanel.IsVisible())
             {
                 SettingsPanel.Hide();
                 MainMenuPanel.Show();
@@ -138,27 +144,29 @@ namespace MortierFu
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
             }
         }
-        
-        
-    
+
         private void CheckReferences()
         {
             if (MainMenuPanel == null)
             {
                 Logs.LogError("MenuManager: MainMenuPanel reference is missing.", this);
             }
+
             if (SettingsPanel == null)
             {
                 Logs.LogError("MenuManager: SettingsPanel reference is missing.", this);
             }
+
             if (CreditsPanel == null)
             {
                 Logs.LogError("MenuManager: CreditsPanel reference is missing.", this);
             }
+
             if (LobbyPanel == null)
             {
                 Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
             }
+
             if (cameraManager == null)
             {
                 Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
@@ -172,6 +180,7 @@ namespace MortierFu
                 //Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
                 MainMenuPanel.gameObject.SetActive(true);
             }
+
             if (!SettingsPanel.isActiveAndEnabled)
             {
                 //Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
@@ -203,13 +212,13 @@ namespace MortierFu
         {
             cameraManager.MoveToNextPosition();
         }
-        
+
         public void ChangeSelectedButton(Button newSelected)
         {
             _eventSystem.SetSelectedGameObject(newSelected.gameObject);
         }
     }
-    
+
     public enum MenuPanelType
     {
         MainMenu,
@@ -218,5 +227,3 @@ namespace MortierFu
         Lobby
     }
 }
-
-
