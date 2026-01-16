@@ -92,7 +92,6 @@ namespace MortierFu
         private void OnShootCooldownComplete()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ReloadComplete, character.transform.position);
-            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.LITTLE);
         }
 
         private void UpdateFireRate()

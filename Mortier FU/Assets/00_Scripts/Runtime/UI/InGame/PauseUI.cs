@@ -28,7 +28,7 @@ namespace MortierFu
 
         [SerializeField] private RawImage _pauseTopText;
         [SerializeField] private RawImage _pauseBottomText;
-        
+
         [Header("Buttons")] [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
@@ -50,7 +50,7 @@ namespace MortierFu
         [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
 
         [SerializeField] private float _tilablePauseSpeed = 0.5f;
-        
+
         private Tween[] _activeHeadTweens;
 
         private CancellationTokenSource _animateCancellation;
@@ -82,6 +82,13 @@ namespace MortierFu
             _controlsButton.onClick.AddListener(ShowControlsPanel);
             _quitButton.onClick.AddListener(Application.Quit);
 
+            _fullscreenToggle.onValueChanged.AddListener(SelectedToggleFeedback);
+            _vSyncToggle.onValueChanged.AddListener(SelectedToggleFeedback);
+            
+            _masterVolumeSlider.onValueChanged.AddListener(SliderValueChange);
+            _musicVolumeSlider.onValueChanged.AddListener(SliderValueChange);
+            _sfxVolumeSlider.onValueChanged.AddListener(SliderValueChange);
+            
             if (_gm != null)
             {
                 // TODO: Mettre le son sur endgame main menu et quit
@@ -105,6 +112,14 @@ namespace MortierFu
             }
 
             Hide();
+        }
+
+        private void Update()
+        {
+            if (!_gamePauseSystem.IsPaused) return;
+
+            AnimateTilableImage(_pauseTopText, -_tilablePauseSpeed);
+            AnimateTilableImage(_pauseBottomText, _tilablePauseSpeed);
         }
 
         private void OnDisable()
@@ -137,18 +152,10 @@ namespace MortierFu
             }
         }
 
-        private void Update()
-        {
-            if (!_gamePauseSystem.IsPaused) return;
-
-            AnimateTilableImage(_pauseTopText, -_tilablePauseSpeed);
-            AnimateTilableImage(_pauseBottomText, _tilablePauseSpeed);
-        }
-
         private void AnimateTilableImage(RawImage image, float speed)
         {
             var rect = image.uvRect;
-            rect.x = math.frac(rect.x + speed * Time.unscaledDeltaTime) ;
+            rect.x = math.frac(rect.x + speed * Time.unscaledDeltaTime);
             image.uvRect = rect;
         }
 
@@ -171,6 +178,7 @@ namespace MortierFu
         private void Pause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
             Show();
             _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
         }
@@ -178,12 +186,14 @@ namespace MortierFu
         private void UnPause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
             Hide();
         }
 
         private void ShowSettingsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
             _settingsPanel.SetActive(true);
             _controlsPanel.SetActive(false);
             _pausePanel.SetActive(false);
@@ -194,6 +204,7 @@ namespace MortierFu
         private void ShowControlsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
             _controlsPanel.SetActive(true);
             _pausePanel.SetActive(true);
             _blackPanel.SetActive(false);
@@ -226,7 +237,7 @@ namespace MortierFu
             _blackPanel.SetActive(false);
             _pauseTopText.transform.parent.gameObject.SetActive(false);
             _pauseBottomText.transform.parent.gameObject.SetActive(false);
-            
+
             StopAllAnimations();
 
             for (int i = 0; i < _mortarHands.Length; i++)
@@ -320,6 +331,18 @@ namespace MortierFu
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
             _pausePanel.SetActive(true);
+        }
+
+        private void SelectedToggleFeedback(bool value)
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.LITTLE);
+        }
+        
+        private void SliderValueChange(float value)
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.LITTLE);
         }
 
         private void Shuffle(int[] array)

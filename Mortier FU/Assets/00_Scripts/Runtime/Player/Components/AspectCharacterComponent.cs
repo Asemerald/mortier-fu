@@ -39,7 +39,8 @@ namespace MortierFu
         private Color _startingOutlineColor;
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        { }
+        {
+        }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
@@ -140,6 +141,8 @@ namespace MortierFu
                 _spawnVFXInstance.transform.position = character.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
+                ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+
                 _particleSystemInstance?.Play();
 
                 float totalDuration = 2f;
@@ -155,7 +158,7 @@ namespace MortierFu
                 onVFXCompleted?.Invoke(character);
             }
         }
-        
+
         public override void Dispose()
         {
             _blinkTween.Stop();
