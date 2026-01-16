@@ -6,7 +6,6 @@ using PrimeTween;
 using UnityEngine;
 using UnityEngine.UI;
 using NaughtyAttributes;
-using UnityEngine.Serialization;
 
 namespace MortierFu
 {
@@ -55,7 +54,7 @@ namespace MortierFu
 
         #region Runtime State
 
-        private List<Tween> _activeTweens = new List<Tween>();
+        private List<Tween> _activeTweens = new ();
         private CancellationTokenSource _cts;
 
         #endregion

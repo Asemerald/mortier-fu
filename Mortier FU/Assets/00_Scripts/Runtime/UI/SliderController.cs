@@ -17,6 +17,8 @@ namespace MortierFu
         private InputAction _submitAction;
 
         private LobbyService _lobbyService;
+        
+        private PlayerManager _playerManager;
 
         private void Awake()
         {
@@ -27,7 +29,8 @@ namespace MortierFu
         private void Start()
         {
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-
+            _playerManager = _lobbyService.GetPlayerByIndex(0);
+            
             _submitAction = _lobbyService.Players[0].PlayerInput.actions.FindAction("Submit");
             _submitAction.started += SetNavigation;
         }
@@ -57,6 +60,9 @@ namespace MortierFu
 
         private void EnterEditMode()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            ShakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            
             _sliderToControl.interactable = true;
 
             var nav = _sliderToControl.navigation;
@@ -68,6 +74,9 @@ namespace MortierFu
 
         private void ExitEditMode()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            ShakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            
             _sliderToControl.interactable = false;
             _sliderToControl.navigation = _cachedNavigation;
 

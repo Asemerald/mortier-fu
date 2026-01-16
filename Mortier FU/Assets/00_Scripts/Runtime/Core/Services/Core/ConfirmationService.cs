@@ -90,6 +90,8 @@ namespace MortierFu
             _confirmationCount--;
 
             OnPlayerConfirmed?.Invoke(playerIndex);
+            _deviceService.TryGetDevice(playerIndex, out InputDevice device);
+            ShakeService.ShakeController(device, ShakeService.ShakeType.MID);
 
             if (_callbacks.TryGetValue(playerInput, out var callback))
             {

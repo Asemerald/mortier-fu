@@ -8,7 +8,7 @@ namespace MortierFu
     public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
-        
+
         public bool IsPaused { get; private set; }
 
         public event Action Paused;

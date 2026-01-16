@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using FMOD.Studio;
 using FMODUnity;
@@ -60,8 +60,6 @@ namespace MortierFu
             //AJOUTER LOGIQUE
             var screenPos = Camera.main.WorldToScreenPoint(position);
             float pan = (screenPos.x - (Screen.width/2)) / Screen.width * 2;
-            
-            Debug.LogWarning($"{pan}");
             
             return pan;
         }
