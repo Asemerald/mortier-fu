@@ -81,7 +81,21 @@ namespace MortierFu
                 else if (rb.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
-                    interactable.Interact();
+                    Vector3 point = bombshell.transform.position;
+                    Vector3 contactPoint = Physics.ClosestPoint(point, hitCollider, 
+                        hitCollider.transform.position, hitCollider.transform.rotation);
+                    
+                    interactable.Interact(contactPoint);
+                }
+
+                if (bombshell.Bounces > 0)
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
+                }
+
+                if (bombshell.Bounces > 0)
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
                 }
             }
 
@@ -95,6 +109,21 @@ namespace MortierFu
 
             _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
                 bombshell.GetTravelTime());
+            
+            // ---------------- SFX CALLS ----------------
+
+            if (hitCharacters.Count > 0)
+            {
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell, hit.point);
+            }
+            else if (hits.Count > 0)
+            {
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactProps, bombshell, hit.point);
+            }
+            else 
+            {
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactNone, bombshell, hit.point);
+            }
             
             if (hitCharacters.Count > 0)
             {

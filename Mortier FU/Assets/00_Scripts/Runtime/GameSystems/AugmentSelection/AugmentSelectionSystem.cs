@@ -146,10 +146,6 @@ namespace MortierFu
             _showcaseInProgress = false;
 
             OnStopShowcase?.Invoke();
-            await UniTask.Delay(TimeSpan.FromSeconds(Settings.PlayerInputReenableDelay));
-
-            var gm = GameService.CurrentGameMode as GameModeBase;
-            gm?.EnablePlayerInputs();
 
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
@@ -195,6 +191,11 @@ namespace MortierFu
                 _augmentProviderSys?.ApplyDamping(randomAugment.Augment);
 
                 randomAugment.IsPicked = true;
+
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
+                    picker.Character.transform.position);
+              // ShakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
+
                 remainingAugments.Remove(randomAugment);
 
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
@@ -220,7 +221,7 @@ namespace MortierFu
             {
                 var pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
-                
+
                 var pickupVFX = _pickupsVFX[i];
                 pickupVFX.transform.SetParent(_pickupParent);
             }

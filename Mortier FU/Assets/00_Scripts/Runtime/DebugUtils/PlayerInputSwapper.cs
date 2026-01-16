@@ -12,11 +12,15 @@ namespace MortierFu
     {
         public PlayerInputManager playerInputManager;
         private PlayerInput activePlayer;
-        
+
         public static PlayerInputSwapper Instance;
 
         private void Awake()
         {
+#if !UNITY_EDITOR
+            Destroy(this);
+            return;
+#endif
             Instance = this;
         }
 
@@ -46,7 +50,7 @@ namespace MortierFu
             {
                 CycleControl();
             }
-            
+
             if (Gamepad.current != null &&
                 Gamepad.current.leftStickButton.wasPressedThisFrame)
             {
@@ -66,7 +70,7 @@ namespace MortierFu
                 );
 
                 Logs.Log($"[PlayerInputSwapper] Dummy player spawned: {newPlayer?.name}");
-                
+
                 // Désactive le nouveau player immédiatement
                 if (newPlayer != null)
                 {

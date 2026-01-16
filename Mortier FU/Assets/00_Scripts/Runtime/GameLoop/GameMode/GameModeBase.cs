@@ -268,7 +268,7 @@ namespace MortierFu
             }
 
 #if UNITY_EDITOR
-            PlayerInputSwapper.Instance.UpdateActivePlayer();
+            //PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
 
@@ -501,6 +501,7 @@ namespace MortierFu
 
         public virtual void EndGame()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
             ReturnToMainMenuAfterDelay(5f).Forget();

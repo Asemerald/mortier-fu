@@ -129,12 +129,17 @@ namespace MortierFu
             for (int t = seconds; t > 0; t--)
             {
                 SetCountdownVisual(t);
+                // TODO: Add sound effect here or maybe in AnimateCountdownNumber
                 await AnimateCountdownNumber(_cts.Token);
             }
 
             _countdownImage.gameObject.SetActive(false);
 
             await ShowPlay(_cts.Token);
+            
+            // TODO: Désolé c'est horrible
+            var gm = GameService.CurrentGameMode as GameModeBase;
+            gm?.EnablePlayerInputs();
         }
 
         private async UniTask ShowPlay(CancellationToken ct)

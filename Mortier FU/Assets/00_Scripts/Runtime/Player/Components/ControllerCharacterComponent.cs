@@ -154,6 +154,8 @@ namespace MortierFu
         public void ResetVelocity()
         {
             rigidbody.linearVelocity = Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
+            _moveDirection = Vector3.zero;
         }
         
         public void ApplyKnockback(Vector3 force)

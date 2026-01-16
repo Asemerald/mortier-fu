@@ -28,6 +28,7 @@
             if (evt.Bombshell.Owner != owner) return;
             
             stats.FireRate.AddModifier(db.TakeTheTempoParams.FireRateMod.ToMod(this));
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
         
         private void OnEndRound(TriggerEndRound evt)

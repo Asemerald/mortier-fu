@@ -143,6 +143,7 @@ namespace MortierFu
 
         private async UniTask AnimateSlider(Slider slider, float start, float end, float duration)
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_ScoreIncrease);
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -163,6 +164,7 @@ namespace MortierFu
 
             if (!isSameTopPlayer)
             {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_NewLeader);
                 await Tween.Scale(
                     _playerSlots[currentTopIdx],
                     _originalScale * _topPlayerScaleFactor,

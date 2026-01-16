@@ -19,7 +19,7 @@ namespace MortierFu
         private Image[] _playerImages;
 
         [Header("Factory Reference")] [SerializeField, Required]
-        private RarityBgSpriteFactory _rarityBgSpriteFactory;
+        private SO_RaritySpritesFactory _soRaritySpritesFactory;
 
         #endregion
 
@@ -54,7 +54,7 @@ namespace MortierFu
 
         #region Runtime State
 
-        private List<Tween> _activeTweens = new List<Tween>();
+        private List<Tween> _activeTweens = new ();
         private CancellationTokenSource _cts;
 
         #endregion
@@ -127,7 +127,7 @@ namespace MortierFu
                     if (rarityImage != null)
                     {
                         var rarity = augment.Rarity;
-                        rarityImage.sprite = _rarityBgSpriteFactory.GetRarityBgSpriteFromRarity(rarity);
+                        rarityImage.sprite = _soRaritySpritesFactory.GetRarityBgSpriteFromRarity(rarity);
                     }
 
                     if (child.childCount > 0)

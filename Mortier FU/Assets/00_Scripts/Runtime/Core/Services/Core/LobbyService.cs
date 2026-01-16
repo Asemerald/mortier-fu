@@ -73,6 +73,11 @@ namespace MortierFu
         {
             return UniTask.CompletedTask;
         }
+        
+        public PlayerManager GetPlayerByIndex(int index)
+        {
+            return Players[index];
+        }
 
         public bool IsInitialized { get; set; }
     }

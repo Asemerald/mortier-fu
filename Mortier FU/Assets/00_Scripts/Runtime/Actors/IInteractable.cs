@@ -1,10 +1,11 @@
-﻿namespace MortierFu
+﻿using UnityEngine;
+namespace MortierFu
 {
     public interface IInteractable
     {
         bool IsDashInteractable { get; }
         bool IsBombshellInteractable { get; }
 
-        void Interact();
+        void Interact(Vector3 contactPoint);
     }   
 }

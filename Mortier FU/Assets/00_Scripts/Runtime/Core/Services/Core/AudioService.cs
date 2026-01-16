@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using FMOD.Studio;
 using FMODUnity;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
+
 
 namespace MortierFu
 {
@@ -10,10 +13,66 @@ namespace MortierFu
     {
         private List<AssetReference> Banks = new List<AssetReference>();
 
+        public static FMODEventsSO FMODEvents;
+
         public void PlayMainMenuMusic()
         {
             RuntimeManager.PlayOneShot("event:/Serachan");
         }
+
+        #region EventInstance functions
+        
+        public static EventInstance PlayOneShot(EventReference eventRef, float panning = 0)
+        {
+            EventInstance instance = RuntimeManager.CreateInstance(eventRef);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
+            instance.setParameterByName("Pan", panning);
+            instance.start();
+            instance.release();
+
+            return instance;
+        }
+        
+        public static EventInstance PlayOneShot(EventReference eventRef, Vector3 position)
+        {
+            EventInstance instance = RuntimeManager.CreateInstance(eventRef);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
+            var panning = GetPanningFromWorldSpace(position);
+            instance.setParameterByName("Pan", panning);
+            instance.start();
+            instance.release();
+
+            return instance;
+        }
+        
+        public static void PlayBombshellAudio(EventReference eventRef, Bombshell bombshell, Vector3 position)
+        {
+            float panning = GetPanningFromWorldSpace(position);
+            float power = GetPowerFromBombshell(bombshell);
+            
+            var instance = PlayOneShot(eventRef, panning);
+            instance.setParameterByName("ShotPower", power);
+            instance.release();
+        }
+
+        private static float GetPanningFromWorldSpace(Vector3 position)
+        {
+            //AJOUTER LOGIQUE
+            var screenPos = Camera.main.WorldToScreenPoint(position);
+            float pan = (screenPos.x - (Screen.width/2)) / Screen.width * 2;
+            
+            return pan;
+        }
+        
+        private static float GetPowerFromBombshell(Bombshell bombshell)
+        {
+            float rangeValue = FMODEvents.rangeCurve.Evaluate(bombshell.AoeRange);
+            float damageValue = FMODEvents.damageCurve.Evaluate(bombshell.Damage);
+
+            return (rangeValue + damageValue) * 0.5f;
+        }
+        
+        #endregion
 
         public async UniTask LoadBanks(AssetReference[] banksToLoad)
         {
@@ -46,6 +105,7 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
+            FMODEvents = Resources.Load<FMODEventsSO>("FMODEvents");
             return UniTask.CompletedTask;
         }
 

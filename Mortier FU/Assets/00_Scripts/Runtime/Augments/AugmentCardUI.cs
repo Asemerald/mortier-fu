@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using PrimeTween;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
@@ -10,8 +9,11 @@ namespace MortierFu
 {
     public class AugmentCardUI : MonoBehaviour
     {
+        [SerializeField] private SO_RaritySpritesFactory _raritySpritesFactory;
+        
         [SerializeField] private TextMeshProUGUI _nameTxt;
         [SerializeField] private TextMeshProUGUI _descTxt;
+        [SerializeField] private Image _augmentBorder;
         [SerializeField] private Image _augmentIcon;
         [SerializeField] private Image _augmentCard;
         [SerializeField] private Image _augmentBack;
@@ -78,6 +80,7 @@ namespace MortierFu
             _nameTxt.SetText(augment.Name.ToUpper());
             _nameTxt.color = data.NameColor;
             _descTxt.SetText(augment.Description);
+            _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
             _augmentIcon.sprite = augment.SmallSprite;
             _augmentCard.sprite = augment.CardSprite;
         }
@@ -122,6 +125,7 @@ namespace MortierFu
             _augmentBack.gameObject.SetActive(false);
             _augmentIcon.gameObject.SetActive(false);
             _augmentCard.gameObject.SetActive(false);
+            _augmentBorder.gameObject.SetActive(false);
         }
 
         public async UniTask PlayRevealSequence(GameObject pickupVFX)
@@ -149,6 +153,7 @@ namespace MortierFu
             _nameTxt.gameObject.SetActive(true);
             _descTxt.gameObject.SetActive(true);
             _augmentCard.gameObject.SetActive(true);
+            _augmentBorder.gameObject.SetActive(true);
 
             _augmentBack.gameObject.SetActive(false);
             _augmentIcon.gameObject.SetActive(false);
