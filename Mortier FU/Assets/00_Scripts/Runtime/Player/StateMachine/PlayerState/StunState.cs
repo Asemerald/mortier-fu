@@ -20,7 +20,8 @@ namespace MortierFu
             if(IsActive && _stunTimer.CurrentTime > duration)
                 return;
             
-            SystemManager.Instance.Get<CameraSystem>().Controller.Shake(1, 5, 1);
+            character.Controller.ResetVelocity();
+            SystemManager.Instance.Get<CameraSystem>().Controller.Shake(1, 10, 1);
             
             _stunTimer.Reset(duration);
             _stunTimer.Start();

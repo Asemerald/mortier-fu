@@ -208,7 +208,7 @@ namespace MortierFu
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
-            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && Health.IsAlive));
+            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
 
             // Set initial state
@@ -224,7 +224,6 @@ namespace MortierFu
         public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
-            Controller.ResetVelocity();
         }
 
         public void FindInputAction(string actionName, out InputAction action)
