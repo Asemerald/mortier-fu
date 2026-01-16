@@ -1,0 +1,378 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4129136069a481e4a85888dac7f13280, type: 3}
+  m_Name: FMODEvents
+  m_EditorClassIdentifier: Assembly-CSharp::MortierFu.FMODEvents
+  <SFX_Player_Stun>k__BackingField:
+    Guid:
+      Data1: -1127832828
+      Data2: 1079637098
+      Data3: 550995585
+      Data4: 412069637
+    Path: event:/GAMEPLAY/Player/SFX_Player_Stun
+  <SFX_Player_Fall>k__BackingField:
+    Guid:
+      Data1: -16773516
+      Data2: 1286301647
+      Data3: -2112540525
+      Data4: -1281900441
+    Path: event:/GAMEPLAY/Player/SFX_Player_Fall
+  <SFX_Player_Death>k__BackingField:
+    Guid:
+      Data1: -517208390
+      Data2: 1136640582
+      Data3: -1452761726
+      Data4: 863504356
+    Path: event:/GAMEPLAY/Player/SFX_Player_Death
+  <SFX_Mortar_Shot>k__BackingField:
+    Guid:
+      Data1: 590025872
+      Data2: 1235120864
+      Data3: -1244002686
+      Data4: -2054735148
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_Shot
+  <SFX_Mortar_ImpactNone>k__BackingField:
+    Guid:
+      Data1: 2115937242
+      Data2: 1152053974
+      Data3: -1266473041
+      Data4: 348239211
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactNone
+  <SFX_Mortar_ImpactProps>k__BackingField:
+    Guid:
+      Data1: -298078503
+      Data2: 1308462701
+      Data3: -182566001
+      Data4: 930932326
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactProps
+  <SFX_Mortar_ImpactPlayer>k__BackingField:
+    Guid:
+      Data1: -1637108698
+      Data2: 1279477545
+      Data3: -2133366125
+      Data4: -791170706
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactPlayer
+  <SFX_Mortar_ImpactKill>k__BackingField:
+    Guid:
+      Data1: -812077020
+      Data2: 1299409054
+      Data3: 1861569951
+      Data4: -142550595
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ImpactKill
+  <SFX_Mortar_Cant>k__BackingField:
+    Guid:
+      Data1: -1737776146
+      Data2: 1287693919
+      Data3: 1747551374
+      Data4: 1205621984
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_Cant
+  <SFX_Mortar_ReloadComplete>k__BackingField:
+    Guid:
+      Data1: -316558542
+      Data2: 1340288418
+      Data3: 1281591190
+      Data4: 690298853
+    Path: event:/GAMEPLAY/Mortar/SFX_Mortar_ReloadComplete
+  <SFX_Strike_Dash>k__BackingField:
+    Guid:
+      Data1: -2111586960
+      Data2: 1141427852
+      Data3: 670776250
+      Data4: 1234680546
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Dash
+  <SFX_Strike_Cant>k__BackingField:
+    Guid:
+      Data1: 1431664256
+      Data2: 1241999329
+      Data3: 1003939225
+      Data4: 140171145
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Cant
+  <SFX_Strike_Knockback>k__BackingField:
+    Guid:
+      Data1: 1626565837
+      Data2: 1317018892
+      Data3: -1769087326
+      Data4: 1690326175
+    Path: event:/GAMEPLAY/Strike/SFX_Strike_Knockback
+  <SFX_Augment_Grab>k__BackingField:
+    Guid:
+      Data1: 84804899
+      Data2: 1124936201
+      Data3: -1727526494
+      Data4: 1012265765
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_Grab
+  <SFX_Augment_Bounce>k__BackingField:
+    Guid:
+      Data1: -1774584408
+      Data2: 1262665825
+      Data3: 1549997198
+      Data4: -235973083
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_Bounce
+  <SFX_Augment_Buff>k__BackingField:
+    Guid:
+      Data1: -230407386
+      Data2: 1168789326
+      Data3: 1692290730
+      Data4: 1502272120
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_Buff
+  <SFX_Augment_Showcase>k__BackingField:
+    Guid:
+      Data1: -1725675409
+      Data2: 1252785721
+      Data3: 1961612978
+      Data4: -426662588
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_Showcase
+  <SFX_Augment_ToWorld>k__BackingField:
+    Guid:
+      Data1: 2092137881
+      Data2: 1288468457
+      Data3: 1375980457
+      Data4: 700502267
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_ToWorld
+  <SFX_Augment_NoPick>k__BackingField:
+    Guid:
+      Data1: -1136051608
+      Data2: 1152768118
+      Data3: 416873627
+      Data4: -211859393
+    Path: event:/GAMEPLAY/Augment/SFX_Augment_NoPick
+  <SFX_GameplayUI_EndRace>k__BackingField:
+    Guid:
+      Data1: 63572213
+      Data2: 1272450468
+      Data3: -1636326990
+      Data4: -1603840873
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_EndRace
+  <SFX_GameplayUI_Countdown>k__BackingField:
+    Guid:
+      Data1: 300035387
+      Data2: 1204085622
+      Data3: 1875167383
+      Data4: 1476731745
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_Countdown
+  <SFX_GameplayUI_MatchPoint>k__BackingField:
+    Guid:
+      Data1: 1758511561
+      Data2: 1154074299
+      Data3: -1515112574
+      Data4: -1998434583
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_Matchpoint
+  <SFX_GameplayUI_NewLeader>k__BackingField:
+    Guid:
+      Data1: -98729097
+      Data2: 1319811995
+      Data3: -743790971
+      Data4: 68113695
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_NewLeader
+  <SFX_GameplayUI_ScoreIncrease>k__BackingField:
+    Guid:
+      Data1: 277113408
+      Data2: 1210598693
+      Data3: 1878598549
+      Data4: 833040478
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_ScoreIncrease
+  <SFX_GameplayUI_Victory>k__BackingField:
+    Guid:
+      Data1: -1831249002
+      Data2: 1145478407
+      Data3: 1026375064
+      Data4: -92048346
+    Path: event:/UI/GameplayUI/SFX_GameplayUI_Victory
+  <SFX_UI_Navigate>k__BackingField:
+    Guid:
+      Data1: -95285459
+      Data2: 1330260103
+      Data3: -960508265
+      Data4: 2075069299
+    Path: event:/UI/Menu/SFX_UI_Navigate
+  <SFX_UI_Select>k__BackingField:
+    Guid:
+      Data1: -643752942
+      Data2: 1341232536
+      Data3: 1689203360
+      Data4: -1815665406
+    Path: event:/UI/Menu/SFX_UI_Select
+  <SFX_UI_Return>k__BackingField:
+    Guid:
+      Data1: -1493689
+      Data2: 1288114159
+      Data3: -1152257635
+      Data4: -1136361421
+    Path: event:/UI/Menu/SFX_UI_Return
+  <SFX_UI_Tick>k__BackingField:
+    Guid:
+      Data1: -68537238
+      Data2: 1207982035
+      Data3: 446372031
+      Data4: 1145092564
+    Path: event:/UI/Menu/SFX_UI_Tick
+  <SFX_UI_Slider>k__BackingField:
+    Guid:
+      Data1: -1080544895
+      Data2: 1329019965
+      Data3: 435331469
+      Data4: -11389833
+    Path: event:/UI/Menu/SFX_UI_Slider
+  <SFX_UI_Join>k__BackingField:
+    Guid:
+      Data1: 1100542127
+      Data2: 1290197422
+      Data3: 405316480
+      Data4: -1657156495
+    Path: event:/UI/Menu/SFX_UI_Join
+  <SFX_UI_ChangeSkin>k__BackingField:
+    Guid:
+      Data1: 579315427
+      Data2: 1201738019
+      Data3: -1287809649
+      Data4: -2145504888
+    Path: event:/UI/Menu/SFX_UI_ChangeSkin
+  <SFX_UI_Ready>k__BackingField:
+    Guid:
+      Data1: 528999652
+      Data2: 1217918656
+      Data3: 110524577
+      Data4: -821838189
+    Path: event:/UI/Menu/SFX_UI_Ready
+  <SFX_UI_Pause>k__BackingField:
+    Guid:
+      Data1: -1722118199
+      Data2: 1180689259
+      Data3: 419726508
+      Data4: -1066493628
+    Path: event:/UI/Menu/SFX_UI_Pause
+  <MUS_MainMenu>k__BackingField:
+    Guid:
+      Data1: -588784938
+      Data2: 1273940113
+      Data3: 266041772
+      Data4: 2062410214
+    Path: event:/MUSIC/MUS_MainMenu
+  <MUS_Gameplay>k__BackingField:
+    Guid:
+      Data1: -1624182224
+      Data2: 1129672607
+      Data3: 461566879
+      Data4: -1216611138
+    Path: event:/MUSIC/MUS_Gameplay
+  <MUS_Victory>k__BackingField:
+    Guid:
+      Data1: -1668635625
+      Data2: 1289006902
+      Data3: -461595485
+      Data4: 508896110
+    Path: event:/MUSIC/MUS_Victory
+  <AMBI_Day>k__BackingField:
+    Guid:
+      Data1: 979424115
+      Data2: 1102492580
+      Data3: 2064756382
+      Data4: -1820593175
+    Path: event:/AMBIENCE/AMBI_Day
+  <AMBI_Night>k__BackingField:
+    Guid:
+      Data1: -235324565
+      Data2: 1287864828
+      Data3: -520442466
+      Data4: -2087745458
+    Path: event:/AMBIENCE/AMBI_Night
+  <AMBI_Tuktuk_Drift>k__BackingField:
+    Guid:
+      Data1: 1294195352
+      Data2: 1265185258
+      Data3: 1380758710
+      Data4: 1279694530
+    Path: event:/AMBIENCE/AMBI_Tuktuk_Drift
+  rangeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.2
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0.12908773
+    - serializedVersion: 3
+      time: 3.5
+      value: 0.3
+      inSlope: 0.14362434
+      outSlope: 0.14362434
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.04736468
+    - serializedVersion: 3
+      time: 17.5
+      value: 1
+      inSlope: 0.012372179
+      outSlope: 0.012372179
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.16629325
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  damageCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.0058873137
+      outSlope: 0.0058873137
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.4751945
+    - serializedVersion: 3
+      time: 40
+      value: 0.3
+      inSlope: 0.014345822
+      outSlope: 0.014345822
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.21192113
+    - serializedVersion: 3
+      time: 80
+      value: 1
+      inSlope: 0.011300115
+      outSlope: 0
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.1544077
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1000
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

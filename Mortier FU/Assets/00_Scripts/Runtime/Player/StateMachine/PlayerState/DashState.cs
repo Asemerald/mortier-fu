@@ -74,6 +74,8 @@ namespace MortierFu
             TEMP_FXHandler.Instance.InstantiateDashFX(character.GetStrikePoint(), character.Stats.GetStrikeRadius() * 0.5f);
             if(debug)
                 Logs.Log("Entering Dash State");
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Dash, character.transform.position);
             
             Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
@@ -143,7 +145,10 @@ namespace MortierFu
                 
                 if (root.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
                 {
-                    interactable.Interact();
+                    Vector3 contactPoint = Physics.ClosestPoint(strikePosition, hit,
+                        hit.transform.position, hit.transform.rotation);
+                    
+                    interactable.Interact(contactPoint);
                     continue;
                 }
 

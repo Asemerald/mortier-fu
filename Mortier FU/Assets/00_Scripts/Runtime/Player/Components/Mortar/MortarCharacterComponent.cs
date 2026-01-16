@@ -10,9 +10,9 @@ namespace MortierFu
     {
         public readonly AimWidget AimWidget;
         private readonly Transform _firePoint;
-        
+
         private InputAction _aimAction, _shootAction;
-        
+
         private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
         private CountdownTimer _shootCooldownTimer;
@@ -20,12 +20,13 @@ namespace MortierFu
         private bool _isAiming;
 
         public bool CanShoot => !_shootCooldownTimer.IsRunning;
-        
+
         public float ShootCooldownProgress => _shootCooldownTimer.Progress;
 
         public bool IsShooting { get; private set; }
 
-        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab,Transform firePoint) : base(character)
+        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab, Transform firePoint) :
+            base(character)
         {
             if (character == null) return;
 
@@ -40,10 +41,9 @@ namespace MortierFu
                 Logs.LogError("[MortarCharacterComponent]: FirePoint transform is null!");
                 return;
             }
-            
+
             AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable?
             _firePoint = firePoint;
-            
         }
 
         public override void Initialize()
@@ -51,55 +51,67 @@ namespace MortierFu
             // Find and cache Input Actions
             character.FindInputAction("Aim", out _aimAction);
             character.FindInputAction("Shoot", out _shootAction);
-            
+
             _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             if (_bombshellSys == null)
             {
-                Logs.LogError("[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
+                Logs.LogError(
+                    "[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
                 return;
             }
-            
+
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             if (_cameraSystem == null)
             {
                 Logs.LogError("[MortarCharacterComponent]: Could not get the camera system from the system manager !");
-                return;  
+                return;
             }
 
             Color playerColor = character.Aspect.PlayerColor;
             AimWidget.Colorize(playerColor);
             ResetAimWidget();
-            
+
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
             _shootCooldownTimer = new CountdownTimer(Stats.GetFireRate());
             Stats.FireRate.OnDirtyUpdated += UpdateFireRate;
-            
+
             _shootStrategy.Initialize();
             _shootAction.Disable();
+
+            _shootCooldownTimer.OnTimerStop += OnShootCooldownComplete;
         }
 
         public override void Reset()
         {
             _shootCooldownTimer.Reset();
             _shootCooldownTimer?.Stop();
-            
+
             ResetAimWidget();
         }
 
-        private void UpdateFireRate() {
+        private void OnShootCooldownComplete()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ReloadComplete, character.transform.position);
+        }
+
+        private void UpdateFireRate()
+        {
             float fireRate = Stats.GetFireRate();
             _shootCooldownTimer.DynamicUpdate(fireRate);
         }
-        
-        private void ResetAimWidget() {
-            AimWidget.transform.localScale = Vector3.one * (Stats.BombshellImpactRadius.Value * 2f);   
+
+        private void ResetAimWidget()
+        {
+            AimWidget.transform.localScale = Vector3.one * (Stats.BombshellImpactRadius.Value * 2f);
             AimWidget.SetRelativePosition(Vector3.zero);
             AimWidget.Hide();
         }
 
-        public override void Dispose() {
-            
+        public override void Dispose()
+        {
             Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
+
+            _shootCooldownTimer.OnTimerStop -= OnShootCooldownComplete;
             
             _shootCooldownTimer.Dispose();
             _shootStrategy?.DeInitialize();
@@ -109,11 +121,15 @@ namespace MortierFu
         {
             _shootStrategy?.Update();
         }
-        
+
         public void Shoot()
         {
-            if (_shootCooldownTimer.IsRunning) return;
-            
+            if (_shootCooldownTimer.IsRunning)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Cant, character.transform.position);
+                return;
+            }
+
             Bombshell.Data bombshellData = new Bombshell.Data
             {
                 Owner = character,
@@ -122,31 +138,34 @@ namespace MortierFu
                 Speed = Stats.GetBombshellSpeed(),
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
-                Scale =  Stats.GetBombshellSize(),
+                Scale = Stats.GetBombshellSize(),
                 AoeRange = Stats.BombshellImpactRadius.Value,
                 Bounces = Mathf.RoundToInt(Stats.BombshellBounces.Value)
             };
-            
+
             var bombshell = _bombshellSys.RequestBombshell(bombshellData);
-            
-            EventBus<TriggerShootBombshell>.Raise(new TriggerShootBombshell() 
+
+            AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_Shot, bombshell,
+                character.transform.position);
+
+            EventBus<TriggerShootBombshell>.Raise(new TriggerShootBombshell()
             {
-                Character =  character,
+                Character = character,
                 Bombshell = bombshell,
             });
-            
+
             _shootCooldownTimer.Start();
-            
+
             IsShooting = true;
         }
-        
+
         public void StopShooting() => IsShooting = false;
 
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
             if (!PlayerCharacter.AllowGameplayActions) return;
             if (!Character.Health.IsAlive) return;
-            
+
             //Logs.Log("[MortarCharacterComponent]: Begin Aiming");
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
@@ -161,8 +180,8 @@ namespace MortierFu
             AimWidget.Hide();
             _shootStrategy?.EndAiming();
             _shootAction.Disable();
-            
-          //  character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
+
+            //  character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
         }
     }
 }

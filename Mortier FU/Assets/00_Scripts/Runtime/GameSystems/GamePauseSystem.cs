@@ -8,11 +8,12 @@ namespace MortierFu
     public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
-        
-        private bool IsPaused { get; set; }
+
+        public bool IsPaused { get; private set; }
 
         public event Action Paused;
         public event Action Resumed;
+        public event Action Canceled;
 
         public void UnPause()
         {
@@ -26,10 +27,15 @@ namespace MortierFu
         public void Pause()
         {
             if (IsPaused) return;
-
+            
             IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke();
+        }
+
+        public void Cancel()
+        {
+            Canceled?.Invoke();
         }
         
         public void RestoreSettingsFromSave()
@@ -101,14 +107,11 @@ namespace MortierFu
         }
 
         public void Dispose()
-        {
-            
-        }
+        { }
 
         public UniTask OnInitialize()
         {
             _saveService = ServiceManager.Instance.Get<SaveService>();
-
             return UniTask.CompletedTask;
         }
 

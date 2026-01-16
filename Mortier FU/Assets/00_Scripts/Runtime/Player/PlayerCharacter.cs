@@ -132,6 +132,8 @@ namespace MortierFu
             _toggleAimAction.canceled += Mortar.EndAiming;
 
             _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
+
+            _dashAction.started += PlayDashSFX;
         }
 
         public void Reset()
@@ -171,6 +173,8 @@ namespace MortierFu
             Aspect.Dispose();
             Mortar.Dispose();
 
+            _dashAction.started -= PlayDashSFX;
+            
             if (_toggleAimAction == null || Mortar == null) return;
 
             _toggleAimAction.started -= Mortar.BeginAiming;
@@ -204,7 +208,7 @@ namespace MortierFu
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
-            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && Health.IsAlive));
+            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
 
             // Set initial state
@@ -220,7 +224,6 @@ namespace MortierFu
         public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
-            Controller.ResetVelocity();
         }
 
         public void FindInputAction(string actionName, out InputAction action)
@@ -311,10 +314,9 @@ namespace MortierFu
             {
                 ReceiveStun(_knockbackState.StunDuration);
                 
-                //temp ajout destruction barriere
-                if (other.gameObject.GetComponent<Breakable>())
+                if (other.rigidbody && other.rigidbody.TryGetComponent<Breakable>(out var breakable))
                 {
-                    other.gameObject.GetComponent<Breakable>().Interact();
+                    breakable.Interact(other.GetContact(0).point);
                 }
 
                 if (_knockbackState.LastBumpSource != null)
@@ -384,6 +386,14 @@ namespace MortierFu
         {
             effect.OnCompleted -= RemoveEffect;
             _activeEffects.Remove(effect);
+        }
+
+        private void PlayDashSFX(InputAction.CallbackContext context)
+        {
+            if (_dashState.DashCooldownProgress > 0f)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
+            }
         }
 
         private void At(IState from, IState to, IPredicate condition) =>
