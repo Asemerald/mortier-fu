@@ -38,7 +38,7 @@ namespace MortierFu
             // Cannot take damage if already dead
             if (!IsAlive)
                 return;
-
+            
             float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(-amount);
@@ -58,6 +58,8 @@ namespace MortierFu
                 MaxHealth = _maxHealth,
                 Delta = -amount
             });
+            
+            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
             if (!IsAlive)
             {

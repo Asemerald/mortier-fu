@@ -20,7 +20,8 @@ namespace MortierFu
             if(IsActive && _stunTimer.CurrentTime > duration)
                 return;
             
-            SystemManager.Instance.Get<CameraSystem>().Controller.Shake(1, 5, 1);
+            character.Controller.ResetVelocity();
+            SystemManager.Instance.Get<CameraSystem>().Controller.Shake(1, 10, 1);
             
             _stunTimer.Reset(duration);
             _stunTimer.Start();
@@ -31,6 +32,7 @@ namespace MortierFu
             character.Controller.ResetVelocity();
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
+            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {
