@@ -141,7 +141,7 @@ namespace MortierFu
                 _spawnVFXInstance.transform.position = character.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
-                ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+                character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
                 _particleSystemInstance?.Play();
 

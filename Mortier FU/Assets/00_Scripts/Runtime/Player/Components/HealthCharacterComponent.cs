@@ -15,7 +15,7 @@ namespace MortierFu
 
         private float _currentHealth;
         private float _maxHealth;
-
+        
         public float CurrentHealth => _currentHealth;
         public float MaxHealth => _maxHealth;
         public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
@@ -59,7 +59,7 @@ namespace MortierFu
                 Delta = -amount
             });
             
-            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
+            character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
             if (!IsAlive)
             {

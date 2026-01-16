@@ -28,7 +28,7 @@ namespace MortierFu
         {
             if (player == null || Players.Contains(player))
                 return;
-
+            
             if (Players.Count >= _maxPlayers)
             {
                 Logs.LogWarning($"[LobbyService] Max players reached ({_maxPlayers}).");
@@ -36,6 +36,7 @@ namespace MortierFu
             }
 
             Players.Add(player);
+            ServiceManager.Instance.Get<ShakeService>().ShakeController(player, ShakeService.ShakeType.MID);
             player.OnPlayerInitialized += HandlePlayerInitialized;
             player.OnPlayerDestroyed += HandlePlayerDestroyed;
 
