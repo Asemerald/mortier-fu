@@ -57,10 +57,13 @@ namespace MortierFu
         private KnockbackState _knockbackState;
         private StunState _stunState;
         private DashState _dashState;
+        
+        private ShakeService _shakeService;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
+        public ShakeService ShakeService => _shakeService;
 
         public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
@@ -134,6 +137,8 @@ namespace MortierFu
             _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
 
             _dashAction.started += PlayDashSFX;
+            
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         public void Reset()

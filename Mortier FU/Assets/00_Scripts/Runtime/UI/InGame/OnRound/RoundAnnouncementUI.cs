@@ -17,6 +17,8 @@ namespace MortierFu
         [Header("Countdown Sprites")] [SerializeField]
         private List<Sprite> _countdownSprites;
 
+        private ShakeService _shakeService;
+
         #endregion
 
         private void Awake()
@@ -26,6 +28,11 @@ namespace MortierFu
             _playGameObject.SetActive(false);
             _goldenBombshellGameObject.SetActive(false);
             _countdownImage.gameObject.SetActive(false);
+        }
+
+        private void Start()
+        {
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         private void OnDisable()
@@ -114,7 +121,7 @@ namespace MortierFu
 
             foreach (var character in gm.AlivePlayers)
             {
-                await character.Aspect.PlayVFXSequential(new[] { character }, 
+                await character.Aspect.PlayVFXSequential(new[] { character },
                     c => c.gameObject.SetActive(true));
             }
 
@@ -147,6 +154,7 @@ namespace MortierFu
         {
             int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
             _countdownImage.sprite = _countdownSprites[index];
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 
         private async UniTask ShowPlay(GameModeBase gm)
@@ -196,7 +204,8 @@ namespace MortierFu
 
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
-            
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+
             // TODO: Désolé c'est horrible
             gm?.EnablePlayerInputs();
         }

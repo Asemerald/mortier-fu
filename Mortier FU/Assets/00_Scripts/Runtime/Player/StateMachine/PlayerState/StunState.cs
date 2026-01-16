@@ -32,7 +32,7 @@ namespace MortierFu
             character.Controller.ResetVelocity();
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
-            ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+            character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {

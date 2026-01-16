@@ -59,6 +59,9 @@ namespace MortierFu
         private GamePauseSystem _gamePauseSystem;
         private GameModeBase _gm;
         private LobbyService _lobbyService;
+        private ShakeService _shakeService;
+        
+        private PlayerManager _playerManager;
 
         private Vector3[] _mortarHandsInitialPositions;
         private Vector3[] _mortarHeadsInitialPositions;
@@ -70,7 +73,10 @@ namespace MortierFu
             _gm = GameService.CurrentGameMode as GameModeBase;
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
+            _playerManager = _lobbyService.GetPlayerByIndex(0);
+            
             _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
                 _sfxVolumeSlider);
 
@@ -178,7 +184,7 @@ namespace MortierFu
         private void Pause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             Show();
             _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
         }
@@ -186,14 +192,14 @@ namespace MortierFu
         private void UnPause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             Hide();
         }
 
         private void ShowSettingsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _settingsPanel.SetActive(true);
             _controlsPanel.SetActive(false);
             _pausePanel.SetActive(false);
@@ -204,7 +210,7 @@ namespace MortierFu
         private void ShowControlsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.MID);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _controlsPanel.SetActive(true);
             _pausePanel.SetActive(true);
             _blackPanel.SetActive(false);
@@ -336,13 +342,13 @@ namespace MortierFu
         private void SelectedToggleFeedback(bool value)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.LITTLE);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
         }
         
         private void SliderValueChange(float value)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
-            ShakeService.ShakeController(_lobbyService.GetPlayerByIndex(0), ShakeService.ShakeType.LITTLE);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
         }
 
         private void Shuffle(int[] array)

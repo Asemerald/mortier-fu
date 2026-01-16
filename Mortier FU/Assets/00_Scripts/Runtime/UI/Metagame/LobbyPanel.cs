@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using TMPro;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine;
 
@@ -14,26 +11,31 @@ namespace MortierFu
 {
     public class LobbyPanel : UIPanel
     {
-        [Header("Dependencies")]
-        [SerializeField] private LobbyMenu3D lobbyMenu3D;
-        [Header("Buttons References")]
-        [SerializeField] private Button startGameButton;
+        [Header("Dependencies")] [SerializeField]
+        private LobbyMenu3D lobbyMenu3D;
+
+        [Header("Buttons References")] [SerializeField]
+        private Button startGameButton;
         
+        private ShakeService _shakeService;
+
         void Awake()
         {
+          //  _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            
             // Resolve dependencies
             if (lobbyMenu3D == null)
                 Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
             if (startGameButton == null)
                 Logs.LogError("[LobbyPanel]: StartGameButton reference is missing.", this);
         }
-        
+
         private void Start()
         {
             Hide();
-            
 #if UNITY_EDITOR
-            if (EditorPrefs.GetBool("SkipMenuEnabled", false)) {
+            if (EditorPrefs.GetBool("SkipMenuEnabled", false))
+            {
                 MenuManager.Instance.StartGame().Forget();
             }
 #endif
@@ -45,15 +47,18 @@ namespace MortierFu
             PlayerInputBridge.Instance.CanJoin(true);
             MenuManager.Instance.SwitchCameraPosition();
         }
-        
+
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
+            
             PlayerInputBridge.Instance.CanJoin(false);
         }
 
-        private void OnStartGameClicked() => MenuManager.Instance.StartGame().Forget();
-        
-       
+        private void OnStartGameClicked()
+        {
+          //  _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            MenuManager.Instance.StartGame().Forget();
+        }
     }
 }

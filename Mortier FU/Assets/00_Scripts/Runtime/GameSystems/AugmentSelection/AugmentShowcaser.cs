@@ -19,6 +19,7 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
         private readonly ReadOnlyCollection<GameObject> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
+        private readonly ShakeService _shakeService;
         private CancellationTokenSource _cts;
 
         private Transform[] _augmentPoints;
@@ -33,6 +34,7 @@ namespace MortierFu
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
             _cam = _cameraSystem.Controller.Camera;
         }
 
@@ -132,6 +134,7 @@ namespace MortierFu
         private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
                 .ToUniTask(cancellationToken: ct);
         }
