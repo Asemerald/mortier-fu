@@ -391,8 +391,10 @@ namespace MortierFu
 
         private void PlayDashSFX(InputAction.CallbackContext context)
         {
-            if(_dashState.DashCooldownProgress > 0f)
+            if (_dashState.DashCooldownProgress > 0f)
+            {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
+            }
         }
 
         private void At(IState from, IState to, IPredicate condition) =>
