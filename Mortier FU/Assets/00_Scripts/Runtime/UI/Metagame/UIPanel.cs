@@ -5,7 +5,7 @@ namespace MortierFu
 {
     public class UIPanel : MonoBehaviour
     {
-        [field:SerializeField] public Button DefaultButton { get; private set; }
+        [field:SerializeField] public Selectable DefaultButton { get; private set; }
         public virtual void Show()
         {
             gameObject.SetActive(true);
