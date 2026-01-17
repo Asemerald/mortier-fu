@@ -24,8 +24,7 @@ namespace MortierFu
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
-            ReadOnlyCollection<GameObject> pickupsVFX)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups, ReadOnlyCollection<GameObject> pickupsVFX)
         {
             _pickups = pickups;
             _pickupsVFX = pickupsVFX;
