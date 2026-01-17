@@ -16,7 +16,7 @@ namespace MortierFu
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
-
+        
         [Header("Dash Trail")]
         [SerializeField] private GameObject _dashTrailPrefab;
         
