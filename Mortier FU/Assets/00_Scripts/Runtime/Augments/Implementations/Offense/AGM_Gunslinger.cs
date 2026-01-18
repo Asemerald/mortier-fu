@@ -6,6 +6,7 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod FireRateMod;
+            public AugmentStatMod ShotRangeMod;
             public AugmentStatMod HealthLooseMod;
         }
         
@@ -16,12 +17,14 @@ namespace MortierFu
         {
             stats.FireRate.AddModifier(db.GunslingerParams.FireRateMod.ToMod(this));
             stats.MaxHealth.AddModifier(db.GunslingerParams.HealthLooseMod.ToMod(this));
+            stats.ShotRange.AddModifier(db.GunslingerParams.ShotRangeMod.ToMod(this));
         }
         
         public override void Dispose()
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
+            stats.ShotRange.RemoveAllModifiersFromSource(this);
         }
     }
 }

@@ -137,6 +137,10 @@ namespace MortierFu
 
                 var ps = childVFX.GetComponent<ParticleSystem>();
                 ps.textureSheetAnimation.SetSprite(0, augment.SmallSprite);
+
+                var pickup = vfxRoot.GetComponent<AugmentPickup>();
+                var prototype = Settings.GetVFXRarityPrototype(augment.Rarity);
+                pickup.ConfigureAsClone(prototype);
             }
 
             var augmentPivot = _levelSystem.GetAugmentPivot();

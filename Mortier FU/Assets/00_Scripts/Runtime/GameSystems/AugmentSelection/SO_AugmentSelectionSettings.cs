@@ -1,3 +1,4 @@
+using System;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine.AddressableAssets;
@@ -42,7 +43,16 @@ namespace MortierFu
         [Header("References")]
         public AssetReferenceGameObject AugmentPickupPrefab;
         public AssetReferenceGameObject AugmentVFXPrefab;
+        public AugmentPickup[] AugmentVFXRarityPrototypes;
 
+        public AugmentPickup GetVFXRarityPrototype(E_AugmentRarity rarity) {
+            foreach (var prototype in AugmentVFXRarityPrototypes) {
+                if (rarity != prototype.Rarity) continue;
+
+                return prototype;
+            }
+
+            throw new Exception($"Prototype not found for rarity {rarity}");
+        }
     }
 }
-

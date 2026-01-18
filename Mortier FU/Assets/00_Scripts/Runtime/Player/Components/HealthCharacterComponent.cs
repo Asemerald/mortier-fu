@@ -7,8 +7,8 @@ namespace MortierFu
 {
     public class HealthCharacterComponent : CharacterComponent
     {
-        /// Sent every time health changes. Provide the amount of change (positive or negative).
-        public Action<float> OnHealthChanged;
+        /// Sent every time health changes. Provide the old health and the new health.
+        public Action<float, float> OnHealthChanged;
         public Action<float> OnMaxHealthChanged;
 
         public Action<object> OnDeath;
@@ -41,7 +41,7 @@ namespace MortierFu
             
             float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
-            OnHealthChanged?.Invoke(-amount);
+            OnHealthChanged?.Invoke(previousHealth, _currentHealth);
 
             Character.Aspect?.PlayDamageBlink(
                 blinkColor: Color.white,
@@ -81,7 +81,7 @@ namespace MortierFu
         {
             float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth);
-            OnHealthChanged?.Invoke(amount);
+            OnHealthChanged?.Invoke(previousHealth, _currentHealth);
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
@@ -93,10 +93,10 @@ namespace MortierFu
             });
         }
 
-        public override void Reset()
-        {
+        public override void Reset() {
+            float previousHealth = _currentHealth;
             _currentHealth = _maxHealth;
-            OnHealthChanged?.Invoke(_maxHealth);
+            OnHealthChanged?.Invoke(previousHealth, _currentHealth);
         }
 
         void UpdateHealth()
@@ -115,9 +115,10 @@ namespace MortierFu
             }
 
             // Always clamp to ensure we stay inside valid bounds
+            float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth, 0f, _maxHealth);
 
-            OnHealthChanged?.Invoke(delta);
+            OnHealthChanged?.Invoke(previousHealth, _currentHealth);
             OnMaxHealthChanged?.Invoke(_maxHealth);
         }
 
