@@ -17,12 +17,10 @@ namespace MortierFu
         [Header("Buttons References")] [SerializeField]
         private Button startGameButton;
         
-        private ShakeService _shakeService;
-
         void Awake()
         {
-          //  _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            
+            //  _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
             // Resolve dependencies
             if (lobbyMenu3D == null)
                 Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
@@ -51,13 +49,12 @@ namespace MortierFu
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
-            
+
             PlayerInputBridge.Instance.CanJoin(false);
         }
 
         private void OnStartGameClicked()
         {
-          //  _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             MenuManager.Instance.StartGame().Forget();
         }
     }

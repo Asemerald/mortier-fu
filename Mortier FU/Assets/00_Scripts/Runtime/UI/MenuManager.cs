@@ -41,7 +41,7 @@ namespace MortierFu
 
         private PlayerActionInput _playerActions;
         private GameService _gameService;
-
+        private ShakeService _shakeService;
 
         public static MenuManager Instance { get; private set; }
 
@@ -78,6 +78,7 @@ namespace MortierFu
             }
 
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         private void OnEnable()
@@ -105,6 +106,8 @@ namespace MortierFu
             // Should handle game mode teams
 
             _gameService.ExecuteGameplayPipeline().Forget();
+            
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 
         //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
