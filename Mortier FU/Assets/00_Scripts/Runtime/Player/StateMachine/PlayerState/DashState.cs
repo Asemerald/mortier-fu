@@ -122,6 +122,8 @@ namespace MortierFu
             _dashCooldownTimer.OnTimerStop += OnCooldownTimerStop;
 
             _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
+
+            _trailInstance.emitting = false;
         }
 
         // While dashing, the strike is executed every frame to bump other players or interact with objects.

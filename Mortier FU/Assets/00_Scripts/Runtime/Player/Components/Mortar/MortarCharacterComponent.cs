@@ -81,6 +81,10 @@ namespace MortierFu
             _shootCooldownTimer.OnTimerStop += OnShootCooldownComplete;
         }
 
+        public override void Update() {
+            AimWidget.UpdateFireRateProgress(1f - ShootCooldownProgress);
+        }
+
         public override void Reset()
         {
             _shootCooldownTimer.Reset();

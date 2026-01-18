@@ -24,17 +24,30 @@ namespace MortierFu
         [ReadOnly] public bool AttachedToTarget;
         
         [SerializeField] Vector3 _relativePosition;
+        private Material _materialInstance;
         
         public Vector3 RelativePosition => _relativePosition;
 
-        private void Start()
-        {
+        private static int NormalizedAngleID = Shader.PropertyToID("_NormalizedAngle");
+        
+        private void Awake() {
+            var meshRenderer = GetComponent<MeshRenderer>();
+            if (!meshRenderer) {
+                Debug.LogError("M1issing renderer on Aim Widget !");
+                return;
+            }
+
+            _materialInstance = new Material(meshRenderer.sharedMaterial);
+            meshRenderer.sharedMaterial = _materialInstance;
+            
             Hide();
         }
 
         void Update()
         {
             ComputePosition();
+            
+            
         }
         
         public void SetRelativePosition(Vector3 relativePos)
@@ -70,11 +83,13 @@ namespace MortierFu
         public void Show() => gameObject.SetActive(true);
         
         public void Hide() => gameObject.SetActive(false);
+
+        public void UpdateFireRateProgress(float progress) {
+            _materialInstance.SetFloat(NormalizedAngleID, progress);
+        }
         
         public void Colorize(Color color) {
-            if (TryGetComponent(out Renderer rend)) {
-                rend.material.color = color;
-            }
+            _materialInstance.color = color;
         }
     }
 }
