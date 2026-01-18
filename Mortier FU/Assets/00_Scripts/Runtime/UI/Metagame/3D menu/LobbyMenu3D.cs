@@ -7,7 +7,9 @@ using UnityEngine;
 public class LobbyMenu3D : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private GameObject[] playerPrefabs;
+    [SerializeField] public GameObject[] playerPrefabs;
+    
+    public static LobbyMenu3D Instance { get; private set; }
     
     private int playerCount = 0;
     
@@ -15,6 +17,13 @@ public class LobbyMenu3D : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Logs.LogWarning("[LobbyMenu3D]: Multiple instances detected. Destroying duplicate.", this);
+            Destroy(this.gameObject);
+            return;
+        }
+        
         _lobby = ServiceManager.Instance.Get<LobbyService>();
         if (_lobby == null)
         {

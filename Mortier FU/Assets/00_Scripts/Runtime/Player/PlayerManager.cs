@@ -44,6 +44,17 @@ namespace MortierFu
         {
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
+            
+            _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
+            
+            if (_lobbyPlayer != null)
+            {
+                _lobbyPlayer.Initialize(this);
+            }
+            else
+            {
+                Logs.LogError($"[PlayerManager] No LobbyPlayer component found on prefab for Player {PlayerIndex}");
+            }
         }
 
         private void Start()
@@ -167,5 +178,35 @@ namespace MortierFu
 
             Team = null;
         }
+        
+        #region Lobby Methods
+        
+        private LobbyPlayer _lobbyPlayer;
+        private void OnNavigate(InputAction.CallbackContext ctx)
+        {
+            if (_lobbyPlayer != null && ctx.performed)
+            {
+                Vector2 input = ctx.ReadValue<Vector2>();
+                _lobbyPlayer.ChangeSkin(input);
+            }
+        }
+        
+        public void OnSubmit(InputAction.CallbackContext context)
+        {
+            if (_lobbyPlayer != null && context.performed)
+            {
+                _lobbyPlayer.ToggleReady();
+            }
+        }
+    
+        public void OnCancel(InputAction.CallbackContext context)
+        {
+            if (_lobbyPlayer != null && context.performed)
+            {
+                _lobbyPlayer.Unready();
+            }
+        }
+        
+        #endregion
     }
 }
