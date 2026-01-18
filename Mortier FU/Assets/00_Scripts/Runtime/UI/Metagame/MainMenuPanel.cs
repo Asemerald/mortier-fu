@@ -56,7 +56,9 @@ namespace MortierFu
             UnityEditor.EditorApplication.isPlaying = false;
             return;
 #endif
+#pragma warning disable CS0162 // Unreachable code detected
             Application.Quit();
+#pragma warning restore CS0162 // Unreachable code detected
         }
         private void OnDestroy()
         {
