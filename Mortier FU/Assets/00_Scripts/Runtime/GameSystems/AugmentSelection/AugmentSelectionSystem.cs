@@ -18,7 +18,7 @@ namespace MortierFu
         private CancellationTokenSource _pressureTokenSource;
 
         private List<AugmentCardUI> _pickups;
-        private List<GameObject> _pickupsVFX;
+        private List<AugmentPickup> _pickupsVFX;
         private List<AugmentState> _augmentBag;
         private List<PlayerManager> _pickers;
 
@@ -70,7 +70,7 @@ namespace MortierFu
         private async UniTask InstantiatePickups()
         {
             _pickups = new List<AugmentCardUI>(_augmentCount);
-            _pickupsVFX = new List<GameObject>(_lobbyService.CurrentPlayerCount);
+            _pickupsVFX = new List<AugmentPickup>(_lobbyService.CurrentPlayerCount);
 
             for (int i = 0; i < _augmentCount; i++)
             {
@@ -87,7 +87,7 @@ namespace MortierFu
                 pickupNewAugment.Reset();
 
                 _pickups.Add(pickup);
-                _pickupsVFX.Add(pickupVFX);
+                _pickupsVFX.Add(pickupNewAugment);
             }
         }
 
@@ -131,16 +131,7 @@ namespace MortierFu
                 });
 
                 _pickups[i].SetAugmentVisual(augment);
-
-                var vfxRoot = _pickupsVFX[i].transform;
-                var childVFX = vfxRoot.GetChild(0);
-
-                var ps = childVFX.GetComponent<ParticleSystem>();
-                ps.textureSheetAnimation.SetSprite(0, augment.SmallSprite);
-
-                var pickup = vfxRoot.GetComponent<AugmentPickup>();
-                var prototype = Settings.GetVFXRarityPrototype(augment.Rarity);
-                pickup.ConfigureAsClone(prototype);
+                _pickupsVFX[i].SetAugmentVisual(augment);
             }
 
             var augmentPivot = _levelSystem.GetAugmentPivot();

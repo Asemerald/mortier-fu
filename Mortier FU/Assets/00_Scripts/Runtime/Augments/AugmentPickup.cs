@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MortierFu
@@ -9,6 +10,8 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _roundColor01;
         [SerializeField] private ParticleSystem _roundColor02;
         [SerializeField] private MeshRenderer _planeMeshRenderer;
+        [SerializeField] private ParticleSystem _logoParticleSystem;
+        [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
 
         public E_AugmentRarity Rarity => _rarity;
         
@@ -48,6 +51,14 @@ namespace MortierFu
             
             transform.rotation = _initialRotation;
         }
+
+        public void SetAugmentVisual(SO_Augment augment)
+        {
+            _logoParticleSystem.textureSheetAnimation.SetSprite(0, augment.SmallSprite);
+
+            var prototype = GetVFXRarityPrototype(augment.Rarity);
+            ConfigureAsClone(prototype);
+        }
         
         // Prototype pattern
         public void ConfigureAsClone(AugmentPickup source) {
@@ -71,6 +82,16 @@ namespace MortierFu
             if (_planeMeshRenderer && source._planeMeshRenderer) {
                 _planeMeshRenderer.sharedMaterial = source._planeMeshRenderer.sharedMaterial;
             }
+        }
+        
+        public AugmentPickup GetVFXRarityPrototype(E_AugmentRarity rarity) {
+            foreach (var prototype in _augmentVFXRarityPrototypes) {
+                if (rarity != prototype.Rarity) continue;
+
+                return prototype;
+            }
+
+            throw new Exception($"Prototype not found for rarity {rarity}");
         }
     }
 }

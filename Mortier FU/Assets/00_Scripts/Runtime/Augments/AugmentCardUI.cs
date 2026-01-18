@@ -18,7 +18,7 @@ namespace MortierFu
         [SerializeField] private Image _augmentCard;
         [SerializeField] private Image _augmentBack;
         [SerializeField] private RarityData[] _rarityData;
-
+        
         [SerializeField] private CanvasGroup _canvasGroup;
 
         [SerializeField] private RectTransform _infoRoot;
@@ -90,7 +90,7 @@ namespace MortierFu
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
 
-        private async UniTask PlayBoonDropTransition(GameObject pickupVFX)
+        private async UniTask PlayBoonDropTransition(AugmentPickup pickupVFX)
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
@@ -105,7 +105,7 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
-            pickupVFX.SetActive(true);
+            pickupVFX.gameObject.SetActive(true);
         }
 
         public void DisableObjectsOnFlip()
@@ -128,7 +128,7 @@ namespace MortierFu
             _augmentBorder.gameObject.SetActive(false);
         }
 
-        public async UniTask PlayRevealSequence(GameObject pickupVFX)
+        public async UniTask PlayRevealSequence(AugmentPickup pickupVFX)
         {
             await PlayBoonDropTransition(pickupVFX);
         }

@@ -17,14 +17,14 @@ namespace MortierFu
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
         private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
-        private readonly ReadOnlyCollection<GameObject> _pickupsVFX;
+        private readonly ReadOnlyCollection<AugmentPickup> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
         private readonly ShakeService _shakeService;
         private CancellationTokenSource _cts;
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups, ReadOnlyCollection<GameObject> pickupsVFX)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups, ReadOnlyCollection<AugmentPickup> pickupsVFX)
         {
             _pickups = pickups;
             _pickupsVFX = pickupsVFX;
@@ -75,6 +75,8 @@ namespace MortierFu
                 var pickupVFX = _pickupsVFX[i];
                 pickupVFX.transform.localPosition = pickup.transform.position;
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+                // TODO : Atroce hack to fix VFX rotation
+                pickupVFX.transform.rotation *= Quaternion.Euler(0f, 15f, 0f);
 
                 GrowPickup(pickup, cardScale, ct).Forget();
 
@@ -138,7 +140,7 @@ namespace MortierFu
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(GameObject pickup, int i, float duration, float scale,
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
             CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
