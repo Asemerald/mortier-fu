@@ -54,7 +54,7 @@ namespace MortierFu
         {
             isReady = !isReady;
             UpdateVisuals();
-            //LobbyManager.Instance?.CheckAllPlayersReady();
+            MenuManager.Instance?.CheckAllPlayersReady();
         }
     
         public void Unready()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
@@ -32,7 +33,14 @@ namespace MortierFu
         [field: SerializeField]
         public LobbyPanel LobbyPanel { get; private set; }
 
-        [Header("Utils")] [field: SerializeField]
+        [field: SerializeField] 
+        private LobbyCharacter[] lobbyCharacterSlots;
+        
+        [field: SerializeField] 
+        private int minPlayers = 2;
+
+        [Header("Utils")] 
+        [field: SerializeField]
         private GameObject blackFader;
 
         [field: SerializeField] private MainMenuCameraManager cameraManager;
@@ -42,6 +50,9 @@ namespace MortierFu
         private PlayerActionInput _playerActions;
         private GameService _gameService;
         private ShakeService _shakeService;
+        private LobbyService _lobbyService;
+
+        private int _nextAvailableSlot = 0;
 
         public static MenuManager Instance { get; private set; }
 
@@ -62,11 +73,29 @@ namespace MortierFu
                 Logs.LogError("[MenuManager]: GameService could not be found in ServiceManager.", this);
             }
 
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            if (_lobbyService == null)
+            {
+                Logs.LogError("[MenuManager]: LobbyService could not be found in ServiceManager.", this);
+            }
+
             CheckReferences();
             CheckActivePanels();
 
             // Create PlayerActionInput and enable Menu action map
             _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
+            
+            // Désactiver tous les slots au départ
+            if (lobbyCharacterSlots != null)
+            {
+                foreach (var slot in lobbyCharacterSlots)
+                {
+                    if (slot != null)
+                    {
+                        slot.gameObject.SetActive(false);
+                    }
+                }
+            }
         }
 
         private void Start()
@@ -87,6 +116,13 @@ namespace MortierFu
             _playerActions.UI.Cancel.performed += OnCancel;
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed += OnStartGame;
+
+            // S'abonner aux événements du LobbyService
+            if (_lobbyService != null)
+            {
+                _lobbyService.OnPlayerJoined += OnPlayerJoinedLobby;
+                _lobbyService.OnPlayerLeft += OnPlayerLeftLobby;
+            }
         }
 
         private void OnDisable()
@@ -95,11 +131,58 @@ namespace MortierFu
             _playerActions.UI.Cancel.performed -= OnCancel;
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed -= OnStartGame;
+
+            // Se désabonner des événements du LobbyService
+            if (_lobbyService != null)
+            {
+                _lobbyService.OnPlayerJoined -= OnPlayerJoinedLobby;
+                _lobbyService.OnPlayerLeft -= OnPlayerLeftLobby;
+            }
+        }
+
+        private void OnPlayerJoinedLobby(PlayerManager player)
+        {
+            if (_nextAvailableSlot < lobbyCharacterSlots.Length)
+            {
+                // Assigner le slot de lobby au player
+                LobbyCharacter assignedSlot = lobbyCharacterSlots[_nextAvailableSlot];
+                assignedSlot.gameObject.SetActive(true);
+                
+                // Le PlayerManager possède le LobbyCharacter
+                player.PossessLobbyCharacter(assignedSlot, _nextAvailableSlot + 1);
+                
+                _nextAvailableSlot++;
+                
+                Logs.Log($"[MenuManager]: Player {player.PlayerIndex} assigned to lobby slot {_nextAvailableSlot}.");
+            }
+            else
+            {
+                Logs.LogWarning($"[MenuManager]: No available lobby slots for player {player.PlayerIndex}.");
+            }
+        }
+
+        private void OnPlayerLeftLobby(PlayerManager player)
+        {
+            // Optionnel: gérer la libération des slots si un joueur part
+            // Tu peux réorganiser les slots ou simplement décrémenter _nextAvailableSlot
+            if (_nextAvailableSlot > 0)
+            {
+                _nextAvailableSlot--;
+            }
+            
+            Logs.Log($"[MenuManager]: Player {player.PlayerIndex} left the lobby.");
         }
 
         public async UniTask StartGame()
         {
             Logs.Log("MenuManager: Starting Game...");
+            
+            // Libérer tous les LobbyCharacters
+            foreach (var player in _lobbyService.GetPlayers())
+            {
+                player.ReleaseLobbyCharacter();
+            }
+            
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
 
@@ -117,6 +200,31 @@ namespace MortierFu
             Logs.Log("[MenuManager]: OnStartGame triggered via TEMP implementation.");
             if (LobbyPanel.IsVisible())
             {
+                StartGame().Forget();
+            }
+        }
+        
+        public void CheckAllPlayersReady()
+        {
+            if (_lobbyService.CurrentPlayerCount < minPlayers) 
+            {
+                Logs.Log($"[MenuManager]: Not enough players ({_lobbyService.CurrentPlayerCount}/{minPlayers}).");
+                return;
+            }
+        
+            bool allReady = true;
+            foreach (var player in _lobbyService.GetPlayers())
+            {
+                if (!player.IsReady)
+                {
+                    allReady = false;
+                    break;
+                }
+            }
+        
+            if (allReady)
+            {
+                Logs.Log("[MenuManager]: All players ready! Starting game...");
                 StartGame().Forget();
             }
         }
@@ -145,6 +253,28 @@ namespace MortierFu
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+                
+                // Reset les slots quand on quitte le lobby
+                ResetLobbySlots();
+            }
+        }
+
+        private void ResetLobbySlots()
+        {
+            _nextAvailableSlot = 0;
+            
+            // Libérer tous les personnages et désactiver les slots
+            foreach (var player in _lobbyService.GetPlayers())
+            {
+                player.ReleaseLobbyCharacter();
+            }
+            
+            foreach (var slot in lobbyCharacterSlots)
+            {
+                if (slot != null)
+                {
+                    slot.gameObject.SetActive(false);
+                }
             }
         }
 
@@ -174,31 +304,32 @@ namespace MortierFu
             {
                 Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
             }
+            
+            if (lobbyCharacterSlots == null || lobbyCharacterSlots.Length == 0)
+            {
+                Logs.LogError("MenuManager: LobbyCharacterSlots array is empty or missing.", this);
+            }
         }
 
         private void CheckActivePanels()
         {
             if (!MainMenuPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
                 MainMenuPanel.gameObject.SetActive(true);
             }
 
             if (!SettingsPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
                 SettingsPanel.gameObject.SetActive(true);
             }
 
             if (!CreditsPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: CreditsPanel is not active!", this);
                 CreditsPanel.gameObject.SetActive(true);
             }
 
             if (!LobbyPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
                 LobbyPanel.gameObject.SetActive(true);
             }
         }
