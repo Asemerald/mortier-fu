@@ -23,13 +23,13 @@ namespace MortierFu
             switch (type)
             {
                 case ShakeType.LITTLE:
-                    Shake(gamepad, 0.12f, 0.08f);
+                    Shake(gamepad, 0.12f, 0.08f).Forget();
                     break;
                 case ShakeType.MID:
-                    Shake(gamepad, 0.45f, 0.17f);
+                    Shake(gamepad, 0.45f, 0.17f).Forget();
                     break;
                 case ShakeType.BIG:
-                    Shake(gamepad, 0.8f, 0.25f);
+                    Shake(gamepad, 0.8f, 0.25f).Forget();
                     break;
             }
         }
@@ -41,13 +41,13 @@ namespace MortierFu
             switch (type)
             {
                 case ShakeType.LITTLE:
-                    Shake(gamepad, 0.12f, 0.08f);
+                    Shake(gamepad, 0.12f, 0.08f).Forget();
                     break;
                 case ShakeType.MID:
-                    Shake(gamepad, 0.45f, 0.17f);
+                    Shake(gamepad, 0.45f, 0.17f).Forget();
                     break;
                 case ShakeType.BIG:
-                    Shake(gamepad, 0.8f, 0.25f);
+                    Shake(gamepad, 0.8f, 0.25f).Forget();
                     break;
             }
         }
@@ -61,13 +61,13 @@ namespace MortierFu
                 switch (type)
                 {
                     case ShakeType.LITTLE:
-                        Shake(gamepad, 0.12f, 0.08f);
+                        Shake(gamepad, 0.12f, 0.08f).Forget();
                         break;
                     case ShakeType.MID:
-                        Shake(gamepad, 0.45f, 0.17f);
+                        Shake(gamepad, 0.45f, 0.17f).Forget();
                         break;
                     case ShakeType.BIG:
-                        Shake(gamepad, 0.8f, 0.25f);
+                        Shake(gamepad, 0.8f, 0.25f).Forget();
                         break;
                 }
             }

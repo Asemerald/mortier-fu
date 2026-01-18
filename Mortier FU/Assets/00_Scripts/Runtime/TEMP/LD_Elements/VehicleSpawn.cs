@@ -26,7 +26,9 @@ public class VehiculeSpawn : MonoBehaviour
     [SerializeField] private float _vehicleSpawnVariance = 0.3f;
     [Space]
     [SerializeField] private float _vehicleSpeed = 100f;
-    [SerializeField] private float _vehicleSpeedVariance = 0.2f;
+    
+    //Commenté parce que pas utilisé et le warning me cassait les couilles
+    //[SerializeField] private float _vehicleSpeedVariance = 0.2f;
     private bool _isRed;
 
     [Header("Pooling")]
