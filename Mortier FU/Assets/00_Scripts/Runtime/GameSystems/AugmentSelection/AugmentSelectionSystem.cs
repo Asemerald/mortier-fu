@@ -211,7 +211,6 @@ namespace MortierFu
             _augmentTimer = null;
         }
 
-
         public void RestorePickupParent()
         {
             for (int i = 0; i < _pickups.Count; i++)
@@ -220,7 +219,7 @@ namespace MortierFu
                 pickup.transform.SetParent(_pickupParent);
 
                 var pickupVFX = _pickupsVFX[i];
-                pickupVFX.transform.SetParent(_pickupParent);
+                pickupVFX.AttachToPoint(null);
             }
         }
 

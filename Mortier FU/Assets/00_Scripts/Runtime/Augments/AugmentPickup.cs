@@ -3,9 +3,10 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public class AugmentPickup : MonoBehaviour {
+    public class AugmentPickup : MonoBehaviour
+    {
         [SerializeField] private E_AugmentRarity _rarity;
-        
+
         [SerializeField] private ParticleSystem _dissolveColor01;
         [SerializeField] private ParticleSystem _roundColor01;
         [SerializeField] private ParticleSystem _roundColor02;
@@ -13,8 +14,10 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _logoParticleSystem;
         [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
 
+        private Transform _attachmentPoint;
+
         public E_AugmentRarity Rarity => _rarity;
-        
+
         private int _index;
 
         private AugmentSelectionSystem _system;
@@ -48,7 +51,7 @@ namespace MortierFu
         public void Reset()
         {
             gameObject.SetActive(false);
-            
+
             transform.rotation = _initialRotation;
         }
 
@@ -59,33 +62,55 @@ namespace MortierFu
             var prototype = GetVFXRarityPrototype(augment.Rarity);
             ConfigureAsClone(prototype);
         }
-        
+
+        public void AttachToPoint(Transform point)
+        {
+            _attachmentPoint = point;
+
+            if (point)
+                transform.position = point.position;
+        }
+
+        private void Update()
+        {
+            if (!_attachmentPoint) return;
+
+            transform.position = _attachmentPoint.position;
+        }
+
         // Prototype pattern
-        public void ConfigureAsClone(AugmentPickup source) {
+        public void ConfigureAsClone(AugmentPickup source)
+        {
             _rarity = source._rarity;
 
-            if (_dissolveColor01 && source._dissolveColor01) {
+            if (_dissolveColor01 && source._dissolveColor01)
+            {
                 var main = _dissolveColor01.main;
                 main.startColor = source._dissolveColor01.main.startColor;
             }
-            
-            if (_roundColor01 && source._roundColor01) {
+
+            if (_roundColor01 && source._roundColor01)
+            {
                 var main = _roundColor01.main;
                 main.startColor = source._roundColor01.main.startColor;
             }
 
-            if (_roundColor02 && source._roundColor02) {
+            if (_roundColor02 && source._roundColor02)
+            {
                 var main = _roundColor02.main;
                 main.startColor = source._roundColor02.main.startColor;
             }
 
-            if (_planeMeshRenderer && source._planeMeshRenderer) {
+            if (_planeMeshRenderer && source._planeMeshRenderer)
+            {
                 _planeMeshRenderer.sharedMaterial = source._planeMeshRenderer.sharedMaterial;
             }
         }
-        
-        public AugmentPickup GetVFXRarityPrototype(E_AugmentRarity rarity) {
-            foreach (var prototype in _augmentVFXRarityPrototypes) {
+
+        public AugmentPickup GetVFXRarityPrototype(E_AugmentRarity rarity)
+        {
+            foreach (var prototype in _augmentVFXRarityPrototypes)
+            {
                 if (rarity != prototype.Rarity) continue;
 
                 return prototype;

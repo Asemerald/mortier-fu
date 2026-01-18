@@ -24,7 +24,8 @@ namespace MortierFu
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups, ReadOnlyCollection<AugmentPickup> pickupsVFX)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
+            ReadOnlyCollection<AugmentPickup> pickupsVFX)
         {
             _pickups = pickups;
             _pickupsVFX = pickupsVFX;
@@ -119,13 +120,12 @@ namespace MortierFu
 
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
-                augmentPoint.position = augmentPoints[i];
+                augmentPoint.position = augmentPoints[i].Add(y: 1.8f + i * 0.06f);
                 _augmentPoints[i] = augmentPoint;
 
-                pickupVFX.transform.SetParent(_augmentPoints[i]);
-
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct).Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct, augmentPoint)
+                    .Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
                     cancellationToken: ct);
@@ -141,14 +141,14 @@ namespace MortierFu
         }
 
         private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
-            CancellationToken ct)
+            CancellationToken ct, Transform augmentPoint)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
-            
-            await Tween.Position(pickup.transform, _augmentPoints[i].position.Add(y: 1.8f + i * 0.06f), duration,
-                    Ease.InOutQuad)
-                .Group(Tween.Scale(pickup.transform, scale, 1, duration,
-                    Ease.OutBack)).ToUniTask(cancellationToken: ct);
+
+            await Tween.Position(pickup.transform, _augmentPoints[i].position, duration, Ease.InOutQuad)
+                .Group(Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack))
+                .OnComplete(() => pickup.AttachToPoint(augmentPoint))
+                .ToUniTask(cancellationToken: ct);
         }
 
         private async UniTask FlipPickup(AugmentCardUI cardUI, CancellationToken ct, float duration = 0.5f)
@@ -161,7 +161,7 @@ namespace MortierFu
             Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, cardUI.transform.position);
-            
+
             await Tween.LocalRotation(
                 t,
                 midRot,
@@ -197,7 +197,7 @@ namespace MortierFu
             }
 
             if (_augmentPoints == null) return;
-            
+
             for (int i = _augmentPoints.Length - 1; i >= 0; i--)
             {
                 if (_augmentPoints[i] != null)

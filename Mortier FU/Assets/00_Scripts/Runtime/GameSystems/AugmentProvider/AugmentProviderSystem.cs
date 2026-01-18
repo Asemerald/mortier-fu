@@ -24,7 +24,7 @@ namespace MortierFu
 
         private AsyncOperationHandle<IList<SO_AugmentLibrary>> _augmentLibHandle;
 
-        private Dictionary<SO_Augment, float> _augmentChances = new();
+        private readonly Dictionary<SO_Augment, float> _augmentChances = new();
 
         private const string k_augmentLibLabel = "AugmentLib";
 
