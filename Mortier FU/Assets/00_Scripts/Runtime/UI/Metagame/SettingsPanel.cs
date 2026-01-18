@@ -26,6 +26,7 @@ namespace MortierFu
         private void Start()
         {
             Hide();
+            OnVSyncSelected(false);
         }
 
         private void RestoreSettingsFromSave()
@@ -97,5 +98,52 @@ namespace MortierFu
             base.Hide();
             SaveSettings();
         }
+        
+        #region UiPanel Feedbacks
+
+        [Header("Assets Feedbacks")]
+        [SerializeField] private Image[] fullScreenSelectedAssets;
+        [SerializeField] private Image[] vsyncSelectedAssets;
+        
+
+        public void OnFullScreenSelected(bool selected)
+        {
+            if (fullScreenSelectedAssets == null) return;
+            
+            // If selected, enable assets 1 and 2 and disable asset 0, else disable them and enable assets 0
+            if (selected)
+            {
+                fullScreenSelectedAssets[0].enabled = false;
+                fullScreenSelectedAssets[1].enabled = true;
+                fullScreenSelectedAssets[2].enabled = true;
+            }
+            else
+            {
+                fullScreenSelectedAssets[0].enabled = true;
+                fullScreenSelectedAssets[1].enabled = false;
+                fullScreenSelectedAssets[2].enabled = false;
+            }
+        }
+        
+        public void OnVSyncSelected(bool selected)
+        {
+            if (vsyncSelectedAssets == null) return;
+            
+            // If selected, enable assets 1 and 2 and disable asset 0, else disable them and enable assets 0
+            if (selected)
+            {
+                vsyncSelectedAssets[0].enabled = false;
+                vsyncSelectedAssets[1].enabled = true;
+                vsyncSelectedAssets[2].enabled = true;
+            }
+            else
+            {
+                vsyncSelectedAssets[0].enabled = true;
+                vsyncSelectedAssets[1].enabled = false;
+                vsyncSelectedAssets[2].enabled = false;
+            }
+        }
+
+        #endregion
     }
 }

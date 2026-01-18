@@ -12,7 +12,6 @@ namespace MortierFu
         [SerializeField] private LobbyPanel lobbyPanel;
         [SerializeField] private SettingsPanel settingsPanel;
         [SerializeField] private CreditsPanel creditsPanel;
-        [SerializeField] private GameObject quitConfirmationPanel;
     
         [Header("Buttons")]
         [SerializeField] private Button playButton;
@@ -31,7 +30,7 @@ namespace MortierFu
             playButton.onClick.AddListener(OpenLobbyPanel);
             settingsButton.onClick.AddListener(OpenSettingsPanel);
             creditsButton.onClick.AddListener(OpenCreditsPanel);
-            quitButton.onClick.AddListener(OpenQuitConfirmationPanel);
+            quitButton.onClick.AddListener(QuitGame);
         }
         
         
@@ -50,10 +49,14 @@ namespace MortierFu
             Hide();
             creditsPanel.Show();
         }
-        private void OpenQuitConfirmationPanel()
+        private void QuitGame()
         {
-            Hide();
-            quitConfirmationPanel.SetActive(true);
+            Logs.Log("[MainMenuPanel]: Quitting game...");
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            return;
+#endif
+            Application.Quit();
         }
         private void OnDestroy()
         {
