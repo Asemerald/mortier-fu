@@ -91,8 +91,6 @@ namespace MortierFu
             _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
             await _confirmationService.WaitUntilAllConfirmed();
 
-            float flipDuration = 0.4f;
-
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
             for (int i = 0; i < _pickups.Count; i++)
@@ -113,12 +111,8 @@ namespace MortierFu
                         pickup,
                         ct,
                         midFlipSignal,
-                        flipDuration
+                        _system.Settings.FlipDuration
                     );
-
-                    await UniTask.Delay(TimeSpan.FromSeconds(3f), cancellationToken: ct);
-                    
-                    await pickup.PlayRevealSequence(_pickupsVFX[index]);
                 });
 
                 previousMidFlip = midFlipSignal;
@@ -126,15 +120,27 @@ namespace MortierFu
 
             await UniTask.WhenAll(flipTasks);
 
-            for (int i = 0; i < _pickups.Count; i++)
+            await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+
+            int[] shuffled = GetShuffledIndices(_pickups.Count);
+            int j = -1;
+            foreach (int idx in shuffled)
             {
+                j++;
+
                 ct.ThrowIfCancellationRequested();
 
-                var pickup = _pickups[i];
-                var pickupVFX = _pickupsVFX[i];
+                var pickup = _pickups[idx];
+                var pickupVFX = _pickupsVFX[idx];
 
-                await pickup.PlayRevealSequence(pickupVFX);
+                pickup.PlayRevealSequence(pickupVFX).Forget();
+
+                float t = (shuffled.Length - j) / (float)shuffled.Length;
+                await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + 0.09f),
+                    cancellationToken: ct);
             }
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.RevealDelay), cancellationToken: ct);
 
             if (_pickups.Count != augmentPoints.Length)
             {
@@ -241,6 +247,20 @@ namespace MortierFu
             }
 
             _augmentPoints = null;
+        }
+
+        private int[] GetShuffledIndices(int count)
+        {
+            var indices = new int[count];
+            for (int i = 0; i < count; i++) indices[i] = i;
+
+            for (int i = 0; i < count; i++)
+            {
+                int j = UnityEngine.Random.Range(i, count);
+                (indices[i], indices[j]) = (indices[j], indices[i]);
+            }
+
+            return indices;
         }
     }
 }
