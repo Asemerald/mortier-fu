@@ -147,11 +147,16 @@ namespace MortierFu
         
         private void UpdateSelectionIndicators()
         {
-            if (skinSelectionIndicator != null)
-                skinSelectionIndicator.SetActive(!isSelectingFace);
-                
-            if (faceSelectionIndicator != null)
-                faceSelectionIndicator.SetActive(isSelectingFace);
+            return; 
+            foreach (var t in skinSelectionIndicator)
+            {
+                t.SetActive(!isSelectingFace);
+            }
+
+            foreach (var t in faceSelectionIndicator)
+            {
+                t.SetActive(isSelectingFace);
+            }
         }
     
         public void ToggleReady()
