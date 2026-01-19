@@ -80,7 +80,7 @@ namespace MortierFu
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
             Vector3 dashDir = character.Controller.GetDashDirection();
-            character.Controller.rigidbody.AddForce(dashDir * 7.2f, ForceMode.Impulse);
+            character.Controller.rigidbody.AddForce(dashDir * 8.2f, ForceMode.Impulse);
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();
@@ -171,7 +171,9 @@ namespace MortierFu
                     other.Health.TakeDamage(dashDamage, character);
                 }
 
-                var knockbackDir = (other.transform.position - character.transform.position).normalized;
+                //var knockbackDir = (other.transform.position - character.transform.position).normalized;
+                var knockbackDir = character.Controller.GetDashDirection().normalized;
+                
                 var knockbackForce = knockbackDir * character.Stats.GetDashPushForce();
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
