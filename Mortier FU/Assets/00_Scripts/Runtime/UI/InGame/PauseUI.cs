@@ -77,6 +77,9 @@ namespace MortierFu
 
             _playerManager = _lobbyService.GetPlayerByIndex(0);
             
+            _gamePauseSystem.RestoreSettingsFromSave();
+            _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
+                _sfxVolumeSlider);
             _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
                 _sfxVolumeSlider);
 

@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -16,7 +15,7 @@ namespace MortierFu
         private string _settingsPath;
         private string _gamePath;
         
-        private readonly object _settingsLock = new object();
+        private readonly object _settingsLock = new ();
 
         public bool IsInitialized { get; set; }
 
