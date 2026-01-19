@@ -40,6 +40,8 @@ namespace MortierFu
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
+        public bool IsReady = false;
+
         private void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
@@ -196,6 +198,7 @@ namespace MortierFu
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.ToggleReady();
+                IsReady = _lobbyPlayer.IsReady;
             }
         }
     
@@ -204,6 +207,7 @@ namespace MortierFu
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.Unready();
+                IsReady = _lobbyPlayer.IsReady;
             }
         }
         

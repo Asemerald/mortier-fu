@@ -32,9 +32,6 @@ namespace MortierFu
         [field: Header("Lobby References")]
         [field: SerializeField]
         public LobbyPanel LobbyPanel { get; private set; }
-
-        [field: SerializeField] 
-        private LobbyCharacter[] lobbyCharacterSlots;
         
         [field: SerializeField] 
         private int minPlayers = 2;
@@ -51,8 +48,6 @@ namespace MortierFu
         private GameService _gameService;
         private ShakeService _shakeService;
         private LobbyService _lobbyService;
-
-        private int _nextAvailableSlot = 0;
 
         public static MenuManager Instance { get; private set; }
 
@@ -84,18 +79,6 @@ namespace MortierFu
 
             // Create PlayerActionInput and enable Menu action map
             _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
-            
-            // Désactiver tous les slots au départ
-            if (lobbyCharacterSlots != null)
-            {
-                foreach (var slot in lobbyCharacterSlots)
-                {
-                    if (slot != null)
-                    {
-                        slot.gameObject.SetActive(false);
-                    }
-                }
-            }
         }
 
         private void Start()
@@ -116,13 +99,6 @@ namespace MortierFu
             _playerActions.UI.Cancel.performed += OnCancel;
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed += OnStartGame;
-
-            // S'abonner aux événements du LobbyService
-            if (_lobbyService != null)
-            {
-                _lobbyService.OnPlayerJoined += OnPlayerJoinedLobby;
-                _lobbyService.OnPlayerLeft += OnPlayerLeftLobby;
-            }
         }
 
         private void OnDisable()
@@ -131,57 +107,11 @@ namespace MortierFu
             _playerActions.UI.Cancel.performed -= OnCancel;
             //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
             _playerActions.UI.StartGame.performed -= OnStartGame;
-
-            // Se désabonner des événements du LobbyService
-            if (_lobbyService != null)
-            {
-                _lobbyService.OnPlayerJoined -= OnPlayerJoinedLobby;
-                _lobbyService.OnPlayerLeft -= OnPlayerLeftLobby;
-            }
-        }
-
-        private void OnPlayerJoinedLobby(PlayerManager player)
-        {
-            if (_nextAvailableSlot < lobbyCharacterSlots.Length)
-            {
-                // Assigner le slot de lobby au player
-                LobbyCharacter assignedSlot = lobbyCharacterSlots[_nextAvailableSlot];
-                assignedSlot.gameObject.SetActive(true);
-                
-                // Le PlayerManager possède le LobbyCharacter
-                player.PossessLobbyCharacter(assignedSlot, _nextAvailableSlot + 1);
-                
-                _nextAvailableSlot++;
-                
-                Logs.Log($"[MenuManager]: Player {player.PlayerIndex} assigned to lobby slot {_nextAvailableSlot}.");
-            }
-            else
-            {
-                Logs.LogWarning($"[MenuManager]: No available lobby slots for player {player.PlayerIndex}.");
-            }
-        }
-
-        private void OnPlayerLeftLobby(PlayerManager player)
-        {
-            // Optionnel: gérer la libération des slots si un joueur part
-            // Tu peux réorganiser les slots ou simplement décrémenter _nextAvailableSlot
-            if (_nextAvailableSlot > 0)
-            {
-                _nextAvailableSlot--;
-            }
-            
-            Logs.Log($"[MenuManager]: Player {player.PlayerIndex} left the lobby.");
         }
 
         public async UniTask StartGame()
         {
             Logs.Log("MenuManager: Starting Game...");
-            
-            // Libérer tous les LobbyCharacters
-            foreach (var player in _lobbyService.GetPlayers())
-            {
-                player.ReleaseLobbyCharacter();
-            }
             
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
@@ -253,28 +183,6 @@ namespace MortierFu
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-                
-                // Reset les slots quand on quitte le lobby
-                ResetLobbySlots();
-            }
-        }
-
-        private void ResetLobbySlots()
-        {
-            _nextAvailableSlot = 0;
-            
-            // Libérer tous les personnages et désactiver les slots
-            foreach (var player in _lobbyService.GetPlayers())
-            {
-                player.ReleaseLobbyCharacter();
-            }
-            
-            foreach (var slot in lobbyCharacterSlots)
-            {
-                if (slot != null)
-                {
-                    slot.gameObject.SetActive(false);
-                }
             }
         }
 
@@ -303,11 +211,6 @@ namespace MortierFu
             if (cameraManager == null)
             {
                 Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
-            }
-            
-            if (lobbyCharacterSlots == null || lobbyCharacterSlots.Length == 0)
-            {
-                Logs.LogError("MenuManager: LobbyCharacterSlots array is empty or missing.", this);
             }
         }
 
