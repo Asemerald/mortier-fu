@@ -93,14 +93,15 @@ namespace MortierFu
 
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.FlipDelay), cancellationToken: ct);
+            
             for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
 
                 var pickup = _pickups[i];
                 var midFlipSignal = new UniTaskCompletionSource();
-
-                int index = i;
 
                 flipTasks[i] = UniTask.Create(async () =>
                 {

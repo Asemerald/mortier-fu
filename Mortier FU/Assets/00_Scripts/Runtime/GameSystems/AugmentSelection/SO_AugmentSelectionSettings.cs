@@ -20,12 +20,15 @@ namespace MortierFu
         
         [Tooltip("Time between each card growth")]
         public MinMaxRange CardPopInStagger = new(0.2f, 0.4f);
-
-        [Tooltip("Delay after all card flips and before revealing boons.")]
-        public float RevealDelay = 1f;
+        
+        [Tooltip("Delay before starting to flip the cards.")]
+        public float FlipDelay = 1f;
         
         [Tooltip("Card flip duration.")]
         public float FlipDuration = 0.4f;
+        
+        [Tooltip("Delay after all card flips and before revealing boons.")]
+        public float RevealDelay = 1f;
         
         [Header("Card Animation Ranges")]
         [Tooltip("Randomized duration range for the movement and scaling animation when each card moves to its target position.")]
