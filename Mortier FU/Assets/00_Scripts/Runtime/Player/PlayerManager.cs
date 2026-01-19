@@ -35,6 +35,8 @@ namespace MortierFu
         }
 
         public int PlayerIndex => _playerInput.playerIndex;
+
+        public int SkinIndex = 0;
         public bool IsInGame => _isInGame;
 
         public event System.Action<PlayerManager> OnPlayerInitialized;
@@ -48,15 +50,6 @@ namespace MortierFu
             DontDestroyOnLoad(gameObject);
             
             _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
-            
-            if (_lobbyPlayer != null)
-            {
-                _lobbyPlayer.Initialize(this);
-            }
-            else
-            {
-                Logs.LogError($"[PlayerManager] No LobbyPlayer component found on prefab for Player {PlayerIndex}");
-            }
         }
 
         private void Start()
@@ -150,6 +143,8 @@ namespace MortierFu
             if (_pauseAction != null) _pauseAction.performed += TogglePause;
             if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
+            
+            _playerInput.SwitchCurrentActionMap("Gameplay");
         }
 
         /// <summary>

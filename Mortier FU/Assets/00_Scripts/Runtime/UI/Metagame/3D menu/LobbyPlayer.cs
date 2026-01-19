@@ -6,10 +6,9 @@ namespace MortierFu
     public class LobbyPlayer : MonoBehaviour
     {
         [SerializeField] private GameObject[] availableSkins;
+        [SerializeField] private GameObject[] skinsOutline;
         [SerializeField] private GameObject readyIndicator;
-        [SerializeField] private TextMeshProUGUI playerNumberText;
-    
-        private PlayerManager _playerManager;
+        
         private int currentSkinIndex = 0;
         private bool isReady = false;
     
@@ -22,12 +21,12 @@ namespace MortierFu
             for (int i = 0; i < availableSkins.Length; i++)
             {
                 availableSkins[i].SetActive(i == 0);
+                skinsOutline[i].SetActive(i == 0);
             }
         }
     
-        public void Initialize(PlayerManager playerManager)
+        public void Start()
         {
-            _playerManager = playerManager;
             currentSkinIndex = 0; // Reset au skin par défaut
             isReady = false;
             UpdateVisuals();
@@ -71,6 +70,7 @@ namespace MortierFu
             for (int i = 0; i < availableSkins.Length; i++)
             {
                 availableSkins[i].SetActive(i == currentSkinIndex);
+                skinsOutline[i].SetActive(i == currentSkinIndex);
             }
         }
     
