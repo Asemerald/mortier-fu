@@ -57,33 +57,36 @@ namespace MortierFu
             OnPlayerDestroyed?.Invoke(this);
 
             if (_pauseAction != null)
-                _pauseAction.performed -= Pause;
-
+                _pauseAction.performed -= TogglePause;
+            
             if (_unPauseAction != null)
-                _unPauseAction.performed -= UnPause;
+                _unPauseAction.performed -= TogglePause;
+
 
             if (_cancelUIAction != null)
                 _cancelUIAction.performed -= CancelUI;
         }
 
         // TODO: Faire un input manager plus tard
-        private void Pause(InputAction.CallbackContext ctx)
+        private void TogglePause(InputAction.CallbackContext ctx)
         {
             if (PlayerIndex != 0)
                 return;
-
-            PlayerInput.SwitchCurrentActionMap("UI");
-            _gamePauseSystem.Pause();
+            _gamePauseSystem.TogglePause();
+            RefreshActionMap();
         }
-
-        private void UnPause(InputAction.CallbackContext ctx)
+        
+        public void RefreshActionMap()
         {
-            if (PlayerIndex != 0)
-                return;
+            if (_gamePauseSystem == null) return;
 
-            PlayerInput.SwitchCurrentActionMap("Gameplay");
-            _gamePauseSystem.UnPause();
+            string targetMap = (!PlayerCharacter.AllowGameplayActions || _gamePauseSystem.IsPaused)
+                ? "UI"
+                : "Gameplay";
+
+            PlayerInput.SwitchCurrentActionMap(targetMap);
         }
+
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
@@ -131,8 +134,8 @@ namespace MortierFu
             _unPauseAction = PlayerInput.actions.FindAction("UnPause");
             _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
 
-            if (_pauseAction != null) _pauseAction.performed += Pause;
-            if (_unPauseAction != null) _unPauseAction.performed += UnPause;
+            if (_pauseAction != null) _pauseAction.performed += TogglePause;
+            if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
         }
 

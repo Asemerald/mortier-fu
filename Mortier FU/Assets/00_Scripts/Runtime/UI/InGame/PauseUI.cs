@@ -102,7 +102,7 @@ namespace MortierFu
             {
                 // TODO: Mettre le son sur endgame main menu et quit
                 _endGameButton.onClick.AddListener(_gm.EndGame);
-                _endGameButton.onClick.AddListener(_gamePauseSystem.UnPause);
+                _endGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
             }
 
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
