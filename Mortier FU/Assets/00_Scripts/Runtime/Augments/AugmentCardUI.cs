@@ -38,6 +38,8 @@ namespace MortierFu
         private bool _initialized;
 
         private CancellationTokenSource _cts;
+        
+        private ShakeService _shakeService;
 
         public void Initialize()
         {
@@ -50,6 +52,11 @@ namespace MortierFu
             _initialScale = transform.localScale;
             _initialInfoPos = _infoRoot.anchoredPosition;
             _initialCanvasAlpha = _canvasGroup.alpha;
+        }
+
+        private void Start()
+        {
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         private void OnDisable()
@@ -96,6 +103,8 @@ namespace MortierFu
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
 
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;

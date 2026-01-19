@@ -175,7 +175,7 @@ namespace MortierFu
         private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            _shakeService.ShakeControllers(ShakeService.ShakeType.LITTLE);
             await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
                 .ToUniTask(cancellationToken: ct);
         }
