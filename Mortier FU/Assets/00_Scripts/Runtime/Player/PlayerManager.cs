@@ -57,7 +57,7 @@ namespace MortierFu
             _cancelAction = _playerInput.actions.FindAction("Cancel");
             
             if (_navigateAction != null)
-                _navigateAction.performed += Navigate;
+                _navigateAction.started += Navigate;
             if (_submitAction != null)
                 _submitAction.performed += Submit;
             if (_cancelAction != null)
@@ -195,12 +195,18 @@ namespace MortierFu
         private InputAction _cancelAction;
         
         private LobbyPlayer _lobbyPlayer;
+        
         private void Navigate(InputAction.CallbackContext ctx)
         {
-            if (_lobbyPlayer != null && ctx.performed)
+            if (_lobbyPlayer != null)
             {
                 Vector2 input = ctx.ReadValue<Vector2>();
-                _lobbyPlayer.ChangeSkin(input);
+        
+                // Ne réagir que si l'input dépasse la deadzone
+                if (Mathf.Abs(input.x) > 0.5f)
+                {
+                    _lobbyPlayer.ChangeSkin(input);
+                }
             }
         }
         
