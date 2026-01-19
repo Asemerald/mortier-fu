@@ -54,14 +54,11 @@ namespace MortierFu
             
             _navigateAction = _playerInput.actions.FindAction("Navigate");
             _submitAction = _playerInput.actions.FindAction("Submit");
-            _cancelAction = _playerInput.actions.FindAction("Cancel");
             
             if (_navigateAction != null)
-                _navigateAction.started += Navigate;
+                _navigateAction.performed += Navigate;
             if (_submitAction != null)
                 _submitAction.performed += Submit;
-            if (_cancelAction != null)
-                _cancelAction.performed += Cancel;
         }
 
         private void Start()
@@ -192,22 +189,35 @@ namespace MortierFu
         
         private InputAction _navigateAction;
         private InputAction _submitAction;
-        private InputAction _cancelAction;
         
         private LobbyPlayer _lobbyPlayer;
         
+        private Vector2 _previousNavigateInput = Vector2.zero;
+        private float _lastNavigateTime = 0f;
+        private float _navigateCooldown = 0.3f;
+        private const float _threshold = 0.7f; // Seuil pour considérer qu'on a poussé le stick
+
         private void Navigate(InputAction.CallbackContext ctx)
         {
-            if (_lobbyPlayer != null)
+            if (_lobbyPlayer == null) return;
+    
+            Vector2 currentInput = ctx.ReadValue<Vector2>();
+    
+            // Vérifier si on vient de passer le seuil (n'était pas au-dessus avant, l'est maintenant)
+            bool wasNotPushed = Mathf.Abs(_previousNavigateInput.x) < _threshold;
+            bool isPushedNow = Mathf.Abs(currentInput.x) >= _threshold;
+    
+            // Vérifier le cooldown
+            bool cooldownExpired = Time.time - _lastNavigateTime >= _navigateCooldown;
+    
+            // Changer le skin seulement si on vient de pousser le stick OU si le cooldown est écoulé
+            if ((wasNotPushed && isPushedNow) || (isPushedNow && cooldownExpired))
             {
-                Vector2 input = ctx.ReadValue<Vector2>();
-        
-                // Ne réagir que si l'input dépasse la deadzone
-                if (Mathf.Abs(input.x) > 0.5f)
-                {
-                    _lobbyPlayer.ChangeSkin(input);
-                }
+                _lobbyPlayer.ChangeSkin(currentInput);
+                _lastNavigateTime = Time.time;
             }
+    
+            _previousNavigateInput = currentInput;
         }
         
         
@@ -216,15 +226,6 @@ namespace MortierFu
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.ToggleReady();
-                IsReady = _lobbyPlayer.IsReady;
-            }
-        }
-    
-        public void Cancel(InputAction.CallbackContext context)
-        {
-            if (_lobbyPlayer != null && context.performed)
-            {
-                _lobbyPlayer.Unready();
                 IsReady = _lobbyPlayer.IsReady;
             }
         }

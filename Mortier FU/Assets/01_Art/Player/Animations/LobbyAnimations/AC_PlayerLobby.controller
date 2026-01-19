@@ -129,6 +129,12 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
+  - m_Name: ReadyTrigger
+    m_Type: 9
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -278,6 +284,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: bIsReady
     m_EventTreshold: 0
+  - m_ConditionMode: 1
+    m_ConditionEvent: ReadyTrigger
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 2807342726171330148}
   m_Solo: 0
@@ -323,7 +332,7 @@ AnimatorStateMachine:
   - {fileID: -299202845061902277}
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 90, y: -30, z: 0}
+  m_AnyStatePosition: {x: 80, y: -30, z: 0}
   m_EntryPosition: {x: 110, y: 110, z: 0}
   m_ExitPosition: {x: 1060, y: 110, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}

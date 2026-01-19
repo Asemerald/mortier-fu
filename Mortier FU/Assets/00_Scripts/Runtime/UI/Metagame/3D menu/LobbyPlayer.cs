@@ -25,7 +25,7 @@ namespace MortierFu
                 availableSkins[i].SetActive(i == 0);
                 skinsOutline[i].SetActive(i == 0);
             }
-            _animator = GetComponent<Animator>();
+            _animator = GetComponentInChildren<Animator>();
         }
     
         public void Start()
@@ -61,6 +61,9 @@ namespace MortierFu
             if (_animator != null)
             {
                 _animator.SetBool("bIsReady", isReady);
+                
+                if (isReady)
+                    _animator.SetTrigger("ReadyTrigger");
             }
         }
     
