@@ -3,7 +3,6 @@ using PrimeTween;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.UI;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -170,6 +169,8 @@ namespace MortierFu
 
             _playGameObject.SetActive(true);
 
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            
             await Sequence.Create()
                 .Group(Tween.Position(
                     t,
@@ -204,8 +205,7 @@ namespace MortierFu
 
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-
+            
             // TODO: Désolé c'est horrible
             gm?.EnablePlayerInputs();
         }
@@ -257,26 +257,5 @@ namespace MortierFu
         [SerializeField] private float _playFadeOutDuration = 0.3f;
 
         #endregion
-
-        /* private async UniTask AnimateCountdownNumber()
- {
-     if (_countdownSequence.isAlive)
-         _countdownSequence.Stop();
-
-     _countdownImage.transform.localScale = Vector3.zero;
-
-     _countdownSequence = Sequence.Create()
-         .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, _countdownGrowthDuration,
-             Ease.OutBack))
-         .Group(Tween.Rotation(_countdownImage.transform, Quaternion.Euler(0f, 0f, 180),
-             Quaternion.Euler(0f, 0f, 0f),
-             _countdownGrowthDuration * 0.9f, Ease.OutBack, startDelay: _countdownGrowthDuration * 0.1f))
-         .ChainDelay(_countdownBumpDuration)
-         .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, _countdownShrinkDuration, Ease.InBack))
-         .Group(Tween.Rotation(_countdownImage.transform, Quaternion.Euler(0f, 0f, 180f),
-             _countdownShrinkDuration * 0.9f, Ease.InBack, startDelay: _countdownShrinkDuration * 0.1f));
-
-     await _countdownSequence;
- }*/
     }
 }

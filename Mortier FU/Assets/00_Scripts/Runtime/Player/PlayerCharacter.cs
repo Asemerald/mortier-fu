@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
@@ -16,18 +17,18 @@ namespace MortierFu
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
-        
-        [Header("Dash Trail")]
-        [SerializeField] private GameObject _dashTrailPrefab;
-        
+
+        [Header("Dash Trail")] [SerializeField]
+        private GameObject _dashTrailPrefab;
+
         [Header("Mortar")] [SerializeField] private AimWidget _aimWidgetPrefab;
         [SerializeField] private Transform _firePoint;
 
-        [Header("Aspect")]
-        [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
+        [Header("Aspect")] [SerializeField] private CharacterAspectMaterials[] _characterAspectMaterials;
 
         [Header("References")] [SerializeField]
         private Animator _animator;
+
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
@@ -57,7 +58,7 @@ namespace MortierFu
         private KnockbackState _knockbackState;
         private StunState _stunState;
         private DashState _dashState;
-        
+
         private ShakeService _shakeService;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
@@ -71,7 +72,7 @@ namespace MortierFu
         public int AvailableDashCharges => _dashState.AvailableCharges;
 
         public Transform GetStrikePoint() => _strikePoint;
-        
+
         public void Initialize(PlayerManager owner)
         {
             if (owner == null)
@@ -90,7 +91,7 @@ namespace MortierFu
             }
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
-            
+
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
         }
@@ -137,7 +138,7 @@ namespace MortierFu
             _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
 
             _dashAction.started += PlayDashSFX;
-            
+
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
@@ -179,7 +180,7 @@ namespace MortierFu
             Mortar.Dispose();
 
             _dashAction.started -= PlayDashSFX;
-            
+
             if (_toggleAimAction == null || Mortar == null) return;
 
             _toggleAimAction.started -= Mortar.BeginAiming;
@@ -204,16 +205,21 @@ namespace MortierFu
             At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
             At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
             At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
-                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+                                                                     && _dashState.AvailableCharges > 0 &&
+                                                                     Controller.GetDashDirection().sqrMagnitude >
+                                                                     0.01f));
             At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
             At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered && 
-                _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
+            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered &&
+                                                                     _dashState.AvailableCharges > 0 &&
+                                                                     Controller.GetDashDirection().sqrMagnitude >
+                                                                     0.01f));
             At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
             At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
             Any(deathState, new FuncPredicate(() => !Health.IsAlive));
-            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
+            Any(_knockbackState,
+                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
             Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
 
             // Set initial state
@@ -254,7 +260,7 @@ namespace MortierFu
                     SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
             augmentInstance.Initialize();
             _augments.Add(augmentInstance);
-            
+
             // Notify Analytics System
             var analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentSelected(this, augmentData);
@@ -311,14 +317,10 @@ namespace MortierFu
         private void OnCollisionEnter(Collision other)
         {
             // C'est affreux mais asshoul
-            if (_knockbackState.IsActive
-                && Controller.rigidbody.linearVelocity.sqrMagnitude > 5 * 5
-                && (_knockbackState.LastBumpSource is not PlayerCharacter character
-                    || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar)
-                    || character != otherChar))
+            if (_knockbackState.IsActive && other.impulse.magnitude > 5 && (_knockbackState.LastBumpSource is not PlayerCharacter character || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar) || character != otherChar))
             {
                 ReceiveStun(_knockbackState.StunDuration);
-                
+
                 if (other.rigidbody && other.rigidbody.TryGetComponent<Breakable>(out var breakable))
                 {
                     breakable.Interact(other.GetContact(0).point);
@@ -331,7 +333,7 @@ namespace MortierFu
                         Character = this,
                         Source = _knockbackState.LastBumpSource,
                     });
-                    
+
                     _knockbackState.ClearLastBumpSource();
                 }
             }
@@ -399,6 +401,16 @@ namespace MortierFu
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
             }
+        }
+
+        // TODO : à refaire
+        public async UniTask WinRoundDance(float delay)
+        {
+            transform.rotation = Quaternion.Euler(0f, 200f, 0f);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            
+            _animator.CrossFade("WinRound", 0.1f, 0);
         }
 
         private void At(IState from, IState to, IPredicate condition) =>

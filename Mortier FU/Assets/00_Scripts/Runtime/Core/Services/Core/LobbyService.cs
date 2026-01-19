@@ -60,7 +60,7 @@ namespace MortierFu
         private void HandlePlayerInitialized(PlayerManager player)
         {
             // Peut être utile pour relancer une UI / ready check
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex} ready.");
+            //Logs.Log($"[LobbyService] Player {player.PlayerIndex} ready.");
         }
 
         private void HandlePlayerDestroyed(PlayerManager player)

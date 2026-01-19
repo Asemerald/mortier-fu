@@ -82,9 +82,9 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundStarted;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-        
+
         public event Func<UniTask> OnRaceEndedUI;
-        
+
         public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
@@ -109,7 +109,7 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(new Vector3(i, 5, i) * 2f);
+                player.SpawnInGame(new Vector3(i, 5, i) * 2f, player.transform.rotation);
 
                 // Use event bus to prevent closure and weird on Death subscriptions
                 // player.Character.Health. += source => OnDeath(player, source);
@@ -157,9 +157,9 @@ namespace MortierFu
 
                 augmentSelectionSys.EndRace();
                 EndRace();
-                
+
                 EnablePlayerGravity(false);
-                 
+
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -168,7 +168,7 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-            
+
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -230,7 +230,7 @@ namespace MortierFu
                 }
             }
         }
-        
+
         private void SpawnPlayers()
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
@@ -243,7 +243,7 @@ namespace MortierFu
                     var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1
                         ? levelSystem.GetWinnerSpawnPoint()
                         : levelSystem.GetSpawnPoint(spawnIndex);
-                    member.SpawnInGame(spawnPoint.position);
+                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
                     if (opposite)
                         spawnIndex--;
                     else
@@ -251,27 +251,24 @@ namespace MortierFu
                 }
             }
         }
-
+        
         public void EnablePlayerInputs(bool enabled = true)
         {
+            PlayerCharacter.AllowGameplayActions = enabled;
+
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    // TODO: Trouver comment faire pour que le joueur ne puisse pas faire pause du coup lorsqu'on veut disable les inputs puisque là on switch sur UI
-                    // TODO: Sauf que sur UI on peut UnPause -_-
-                    member.PlayerInput.SwitchCurrentActionMap(enabled
-                        ? k_gameplayActionMap
-                        : k_uiActionMap); // Utiliser ça et faire un helper qu'on met ici pour vérifier
-                    // si c'est joueur 0 ou pas.
+                    member.RefreshActionMap();
                 }
             }
-
+            
 #if UNITY_EDITOR
             //PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
-
+        
         protected virtual bool AllPlayersReady()
         {
             // TODO: Implement player ready check
@@ -352,7 +349,6 @@ namespace MortierFu
             timer.OnTimerStop -= HandleEndOfCountdown;
 
             EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = true;
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
 
@@ -384,7 +380,6 @@ namespace MortierFu
             ResetPlayers();
             SpawnPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
-            PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
             alivePlayers.Clear();
 
@@ -393,9 +388,12 @@ namespace MortierFu
             _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
 
             if (_currentRound.WinningTeam != null)
+            {
                 cameraSystem.Controller.EndFightCameraMovement(
                     _currentRound.WinningTeam.Members[0].Character.transform);
-            
+                _currentRound.WinningTeam.Members[0].Character.WinRoundDance(1.6f).Forget();
+            }
+
             OnRoundEnded?.Invoke(_currentRound);
         }
 
@@ -424,7 +422,7 @@ namespace MortierFu
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
-                    
+
                     // notify analytics system
                     var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
                     analyticsSys?.OnScoreChanged(team.Members[0].Character, team.Score);
@@ -483,7 +481,6 @@ namespace MortierFu
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
 
             Logs.Log("Starting augment selection...");
         }

@@ -74,6 +74,18 @@ namespace MortierFu
             CurrentCameraMapConfig = _boundReporter.CameraConfig;
         }
 
+        public bool GetCurrentLevelScene(out Scene scene)
+        {
+            if (_mapHandle.IsValid() && _mapHandle.IsDone)
+            {
+                scene = _mapHandle.Result.Scene;
+                return scene.IsValid();
+            }
+
+            scene = default;
+            return false;
+        }
+        
         public async UniTask LoadArenaMap()
         {
             await FinishUnfinishedBusiness();

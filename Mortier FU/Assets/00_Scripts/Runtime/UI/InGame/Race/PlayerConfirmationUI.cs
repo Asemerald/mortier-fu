@@ -26,6 +26,10 @@ namespace MortierFu
 
         [SerializeField] private GameObject _raceGameObject;
 
+        [SerializeField] private CanvasGroup _countdownCanvasGroup;
+
+        [SerializeField] private CanvasGroup _raceCanvasGroup;
+
         #endregion
 
         #region Assets
@@ -47,10 +51,18 @@ namespace MortierFu
 
         #region Race Animation Settings
 
-        [Header("Race Animation Settings")] [SerializeField]
-        private float _racePopDuration = 0.5f;
+        [Header("Countdown Animation Settings")] [SerializeField]
+        private float _countdownSlideOffset = 150f;
 
-        [SerializeField] private float _raceDisableDelay = 0.5f;
+        [SerializeField] private float _showCountdownDelay = 0.3f;
+        [SerializeField] private float _countdownInDuration = 0.35f;
+        [SerializeField] private float _countdownOutDuration = 0.3f;
+        [SerializeField] private float _countdownStartingScale = 1.3f;
+
+        private const float COUNTDOWN_TOTAL_DURATION = 1f;
+
+        private float CountdownHoldDuration =>
+            COUNTDOWN_TOTAL_DURATION - _countdownInDuration - _countdownOutDuration;
 
         #endregion
 
@@ -60,15 +72,24 @@ namespace MortierFu
         private Ease _actionButtonEaseOut = Ease.OutBack;
 
         [SerializeField] private Ease _actionImageEaseInOut = Ease.InOutQuad;
-        [SerializeField] private Ease _playEaseIn = Ease.InBack;
+        [SerializeField] private Ease _readyEaseIn = Ease.InBack;
         [SerializeField] private Ease _slotEaseIn = Ease.InQuint;
+
+        [Header("Ready Animation Settings")] [SerializeField]
+        private float _readyDropOffset = 250f;
+
+        [SerializeField] private float _readyShowDelay = 0.2f;
+        [SerializeField] private float _readyPopDuration = 0.4f;
+        [SerializeField] private float _readyStartingScale = 1.3f;
+        [SerializeField] private float _readyScaleUp = 1.7f;
+        [SerializeField] private float _readyFadeOutDuration = 0.3f;
 
         #endregion
 
         #region Runtime State
 
-        private Vector3 _initialRaceScale;
         private Vector3 _initialCountdownScale;
+        private ShakeService _shakeService;
 
         private Sequence _countdownSequence;
 
@@ -81,10 +102,14 @@ namespace MortierFu
         private void Awake()
         {
             _initialCountdownScale = _countdownImage.transform.localScale;
-            _initialRaceScale = _raceGameObject.transform.localScale;
 
             _raceGameObject.SetActive(false);
             _countdownImage.gameObject.SetActive(false);
+        }
+
+        private void Start()
+        {
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         private void OnEnable()
@@ -120,91 +145,152 @@ namespace MortierFu
             }
         }
 
-        private async UniTask PlayCountdown(int seconds = 3)
-        {
-            ShowCountdownImage();
-            _countdownImage.gameObject.SetActive(true);
-            _countdownImage.sprite = _countdownSprites[0];
-
-            for (int t = seconds; t > 0; t--)
-            {
-                SetCountdownVisual(t);
-                // TODO: Add sound effect here or maybe in AnimateCountdownNumber
-                await AnimateCountdownNumber(_cts.Token);
-            }
-
-            _countdownImage.gameObject.SetActive(false);
-
-            await ShowPlay(_cts.Token);
-            
-            // TODO: Désolé c'est horrible
-            var gm = GameService.CurrentGameMode as GameModeBase;
-            gm?.EnablePlayerInputs();
-        }
-
-        private async UniTask ShowPlay(CancellationToken ct)
-        {
-            _raceGameObject.SetActive(true);
-            _raceGameObject.transform.localScale = Vector3.zero;
-
-            await Tween.Scale(
-                _raceGameObject.transform,
-                Vector3.zero,
-                _initialRaceScale,
-                _racePopDuration,
-                _playEaseIn
-            ).ToUniTask(cancellationToken: ct);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_raceDisableDelay), cancellationToken: ct);
-
-            _raceGameObject.SetActive(false);
-            gameObject.SetActive(false);
-        }
-
-        private void SetCountdownVisual(int number)
-        {
-            int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
-            _countdownImage.sprite = _countdownSprites[index];
-        }
-
-        private async UniTask AnimateCountdownNumber(CancellationToken ct)
+        private async UniTask AnimateCountdown()
         {
             if (_countdownSequence.isAlive)
                 _countdownSequence.Stop();
 
-            _countdownImage.transform.localScale = Vector3.zero;
+            var t = _countdownImage.transform;
 
-            const float growthDuration = 0.3f;
-            const float shrinkDuration = 0.3f;
-            const float bumpDuration = 0.4f;
+            Vector3 centerPos = t.position;
+            Vector3 startPos = centerPos + Vector3.up * _countdownSlideOffset;
+
+            t.position = startPos;
+            t.localScale = Vector3.one * _countdownStartingScale;
+            _countdownCanvasGroup.alpha = 0f;
 
             _countdownSequence = Sequence.Create()
-                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, Vector3.one, growthDuration, Ease.OutBack))
-                .Group(Tween.Rotation(
-                    _countdownImage.transform,
-                    Quaternion.Euler(0f, 0f, 180),
-                    Quaternion.Euler(0f, 0f, 0f),
-                    growthDuration * 0.9f,
-                    Ease.OutBack,
-                    startDelay: growthDuration * 0.1f
+                .Group(Tween.Position(
+                    t,
+                    startPos,
+                    centerPos,
+                    _countdownInDuration,
+                    Ease.OutCubic
                 ))
-                .ChainDelay(bumpDuration)
-                .Chain(Tween.Scale(_countdownImage.transform, Vector3.zero, shrinkDuration, Ease.InBack))
-                .Group(Tween.Rotation(
-                    _countdownImage.transform,
-                    Quaternion.Euler(0f, 0f, 180),
-                    shrinkDuration * 0.9f,
-                    Ease.InBack,
-                    startDelay: shrinkDuration * 0.1f
+                .Group(Tween.Alpha(
+                    _countdownCanvasGroup,
+                    0f,
+                    1f,
+                    _countdownInDuration,
+                    Ease.OutQuad
+                )).ChainDelay(CountdownHoldDuration).Chain(Tween.Alpha(
+                    _countdownCanvasGroup,
+                    1f,
+                    0f,
+                    _countdownOutDuration,
+                    Ease.InQuad
                 ));
 
-            await _countdownSequence.ToUniTask(cancellationToken: ct);
+            await _countdownSequence;
+        }
+
+        private async UniTask PlayCountdown(int seconds = 3)
+        {
+            var gm = GameService.CurrentGameMode as GameModeBase;
+
+            foreach (var character in gm.AlivePlayers)
+            {
+                character.gameObject.SetActive(false);
+            }
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_showCountdownDelay));
+
+            ShowCountdownImage();
+            _countdownImage.sprite = _countdownSprites[0];
+
+            var countdownTask = RunCountdown(seconds);
+
+            foreach (var character in gm.AlivePlayers)
+            {
+                await character.Aspect.PlayVFXSequential(new[] { character },
+                    c => c.gameObject.SetActive(true));
+            }
+
+            await countdownTask;
+
+            _countdownImage.gameObject.SetActive(false);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_readyShowDelay));
+            await ShowReady(gm);
+        }
+
+        private async UniTask ShowReady(GameModeBase gm)
+        {
+            var t = _raceGameObject.transform;
+
+            Vector3 targetPos = t.position;
+            Vector3 startPos = targetPos + Vector3.up * _readyDropOffset;
+
+            t.position = startPos;
+            t.localScale = Vector3.one * _readyStartingScale;
+            _raceCanvasGroup.alpha = 0f;
+
+            _raceGameObject.SetActive(true);
+
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+
+            await Sequence.Create()
+                .Group(Tween.Position(
+                    t,
+                    startPos,
+                    targetPos,
+                    _readyPopDuration,
+                    Ease.OutCubic
+                ))
+                .Group(Tween.Alpha(
+                    _raceCanvasGroup,
+                    0f,
+                    1f,
+                    _readyPopDuration,
+                    Ease.OutQuad
+                ));
+
+            await Tween.Scale(
+                t,
+                Vector3.one * _readyStartingScale,
+                Vector3.one * _readyScaleUp,
+                0.2f,
+                Ease.OutBack
+            );
+
+            await Tween.Alpha(
+                _raceCanvasGroup,
+                1f,
+                0f,
+                _readyFadeOutDuration,
+                Ease.InQuad
+            );
+
+            _raceGameObject.SetActive(false);
+            gameObject.SetActive(false);
+
+            // TODO: Désolé c'est horrible
+            gm?.EnablePlayerInputs();
+        }
+
+
+        private async UniTask RunCountdown(int seconds)
+        {
+            for (int t = seconds; t > 0; t--)
+            {
+                SetCountdownVisual(t);
+                // TODO: Add sound effect here or maybe in AnimateCountdown
+                await AnimateCountdown();
+            }
         }
 
         private void ShowCountdownImage()
         {
             _countdownImage.transform.localScale = _initialCountdownScale;
             _countdownImage.transform.localRotation = Quaternion.identity;
+            _countdownImage.gameObject.SetActive(true);
+        }
+
+        private void SetCountdownVisual(int number)
+        {
+            int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
+            _countdownImage.sprite = _countdownSprites[index];
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 
         public void ShowConfirmation(int activePlayerCount)
@@ -236,13 +322,14 @@ namespace MortierFu
                 slot.ATween.Stop();
                 slot.ScaleTween.Stop();
 
-                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration, _slotEaseIn)
+                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration,
+                        _slotEaseIn)
                     .OnComplete(() => slot.Animator.enabled = false);
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(3), cancellationToken: ct);
+            await UniTask.Delay(TimeSpan.FromSeconds(4), cancellationToken: ct);
 
             await PlayCountdown();
         }

@@ -19,8 +19,6 @@ namespace MortierFu
         
         void Awake()
         {
-            //  _shakeService = ServiceManager.Instance.Get<ShakeService>();
-
             // Resolve dependencies
             if (lobbyMenu3D == null)
                 Logs.LogError("[LobbyPanel]: LobbyMenu3D reference is missing.", this);
@@ -43,7 +41,7 @@ namespace MortierFu
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
             PlayerInputBridge.Instance.CanJoin(true);
-            MenuManager.Instance.SwitchCameraPosition();
+            MenuManager.Instance?.SwitchCameraPosition();
         }
 
         private void OnDisable()

@@ -40,10 +40,23 @@ namespace MortierFu
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
+        public bool IsReady = false;
+
         private void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
+            
+            // lobby type shit
+            _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
+            
+            _navigateAction = _playerInput.actions.FindAction("Navigate");
+            _submitAction = _playerInput.actions.FindAction("Submit");
+            
+            if (_navigateAction != null)
+                _navigateAction.performed += Navigate;
+            if (_submitAction != null)
+                _submitAction.performed += Submit;
         }
 
         private void Start()
@@ -57,33 +70,36 @@ namespace MortierFu
             OnPlayerDestroyed?.Invoke(this);
 
             if (_pauseAction != null)
-                _pauseAction.performed -= Pause;
-
+                _pauseAction.performed -= TogglePause;
+            
             if (_unPauseAction != null)
-                _unPauseAction.performed -= UnPause;
+                _unPauseAction.performed -= TogglePause;
+
 
             if (_cancelUIAction != null)
                 _cancelUIAction.performed -= CancelUI;
         }
 
         // TODO: Faire un input manager plus tard
-        private void Pause(InputAction.CallbackContext ctx)
+        private void TogglePause(InputAction.CallbackContext ctx)
         {
             if (PlayerIndex != 0)
                 return;
-
-            PlayerInput.SwitchCurrentActionMap("UI");
-            _gamePauseSystem.Pause();
+            _gamePauseSystem.TogglePause();
+            RefreshActionMap();
         }
-
-        private void UnPause(InputAction.CallbackContext ctx)
+        
+        public void RefreshActionMap()
         {
-            if (PlayerIndex != 0)
-                return;
+            if (_gamePauseSystem == null) return;
 
-            PlayerInput.SwitchCurrentActionMap("Gameplay");
-            _gamePauseSystem.UnPause();
+            string targetMap = (!PlayerCharacter.AllowGameplayActions || _gamePauseSystem.IsPaused)
+                ? "UI"
+                : "Gameplay";
+
+            PlayerInput.SwitchCurrentActionMap(targetMap);
         }
+
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
@@ -98,13 +114,13 @@ namespace MortierFu
         /// <summary>
         /// Instancie le personnage du joueur dans la scène de jeu.
         /// </summary>
-        public void SpawnInGame(Vector3 spawnPosition)
+        public void SpawnInGame(Vector3 spawnPosition, Quaternion spawnRotation)
         {
             // if (_isInGame)
             //     return;
             if (_inGameCharacter == null && playerInGamePrefab != null)
             {
-                _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, Quaternion.identity);
+                _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, spawnRotation);
                 Character.Initialize(this);
 
                 _isInGame = true;
@@ -112,7 +128,10 @@ namespace MortierFu
 
             if (_inGameCharacter != null)
             {
-                _inGameCharacter.transform.position = spawnPosition;
+                _inGameCharacter.transform.SetPositionAndRotation(
+                    spawnPosition,
+                    spawnRotation
+                );
                 _inGameCharacter.SetActive(true);
 
                 _isInGame = true;
@@ -128,9 +147,11 @@ namespace MortierFu
             _unPauseAction = PlayerInput.actions.FindAction("UnPause");
             _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
 
-            if (_pauseAction != null) _pauseAction.performed += Pause;
-            if (_unPauseAction != null) _unPauseAction.performed += UnPause;
+            if (_pauseAction != null) _pauseAction.performed += TogglePause;
+            if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
+            
+            _playerInput.SwitchCurrentActionMap("Gameplay");
         }
 
         /// <summary>
@@ -161,5 +182,72 @@ namespace MortierFu
 
             Team = null;
         }
+        
+        #region Lobby Methods
+        
+        private InputAction _navigateAction;
+        private InputAction _submitAction;
+        
+        private LobbyPlayer _lobbyPlayer;
+        
+       
+
+        public int SkinIndex = 0;
+        public int FaceColumn = 1;
+        public int FaceRow = 1;
+        
+        private Vector2 _previousNavigateInput = Vector2.zero;
+        private float _lastNavigateTime = 0f;
+        private float _navigateCooldown = 0.3f;
+        private const float _threshold = 0.7f;
+
+        private void Navigate(InputAction.CallbackContext ctx)
+        {
+            if (_lobbyPlayer == null) return;
+
+            Vector2 currentInput = ctx.ReadValue<Vector2>();
+
+            // Vérifier si on vient de passer le seuil sur l'axe X (horizontal)
+            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _threshold;
+            bool isPushedNowX = Mathf.Abs(currentInput.x) >= _threshold;
+    
+            // Vérifier si on vient de passer le seuil sur l'axe Y (vertical)
+            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _threshold;
+            bool isPushedNowY = Mathf.Abs(currentInput.y) >= _threshold;
+
+            // Vérifier le cooldown
+            bool cooldownExpired = Time.time - _lastNavigateTime >= _navigateCooldown;
+
+            // Changer seulement si :
+            // - On vient de pousser le stick sur X OU Y
+            // - OU le stick est poussé ET le cooldown est écoulé
+            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY)) 
+                                 || ((isPushedNowX || isPushedNowY) && cooldownExpired);
+    
+            if (shouldTrigger)
+            {
+                _lobbyPlayer.ChangeSkin(currentInput);
+                _lastNavigateTime = Time.time;
+            }
+
+            _previousNavigateInput = currentInput;
+        }
+        
+        
+        public void Submit(InputAction.CallbackContext context)
+        {
+            if (_lobbyPlayer != null && context.performed)
+            {
+                _lobbyPlayer.ToggleReady();
+                IsReady = _lobbyPlayer.IsReady;
+            
+                // Sauvegarder les valeurs de customisation
+                SkinIndex = _lobbyPlayer.SkinIndex;
+                FaceColumn = _lobbyPlayer.FaceColumn;
+                FaceRow = _lobbyPlayer.FaceRow;
+            }
+        }
+        
+        #endregion
     }
 }

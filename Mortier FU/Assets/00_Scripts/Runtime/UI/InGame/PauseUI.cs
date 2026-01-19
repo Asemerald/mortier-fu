@@ -77,6 +77,9 @@ namespace MortierFu
 
             _playerManager = _lobbyService.GetPlayerByIndex(0);
             
+            _gamePauseSystem.RestoreSettingsFromSave();
+            _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
+                _sfxVolumeSlider);
             _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
                 _sfxVolumeSlider);
 
@@ -99,7 +102,7 @@ namespace MortierFu
             {
                 // TODO: Mettre le son sur endgame main menu et quit
                 _endGameButton.onClick.AddListener(_gm.EndGame);
-                _endGameButton.onClick.AddListener(_gamePauseSystem.UnPause);
+                _endGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
             }
 
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];

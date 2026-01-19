@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
@@ -31,8 +32,12 @@ namespace MortierFu
         [field: Header("Lobby References")]
         [field: SerializeField]
         public LobbyPanel LobbyPanel { get; private set; }
+        
+        [field: SerializeField] 
+        private int minPlayers = 2;
 
-        [Header("Utils")] [field: SerializeField]
+        [Header("Utils")] 
+        [field: SerializeField]
         private GameObject blackFader;
 
         [field: SerializeField] private MainMenuCameraManager cameraManager;
@@ -42,6 +47,7 @@ namespace MortierFu
         private PlayerActionInput _playerActions;
         private GameService _gameService;
         private ShakeService _shakeService;
+        private LobbyService _lobbyService;
 
         public static MenuManager Instance { get; private set; }
 
@@ -60,6 +66,12 @@ namespace MortierFu
             if (_gameService == null)
             {
                 Logs.LogError("[MenuManager]: GameService could not be found in ServiceManager.", this);
+            }
+
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            if (_lobbyService == null)
+            {
+                Logs.LogError("[MenuManager]: LobbyService could not be found in ServiceManager.", this);
             }
 
             CheckReferences();
@@ -100,6 +112,7 @@ namespace MortierFu
         public async UniTask StartGame()
         {
             Logs.Log("MenuManager: Starting Game...");
+            
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
 
@@ -117,6 +130,31 @@ namespace MortierFu
             Logs.Log("[MenuManager]: OnStartGame triggered via TEMP implementation.");
             if (LobbyPanel.IsVisible())
             {
+                StartGame().Forget();
+            }
+        }
+        
+        public void CheckAllPlayersReady()
+        {
+            if (_lobbyService.CurrentPlayerCount < minPlayers) 
+            {
+                Logs.Log($"[MenuManager]: Not enough players ({_lobbyService.CurrentPlayerCount}/{minPlayers}).");
+                return;
+            }
+        
+            bool allReady = true;
+            foreach (var player in _lobbyService.GetPlayers())
+            {
+                if (!player.IsReady)
+                {
+                    allReady = false;
+                    break;
+                }
+            }
+        
+            if (allReady)
+            {
+                Logs.Log("[MenuManager]: All players ready! Starting game...");
                 StartGame().Forget();
             }
         }
@@ -180,25 +218,21 @@ namespace MortierFu
         {
             if (!MainMenuPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: MainMenuPanel is not active!", this);
                 MainMenuPanel.gameObject.SetActive(true);
             }
 
             if (!SettingsPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: SettingsPanel is not active!", this);
                 SettingsPanel.gameObject.SetActive(true);
             }
 
             if (!CreditsPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: CreditsPanel is not active!", this);
                 CreditsPanel.gameObject.SetActive(true);
             }
 
             if (!LobbyPanel.isActiveAndEnabled)
             {
-                //Logs.LogWarning("[MenuManager]: LobbyPanel is not active!", this);
                 LobbyPanel.gameObject.SetActive(true);
             }
         }
