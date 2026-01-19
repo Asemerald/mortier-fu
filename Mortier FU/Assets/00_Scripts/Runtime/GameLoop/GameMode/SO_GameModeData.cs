@@ -15,8 +15,8 @@ namespace MortierFu
         public int KillBonusScore = 50;
 
         public float AugmentSelectionDuration = 20;
-        public float RoundStartCountdown = 6.5f;
-        public float DisplayScoresDuration = 6f;
+        public float RoundStartCountdown = 5f;
+        public float DisplayScoresDuration = 8f;
 
         public float StormSpawnTime = 30;
     }
