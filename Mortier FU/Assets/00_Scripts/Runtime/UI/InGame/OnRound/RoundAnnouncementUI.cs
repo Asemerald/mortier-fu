@@ -3,7 +3,6 @@ using PrimeTween;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.UI;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -170,6 +169,8 @@ namespace MortierFu
 
             _playGameObject.SetActive(true);
 
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            
             await Sequence.Create()
                 .Group(Tween.Position(
                     t,
@@ -204,8 +205,7 @@ namespace MortierFu
 
             _playGameObject.SetActive(false);
             gameObject.SetActive(false);
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-
+            
             // TODO: Désolé c'est horrible
             gm?.EnablePlayerInputs();
         }
