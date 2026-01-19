@@ -164,7 +164,7 @@ namespace MortierFu
                 _augmentPoints[i] = augmentPoint;
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct,  _augmentPoints[i])
+                MovePickupToAugmentPoint(pickupVFX, duration, _system.Settings.CarouselCardScale, ct,  _augmentPoints[i])
                     .Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
@@ -180,7 +180,7 @@ namespace MortierFu
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, float duration, float scale,
             CancellationToken ct, Transform augmentPoint)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
