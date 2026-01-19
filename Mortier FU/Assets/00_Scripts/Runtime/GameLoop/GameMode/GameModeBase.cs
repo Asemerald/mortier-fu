@@ -109,7 +109,7 @@ namespace MortierFu
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                player.SpawnInGame(new Vector3(i, 5, i) * 2f);
+                player.SpawnInGame(new Vector3(i, 5, i) * 2f, player.transform.rotation);
 
                 // Use event bus to prevent closure and weird on Death subscriptions
                 // player.Character.Health. += source => OnDeath(player, source);
@@ -243,7 +243,7 @@ namespace MortierFu
                     var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1
                         ? levelSystem.GetWinnerSpawnPoint()
                         : levelSystem.GetSpawnPoint(spawnIndex);
-                    member.SpawnInGame(spawnPoint.position);
+                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
                     if (opposite)
                         spawnIndex--;
                     else
