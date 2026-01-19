@@ -91,6 +91,41 @@ namespace MortierFu
             _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
             await _confirmationService.WaitUntilAllConfirmed();
 
+            float flipDuration = 0.4f;
+
+            var flipTasks = new UniTask[_pickups.Count];
+            UniTaskCompletionSource previousMidFlip = null;
+            for (int i = 0; i < _pickups.Count; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var pickup = _pickups[i];
+                var midFlipSignal = new UniTaskCompletionSource();
+
+                int index = i;
+
+                flipTasks[i] = UniTask.Create(async () =>
+                {
+                    if (previousMidFlip != null)
+                        await previousMidFlip.Task;
+
+                    await FlipPickupStair(
+                        pickup,
+                        ct,
+                        midFlipSignal,
+                        flipDuration
+                    );
+
+                    await UniTask.Delay(TimeSpan.FromSeconds(3f), cancellationToken: ct);
+                    
+                    await pickup.PlayRevealSequence(_pickupsVFX[index]);
+                });
+
+                previousMidFlip = midFlipSignal;
+            }
+
+            await UniTask.WhenAll(flipTasks);
+
             for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -98,7 +133,6 @@ namespace MortierFu
                 var pickup = _pickups[i];
                 var pickupVFX = _pickupsVFX[i];
 
-                await FlipPickup(pickup, ct);
                 await pickup.PlayRevealSequence(pickupVFX);
             }
 
@@ -151,14 +185,15 @@ namespace MortierFu
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask FlipPickup(AugmentCardUI cardUI, CancellationToken ct, float duration = 0.5f)
+        private async UniTask FlipPickupStair(AugmentCardUI cardUI, CancellationToken ct,
+            UniTaskCompletionSource onMidFlip, float duration = 0.5f)
         {
             cardUI.SetFaceCameraEnabled(false);
             Transform t = cardUI.transform;
 
             Quaternion startRot = t.localRotation;
-            Quaternion midRot = startRot * Quaternion.Euler(0f, 90f, 0f);
-            Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
+            Quaternion midRot = startRot * Quaternion.Euler(0f, -120f, 0f);
+            Quaternion endRot = startRot * Quaternion.Euler(0f, -180f, 0f);
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, cardUI.transform.position);
 
@@ -172,6 +207,7 @@ namespace MortierFu
             ct.ThrowIfCancellationRequested();
 
             cardUI.DisableObjectsOnFlip();
+            onMidFlip.TrySetResult();
 
             await Tween.LocalRotation(
                 t,
