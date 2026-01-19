@@ -161,7 +161,6 @@ namespace MortierFu
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
                 augmentPoint.position = augmentPoints[i].Add(y: 1.8f);
-                Debug.LogError($"{augmentPoint.position}");
                 _augmentPoints[i] = augmentPoint;
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
