@@ -82,9 +82,9 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundStarted;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-        
+
         public event Func<UniTask> OnRaceEndedUI;
-        
+
         public event Action<int> OnGameEnded;
 
         private const string k_gameplayActionMap = "Gameplay";
@@ -157,9 +157,9 @@ namespace MortierFu
 
                 augmentSelectionSys.EndRace();
                 EndRace();
-                
+
                 EnablePlayerGravity(false);
-                 
+
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -168,7 +168,7 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-            
+
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -230,7 +230,7 @@ namespace MortierFu
                 }
             }
         }
-        
+
         private void SpawnPlayers()
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
@@ -393,9 +393,12 @@ namespace MortierFu
             _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
 
             if (_currentRound.WinningTeam != null)
+            {
                 cameraSystem.Controller.EndFightCameraMovement(
                     _currentRound.WinningTeam.Members[0].Character.transform);
-            
+                _currentRound.WinningTeam.Members[0].Character.WinRoundDance(1.6f).Forget();
+            }
+
             OnRoundEnded?.Invoke(_currentRound);
         }
 
@@ -424,7 +427,7 @@ namespace MortierFu
                     int rankBonusScore = GetScorePerRank(team.Rank);
                     int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
-                    
+
                     // notify analytics system
                     var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
                     analyticsSys?.OnScoreChanged(team.Members[0].Character, team.Score);
