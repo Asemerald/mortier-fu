@@ -41,7 +41,7 @@ namespace MortierFu
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
             PlayerInputBridge.Instance.CanJoin(true);
-            MenuManager.Instance.SwitchCameraPosition();
+            MenuManager.Instance?.SwitchCameraPosition();
         }
 
         private void OnDisable()
