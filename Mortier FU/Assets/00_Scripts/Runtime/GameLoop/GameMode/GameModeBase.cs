@@ -251,27 +251,24 @@ namespace MortierFu
                 }
             }
         }
-
+        
         public void EnablePlayerInputs(bool enabled = true)
         {
+            PlayerCharacter.AllowGameplayActions = enabled;
+
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    // TODO: Trouver comment faire pour que le joueur ne puisse pas faire pause du coup lorsqu'on veut disable les inputs puisque là on switch sur UI
-                    // TODO: Sauf que sur UI on peut UnPause -_-
-                    member.PlayerInput.SwitchCurrentActionMap(enabled
-                        ? k_gameplayActionMap
-                        : k_uiActionMap); // Utiliser ça et faire un helper qu'on met ici pour vérifier
-                    // si c'est joueur 0 ou pas.
+                    member.RefreshActionMap();
                 }
             }
-
+            
 #if UNITY_EDITOR
             //PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
-
+        
         protected virtual bool AllPlayersReady()
         {
             // TODO: Implement player ready check
@@ -352,7 +349,6 @@ namespace MortierFu
             timer.OnTimerStop -= HandleEndOfCountdown;
 
             EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = true;
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
 
@@ -384,7 +380,6 @@ namespace MortierFu
             ResetPlayers();
             SpawnPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
-            PlayerCharacter.AllowGameplayActions = false;
             EnablePlayerInputs(false);
             alivePlayers.Clear();
 
@@ -486,7 +481,6 @@ namespace MortierFu
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
 
             Logs.Log("Starting augment selection...");
         }

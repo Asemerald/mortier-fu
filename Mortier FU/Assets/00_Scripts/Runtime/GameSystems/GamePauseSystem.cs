@@ -15,7 +15,19 @@ namespace MortierFu
         public event Action Resumed;
         public event Action Canceled;
 
-        public void UnPause()
+        public void TogglePause()
+        {
+            if (IsPaused)
+            {
+                UnPause();
+            }
+            else
+            {
+                Pause();
+            }
+        }
+
+        private void UnPause()
         {
             if (!IsPaused) return;
 
@@ -24,7 +36,7 @@ namespace MortierFu
             Resumed?.Invoke();
         }
         
-        public void Pause()
+        private void Pause()
         {
             if (IsPaused) return;
             
