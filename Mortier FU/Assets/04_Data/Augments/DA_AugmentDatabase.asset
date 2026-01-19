@@ -18,10 +18,10 @@ MonoBehaviour:
       ModType: 100
   ToughnessParams:
     MaxHealthMod:
-      Value: 70
-      ModType: 100
+      Value: 0.3
+      ModType: 200
     FireRateMod:
-      Value: -0.35
+      Value: -0.3
       ModType: 200
   BallistaParams:
     FireRateMod:
@@ -97,10 +97,10 @@ MonoBehaviour:
       ModType: 200
   OverheatingParams:
     BombshellSpeedMod:
-      Value: 1.6
+      Value: 1
       ModType: 200
     OnHitBombshellSpeedMod:
-      Value: -0.06
+      Value: -0.04
       ModType: 200
   PoisonPuddleParams:
     Ability:
@@ -144,12 +144,12 @@ MonoBehaviour:
     ExtraDashes: 1
   FastStrikeParams:
     DashCooldownMod:
-      Value: 0.15
+      Value: 0.4
       ModType: 200
   PerfectPushParams:
     OnSuccessfulPushMaxHealthMod:
-      Value: 0.075
-      ModType: 200
+      Value: 12
+      ModType: 100
   references:
     version: 2
     RefIds:
