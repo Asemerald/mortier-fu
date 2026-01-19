@@ -56,6 +56,7 @@ namespace MortierFu
             character.Controller.ApplyKnockback(_currentBumpForce);
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Knockback, character.transform.position);
+            character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {

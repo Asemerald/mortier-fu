@@ -37,15 +37,16 @@ namespace MortierFu
         {
             if (other.attachedRigidbody == null) return;
 
-            if (other.attachedRigidbody.TryGetComponent(out PlayerCharacter character))
-            {
-                bool success = _system.NotifyPlayerInteraction(character, _index);
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
-                _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
-                if (!success) return;
+            if (!other.attachedRigidbody.TryGetComponent(out PlayerCharacter character)) return;
+            
+            bool success = _system.NotifyPlayerInteraction(character, _index);
+              
+            if (!success) return;
+                
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
+            _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
-                Reset();
-            }
+            Reset();
         }
 
         public void Reset()
