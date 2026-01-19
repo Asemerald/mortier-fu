@@ -14,6 +14,8 @@ namespace MortierFu
     
         public bool IsReady => isReady;
         public int SkinIndex => currentSkinIndex;
+
+        private Animator _animator;
     
         private void Awake()
         {
@@ -23,6 +25,7 @@ namespace MortierFu
                 availableSkins[i].SetActive(i == 0);
                 skinsOutline[i].SetActive(i == 0);
             }
+            _animator = GetComponent<Animator>();
         }
     
         public void Start()
@@ -54,6 +57,11 @@ namespace MortierFu
             isReady = !isReady;
             UpdateVisuals();
             MenuManager.Instance?.CheckAllPlayersReady();
+            
+            if (_animator != null)
+            {
+                _animator.SetBool("bIsReady", isReady);
+            }
         }
     
         public void Unready()
@@ -80,7 +88,7 @@ namespace MortierFu
         
             if (readyIndicator != null)
             {
-                readyIndicator.SetActive(isReady);
+                //readyIndicator.SetActive(isReady);
             }
         }
     }

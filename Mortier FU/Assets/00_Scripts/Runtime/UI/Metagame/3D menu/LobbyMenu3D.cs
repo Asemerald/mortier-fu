@@ -23,6 +23,7 @@ public class LobbyMenu3D : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
+        Instance = this;
         
         _lobby = ServiceManager.Instance.Get<LobbyService>();
         if (_lobby == null)

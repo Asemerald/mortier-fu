@@ -49,7 +49,19 @@ namespace MortierFu
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
             
+            // lobby type shit
             _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
+            
+            _navigateAction = _playerInput.actions.FindAction("Navigate");
+            _submitAction = _playerInput.actions.FindAction("Submit");
+            _cancelAction = _playerInput.actions.FindAction("Cancel");
+            
+            if (_navigateAction != null)
+                _navigateAction.performed += Navigate;
+            if (_submitAction != null)
+                _submitAction.performed += Submit;
+            if (_cancelAction != null)
+                _cancelAction.performed += Cancel;
         }
 
         private void Start()
@@ -178,8 +190,12 @@ namespace MortierFu
         
         #region Lobby Methods
         
+        private InputAction _navigateAction;
+        private InputAction _submitAction;
+        private InputAction _cancelAction;
+        
         private LobbyPlayer _lobbyPlayer;
-        private void OnNavigate(InputAction.CallbackContext ctx)
+        private void Navigate(InputAction.CallbackContext ctx)
         {
             if (_lobbyPlayer != null && ctx.performed)
             {
@@ -188,7 +204,8 @@ namespace MortierFu
             }
         }
         
-        public void OnSubmit(InputAction.CallbackContext context)
+        
+        public void Submit(InputAction.CallbackContext context)
         {
             if (_lobbyPlayer != null && context.performed)
             {
@@ -197,7 +214,7 @@ namespace MortierFu
             }
         }
     
-        public void OnCancel(InputAction.CallbackContext context)
+        public void Cancel(InputAction.CallbackContext context)
         {
             if (_lobbyPlayer != null && context.performed)
             {
