@@ -35,8 +35,6 @@ namespace MortierFu
         }
 
         public int PlayerIndex => _playerInput.playerIndex;
-
-        public int SkinIndex = 0;
         public bool IsInGame => _isInGame;
 
         public event System.Action<PlayerManager> OnPlayerInitialized;
@@ -192,31 +190,46 @@ namespace MortierFu
         
         private LobbyPlayer _lobbyPlayer;
         
+       
+
+        public int SkinIndex = 0;
+        public int FaceColumn = 1;
+        public int FaceRow = 1;
+        
         private Vector2 _previousNavigateInput = Vector2.zero;
         private float _lastNavigateTime = 0f;
         private float _navigateCooldown = 0.3f;
-        private const float _threshold = 0.7f; // Seuil pour considérer qu'on a poussé le stick
+        private const float _threshold = 0.7f;
 
         private void Navigate(InputAction.CallbackContext ctx)
         {
             if (_lobbyPlayer == null) return;
-    
+
             Vector2 currentInput = ctx.ReadValue<Vector2>();
+
+            // Vérifier si on vient de passer le seuil sur l'axe X (horizontal)
+            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _threshold;
+            bool isPushedNowX = Mathf.Abs(currentInput.x) >= _threshold;
     
-            // Vérifier si on vient de passer le seuil (n'était pas au-dessus avant, l'est maintenant)
-            bool wasNotPushed = Mathf.Abs(_previousNavigateInput.x) < _threshold;
-            bool isPushedNow = Mathf.Abs(currentInput.x) >= _threshold;
-    
+            // Vérifier si on vient de passer le seuil sur l'axe Y (vertical)
+            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _threshold;
+            bool isPushedNowY = Mathf.Abs(currentInput.y) >= _threshold;
+
             // Vérifier le cooldown
             bool cooldownExpired = Time.time - _lastNavigateTime >= _navigateCooldown;
+
+            // Changer seulement si :
+            // - On vient de pousser le stick sur X OU Y
+            // - OU le stick est poussé ET le cooldown est écoulé
+            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY)) 
+                                 || ((isPushedNowX || isPushedNowY) && cooldownExpired);
     
-            // Changer le skin seulement si on vient de pousser le stick OU si le cooldown est écoulé
-            if ((wasNotPushed && isPushedNow) || (isPushedNow && cooldownExpired))
+            if (shouldTrigger)
             {
                 _lobbyPlayer.ChangeSkin(currentInput);
                 _lastNavigateTime = Time.time;
             }
-    
+
             _previousNavigateInput = currentInput;
         }
         
@@ -227,6 +240,11 @@ namespace MortierFu
             {
                 _lobbyPlayer.ToggleReady();
                 IsReady = _lobbyPlayer.IsReady;
+            
+                // Sauvegarder les valeurs de customisation
+                SkinIndex = _lobbyPlayer.SkinIndex;
+                FaceColumn = _lobbyPlayer.FaceColumn;
+                FaceRow = _lobbyPlayer.FaceRow;
             }
         }
         
