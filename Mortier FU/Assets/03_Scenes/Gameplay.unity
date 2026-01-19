@@ -604,7 +604,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -11}
+  m_AnchoredPosition: {x: 0, y: 20}
   m_SizeDelta: {x: 1950, y: 555}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &75813499
@@ -627,7 +627,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -260040209, guid: 57fa28f6b8000664eba0ebf2e5f083ce, type: 3}
+  m_Sprite: {fileID: -1911598797, guid: 2538e3200120e2948adfad58b3840ff8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4664,6 +4664,9 @@ MonoBehaviour:
     AnimatorTransform: {fileID: 96883148}
     IsActive: 0
   _countdownImage: {fileID: 1179268220}
+  _raceGameObject: {fileID: 1225621246}
+  _countdownCanvasGroup: {fileID: 1179268219}
+  _raceCanvasGroup: {fileID: 1225621250}
   _countdownSprites:
   - {fileID: 97024057, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
   - {fileID: 1891900643, guid: f02b519e86423d54b8a8f59d1532df3c, type: 3}
@@ -4672,18 +4675,15 @@ MonoBehaviour:
   _pulseDuration: 0.45
   _hideDuration: 0.6
   _defaultScaleDuration: 0.5
-  _actionButtonEaseOut: 27
-  _actionImageEaseInOut: 7
-  _readyEaseIn: 26
-  _slotEaseIn: 14
-  _raceGameObject: {fileID: 1225621246}
-  _countdownCanvasGroup: {fileID: 1179268219}
-  _raceCanvasGroup: {fileID: 1225621250}
   _countdownSlideOffset: 150
   _showCountdownDelay: 0.3
   _countdownInDuration: 0.35
   _countdownOutDuration: 0.3
   _countdownStartingScale: 1.3
+  _actionButtonEaseOut: 27
+  _actionImageEaseInOut: 7
+  _readyEaseIn: 26
+  _slotEaseIn: 14
   _readyDropOffset: 250
   _readyShowDelay: 0.2
   _readyPopDuration: 0.4
