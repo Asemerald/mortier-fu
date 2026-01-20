@@ -40,7 +40,7 @@ namespace MortierFu
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
-        public bool IsReady = false;
+        public bool IsReady => _lobbyPlayer.IsReady;
 
         private void Awake()
         {
@@ -245,7 +245,6 @@ namespace MortierFu
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.ToggleReady();
-                IsReady = _lobbyPlayer.IsReady;
             
                 // Sauvegarder les valeurs de customisation
                 SkinIndex = _lobbyPlayer.SkinIndex;
