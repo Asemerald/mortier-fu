@@ -35,12 +35,27 @@ namespace MortierFu
             return null;
         }
         
+        public Sprite GetRarityCardBgSpriteFromRarity(E_AugmentRarity rarity)
+        {
+            foreach (var entry in _spritesPerRarity)
+            {
+                if (entry.Rarity == rarity)
+                {
+                    return entry.CardBgSprite;
+                }
+            }
+
+            Debug.LogWarning($"RarityBgSpriteFactory: No border sprite found for rarity {rarity}. Returning null.");
+            return null;
+        }
+        
         [System.Serializable]
         private struct RaritySpritesEntry
         {
             public E_AugmentRarity Rarity;
             public Sprite BorderSprite;
             public Sprite BgSprite;
+            public Sprite CardBgSprite;
         }
     }
 }

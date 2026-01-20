@@ -76,6 +76,7 @@ namespace MortierFu
             nav.mode = Navigation.Mode.None;
             _sliderToControl.navigation = nav;
             _handleImage.sprite = _selectedHandleSprite;
+            _handleImage.SetNativeSize();
             EventSystem.current.SetSelectedGameObject(_sliderToControl.gameObject);
         }
 
@@ -87,6 +88,7 @@ namespace MortierFu
             _sliderToControl.interactable = false;
             _sliderToControl.navigation = _cachedNavigation;
             _handleImage.sprite = _handleSprite;
+            _handleImage.SetNativeSize();
 
             EventSystem.current.SetSelectedGameObject(_fakeSlider.gameObject);
         }
