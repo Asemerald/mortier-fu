@@ -62,7 +62,7 @@ namespace MortierFu.Analytics
                 date = System.DateTime.UtcNow.ToString("o"),
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
-                rounds = new AnalyticsRoundData[15], // Taille max de rounds
+                rounds = new AnalyticsRoundData[1000], // Taille max de rounds
                 winner = "",
                 roundsPlayed = 0
             };

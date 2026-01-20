@@ -207,8 +207,6 @@ namespace MortierFu
 
         private void Navigate(InputAction.CallbackContext ctx)
         {
-            Debug.Log($"[PlayerManager] Player {PlayerIndex} Navigate called! Value: {ctx.ReadValue<Vector2>()}");
-            
             if (_lobbyPlayer == null) return;
 
             Vector2 currentInput = ctx.ReadValue<Vector2>();
