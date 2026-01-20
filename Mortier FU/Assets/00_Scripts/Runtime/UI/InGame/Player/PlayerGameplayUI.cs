@@ -26,7 +26,6 @@ public class PlayerGameplayUI : MonoBehaviour {
     private Material _ticksMaterialInstance;
     [SerializeField] private Image _playerHUD;
     [SerializeField] private Image _strikeCdImage;
-    [SerializeField] private Image _shootCdImage;
     [SerializeField] private Image _characterIcon;
     [SerializeField] private TMP_Text _playerIndexText;
 
@@ -94,13 +93,9 @@ public class PlayerGameplayUI : MonoBehaviour {
     {
         // Reverse progress bar
         float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
-        float shootProgress = 1 - _character.Mortar.ShootCooldownProgress;
 
         // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
-
-        // _shootCdImage.enabled = shootProgress >= 0f;
-        _shootCdImage.fillAmount = shootProgress;
 
         UpdateDashChargeSprite();
     }
