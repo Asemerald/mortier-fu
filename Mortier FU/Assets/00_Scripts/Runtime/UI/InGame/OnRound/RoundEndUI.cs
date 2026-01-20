@@ -85,7 +85,7 @@ namespace MortierFu
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
-                int roundKills = team.Members.Sum(m => m.Metrics.RoundKills);
+                int roundKills = team.Members.Sum(m => m.Metrics.RoundKills.Count);
 
                 TextMeshProUGUI placeText = _playerPlaceTexts[idx];
                 int maxIndicators = Mathf.Min(placeText.transform.childCount, 3);

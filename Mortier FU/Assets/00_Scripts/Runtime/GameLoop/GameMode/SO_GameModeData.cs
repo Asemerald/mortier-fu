@@ -13,6 +13,8 @@ namespace MortierFu
         public int SecondRankBonusScore = 30;   
         public int ThirdRankBonusScore = 10;
         public int KillBonusScore = 50;
+        public int KillPushBonusScore = 10;
+        public int KillCarCrashBonusScore = 20;
 
         public float AugmentSelectionDuration = 20;
         public float RoundStartCountdown = 5f;

@@ -420,7 +420,24 @@ namespace MortierFu
                 else
                 {
                     int rankBonusScore = GetScorePerRank(team.Rank);
-                    int killBonusScore = team.Members.Sum(m => m.Metrics.RoundKills * Data.KillBonusScore);
+
+                    int killBonusScore = 0;
+                    foreach (var member in team.Members)
+                    {
+                        foreach (var deathCause in member.Metrics.RoundKills)
+                        {
+                            killBonusScore += Data.KillBonusScore;
+                            switch (deathCause)
+                            {
+                                case E_DeathCause.Fall:
+                                    killBonusScore += Data.KillPushBonusScore;
+                                    break;
+                                case E_DeathCause.VehicleCrash:
+                                    killBonusScore += Data.KillCarCrashBonusScore;
+                                    break;
+                            }
+                        }
+                    }
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
 
                     // notify analytics system
@@ -570,7 +587,7 @@ namespace MortierFu
 
             if (evt.Context.Killer)
             {
-                OnPlayerKill(evt.Context.Killer, evt.Character);
+                OnPlayerKill(evt);
             }
 
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
@@ -615,14 +632,14 @@ namespace MortierFu
             }
         }
 
-        protected virtual void OnPlayerKill(PlayerCharacter killerCharacter, PlayerCharacter victimCharacter)
+        protected virtual void OnPlayerKill(EventPlayerDeath evt)
         {
-            var killer = killerCharacter.Owner;
-            var victim = victimCharacter.Owner;
+            var killer = evt.Context.Killer.Owner;
+            var victim = evt.Character.Owner;
 
             if (killer != victim)
             {
-                killer.Metrics.RoundKills += 1;
+                killer.Metrics.RoundKills.Add(evt.Context.DeathCause);
             }
 
             OnPlayerKilled?.Invoke(killer, victim);
