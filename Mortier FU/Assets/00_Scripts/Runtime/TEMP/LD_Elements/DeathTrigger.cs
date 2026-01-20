@@ -8,7 +8,7 @@ public class DeathTrigger : MonoBehaviour
       var rb = other.attachedRigidbody;
       if (rb != null && rb.TryGetComponent(out PlayerCharacter character))
       {
-         character.Health.TakeLethalDamage(gameObject);
+         character.Health.TakeLethalDamage(this);
       }
    }
 }

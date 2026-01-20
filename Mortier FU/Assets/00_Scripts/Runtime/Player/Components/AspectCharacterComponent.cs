@@ -22,7 +22,6 @@ namespace MortierFu
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
         public GameObject SpawnVFXPrefab;
         public Material DashTrailMaterial;
-        public GameObject TombPrefab;
     }
 
     public class AspectCharacterComponent : CharacterComponent

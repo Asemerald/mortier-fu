@@ -25,7 +25,7 @@ MonoBehaviour:
       ModType: 200
   BallistaParams:
     FireRateMod:
-      Value: 5.5
+      Value: 5.15
       ModType: 100
     BombshellDamageMod:
       Value: -20
@@ -33,7 +33,13 @@ MonoBehaviour:
   BerserkerParams:
     HealthThreshold: 0.5
     BombshellDamageMod:
-      Value: 45
+      Value: 25
+      ModType: 100
+    MoveSpeedMod:
+      Value: 5
+      ModType: 100
+    FireRateMod:
+      Value: 1.75
       ModType: 100
   BigBulletsParams:
     FireRateMod:
@@ -51,8 +57,8 @@ MonoBehaviour:
       ModType: 100
     ExtraBombshellBounces: 1
   BouncyBoomerangParams:
-    OnBounceUpMinAngle: 45
-    OnBounceUpMaxAngle: 45
+    OnBounceUpMinAngle: 33
+    OnBounceUpMaxAngle: 33
     ExtraBombshellBounces: 2
   BouncySnowballParams:
     BombshellImpactRadius:
@@ -90,18 +96,27 @@ MonoBehaviour:
       ModType: 100
   MaximumVelocityParams:
     BombshellSpeedMod:
-      Value: 0.28
+      Value: 0.2
       ModType: 200
     FireRateMod:
       Value: -0.15
       ModType: 200
   OverheatingParams:
     BombshellSpeedMod:
-      Value: 1
+      Value: 0.4
       ModType: 200
     OnHitBombshellSpeedMod:
-      Value: -0.04
+      Value: -0.06
       ModType: 200
+    FireRateMod:
+      Value: 4
+      ModType: 200
+    OnHitFireRateMod:
+      Value: -0.6
+      ModType: 200
+    OnHitMoveSpeedMod:
+      Value: 0.45
+      ModType: 100
   PoisonPuddleParams:
     Ability:
       PersistAfterExit: 1
@@ -135,7 +150,7 @@ MonoBehaviour:
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:
-      Value: 1
+      Value: 0.8
       ModType: 200
     DashCooldownMod:
       Value: -0.15
@@ -144,11 +159,11 @@ MonoBehaviour:
     ExtraDashes: 1
   FastStrikeParams:
     DashCooldownMod:
-      Value: 0.4
+      Value: 0.25
       ModType: 200
   PerfectPushParams:
     OnSuccessfulPushMaxHealthMod:
-      Value: 12
+      Value: 10
       ModType: 100
   references:
     version: 2

@@ -252,15 +252,13 @@ namespace MortierFu
             }
         }
         
-        public void EnablePlayerInputs(bool enabled = true)
+        public void EnablePlayerInputs(bool enable = true)
         {
-            PlayerCharacter.AllowGameplayActions = enabled;
-
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    member.RefreshActionMap();
+                    member.EnableGameplayInputMap(enable);
                 }
             }
             
@@ -349,6 +347,7 @@ namespace MortierFu
             timer.OnTimerStop -= HandleEndOfCountdown;
 
             EnablePlayerInputs();
+            PlayerCharacter.AllowGameplayActions = true;
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
 
@@ -381,6 +380,7 @@ namespace MortierFu
             SpawnPlayers();
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             EnablePlayerInputs(false);
+            PlayerCharacter.AllowGameplayActions = false;
             alivePlayers.Clear();
 
             EvaluateScores();
@@ -481,6 +481,7 @@ namespace MortierFu
 
             // Hide previous showcase UI            
             EnablePlayerInputs(false);
+            PlayerCharacter.AllowGameplayActions = false;
 
             Logs.Log("Starting augment selection...");
         }
@@ -566,9 +567,9 @@ namespace MortierFu
             alivePlayers.Remove(player.Character);
             cameraSystem.Controller.RemoveTarget(player.transform);
 
-            if (evt.Source is PlayerCharacter killer)
+            if (evt.Context.Killer)
             {
-                OnPlayerKill(killer, evt.Character);
+                OnPlayerKill(evt.Context.Killer, evt.Character);
             }
 
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));

@@ -12,6 +12,6 @@ namespace MortierFu
 
     public struct EventPlayerDeath : IEvent {
         public PlayerCharacter Character;
-        public object Source;
+        public DeathContext Context;
     }
 }

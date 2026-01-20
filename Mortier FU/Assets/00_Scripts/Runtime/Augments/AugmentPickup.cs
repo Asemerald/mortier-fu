@@ -14,8 +14,6 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _logoParticleSystem;
         [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
 
-        private Transform _attachmentPoint;
-
         public E_AugmentRarity Rarity => _rarity;
 
         private int _index;
@@ -62,21 +60,6 @@ namespace MortierFu
 
             var prototype = GetVFXRarityPrototype(augment.Rarity);
             ConfigureAsClone(prototype);
-        }
-
-        public void AttachToPoint(Transform point)
-        {
-            _attachmentPoint = point;
-
-            if (point)
-                transform.position = point.position;
-        }
-
-        private void Update()
-        {
-            if (!_attachmentPoint) return;
-
-            transform.position = _attachmentPoint.position;
         }
 
         // Prototype pattern

@@ -13,6 +13,8 @@ namespace MortierFu
         }
 
         private object _lastBumpSource;
+        private PlayerCharacter _lastPusher;
+        private float _lastBumpTime;
         private Vector3 _currentBumpForce;
         
         public float StunDuration { get; private set; }
@@ -20,6 +22,9 @@ namespace MortierFu
         public bool IsActive => _knockbackTimer.IsRunning;
         
         public object LastBumpSource => _lastBumpSource;
+        public PlayerCharacter LastPusher => _lastPusher;
+
+        public float ComputeLastBumpElapsedTime() => Time.time - _lastBumpTime;
         
         public override void Update()
         {
@@ -44,6 +49,15 @@ namespace MortierFu
             //set bump direction
             _currentBumpForce = bumpForce;
             _lastBumpSource = source;
+            
+            // Pushed by a player
+            if (source is PlayerCharacter pusher) {
+                _lastPusher = pusher;
+            } else if(ComputeLastBumpElapsedTime() > 8f) {
+                _lastPusher = null;
+            }
+            
+            _lastBumpTime = Time.time;
             
             StunDuration = stunDuration;
             
@@ -76,6 +90,11 @@ namespace MortierFu
             
             if(debug) 
                 Logs.Log("Exiting Knockback State");
+        }
+
+        public void Reset() {
+            _lastBumpSource = null;
+            _lastPusher = null;
         }
 
         public void ClearLastBumpSource() => _lastBumpSource = null;

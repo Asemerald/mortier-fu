@@ -169,6 +169,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6070222457573841960}
   - component: {fileID: 4158406251926292994}
+  - component: {fileID: 3147581789836301231}
   m_Layer: 0
   m_Name: PF_LevelReporter
   m_TagString: Untagged
@@ -220,6 +221,23 @@ MonoBehaviour:
   _spawnPointColor: {r: 0.1176471, g: 0.5647059, b: 1, a: 1}
   _augmentPointColor: {r: 0.26050434, g: 0.8396226, b: 0.13069598, a: 1}
   _widgetSize: 0.1
+--- !u!114 &3147581789836301231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7842982718008541184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b96eefa6f87740b2a20db57856a9feba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LevelTombSpawner
+  _tombPrefabs:
+  - {fileID: 9005458205193035344, guid: ef629809bd57cee4aa40adac28d77173, type: 3}
+  - {fileID: 9005458205193035344, guid: d9231e94e8f8a3d4191eb843fed56f9e, type: 3}
+  - {fileID: 9005458205193035344, guid: 88b7293ea12e6fc4085147917b7486b7, type: 3}
+  - {fileID: 9005458205193035344, guid: dfb0de15883c61c429314653bf155f15, type: 3}
 --- !u!1 &8358214891320462638
 GameObject:
   m_ObjectHideFlags: 0

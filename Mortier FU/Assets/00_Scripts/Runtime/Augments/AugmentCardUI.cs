@@ -38,6 +38,8 @@ namespace MortierFu
         private bool _initialized;
 
         private CancellationTokenSource _cts;
+        
+        private ShakeService _shakeService;
 
         public void Initialize()
         {
@@ -50,6 +52,11 @@ namespace MortierFu
             _initialScale = transform.localScale;
             _initialInfoPos = _infoRoot.anchoredPosition;
             _initialCanvasAlpha = _canvasGroup.alpha;
+        }
+
+        private void Start()
+        {
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
         private void OnDisable()
@@ -81,6 +88,7 @@ namespace MortierFu
             _nameTxt.color = data.NameColor;
             _descTxt.SetText(augment.Description);
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
+            _augmentBack.sprite = _raritySpritesFactory.GetRarityCardBgSpriteFromRarity(augment.Rarity);
             _augmentIcon.sprite = augment.SmallSprite;
             _augmentCard.sprite = augment.CardSprite;
         }
@@ -96,6 +104,8 @@ namespace MortierFu
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
 
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;

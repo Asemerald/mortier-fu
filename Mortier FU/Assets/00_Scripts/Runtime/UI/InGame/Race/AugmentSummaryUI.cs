@@ -29,7 +29,7 @@ namespace MortierFu
         private float _playerScaleDuration = 0.4f;
 
         [SerializeField] private float _playerTargetScale = 0.65f;
-        [SerializeField] private float _playerAnimDelay = 0.15f;
+        [SerializeField] private float _playerAnimDelay = 0.3f;
         [SerializeField] private Ease _playerScaleEase = Ease.OutBack;
 
         #endregion
@@ -48,7 +48,7 @@ namespace MortierFu
 
         #region Timing
 
-        [Header("Timing")] [SerializeField] private float _finalPauseDuration = 1.5f;
+        [Header("Timing")] [SerializeField] private float _finalPauseDuration = 3f;
 
         #endregion
 
@@ -148,16 +148,23 @@ namespace MortierFu
                 var playerTransform = _playerImages[i].transform;
                 var playerTween = Tween.Scale(playerTransform, Vector3.zero, Vector3.one * _playerTargetScale,
                     _playerScaleDuration, _playerScaleEase);
+                
                 _activeTweens.Add(playerTween);
 
                 await UniTask.Yield();
-                await AnimateChildren(playerTransform, ct);
+
+                AnimateChildren(playerTransform, ct).Forget();
+
                 await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay), cancellationToken: ct);
             }
 
-            foreach (var tween in _activeTweens)
+            var tweensSnapshot = _activeTweens.ToArray();
+
+            foreach (var tween in tweensSnapshot)
+            {
                 if (tween.isAlive)
                     await tween.ToUniTask(cancellationToken: ct);
+            }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration), cancellationToken: ct);
         }

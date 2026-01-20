@@ -266,6 +266,7 @@ namespace MortierFu
 
             // TODO: Désolé c'est horrible
             gm?.EnablePlayerInputs();
+            PlayerCharacter.AllowGameplayActions = false;
         }
 
 
