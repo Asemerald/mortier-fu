@@ -219,7 +219,7 @@ namespace MortierFu
                 pickup.transform.SetParent(_pickupParent);
 
                 var pickupVFX = _pickupsVFX[i];
-                pickupVFX.AttachToPoint(_pickupParent);
+                pickupVFX.AttachToPoint(null);
             }
         }
 
