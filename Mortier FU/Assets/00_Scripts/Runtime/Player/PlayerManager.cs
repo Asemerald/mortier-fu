@@ -63,7 +63,7 @@ namespace MortierFu
             if (PlayerIndex == 0)
             {
                 Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
-                MenuManager.Instance.Player1InputAction = _playerInput;
+                MenuManager.Instance.SetPlayer1InputAction(_playerInput);
             }
         }
 
