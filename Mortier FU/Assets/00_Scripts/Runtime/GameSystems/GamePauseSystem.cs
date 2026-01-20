@@ -27,7 +27,6 @@ namespace MortierFu
             }
             else
             {
-                
                 Pause();
             }
         }
@@ -37,31 +36,31 @@ namespace MortierFu
             if (!IsPaused) return;
 
             PrimaryPlayerInput.SwitchCurrentActionMap(_previousInputMap);
-            
+
             IsPaused = false;
             Time.timeScale = 1f;
             Resumed?.Invoke();
         }
-        
+
         private void Pause()
         {
             if (IsPaused) return;
-            
+
             _previousInputMap = PrimaryPlayerInput.currentActionMap.name;
             PrimaryPlayerInput.SwitchCurrentActionMap("UI");
-            
+
             IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke();
         }
-        
+
         private PlayerInput PrimaryPlayerInput => _lobbyService.GetPlayerByIndex(0).PlayerInput;
 
         public void Cancel()
         {
             Canceled?.Invoke();
         }
-        
+
         public void RestoreSettingsFromSave()
         {
             var s = _saveService.Settings;
@@ -131,7 +130,8 @@ namespace MortierFu
         }
 
         public void Dispose()
-        { }
+        {
+        }
 
         public UniTask OnInitialize()
         {
