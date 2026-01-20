@@ -103,14 +103,14 @@ namespace MortierFu
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
-
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             
             SetFaceCameraEnabled(false);
 
             _augmentIcon.transform.localScale = Vector3.one;
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay), cancellationToken: token);
+            await UniTask.Delay(TimeSpan.FromSeconds(_showExplosionDelay), cancellationToken: token); 
+            
+            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             _explosionCardVFXPrefab.SetActive(true);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);

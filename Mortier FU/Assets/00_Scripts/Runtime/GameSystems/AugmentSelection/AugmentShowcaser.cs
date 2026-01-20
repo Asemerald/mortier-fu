@@ -16,6 +16,7 @@ namespace MortierFu
         private readonly CameraSystem _cameraSystem;
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
+        private readonly LevelSystem _levelSystem;
         private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
         private readonly ReadOnlyCollection<AugmentPickup> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
@@ -35,6 +36,7 @@ namespace MortierFu
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _cam = _cameraSystem.Controller.Camera;
         }
 
@@ -161,13 +163,12 @@ namespace MortierFu
 
                 var augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.SetParent(pivot);
-                augmentPoint.position = augmentPoints[i].Add(y: 1.8f);
+                augmentPoint.position = augmentPoints[i].Add(y: 1f);
                 _augmentPoints[i] = augmentPoint;
-
+                
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
 
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct,
-                        _augmentPoints[i])
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct)
                     .Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
@@ -184,12 +185,20 @@ namespace MortierFu
         }
 
         private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
-            CancellationToken ct, Transform augmentPoint)
+            CancellationToken ct)
         {
+            var rotator = _levelSystem.GetAugmentPivot().GetComponentInParent<Rotator>();
+
+            var localPos = _augmentPoints[i].position - rotator.transform.position;
+            var translatedPos = rotator.TransposePoint(localPos, duration);
+
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
             await Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack)
-                .Group(Tween.Position(pickup.transform, _augmentPoints[i].position, duration, Ease.InOutQuad))
-                .OnComplete(() => pickup.AttachToPoint(augmentPoint))
+                .Group(Tween.Position(pickup.transform, translatedPos, duration, Ease.InOutQuad))
+                .OnComplete(() =>
+                {
+                    pickup.AttachToPoint(_augmentPoints[i]);
+                })
                 .ToUniTask(cancellationToken: ct);
         }
 
