@@ -7,6 +7,11 @@
         {
             public AugmentStatMod BombshellSpeedMod;
             public AugmentStatMod OnHitBombshellSpeedMod;
+            
+            public AugmentStatMod FireRateMod;
+            public AugmentStatMod OnHitFireRateMod;
+            
+            public AugmentStatMod OnHitMoveSpeedMod;
         }
         
         private EventBinding<TriggerShootBombshell> _shootBinding;
@@ -24,6 +29,7 @@
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
             
             stats.BombshellSpeed.AddModifier(db.OverheatingParams.BombshellSpeedMod.ToMod(this));
+            stats.FireRate.AddModifier(db.OverheatingParams.FireRateMod.ToMod(this));
         }
         
         private void OnShoot(TriggerShootBombshell evt)
@@ -31,12 +37,17 @@
             if (evt.Character != owner) return;
             
             stats.BombshellSpeed.AddModifier(db.OverheatingParams.OnHitBombshellSpeedMod.ToMod(this));
+            stats.FireRate.AddModifier(db.OverheatingParams.OnHitFireRateMod.ToMod(this));
+            stats.MoveSpeed.AddModifier(db.OverheatingParams.OnHitMoveSpeedMod.ToMod(this));
         }
         
         private void OnEndRound(TriggerEndRound evt)
         {
             stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
+            stats.FireRate.RemoveAllModifiersFromSource(this);
+            stats.MoveSpeed.RemoveAllModifiersFromSource(this);
             stats.BombshellSpeed.AddModifier(db.OverheatingParams.BombshellSpeedMod.ToMod(this));
+            stats.FireRate.AddModifier(db.OverheatingParams.FireRateMod.ToMod(this));
         }
         
         public override void Dispose()
@@ -44,6 +55,8 @@
             EventBus<TriggerShootBombshell>.Deregister(_shootBinding);
             EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
             stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
+            stats.FireRate.RemoveAllModifiersFromSource(this);
+            stats.MoveSpeed.RemoveAllModifiersFromSource(this);
         }
     }
 }
