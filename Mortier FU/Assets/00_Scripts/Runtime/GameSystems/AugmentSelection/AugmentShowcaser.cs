@@ -93,9 +93,9 @@ namespace MortierFu
 
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.FlipDelay), cancellationToken: ct);
-            
+
             for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -140,7 +140,7 @@ namespace MortierFu
                 await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + 0.09f),
                     cancellationToken: ct);
             }
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.RevealDelay), cancellationToken: ct);
 
             if (_pickups.Count != augmentPoints.Length)
@@ -165,7 +165,9 @@ namespace MortierFu
                 _augmentPoints[i] = augmentPoint;
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, duration, _system.Settings.CarouselCardScale, ct,  _augmentPoints[i])
+
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct,
+                        _augmentPoints[i])
                     .Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
@@ -181,28 +183,13 @@ namespace MortierFu
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, float duration, float scale,
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
             CancellationToken ct, Transform augmentPoint)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
-
-            pickup.transform.SetParent(augmentPoint, true);
-
-            await Tween.LocalPosition(
-                    pickup.transform,
-                    Vector3.zero,
-                    duration,
-                    Ease.InOutQuad
-                )
-                .Group(
-                    Tween.Scale(
-                        pickup.transform,
-                        scale,
-                        1,
-                        duration,
-                        Ease.OutBack
-                    )
-                )
+            await Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack)
+                .Group(Tween.Position(pickup.transform, _augmentPoints[i].position, duration, Ease.InOutQuad))
+                .OnComplete(() => pickup.AttachToPoint(augmentPoint))
                 .ToUniTask(cancellationToken: ct);
         }
 
