@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using FMOD.Studio;
 using FMODUnity;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 
 namespace MortierFu
@@ -15,10 +18,16 @@ namespace MortierFu
 
         public static FMODEventsSO FMODEvents;
 
-        public void PlayMainMenuMusic()
-        {
-            RuntimeManager.PlayOneShot("event:/Serachan");
-        }
+        [SerializeField] private AnimationCurve volumeCurve;
+        private List<EventInstance> eventInstances;
+        
+        //BUS
+        private Bus masterBus;
+        private Bus sfxBus;
+        private Bus musicBus;
+        private Bus ambienceBus;
+
+        private EventInstance musicEventInstance;
 
         #region EventInstance functions
         
@@ -73,6 +82,76 @@ namespace MortierFu
         }
         
         #endregion
+        
+        public EventInstance CreateInstance(EventReference eventReference, bool addToList = true)
+        {
+            var eventInstance = RuntimeManager.CreateInstance(eventReference);
+
+            if (addToList)
+                eventInstances.Add(eventInstance);
+            return eventInstance;
+        }
+
+        public async UniTask StartMusic()
+        {
+            if (!RuntimeManager.IsInitialized)
+            {
+                Logs.LogWarning("[SoundManager] FMOD not initialized yet, retrying...");
+                await WaitForFMODAndStartMusic();
+                return;
+            }
+
+            musicEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
+            musicEventInstance.start();
+        }
+
+        private async UniTask WaitForFMODAndStartMusic()
+        {
+            while (!RuntimeManager.IsInitialized) await Task.Delay(TimeSpan.FromSeconds(0.1f)) ;
+            StartMusic().Forget();
+        }
+
+        private UniTask StopMusic()
+        {
+            if (musicEventInstance.isValid())
+            {
+                musicEventInstance.stop(STOP_MODE.ALLOWFADEOUT);
+                musicEventInstance.release();
+            }
+            return UniTask.CompletedTask;
+        }
+
+        public void SetPhase(int value)
+        {
+            RuntimeManager.StudioSystem.setParameterByName("Phase", value);
+        }
+
+        public void SetVolume(BusEnum bus, float vol)
+        {
+            switch (bus)
+            {
+                case BusEnum.MASTER:
+                    masterBus.setVolume(volumeCurve.Evaluate(vol));
+                    break;
+                case BusEnum.MUSIC:
+                    musicBus.setVolume(volumeCurve.Evaluate(vol));
+                    break;
+                case BusEnum.SFX:
+                    sfxBus.setVolume(volumeCurve.Evaluate(vol));
+                    break;
+                case BusEnum.AMBIENCE:
+                    ambienceBus.setVolume(volumeCurve.Evaluate(vol));
+                    break;
+            }
+        }
+
+        public enum BusEnum
+        {
+            MASTER,
+            MUSIC,
+            SFX,
+            AMBIENCE
+        }
 
         public async UniTask LoadBanks(AssetReference[] banksToLoad)
         {
@@ -87,6 +166,8 @@ namespace MortierFu
                 //Logs.Log($"[AudioService] Loaded FMOD bank: {bankRef.Asset.name}");
                 Banks.Add(bankRef);
             }
+
+            OnPostBankLoad().Forget();
         }
         
         public void Dispose()
@@ -105,7 +186,20 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
+            return UniTask.CompletedTask;
+        }
+
+        private UniTask OnPostBankLoad()
+        {
+            eventInstances = new List<EventInstance>();
+
+            masterBus = RuntimeManager.GetBus("bus:/");
+            musicBus = RuntimeManager.GetBus("bus:/MUSIC");
+            sfxBus = RuntimeManager.GetBus("bus:/GAMEPLAY");
+            ambienceBus = RuntimeManager.GetBus("bus:/AMBIENCE");
+            
             FMODEvents = Resources.Load<FMODEventsSO>("FMODEvents");
+            
             return UniTask.CompletedTask;
         }
 

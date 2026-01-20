@@ -139,18 +139,24 @@ namespace MortierFu
             UpdateGameState(GameState.StartGame);
             OnGameStarted?.Invoke();
 
+            ServiceManager.Instance.Get<AudioService>().StartMusic().Forget();
+
             while (currentState != GameState.EndGame)
             {
                 EnablePlayerGravity(false);
                 await levelSystem.LoadRaceMap();
+                ServiceManager.Instance.Get<AudioService>().SetPhase(1);
 
-                UpdateGameState(GameState.RaceInProgress);
+                UpdateGameState(GameState.DisplayAugment);
                 StartRace();
 
                 await cameraSystem.Controller.ApplyCameraMapConfigAsync(levelSystem.CurrentCameraMapConfig);
 
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
+                ServiceManager.Instance.Get<AudioService>().SetPhase(0);
+                
+                UpdateGameState(GameState.RaceInProgress);
 
                 while (!augmentSelectionSys.IsSelectionOver)
                     await UniTask.Yield();

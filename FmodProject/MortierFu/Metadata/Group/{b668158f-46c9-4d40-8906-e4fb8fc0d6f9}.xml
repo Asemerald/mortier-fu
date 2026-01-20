@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.03.00">
 	<object class="MixerGroup" id="{b668158f-46c9-4d40-8906-e4fb8fc0d6f9}">
-		<property name="volume">
-			<value>-10</value>
-		</property>
 		<property name="name">
 			<value>GAMEPLAY</value>
 		</property>
@@ -20,17 +17,8 @@
 	<object class="MixerBusEffectChain" id="{9d7ec7e5-8cec-4b93-8518-2604d7d2fbe2}">
 		<relationship name="effects">
 			<destination>{05fa5a70-a36d-4837-953a-a8d7df704959}</destination>
-			<destination>{5b621bfc-9a73-4ef5-a34f-d0c747508002}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{60473eec-4946-4853-989f-81617facf27d}" />
 	<object class="MixerBusFader" id="{05fa5a70-a36d-4837-953a-a8d7df704959}" />
-	<object class="SFXReverbEffect" id="{5b621bfc-9a73-4ef5-a34f-d0c747508002}">
-		<property name="bypass">
-			<value>true</value>
-		</property>
-		<property name="dryLevel">
-			<value>-6</value>
-		</property>
-	</object>
 </objects>

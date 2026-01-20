@@ -14,6 +14,7 @@ namespace MortierFu
         RaceInProgress,
         EndingRace,
         EndGame,
+        DisplayAugment
     }
     
     public interface IGameMode : IDisposable
