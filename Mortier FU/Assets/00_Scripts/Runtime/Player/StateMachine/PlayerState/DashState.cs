@@ -148,8 +148,6 @@ namespace MortierFu
 
                 character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
-                Debug.Log("Processing " + root.gameObject.name);
-
                 if (root.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
                 {
                     Vector3 contactPoint = Physics.ClosestPoint(strikePosition, hit,
