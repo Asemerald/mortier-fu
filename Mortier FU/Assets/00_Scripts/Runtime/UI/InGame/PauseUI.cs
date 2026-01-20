@@ -2,13 +2,14 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using Unity.Mathematics;
 
+
+//TODO : Je ferai une énorme passe sur tout le script il est affreux
 namespace MortierFu
 {
     public class PauseUI : MonoBehaviour
