@@ -12,9 +12,7 @@ namespace MortierFu
     {
         public static PlayerInputBridge Instance { get; private set; }
         public PlayerInputManager PlayerInputManager { get; private set; }
-
-
-        public PlayerActionInput PlayerActionsInput;
+        
 
         private void Awake()
         {
@@ -26,8 +24,6 @@ namespace MortierFu
             }
 
             Instance = this;
-
-            PlayerActionsInput = new PlayerActionInput();
 
             PlayerInputManager = GetComponent<PlayerInputManager>();
             PlayerInputManager.onPlayerJoined += OnPlayerJoined;

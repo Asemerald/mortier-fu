@@ -57,6 +57,14 @@ namespace MortierFu
                 _navigateAction.performed += Navigate;
             if (_submitAction != null)
                 _submitAction.performed += Submit;
+            
+            _playerInput.SwitchCurrentActionMap("UI");
+            
+            if (PlayerIndex == 0)
+            {
+                Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
+                MenuManager.Instance.Player1InputAction = _playerInput;
+            }
         }
 
         private void Start()
@@ -203,6 +211,8 @@ namespace MortierFu
 
         private void Navigate(InputAction.CallbackContext ctx)
         {
+            Debug.Log($"[PlayerManager] Player {PlayerIndex} Navigate called! Value: {ctx.ReadValue<Vector2>()}");
+            
             if (_lobbyPlayer == null) return;
 
             Vector2 currentInput = ctx.ReadValue<Vector2>();

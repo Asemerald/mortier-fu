@@ -44,7 +44,7 @@ namespace MortierFu
 
         private EventSystem _eventSystem;
 
-        private PlayerActionInput _playerActions;
+        public PlayerInput Player1InputAction;
         private GameService _gameService;
         private ShakeService _shakeService;
         private LobbyService _lobbyService;
@@ -76,9 +76,6 @@ namespace MortierFu
 
             CheckReferences();
             CheckActivePanels();
-
-            // Create PlayerActionInput and enable Menu action map
-            _playerActions = PlayerInputBridge.Instance.PlayerActionsInput;
         }
 
         private void Start()
@@ -95,18 +92,15 @@ namespace MortierFu
 
         private void OnEnable()
         {
-            _playerActions.UI.Enable();
-            _playerActions.UI.Cancel.performed += OnCancel;
-            //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
-            _playerActions.UI.StartGame.performed += OnStartGame;
+            //Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
+            //Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            
         }
 
         private void OnDisable()
         {
-            _playerActions.UI.Disable();
-            _playerActions.UI.Cancel.performed -= OnCancel;
-            //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
-            _playerActions.UI.StartGame.performed -= OnStartGame;
+            //Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
+            //Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         }
 
         public async UniTask StartGame()
