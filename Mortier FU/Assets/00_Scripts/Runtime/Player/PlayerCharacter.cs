@@ -424,5 +424,12 @@ namespace MortierFu
         // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
         private bool ShouldShowStats => Stats != null;
 #endif
+        
+        
+        #region SKINS
+        
+        
+        
+        #endregion
     }
 }

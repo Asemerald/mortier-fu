@@ -44,7 +44,7 @@ namespace MortierFu
 
         private EventSystem _eventSystem;
 
-        public PlayerInput Player1InputAction;
+        public PlayerInput Player1InputAction { get; private set; }
         private GameService _gameService;
         private ShakeService _shakeService;
         private LobbyService _lobbyService;
@@ -89,18 +89,19 @@ namespace MortierFu
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
-
-        private void OnEnable()
-        {
-            //Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
-            //Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
-            
-        }
+        
 
         private void OnDisable()
         {
-            //Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
-            //Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
+            Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+        }
+        
+        public void SetPlayer1InputAction(PlayerInput playerInput)
+        {
+            Player1InputAction = playerInput;
+            Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
+            Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         }
 
         public async UniTask StartGame()
