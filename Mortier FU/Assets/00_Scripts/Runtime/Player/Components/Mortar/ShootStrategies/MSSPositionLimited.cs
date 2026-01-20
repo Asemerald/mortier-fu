@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Vector2 = UnityEngine.Vector2;
@@ -55,9 +56,11 @@ namespace MortierFu
             if (ctx.action.WasPressedThisFrame())
             {
                 _enableShoot = true;
+                
+                if (!mortar._shootCooldownTimer.IsFinished)
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Cant, mortar.Character.transform.position);
             }
-            
-            if(ctx.action.WasReleasedThisFrame())
+            else if(ctx.action.WasReleasedThisFrame())
             {
                 _enableShoot = false;
             }
