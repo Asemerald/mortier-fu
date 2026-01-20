@@ -28,6 +28,9 @@
 		<relationship name="timeline">
 			<destination>{4a12bbea-5aa9-4350-ac12-d2554a520a71}</destination>
 		</relationship>
+		<relationship name="parameters">
+			<destination>{f92e37c7-9c58-4d00-8032-8b011383222a}</destination>
+		</relationship>
 		<relationship name="banks">
 			<destination>{4251c54e-175f-418f-87f6-debbf59d6a82}</destination>
 		</relationship>
@@ -38,6 +41,9 @@
 		</relationship>
 	</object>
 	<object class="MasterTrack" id="{83d71f99-6e62-4cf0-9871-6c5adf501980}">
+		<relationship name="modules">
+			<destination>{2bf55fd7-9107-483f-b4d6-978892c05f73}</destination>
+		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{5f4f6eea-1775-4525-b49c-a526dd8fdcd2}</destination>
 		</relationship>
@@ -60,6 +66,11 @@
 			<value>false</value>
 		</property>
 	</object>
+	<object class="ActionSheet" id="{f92e37c7-9c58-4d00-8032-8b011383222a}">
+		<relationship name="modules">
+			<destination>{2bf55fd7-9107-483f-b4d6-978892c05f73}</destination>
+		</relationship>
+	</object>
 	<object class="EventMixerMaster" id="{5f4f6eea-1775-4525-b49c-a526dd8fdcd2}">
 		<relationship name="effectChain">
 			<destination>{7d019e54-28b7-4e70-98e7-4bee3bfdf095}</destination>
@@ -69,6 +80,11 @@
 		</relationship>
 		<relationship name="mixer">
 			<destination>{914921dc-3f03-48c0-97b3-37a6dd68d615}</destination>
+		</relationship>
+	</object>
+	<object class="MultiSound" id="{2bf55fd7-9107-483f-b4d6-978892c05f73}">
+		<relationship name="sounds">
+			<destination>{db71f8bb-9a2c-4986-aefc-a2c48a163b35}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{a9c8c593-43da-44a0-8469-0e481ffc9456}">
@@ -84,6 +100,11 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{3699b855-5590-4990-912d-ed010ec0933a}" />
+	<object class="SingleSound" id="{db71f8bb-9a2c-4986-aefc-a2c48a163b35}">
+		<relationship name="audioFile">
+			<destination>{d78c3fbe-3792-4876-85a7-391c0dbfb7d5}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusFader" id="{88819481-d6ad-460f-94c8-0410b9d3b70b}" />
 	<object class="PannerEffect" id="{4d8006f9-5ad6-4f8c-9b15-461f94ba2d20}">
 		<property name="surroundPanExtent">

@@ -15,7 +15,8 @@ namespace MortierFu
 
         private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
-        private CountdownTimer _shootCooldownTimer;
+        //pardon antoine
+        internal CountdownTimer _shootCooldownTimer;
         private CameraSystem _cameraSystem;
         private bool _isAiming;
 
@@ -130,7 +131,6 @@ namespace MortierFu
         {
             if (_shootCooldownTimer.IsRunning)
             {
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Cant, character.transform.position);
                 return;
             }
 

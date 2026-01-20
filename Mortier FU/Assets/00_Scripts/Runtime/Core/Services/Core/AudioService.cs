@@ -29,11 +29,6 @@ namespace MortierFu
 
         private EventInstance musicEventInstance;
 
-        public void PlayMainMenuMusic()
-        {
-            RuntimeManager.PlayOneShot("event:/Serachan");
-        }
-
         #region EventInstance functions
         
         public static EventInstance PlayOneShot(EventReference eventRef, float panning = 0)
@@ -97,7 +92,7 @@ namespace MortierFu
             return eventInstance;
         }
 
-        public async UniTask StartMusic( )
+        public async UniTask StartMusic()
         {
             if (!RuntimeManager.IsInitialized)
             {
