@@ -7,6 +7,8 @@
         {
             public AugmentStatMod OnAttackBombshellSpeedMod;
         }
+
+        public float MaxStacks = 10;
         
         private EventBinding<TriggerShootBombshell> _shootBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
@@ -31,7 +33,7 @@
         {
             if (evt.Character != owner) return;
 
-            if (StackAmount <= 10)
+            if (StackAmount <= MaxStacks)
             {
                 stats.BombshellSpeed.AddModifier(db.OverheatingParams.OnAttackBombshellSpeedMod.ToMod(this));
                 StackAmount++;
@@ -42,7 +44,7 @@
         private void OnEndRound(TriggerEndRound evt)
         {
             stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
-            StackAmount = 10;
+            StackAmount = 0;
         }
         
         public override void Dispose()
