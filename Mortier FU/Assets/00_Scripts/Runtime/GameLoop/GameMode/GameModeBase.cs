@@ -273,12 +273,6 @@ namespace MortierFu
 #endif
         }
         
-        protected virtual bool AllPlayersReady()
-        {
-            // TODO: Implement player ready check
-            return false;
-        }
-
         protected virtual void ResetPlayers()
         {
             foreach (var team in teams)
@@ -497,10 +491,11 @@ namespace MortierFu
             UpdateGameState(GameState.EndingRace);
 
             EnablePlayerInputs(false);
-
+            
             // stop selection UI
 
             ResetPlayers();
+            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
         }
 
         public virtual void EndGame()
