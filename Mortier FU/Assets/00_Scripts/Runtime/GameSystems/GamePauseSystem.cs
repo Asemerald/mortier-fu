@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -8,8 +9,11 @@ namespace MortierFu
     public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
+        private LobbyService _lobbyService;
 
         public bool IsPaused { get; private set; }
+
+        private string _previousInputMap;
 
         public event Action Paused;
         public event Action Resumed;
@@ -23,6 +27,7 @@ namespace MortierFu
             }
             else
             {
+                
                 Pause();
             }
         }
@@ -31,6 +36,8 @@ namespace MortierFu
         {
             if (!IsPaused) return;
 
+            PrimaryPlayerInput.SwitchCurrentActionMap(_previousInputMap);
+            
             IsPaused = false;
             Time.timeScale = 1f;
             Resumed?.Invoke();
@@ -40,10 +47,15 @@ namespace MortierFu
         {
             if (IsPaused) return;
             
+            _previousInputMap = PrimaryPlayerInput.currentActionMap.name;
+            PrimaryPlayerInput.SwitchCurrentActionMap("UI");
+            
             IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke();
         }
+        
+        private PlayerInput PrimaryPlayerInput => _lobbyService.GetPlayerByIndex(0).PlayerInput;
 
         public void Cancel()
         {
@@ -124,6 +136,7 @@ namespace MortierFu
         public UniTask OnInitialize()
         {
             _saveService = ServiceManager.Instance.Get<SaveService>();
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             return UniTask.CompletedTask;
         }
 

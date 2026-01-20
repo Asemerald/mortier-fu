@@ -74,8 +74,7 @@ namespace MortierFu
             
             if (_unPauseAction != null)
                 _unPauseAction.performed -= TogglePause;
-
-
+            
             if (_cancelUIAction != null)
                 _cancelUIAction.performed -= CancelUI;
         }
@@ -85,21 +84,18 @@ namespace MortierFu
         {
             if (PlayerIndex != 0)
                 return;
+            
             _gamePauseSystem.TogglePause();
-            RefreshActionMap();
         }
         
-        public void RefreshActionMap()
+        public void EnableGameplayInputMap(bool enable = true)
         {
-            if (_gamePauseSystem == null) return;
-
-            string targetMap = (!PlayerCharacter.AllowGameplayActions || _gamePauseSystem.IsPaused)
-                ? "UI"
-                : "Gameplay";
+            string targetMap = enable
+                ? "Gameplay"
+                : "UI";
 
             PlayerInput.SwitchCurrentActionMap(targetMap);
         }
-
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
