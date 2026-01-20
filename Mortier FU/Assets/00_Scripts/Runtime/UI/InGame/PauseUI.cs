@@ -243,7 +243,7 @@ namespace MortierFu
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _endGameConfirmationPanel.SetActive(true);
             _pausePanel.SetActive(true);
-            _blackPanel.SetActive(true);
+            _blackPanel.SetActive(false);
             _quitGameConfirmationPanel.SetActive(false);
             _controlsPanel.SetActive(false);
             _settingsPanel.SetActive(false);
@@ -256,7 +256,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _pausePanel.SetActive(true);
-            _blackPanel.SetActive(true);
+            _blackPanel.SetActive(false);
             _quitGameConfirmationPanel.SetActive(true);
             _endGameConfirmationPanel.SetActive(false);
             _controlsPanel.SetActive(false);
@@ -384,12 +384,12 @@ namespace MortierFu
             if (_endGameConfirmationPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
-                _blackPanel.SetActive(false);
+                _blackPanel.SetActive(true);
             }
             if (_quitGameConfirmationPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
-                _blackPanel.SetActive(false);
+                _blackPanel.SetActive(true);
             }
 
             _settingsPanel.SetActive(false);
