@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -25,6 +26,8 @@ namespace MortierFu
         [SerializeField] private GameObject _blackPanel;
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private GameObject _controlsPanel;
+        [SerializeField] private GameObject _endGameConfirmationPanel;
+        [SerializeField] private GameObject _quitGameConfirmationPanel;
 
         [SerializeField] private RawImage _pauseTopText;
         [SerializeField] private RawImage _pauseBottomText;
@@ -33,7 +36,11 @@ namespace MortierFu
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
         [SerializeField] private Button _quitButton;
-
+        [SerializeField] private Button _confirmEndGameButton;
+        [SerializeField] private Button _cancelEndGameButton;
+        [SerializeField] private Button _confirmQuitGameButton;
+        [SerializeField] private Button _cancelQuitGameButton;
+        
         [Header("Mortars")] [SerializeField] private GameObject[] _mortarHands;
         [SerializeField] private GameObject[] _mortarHeads;
 
@@ -60,7 +67,7 @@ namespace MortierFu
         private GameModeBase _gm;
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
-        
+
         private PlayerManager _playerManager;
 
         private Vector3[] _mortarHandsInitialPositions;
@@ -76,7 +83,7 @@ namespace MortierFu
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             _playerManager = _lobbyService.GetPlayerByIndex(0);
-            
+
             _gamePauseSystem.RestoreSettingsFromSave();
             _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider,
                 _sfxVolumeSlider);
@@ -89,22 +96,26 @@ namespace MortierFu
 
             _settingsButton.onClick.AddListener(ShowSettingsPanel);
             _controlsButton.onClick.AddListener(ShowControlsPanel);
-            _quitButton.onClick.AddListener(Application.Quit);
-
+            _endGameButton.onClick.AddListener(ShowEndGameConfirmationPanel);
+            _quitButton.onClick.AddListener(ShowQuitConfirmationPanel);
             _fullscreenToggle.onValueChanged.AddListener(SelectedToggleFeedback);
             _vSyncToggle.onValueChanged.AddListener(SelectedToggleFeedback);
-            
+
             _masterVolumeSlider.onValueChanged.AddListener(SliderValueChange);
             _musicVolumeSlider.onValueChanged.AddListener(SliderValueChange);
             _sfxVolumeSlider.onValueChanged.AddListener(SliderValueChange);
-            
+
             if (_gm != null)
             {
                 // TODO: Mettre le son sur endgame main menu et quit
-                _endGameButton.onClick.AddListener(_gm.EndGame);
-                _endGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
+                _confirmEndGameButton.onClick.AddListener(_gm.EndGame);
+                _confirmEndGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
             }
-
+            
+            _cancelEndGameButton.onClick.AddListener(Return);
+            _confirmQuitGameButton.onClick.AddListener(Application.Quit);
+            _cancelQuitGameButton.onClick.AddListener(Return);
+            
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
             _mortarHeadsInitialPositions = new Vector3[_mortarHeads.Length];
             _mortarInitialRotations = new Quaternion[_mortarHands.Length];
@@ -205,6 +216,8 @@ namespace MortierFu
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _settingsPanel.SetActive(true);
             _controlsPanel.SetActive(false);
+            _endGameConfirmationPanel.SetActive(false);
+            _quitGameConfirmationPanel.SetActive(false);
             _pausePanel.SetActive(false);
 
             _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
@@ -216,10 +229,39 @@ namespace MortierFu
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _controlsPanel.SetActive(true);
             _pausePanel.SetActive(true);
+            _endGameConfirmationPanel.SetActive(false);
+            _quitGameConfirmationPanel.SetActive(false);
             _blackPanel.SetActive(false);
             _settingsPanel.SetActive(false);
-
             _eventSystem.SetSelectedGameObject(null);
+        }
+        
+        private void ShowEndGameConfirmationPanel()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            _endGameConfirmationPanel.SetActive(true);
+            _pausePanel.SetActive(true);
+            _blackPanel.SetActive(true);
+            _quitGameConfirmationPanel.SetActive(false);
+            _controlsPanel.SetActive(false);
+            _settingsPanel.SetActive(false);
+
+            _eventSystem.SetSelectedGameObject(_confirmEndGameButton.gameObject);
+        }
+        
+        private void ShowQuitConfirmationPanel()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            _pausePanel.SetActive(true);
+            _blackPanel.SetActive(true);
+            _quitGameConfirmationPanel.SetActive(true);
+            _endGameConfirmationPanel.SetActive(false);
+            _controlsPanel.SetActive(false);
+            _settingsPanel.SetActive(false);
+
+            _eventSystem.SetSelectedGameObject(_confirmQuitGameButton.gameObject);
         }
 
         private void Show()
@@ -244,6 +286,8 @@ namespace MortierFu
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
             _blackPanel.SetActive(false);
+            _endGameConfirmationPanel.SetActive(false);
+            _quitGameConfirmationPanel.SetActive(false);
             _pauseTopText.transform.parent.gameObject.SetActive(false);
             _pauseBottomText.transform.parent.gameObject.SetActive(false);
 
@@ -326,19 +370,31 @@ namespace MortierFu
         private void Return()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
-
+            
             if (_settingsPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
             }
-            else if (_controlsPanel.activeSelf)
+            if (_controlsPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
                 _blackPanel.SetActive(true);
             }
+            if (_endGameConfirmationPanel.activeSelf)
+            {
+                _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
+                _blackPanel.SetActive(false);
+            }
+            if (_quitGameConfirmationPanel.activeSelf)
+            {
+                _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
+                _blackPanel.SetActive(false);
+            }
 
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
+            _endGameConfirmationPanel.SetActive(false);
+            _quitGameConfirmationPanel.SetActive(false);
             _pausePanel.SetActive(true);
         }
 
@@ -347,7 +403,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
         }
-        
+
         private void SliderValueChange(float value)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
