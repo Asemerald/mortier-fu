@@ -73,7 +73,7 @@ namespace MortierFu
 
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
-        
+
         public void Initialize(PlayerManager owner)
         {
             if (owner == null)
@@ -95,7 +95,7 @@ namespace MortierFu
 
             // Appliquer le skin choisi dans le lobby
             ApplySkinFromLobby(owner.SkinIndex);
-    
+
             // Appliquer le visage choisi dans le lobby
             ApplyFaceFromLobby(owner.FaceColumn, owner.FaceRow);
 
@@ -325,7 +325,9 @@ namespace MortierFu
         private void OnCollisionEnter(Collision other)
         {
             // C'est affreux mais asshoul
-            if (_knockbackState.IsActive && other.impulse.magnitude > 5 && (_knockbackState.LastBumpSource is not PlayerCharacter character || !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar) || character != otherChar))
+            if (_knockbackState.IsActive && other.impulse.magnitude > 5 &&
+                (_knockbackState.LastBumpSource is not PlayerCharacter character ||
+                 !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar) || character != otherChar))
             {
                 ReceiveStun(_knockbackState.StunDuration);
 
@@ -414,10 +416,19 @@ namespace MortierFu
         // TODO : à refaire
         public async UniTask WinRoundDance(float delay)
         {
-            transform.rotation = Quaternion.Euler(0f, 200f, 0f);
-            
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            
+
+            var camera = SystemManager.Instance.Get<CameraSystem>().Controller.Camera;
+
+            Vector3 camPos = camera.transform.position;
+            Vector3 lookDir = camPos - transform.position;
+            lookDir.y = 0f;
+
+            if (lookDir.sqrMagnitude > 0.001f)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDir);
+            }
+
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
 
@@ -430,19 +441,18 @@ namespace MortierFu
         // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
         private bool ShouldShowStats => Stats != null;
 #endif
-        
-        
+
+
         #region SKINS
-        
-        [Header("Skins")]
-        [SerializeField] private GameObject[] availableInGameSkins; 
-        [SerializeField] private GameObject[] availableInGameSkinsOutline; 
+
+        [Header("Skins")] [SerializeField] private GameObject[] availableInGameSkins;
+        [SerializeField] private GameObject[] availableInGameSkinsOutline;
         [SerializeField] private SkinnedMeshRenderer faceInGameMeshRenderer;
         [SerializeField] private string columnPropertyName = "_Column";
         [SerializeField] private string rowPropertyName = "_Row";
 
         private Material _faceInGameMaterial;
-        
+
         private void ApplySkinFromLobby(int skinIndex)
         {
             if (availableInGameSkins == null || availableInGameSkins.Length == 0)
@@ -459,7 +469,7 @@ namespace MortierFu
                     availableInGameSkins[i].SetActive(false);
                 }
             }
-            
+
             // Désactiver toutes les outlines
             for (int i = 0; i < availableInGameSkinsOutline.Length; i++)
             {
@@ -486,7 +496,7 @@ namespace MortierFu
             {
                 Logs.LogWarning($"[PlayerCharacter]: Skin index {skinIndex} is out of range.");
             }
-            
+
             // Activer l'outline du skin choisi
             if (skinIndex >= 0 && skinIndex < availableInGameSkinsOutline.Length)
             {
@@ -503,7 +513,6 @@ namespace MortierFu
             {
                 Logs.LogWarning($"[PlayerCharacter]: Skin outline index {skinIndex} is out of range.");
             }
-            
         }
 
         private void ApplyFaceFromLobby(int column, int row)
@@ -521,14 +530,15 @@ namespace MortierFu
             {
                 _faceInGameMaterial.SetFloat(columnPropertyName, column);
                 _faceInGameMaterial.SetFloat(rowPropertyName, row);
-                Logs.Log($"[PlayerCharacter]: Applied face (Column: {column}, Row: {row}) for player {Owner.PlayerIndex}");
+                Logs.Log(
+                    $"[PlayerCharacter]: Applied face (Column: {column}, Row: {row}) for player {Owner.PlayerIndex}");
             }
             else
             {
                 Logs.LogWarning("[PlayerCharacter]: Face material is null.");
             }
         }
-        
+
         #endregion
     }
 }
