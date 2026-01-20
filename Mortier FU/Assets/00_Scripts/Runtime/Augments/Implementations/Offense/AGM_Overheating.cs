@@ -6,9 +6,10 @@
         public struct Params
         {
             public AugmentStatMod OnAttackBombshellSpeedMod;
+            public float MaxStacks;
         }
 
-        public float MaxStacks = 10;
+        
         
         private EventBinding<TriggerShootBombshell> _shootBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
@@ -33,7 +34,7 @@
         {
             if (evt.Character != owner) return;
 
-            if (StackAmount <= MaxStacks)
+            if (StackAmount <= db.OverheatingParams.MaxStacks)
             {
                 stats.BombshellSpeed.AddModifier(db.OverheatingParams.OnAttackBombshellSpeedMod.ToMod(this));
                 StackAmount++;
