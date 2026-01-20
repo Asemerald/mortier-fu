@@ -63,6 +63,7 @@ namespace MortierFu
         public void RemoveTarget(Transform playerTransform)
         {
             if (playerTransform == null) return;
+            
             _targetGroup.RemoveMember(playerTransform);
         }
 
