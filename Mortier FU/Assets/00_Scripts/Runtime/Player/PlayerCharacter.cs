@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using PrimeTween;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -60,6 +61,8 @@ namespace MortierFu
         private DashState _dashState;
 
         private ShakeService _shakeService;
+        private CameraSystem _cameraSystem;
+        private Camera _main;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
@@ -147,6 +150,8 @@ namespace MortierFu
             _dashAction.started += PlayDashSFX;
 
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
+            _main = _cameraSystem.Controller.Camera;
         }
 
         public void Reset()
@@ -416,21 +421,26 @@ namespace MortierFu
         // TODO : à refaire
         public async UniTask WinRoundDance(float delay)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-
-            var camera = SystemManager.Instance.Get<CameraSystem>().Controller.Camera;
-
-            Vector3 camPos = camera.transform.position;
-            Vector3 lookDir = camPos - transform.position;
+            Vector3 lookDir = _main.transform.position - transform.position;
             lookDir.y = 0f;
 
-            if (lookDir.sqrMagnitude > 0.001f)
-            {
-                transform.rotation = Quaternion.LookRotation(lookDir);
-            }
+            if (lookDir.sqrMagnitude < 0.001f)
+                return;
+
+            Quaternion targetRot = Quaternion.LookRotation(lookDir);
+
+            await Tween.Rotation(
+                transform,
+                targetRot,
+                0.5f,
+                Ease.OutQuad
+            ).ToUniTask();
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
+
 
         private void At(IState from, IState to, IPredicate condition) =>
             _stateMachine.AddTransition(from, to, condition);
