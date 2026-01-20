@@ -9,6 +9,9 @@ namespace MortierFu
     {
         [SerializeField] private Slider _fakeSlider;
         [SerializeField] private Slider _sliderToControl;
+        [SerializeField] private Image _handleImage;
+        [SerializeField] private Sprite _handleSprite;
+        [SerializeField] private Sprite _selectedHandleSprite;
 
         private bool _isEditing;
 
@@ -25,6 +28,7 @@ namespace MortierFu
         {
             _cachedNavigation = _sliderToControl.navigation;
             _sliderToControl.interactable = false;
+            _handleImage.sprite = _handleSprite;
         }
 
         private void Start()
@@ -71,7 +75,8 @@ namespace MortierFu
             var nav = _sliderToControl.navigation;
             nav.mode = Navigation.Mode.None;
             _sliderToControl.navigation = nav;
-
+            _handleImage.sprite = _selectedHandleSprite;
+            _handleImage.SetNativeSize();
             EventSystem.current.SetSelectedGameObject(_sliderToControl.gameObject);
         }
 
@@ -82,6 +87,8 @@ namespace MortierFu
             
             _sliderToControl.interactable = false;
             _sliderToControl.navigation = _cachedNavigation;
+            _handleImage.sprite = _handleSprite;
+            _handleImage.SetNativeSize();
 
             EventSystem.current.SetSelectedGameObject(_fakeSlider.gameObject);
         }

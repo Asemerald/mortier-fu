@@ -93,14 +93,15 @@ namespace MortierFu
 
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.FlipDelay), cancellationToken: ct);
+            
             for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
 
                 var pickup = _pickups[i];
                 var midFlipSignal = new UniTaskCompletionSource();
-
-                int index = i;
 
                 flipTasks[i] = UniTask.Create(async () =>
                 {
@@ -164,7 +165,7 @@ namespace MortierFu
                 _augmentPoints[i] = augmentPoint;
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct,  _augmentPoints[i])
+                MovePickupToAugmentPoint(pickupVFX, duration, _system.Settings.CarouselCardScale, ct,  _augmentPoints[i])
                     .Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
@@ -175,12 +176,12 @@ namespace MortierFu
         private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            _shakeService.ShakeControllers(ShakeService.ShakeType.LITTLE);
             await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, float duration, float scale,
             CancellationToken ct, Transform augmentPoint)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
