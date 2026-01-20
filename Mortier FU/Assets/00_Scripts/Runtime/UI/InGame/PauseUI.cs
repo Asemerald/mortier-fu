@@ -8,7 +8,6 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using Unity.Mathematics;
 
-
 //TODO : Je ferai une énorme passe sur tout le script il est affreux
 namespace MortierFu
 {
@@ -41,7 +40,7 @@ namespace MortierFu
         [SerializeField] private Button _cancelEndGameButton;
         [SerializeField] private Button _confirmQuitGameButton;
         [SerializeField] private Button _cancelQuitGameButton;
-        
+
         [Header("Mortars")] [SerializeField] private GameObject[] _mortarHands;
         [SerializeField] private GameObject[] _mortarHeads;
 
@@ -58,6 +57,17 @@ namespace MortierFu
         [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
 
         [SerializeField] private float _tilablePauseSpeed = 0.5f;
+
+        [Header("Panel Animation Settings")] [SerializeField]
+        private float _panelScaleDuration = 0.5f;
+
+        [SerializeField] private Ease _panelScaleEase = Ease.OutElastic;
+        [SerializeField] private float _fadeAlpha = 0.6f;
+        [SerializeField] private float _fadeDuration = 0.5f;
+
+        private CancellationTokenSource _controlPanelCTS;
+        private CancellationTokenSource _endGamePanelCTS;
+        private CancellationTokenSource _quitPanelCTS;
 
         private Tween[] _activeHeadTweens;
 
@@ -112,11 +122,11 @@ namespace MortierFu
                 _confirmEndGameButton.onClick.AddListener(_gm.EndGame);
                 _confirmEndGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
             }
-            
+
             _cancelEndGameButton.onClick.AddListener(Return);
             _confirmQuitGameButton.onClick.AddListener(Application.Quit);
             _cancelQuitGameButton.onClick.AddListener(Return);
-            
+
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
             _mortarHeadsInitialPositions = new Vector3[_mortarHeads.Length];
             _mortarInitialRotations = new Quaternion[_mortarHands.Length];
@@ -157,20 +167,11 @@ namespace MortierFu
                 _gamePauseSystem.Canceled -= Return;
             }
 
-            _animateCancellation?.Cancel();
-            _animateCancellation?.Dispose();
-
+            StopAllAnimations();
+            
             _mortarHandsInitialPositions = null;
             _mortarHeadsInitialPositions = null;
             _mortarInitialRotations = null;
-
-            if (_activeHeadTweens == null) return;
-
-            foreach (var tween in _activeHeadTweens)
-            {
-                if (tween.isAlive)
-                    tween.Stop();
-            }
         }
 
         private void AnimateTilableImage(RawImage image, float speed)
@@ -194,6 +195,18 @@ namespace MortierFu
             _animateCancellation?.Cancel();
             _animateCancellation?.Dispose();
             _animateCancellation = null;
+            
+            _controlPanelCTS?.Cancel();
+            _controlPanelCTS?.Dispose();
+            _controlPanelCTS = null;
+
+            _endGamePanelCTS?.Cancel();
+            _endGamePanelCTS?.Dispose();
+            _endGamePanelCTS = null;
+
+            _quitPanelCTS?.Cancel();
+            _quitPanelCTS?.Dispose();
+            _quitPanelCTS = null;
         }
 
         private void Pause()
@@ -216,9 +229,6 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             _settingsPanel.SetActive(true);
-            _controlsPanel.SetActive(false);
-            _endGameConfirmationPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(false);
             _pausePanel.SetActive(false);
 
             _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
@@ -227,42 +237,110 @@ namespace MortierFu
         private void ShowControlsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            _controlsPanel.SetActive(true);
-            _pausePanel.SetActive(true);
-            _endGameConfirmationPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(false);
-            _blackPanel.SetActive(false);
-            _settingsPanel.SetActive(false);
-            _eventSystem.SetSelectedGameObject(null);
+
+            ShowControlPanel().Forget();
         }
-        
+
+        private async UniTask ShowControlPanel()
+        {
+            _controlPanelCTS?.Cancel();
+            _controlPanelCTS?.Dispose();
+
+            _controlPanelCTS = new CancellationTokenSource();
+            CancellationToken ct = _controlPanelCTS.Token;
+
+            _controlsPanel.transform.localScale = Vector3.zero;
+            _controlsPanel.SetActive(true);
+            _eventSystem.SetSelectedGameObject(null);
+
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            try
+            {
+                await Tween.Scale(
+                    _controlsPanel.transform,
+                    1f,
+                    _panelScaleDuration,
+                    _panelScaleEase,
+                    useUnscaledTime: true
+                ).ToUniTask(cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Tween was canceled safely
+            }
+        }
+
         private void ShowEndGameConfirmationPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            _endGameConfirmationPanel.SetActive(true);
-            _pausePanel.SetActive(true);
-            _blackPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(false);
-            _controlsPanel.SetActive(false);
-            _settingsPanel.SetActive(false);
 
-            _eventSystem.SetSelectedGameObject(_confirmEndGameButton.gameObject);
+            ShowEndGamePanel().Forget();
         }
-        
+
+        private async UniTask ShowEndGamePanel()
+        {
+            _endGamePanelCTS?.Cancel();
+            _endGamePanelCTS?.Dispose();
+            _endGamePanelCTS = new CancellationTokenSource();
+            CancellationToken ct = _endGamePanelCTS.Token;
+
+            _endGameConfirmationPanel.transform.localScale = Vector3.zero;
+            _endGameConfirmationPanel.SetActive(true);
+            _eventSystem.SetSelectedGameObject(_confirmEndGameButton.gameObject);
+
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            try
+            {
+                await Tween.Scale(
+                    _endGameConfirmationPanel.transform,
+                    1f,
+                    _panelScaleDuration,
+                    _panelScaleEase,
+                    useUnscaledTime: true
+                ).ToUniTask(cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Tween was canceled safely
+            }
+        }
+
         private void ShowQuitConfirmationPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            _pausePanel.SetActive(true);
-            _blackPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(true);
-            _endGameConfirmationPanel.SetActive(false);
-            _controlsPanel.SetActive(false);
-            _settingsPanel.SetActive(false);
 
+            ShowPanelQuit().Forget();
+        }
+
+        private async UniTask ShowPanelQuit()
+        {
+            _quitPanelCTS?.Cancel();
+            _quitPanelCTS?.Dispose();
+            _quitPanelCTS = new CancellationTokenSource();
+            CancellationToken ct = _quitPanelCTS.Token;
+
+            _quitGameConfirmationPanel.transform.localScale = Vector3.zero;
+            _quitGameConfirmationPanel.SetActive(true);
             _eventSystem.SetSelectedGameObject(_confirmQuitGameButton.gameObject);
+
+            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            try
+            {
+                await Tween.Scale(
+                    _quitGameConfirmationPanel.transform,
+                    1f,
+                    _panelScaleDuration,
+                    _panelScaleEase,
+                    useUnscaledTime: true
+                ).ToUniTask(cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Tween was canceled safely
+            }
         }
 
         private void Show()
@@ -371,21 +449,24 @@ namespace MortierFu
         private void Return()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
-            
+
             if (_settingsPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
             }
+
             if (_controlsPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
                 _blackPanel.SetActive(true);
             }
+
             if (_endGameConfirmationPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
                 _blackPanel.SetActive(true);
             }
+
             if (_quitGameConfirmationPanel.activeSelf)
             {
                 _eventSystem.SetSelectedGameObject(_quitButton.gameObject);

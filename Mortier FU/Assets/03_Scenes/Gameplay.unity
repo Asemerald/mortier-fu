@@ -9147,13 +9147,14 @@ GameObject:
   - component: {fileID: 1192400979}
   - component: {fileID: 1192400981}
   - component: {fileID: 1192400980}
+  - component: {fileID: 1192400982}
   m_Layer: 5
   m_Name: BlackPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1192400979
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9211,6 +9212,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1192400978}
   m_CullTransparentMesh: 1
+--- !u!225 &1192400982
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192400978}
+  m_Enabled: 1
+  m_Alpha: 0.6
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!224 &1198124416 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3877497616861193009, guid: ee390abf19a03b54db7121d98b2372c5, type: 3}
@@ -13737,13 +13750,14 @@ GameObject:
   - component: {fileID: 1891663675}
   - component: {fileID: 1891663677}
   - component: {fileID: 1891663676}
+  - component: {fileID: 1891663678}
   m_Layer: 5
-  m_Name: BlackPanel
+  m_Name: EndGameBlackPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1891663675
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13801,6 +13815,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1891663674}
   m_CullTransparentMesh: 1
+--- !u!225 &1891663678
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1891663674}
+  m_Enabled: 1
+  m_Alpha: 0.6
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1898756999
 GameObject:
   m_ObjectHideFlags: 0
