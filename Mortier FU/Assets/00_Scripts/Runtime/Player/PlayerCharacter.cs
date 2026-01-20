@@ -72,7 +72,8 @@ namespace MortierFu
         public int AvailableDashCharges => _dashState.AvailableCharges;
 
         public Transform GetStrikePoint() => _strikePoint;
-
+        public KnockbackState KnockbackState => _knockbackState;
+        
         public void Initialize(PlayerManager owner)
         {
             if (owner == null)
@@ -165,6 +166,7 @@ namespace MortierFu
 
             _activeEffects.Clear();
 
+            _knockbackState.Reset();
             _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);

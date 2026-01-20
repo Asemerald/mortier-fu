@@ -5,6 +5,18 @@ using UnityEngine;
 
 namespace MortierFu
 {
+    public enum E_DeathCause {
+        Unknown,
+        BombshellExplosion,
+        Fall,
+        VehicleCrash
+    }
+
+    public struct DeathContext {
+        public PlayerCharacter Killer;
+        public E_DeathCause DeathCause;
+    }
+    
     public class HealthCharacterComponent : CharacterComponent
     {
         /// Sent every time health changes. Provide the old health and the new health.
@@ -68,11 +80,49 @@ namespace MortierFu
                 
                 EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath() {
                     Character = Character,
-                    Source = source
+                    Context = ResolveDeathContext(character, source)
                 });
 
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
             }
+        }
+
+        private DeathContext ResolveDeathContext(PlayerCharacter character, object source) {
+            // If killed by a player's bombshell
+            if (source is PlayerCharacter killer) {
+                return new DeathContext {
+                    Killer = killer,
+                    DeathCause = E_DeathCause.BombshellExplosion
+                };
+            }
+
+            // Died by falling
+            if (source is DeathTrigger) {
+                var kn = character.KnockbackState;
+                
+                // Only consider recent push
+                if(kn.ComputeLastBumpElapsedTime() < 8f)
+                {
+                    if (kn.LastBumpSource is Bumper bumper) {
+                        return new DeathContext {
+                            Killer = kn.LastPusher,
+                            DeathCause = E_DeathCause.VehicleCrash
+                        };
+                    }
+                    
+                    if (kn.LastPusher) {
+                        return new DeathContext {
+                            Killer = kn.LastPusher,
+                            DeathCause = E_DeathCause.Fall
+                        };
+                    }
+                }
+            }
+
+            return new DeathContext {
+                Killer = null,
+                DeathCause = E_DeathCause.Fall
+            };
         }
 
         public void TakeLethalDamage(object source) => TakeDamage(_currentHealth, source, true);

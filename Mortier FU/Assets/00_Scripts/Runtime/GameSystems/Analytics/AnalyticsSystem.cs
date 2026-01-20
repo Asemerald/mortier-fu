@@ -109,7 +109,8 @@ namespace MortierFu.Analytics
                     shotsHit = 0,
                     dashesPerformed = 0,
                     bumpsMade = 0,
-                    deathCause = DeathCause.None
+                    killerId = -1,
+                    deathCause = E_DeathCause.Unknown
                 };
                 
                 _currentRoundPlayers[playerId] = playerData;
@@ -140,7 +141,8 @@ namespace MortierFu.Analytics
                     shotsHit = 0,
                     dashesPerformed = 0,
                     bumpsMade = 0,
-                    deathCause = DeathCause.None
+                    killerId = -1,
+                    deathCause = E_DeathCause.Unknown
                 };
                 _currentRoundPlayers[playerId] = newPlayerData;
             }
@@ -212,40 +214,15 @@ namespace MortierFu.Analytics
             if (death.Character == null) return;
             
             var victimData = GetOrCreatePlayerData(death.Character);
-            
-            // Déterminer la cause de mort et incrémenter les kills si nécessaire
-            if (death.Source is PlayerCharacter killer)
-            {
-                // Mort causée par un autre joueur
-                var killerData = GetOrCreatePlayerData(killer);
-                killerData.kills++;
-                
-                victimData.deathCause = GetDeathCauseFromPlayer(killer);
-            }
-            else if (death.Source is Bombshell bombshell)
-            {
-                // Mort causée par un projectile
-                if (bombshell.Owner != null)
-                {
-                    var killerData = GetOrCreatePlayerData(bombshell.Owner);
-                    killerData.kills++;
-                    victimData.deathCause = GetDeathCauseFromPlayer(bombshell.Owner);
-                }
-                else
-                {
-                    victimData.deathCause = DeathCause.Fall;
-                }
-            }
-            else
-            {
-                // Mort par l'environnement (murs, obstacles, etc.)
-                victimData.deathCause = DeathCause.Fall;
-            }
-        }
 
-        private DeathCause GetDeathCauseFromPlayer(PlayerCharacter player)
-        {
-             return (DeathCause)(player.Owner.PlayerIndex + 1);
+            if (death.Context.Killer) {
+                var killerData = GetOrCreatePlayerData(death.Context.Killer);
+                killerData.kills++;
+            }
+
+            if (death.Context.Killer)
+                victimData.killerId = death.Context.Killer.Owner.PlayerIndex;
+            victimData.deathCause = death.Context.DeathCause;
         }
         
         private void OnTriggerEndRound(TriggerEndRound endRound)

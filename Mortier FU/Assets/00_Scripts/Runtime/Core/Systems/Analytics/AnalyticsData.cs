@@ -38,7 +38,8 @@ namespace MortierFu
         public int shotsHit;
         public int dashesPerformed;
         public int bumpsMade;
-        public DeathCause deathCause;
+        public int killerId;
+        public E_DeathCause deathCause;
     }
 
     public enum DeathCause
@@ -48,6 +49,7 @@ namespace MortierFu
         Player2,
         Player3,
         Player4,
-        Fall
+        Fall,
+        VehicleCrash
     }
 }

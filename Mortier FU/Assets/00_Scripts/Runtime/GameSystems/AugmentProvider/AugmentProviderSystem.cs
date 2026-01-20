@@ -169,7 +169,7 @@ namespace MortierFu
         {
             if (!_augmentChances.ContainsKey(augment)) return;
             
-            _augmentChances[augment] *= Settings.DropRateDamping;
+            _augmentChances[augment] *= 1f - Settings.DropRateDamping;
             Debug.Log($"[Augment Damping] {augment.name} new chance: {_augmentChances[augment]}");
         }
         

@@ -566,9 +566,9 @@ namespace MortierFu
             alivePlayers.Remove(player.Character);
             cameraSystem.Controller.RemoveTarget(player.transform);
 
-            if (evt.Source is PlayerCharacter killer)
+            if (evt.Context.Killer)
             {
-                OnPlayerKill(killer, evt.Character);
+                OnPlayerKill(evt.Context.Killer, evt.Character);
             }
 
             var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
