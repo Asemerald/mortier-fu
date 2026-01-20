@@ -13,6 +13,8 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Player_Stun { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_Fall { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_Death { get; private set; }
+        [field: SerializeField] public EventReference SFX_Player_CarCrash { get; private set; }
+        [field: SerializeField] public EventReference SFX_Player_Footsteps { get; private set; }
         
         [field: SerializeField] public EventReference SFX_Mortar_Shot { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ImpactNone { get; private set; }
