@@ -839,7 +839,6 @@ MonoBehaviour:
     - {fileID: 7895097378170865012}
     SpawnVFXPrefab: {fileID: 688233631026927870, guid: dcfbe80c162ff894fbc5d0cbcaa5fd74, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: afc67180802c5ad4493a3d3e3e6d0c3d, type: 2}
-    TombPrefab: {fileID: 9005458205193035344, guid: ef629809bd57cee4aa40adac28d77173, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 8d6464ed92c701c489b5c928536d9181, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 757c4f23c2daa1c43afedc2fddc2343c, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: aae5d1875f2f0a04793c984252e408fd, type: 2}
@@ -926,7 +925,6 @@ MonoBehaviour:
     - {fileID: 7895097378170865012}
     SpawnVFXPrefab: {fileID: 1612055708514398196, guid: 8d526819b3493384597dc0fa6c4c1f55, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 0d31027d3b2a467448f3d9b846bd0721, type: 2}
-    TombPrefab: {fileID: 9005458205193035344, guid: d9231e94e8f8a3d4191eb843fed56f9e, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 07b6479461aa31845b63f3295ba3b894, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 4aaa38b198b39474d8382ad546726dcf, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: 1c26da7ea31b9924cb4434a70e9fbd90, type: 2}
@@ -1013,7 +1011,6 @@ MonoBehaviour:
     - {fileID: 7895097378170865012}
     SpawnVFXPrefab: {fileID: 8671296310660779095, guid: 2fa2048cd66d04c42ac493c1225a15b9, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 2ffedcde71ac33d40a374c128a051386, type: 2}
-    TombPrefab: {fileID: 9005458205193035344, guid: 88b7293ea12e6fc4085147917b7486b7, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 36466ee140156a84a90a731f9512ac39, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 8eddc1dda3c2a7e4492fa81d8eb00d5f, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: 19562d1bbb3bb7c4eae541cd898aa5d6, type: 2}
@@ -1100,12 +1097,24 @@ MonoBehaviour:
     - {fileID: 7895097378170865012}
     SpawnVFXPrefab: {fileID: 145384326513769077, guid: 826cb40b4efd13b43833fd787127c772, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: fb59539a77743c542a67aa9687a34907, type: 2}
-    TombPrefab: {fileID: 9005458205193035344, guid: dfb0de15883c61c429314653bf155f15, type: 3}
   _animator: {fileID: 7582028062639496719}
   _tauntFeedback: {fileID: 8047922189435491126}
   _characterStatsTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
   _strikePoint: {fileID: 3774432769024524082}
   <Stats>k__BackingField: {fileID: 0}
+  availableInGameSkins:
+  - {fileID: 2429830758701034080}
+  - {fileID: 7956467982270696264}
+  - {fileID: 2244883876924706271}
+  - {fileID: 5320939729525998113}
+  availableInGameSkinsOutline:
+  - {fileID: 2440272213135272633}
+  - {fileID: 361834754245059932}
+  - {fileID: 8872020374355723031}
+  - {fileID: 2371726076543311992}
+  faceInGameMeshRenderer: {fileID: 1121809397902743652}
+  columnPropertyName: _Column
+  rowPropertyName: _Row
 --- !u!54 &8940724329505566821
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4466,9 +4475,19 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7582028062639496719}
   m_SourcePrefab: {fileID: 100100000, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+--- !u!1 &361834754245059932 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4945969482461007158, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &465594119467290191 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 5174913745208731173, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &1121809397902743652 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -3587235349931741170, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
 --- !u!137 &1165962093535934154 stripped
@@ -4481,6 +4500,26 @@ SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 6172352223319376857, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2244883876924706271 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6809880505751791029, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2371726076543311992 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2212125532801398766, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2429830758701034080 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6926146944592593418, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2440272213135272633 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6952279533693633235, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &3886930164581076332 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 8383386542436197638, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
@@ -4489,6 +4528,11 @@ SkinnedMeshRenderer:
 --- !u!4 &5056516253126315905 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5320939729525998113 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 608308925657328203, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &5577578470317561147 stripped
@@ -4533,6 +4577,11 @@ SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 3186269235266858270, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7956467982270696264 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -5778700267903278302, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &8452620086836292743 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: -5410126143491848979, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
@@ -4541,6 +4590,11 @@ SkinnedMeshRenderer:
 --- !u!4 &8720793465372568431 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -5142942879534267643, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8872020374355723031 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4231514784495332221, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
 --- !u!137 &8952470654534667790 stripped
