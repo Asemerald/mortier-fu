@@ -22,8 +22,6 @@ namespace MortierFu {
             if (index < 0 || index >= _tombPrefabs.Length)
                 return;
 
-            Debug.Log("Player died cause of " + evt.Context.DeathCause + " by " + evt.Context.Killer);
-            
             switch (evt.Context.DeathCause) {
                 case E_DeathCause.BombshellExplosion:
                 {
