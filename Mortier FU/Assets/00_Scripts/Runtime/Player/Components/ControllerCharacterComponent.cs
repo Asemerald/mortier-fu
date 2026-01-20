@@ -20,7 +20,7 @@ namespace MortierFu
         private float _knockbackDecay = 2.2f;          // vitesse à laquelle le bump se dissipe
         private float _moveDuringKnockbackFactor = 0.75f; 
         
-        public float SpeedRatio => Mathf.Clamp01(rigidbody.linearVelocity.magnitude / Stats.MoveSpeed.Value); 
+        public float SpeedRatio => Mathf.Clamp01(new Vector3(rigidbody.linearVelocity.x, 0, rigidbody.linearVelocity.z).magnitude / Stats.MoveSpeed.Value); 
         
         public ControllerCharacterComponent(PlayerCharacter character) : base(character)
         {
