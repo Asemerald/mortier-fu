@@ -269,7 +269,7 @@ namespace MortierFu
             }
             
 #if UNITY_EDITOR
-            //PlayerInputSwapper.Instance.UpdateActivePlayer();
+            PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
         
