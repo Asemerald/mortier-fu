@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ namespace MortierFu
         [SerializeField] private GameObject readyIndicator;
         [SerializeField] private GameObject[] skinSelectionIndicator; // pour montrer qu'on est en mode skin
         [SerializeField] private GameObject[] faceSelectionIndicator; // pour montrer qu'on est en mode face
+        [SerializeField] private GameObject[] joinButtonIndicators;
         
         private int currentSkinIndex = 0;
         private int currentColumn = 1; // Entre 1 et 4
@@ -53,7 +55,36 @@ namespace MortierFu
                 UpdateFaceShader();
             }
         }
-    
+
+        private void OnEnable()
+        {
+            currentSkinIndex = 0;
+            currentColumn = 1;
+            currentRow = 1;
+            isReady = false;
+            isSelectingFace = false;
+            UpdateVisuals();
+
+            if (joinButtonIndicators != null)
+            {
+                foreach (var t in joinButtonIndicators)
+                {
+                    t.SetActive(false);
+                }
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (joinButtonIndicators != null)
+            {
+                foreach (var t in joinButtonIndicators)
+                {
+                    t.SetActive(true);
+                }
+            }
+        }
+
         public void Start()
         {
             currentSkinIndex = 0;
@@ -147,7 +178,6 @@ namespace MortierFu
         
         private void UpdateSelectionIndicators()
         {
-            return; 
             foreach (var t in skinSelectionIndicator)
             {
                 t.SetActive(!isSelectingFace);
