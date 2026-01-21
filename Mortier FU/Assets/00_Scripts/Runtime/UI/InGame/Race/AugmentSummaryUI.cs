@@ -210,7 +210,6 @@ namespace MortierFu
                 float t = (float)i / (childCount - 1);
                 float delay = Mathf.Lerp(maxDelay, minDelay, Mathf.Pow(t, _childAnimationExponentFactor));
 
-                Debug.LogError(delay);
                 await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: ct);
             }
         }
