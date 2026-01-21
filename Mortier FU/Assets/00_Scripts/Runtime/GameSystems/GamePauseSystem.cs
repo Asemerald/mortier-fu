@@ -1,6 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using UnityEditor.Profiling;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
