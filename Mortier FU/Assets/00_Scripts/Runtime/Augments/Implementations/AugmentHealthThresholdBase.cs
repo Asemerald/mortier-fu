@@ -3,6 +3,7 @@
     public abstract class AugmentHealthThresholdBase : AugmentBase
     {
         private EventBinding<TriggerHealthChanged> _healthChangedBinding;
+        private EventBinding<TriggerEndRound> _endRoundBinding;
         
         protected abstract float HealthThreshold { get; }
         protected bool IsActive { get; private set; }
@@ -14,6 +15,9 @@
         {
             _healthChangedBinding = new EventBinding<TriggerHealthChanged>(OnHealthChanged);
             EventBus<TriggerHealthChanged>.Register(_healthChangedBinding);
+            
+            _endRoundBinding = new EventBinding<TriggerEndRound>(OnEndRound);
+            EventBus<TriggerEndRound>.Register(_endRoundBinding);
         }
         
         protected abstract void OnEnterThreshold();
@@ -35,6 +39,12 @@
                 IsActive = false;
                 OnExitThreshold();
             }
+        }
+        
+        private void OnEndRound(TriggerEndRound evt)
+        {
+            IsActive = false;
+            OnExitThreshold();
         }
 
         public override void Dispose()
