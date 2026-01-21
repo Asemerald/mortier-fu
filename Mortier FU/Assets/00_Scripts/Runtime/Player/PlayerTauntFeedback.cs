@@ -20,9 +20,6 @@ namespace MortierFu
 
         [SerializeField] private Sprite[] _characterIcons;
 
-        [Header("Audio")] [SerializeField] private AudioSource _tauntAudioSource;
-        [SerializeField] private AudioClip _tauntAudioClip;
-
         [Header("Tween Settings")] [SerializeField]
         private Ease _scaleInEase = Ease.OutBack;
 
@@ -73,8 +70,6 @@ namespace MortierFu
 
             _currentTween = Tween.Scale(_tauntImg.transform, 1f, _scaleInDuration, _scaleInEase);
             await _currentTween;
-
-            _tauntAudioSource?.PlayOneShot(_tauntAudioClip);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_holdDuration));
 
