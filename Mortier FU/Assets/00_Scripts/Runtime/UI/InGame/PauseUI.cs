@@ -397,10 +397,10 @@ namespace MortierFu
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
 
-            if (_settingsPanel.activeSelf) _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
             if (_controlsPanel.activeSelf) _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
             if (_endGameConfirmationPanel.activeSelf) _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
             if (_quitGameConfirmationPanel.activeSelf) _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
+            if (_settingsPanel.activeSelf) _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
 
             _settingsPanel.SetActive(false);
             _controlsPanel.SetActive(false);
