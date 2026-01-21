@@ -50,6 +50,7 @@
         public override void Dispose()
         {
             EventBus<TriggerHealthChanged>.Deregister(_healthChangedBinding);
+            EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
         }
     }
 }
