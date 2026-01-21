@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -21,7 +22,7 @@ namespace MortierFu
 
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
-        
+
         private PlayerManager _playerManager;
 
         private void Awake()
@@ -35,11 +36,21 @@ namespace MortierFu
         {
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            
+
             _playerManager = _lobbyService.GetPlayerByIndex(0);
-            
+
             _submitAction = _lobbyService.Players[0].PlayerInput.actions.FindAction("Submit");
             _submitAction.started += SetNavigation;
+        }
+
+        private void OnDisable()
+        {
+            _isEditing = false;
+            
+            _sliderToControl.interactable = false;
+            _sliderToControl.navigation = _cachedNavigation;
+            _handleImage.sprite = _handleSprite;
+            _handleImage.SetNativeSize();
         }
 
         private void OnDestroy()
@@ -49,7 +60,7 @@ namespace MortierFu
 
         private void SetNavigation(InputAction.CallbackContext context)
         {
-            if (EventSystem.current.currentSelectedGameObject != _fakeSlider.gameObject && 
+            if (EventSystem.current.currentSelectedGameObject != _fakeSlider.gameObject &&
                 EventSystem.current.currentSelectedGameObject != _sliderToControl.gameObject)
                 return;
 
@@ -69,7 +80,7 @@ namespace MortierFu
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            
+
             _sliderToControl.interactable = true;
 
             var nav = _sliderToControl.navigation;
@@ -84,7 +95,7 @@ namespace MortierFu
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            
+
             _sliderToControl.interactable = false;
             _sliderToControl.navigation = _cachedNavigation;
             _handleImage.sprite = _handleSprite;

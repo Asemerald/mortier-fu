@@ -38,8 +38,10 @@ namespace MortierFu
         protected SceneService sceneService;
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
+
         protected BombshellSystem bombshellSys;
-        protected PuddleSystem puddleSys;
+
+        // protected PuddleSystem puddleSys;
         protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
@@ -82,20 +84,16 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundStarted;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-
+        public event Action OnRaceStart;
         public event Func<UniTask> OnRaceEndedUI;
-
         public event Action<int> OnGameEnded;
-
-        private const string k_gameplayActionMap = "Gameplay";
-        private const string k_uiActionMap = "UI";
 
         public virtual async UniTask StartGame()
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
-            puddleSys = SystemManager.Instance.Get<PuddleSystem>();
+            // puddleSys = SystemManager.Instance.Get<PuddleSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -155,7 +153,7 @@ namespace MortierFu
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
                 ServiceManager.Instance.Get<AudioService>().SetPhase(0);
-                
+
                 UpdateGameState(GameState.RaceInProgress);
 
                 while (!augmentSelectionSys.IsSelectionOver)
@@ -257,7 +255,7 @@ namespace MortierFu
                 }
             }
         }
-        
+
         public void EnablePlayerInputs(bool enable = true)
         {
             foreach (var team in teams)
@@ -267,12 +265,12 @@ namespace MortierFu
                     member.EnableGameplayInputMap(enable);
                 }
             }
-            
+
 #if UNITY_EDITOR
             PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
-        
+
         protected virtual void ResetPlayers()
         {
             foreach (var team in teams)
@@ -369,7 +367,7 @@ namespace MortierFu
             EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
 
             bombshellSys.ClearActiveBombshells();
-            puddleSys.ClearActivePuddles();
+            //puddleSys.ClearActivePuddles();
 
             if (stormInstance)
             {
@@ -386,6 +384,7 @@ namespace MortierFu
             EvaluateScores();
 
             _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
+
 
             if (_currentRound.WinningTeam != null)
             {
@@ -438,6 +437,7 @@ namespace MortierFu
                             }
                         }
                     }
+
                     team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
 
                     // notify analytics system
@@ -500,6 +500,8 @@ namespace MortierFu
             EnablePlayerInputs(false);
             PlayerCharacter.AllowGameplayActions = false;
 
+            OnRaceStart?.Invoke();
+
             Logs.Log("Starting augment selection...");
         }
 
@@ -508,7 +510,7 @@ namespace MortierFu
             UpdateGameState(GameState.EndingRace);
 
             EnablePlayerInputs(false);
-            
+
             // stop selection UI
 
             ResetPlayers();
@@ -583,7 +585,7 @@ namespace MortierFu
 
             player.Metrics.TotalDeaths++;
             alivePlayers.Remove(player.Character);
-            cameraSystem.Controller.RemoveTarget(player.transform);
+            cameraSystem.Controller.RemoveTarget(evt.Character.transform);
 
             if (evt.Context.Killer)
             {

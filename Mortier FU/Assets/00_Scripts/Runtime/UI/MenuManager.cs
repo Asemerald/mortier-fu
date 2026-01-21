@@ -37,8 +37,6 @@ namespace MortierFu
         private int minPlayers = 2;
 
         [Header("Utils")] 
-        [field: SerializeField]
-        private GameObject blackFader;
 
         [field: SerializeField] private MainMenuCameraManager cameraManager;
 
@@ -231,15 +229,6 @@ namespace MortierFu
                 LobbyPanel.gameObject.SetActive(true);
             }
         }
-
-        [ContextMenu("Trigger Black Fade")]
-        public async UniTaskVoid TriggerBlackFade()
-        {
-            blackFader.SetActive(true);
-            await UniTask.Delay(TimeSpan.FromSeconds(2));
-            blackFader.SetActive(false);
-        }
-
         public void SwitchCameraPosition()
         {
             cameraManager.MoveToNextPosition();

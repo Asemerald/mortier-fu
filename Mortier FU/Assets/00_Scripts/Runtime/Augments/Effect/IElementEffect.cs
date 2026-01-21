@@ -7,17 +7,17 @@ namespace MortierFu
     [Serializable]
     public class Ability
     {
-        public bool PersistAfterExit; 
-        
+        public bool PersistAfterExit;
+
         [SerializeReference] public List<IEffect<PlayerCharacter>> Effects = new();
-        
+
         public void Execute(PlayerCharacter target)
         {
             foreach (var effect in Effects)
             {
                 if (target is PlayerCharacter playerCharacter)
                 {
-                    playerCharacter.ApplyEffect(effect);
+                    //playerCharacter.ApplyEffect(effect);
                 }
                 else
                 {
@@ -30,7 +30,7 @@ namespace MortierFu
         {
             foreach (var effect in Effects)
             {
-                target.RemoveEffect(effect);
+                // target.RemoveEffect(effect);
                 effect.Cancel(target);
             }
         }
@@ -77,9 +77,9 @@ namespace MortierFu
         public void Apply(PlayerCharacter target)
         {
             _currentTarget = target;
-            
+
             if (_timer is { IsRunning: true }) return;
-            
+
             _timer = new IntervalTimer(Duration, TickInterval);
 
             _timer.OnInterval = OnInterval;
@@ -103,12 +103,12 @@ namespace MortierFu
             _currentTarget = null;
         }
     }
-    
+
     [Serializable]
     public class FreezeEffect : IEffect<PlayerCharacter>
     {
         private PlayerCharacter _currentTarget;
-        
+
         public float FreezeFactor = 0.5f;
         public event Action<IEffect<PlayerCharacter>> OnCompleted;
 
@@ -116,7 +116,8 @@ namespace MortierFu
         {
             _currentTarget = target;
             //TODO: Make it better cause totally freeze the player 
-            _currentTarget.Stats.MoveSpeed.AddModifier(new StatModifier(-_currentTarget.Stats.MoveSpeed.Value * FreezeFactor, E_StatModType.Flat, this));
+            _currentTarget.Stats.MoveSpeed.AddModifier(
+                new StatModifier(-_currentTarget.Stats.MoveSpeed.Value * FreezeFactor, E_StatModType.Flat, this));
         }
 
         public void Cancel(PlayerCharacter target)

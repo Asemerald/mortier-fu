@@ -35,8 +35,8 @@ namespace MortierFu
                 owner,
                 pos,
                 scale,
-                duration,
-                Owner.GetPuddleAbilities
+                duration
+               // Owner.GetPuddleAbilities
             );
         }
     
