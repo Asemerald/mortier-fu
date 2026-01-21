@@ -93,8 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: dc03ce269d7312448b676caa99adb6ae, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: f55c79bedde1a3641a350bec0a6a8c2a, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -119,6 +119,82 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &45544101
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 45544103}
+  - component: {fileID: 45544102}
+  m_Layer: 0
+  m_Name: Adaptive Probe Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &45544102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45544101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cded085d155cde949b60f67a11dbc3bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.ProbeVolume
+  mode: 1
+  size: {x: 143.5849, y: 32.827255, z: 186.13791}
+  overrideRendererFilters: 0
+  minRendererVolumeSize: 0.1
+  objectLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  lowestSubdivLevelOverride: 0
+  highestSubdivLevelOverride: 7
+  overridesSubdivLevels: 0
+  mightNeedRebaking: 0
+  cachedTransform:
+    e00: 1
+    e01: 0
+    e02: 0
+    e03: 4.279152
+    e10: 0
+    e11: 1
+    e12: 0
+    e13: 0.8833847
+    e20: 0
+    e21: 0
+    e22: 1
+    e23: -4.7751007
+    e30: 0
+    e31: 0
+    e32: 0
+    e33: 1
+  cachedHashCode: -1167149125
+  fillEmptySpaces: 0
+  version: 2
+  globalVolume: 0
+--- !u!4 &45544103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45544101}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.279152, y: -0.8833847, z: 4.7751007}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &105168805
 Mesh:
   m_ObjectHideFlags: 0
@@ -297,6 +373,56 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &560731744
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 560731746}
+  - component: {fileID: 560731745}
+  m_Layer: 0
+  m_Name: ProbeVolumePerSceneData
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &560731745
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560731744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.ProbeVolumePerSceneData
+  serializedBakingSet: {fileID: 11400000, guid: b2eb8d2042cbf66479137246eb293834, type: 2}
+  sceneGUID: 6f2129df1002d7a48a4a9a1a25f9a851
+  obsoleteAsset: {fileID: 0}
+  obsoleteCellSharedDataAsset: {fileID: 0}
+  obsoleteCellSupportDataAsset: {fileID: 0}
+  obsoleteSerializedScenarios: []
+--- !u!4 &560731746
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560731744}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &880377886
 Mesh:
   m_ObjectHideFlags: 0
@@ -846,7 +972,7 @@ PrefabInstance:
       objectReference: {fileID: 2030899454}
     - target: {fileID: 2622596111321114835, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_VersionIndex
-      value: 4336
+      value: 4342
       objectReference: {fileID: 0}
     - target: {fileID: 4787114478165179924, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_Mesh
@@ -858,7 +984,7 @@ PrefabInstance:
       objectReference: {fileID: 105168805}
     - target: {fileID: 5751074532061299799, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_VersionIndex
-      value: 6252
+      value: 6258
       objectReference: {fileID: 0}
     - target: {fileID: 6871383543424367937, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_Mesh
@@ -874,7 +1000,7 @@ PrefabInstance:
       objectReference: {fileID: 880377886}
     - target: {fileID: 8232762429737848472, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_VersionIndex
-      value: 5562
+      value: 5568
       objectReference: {fileID: 0}
     - target: {fileID: 8666526214213469712, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_Mesh
@@ -886,7 +1012,7 @@ PrefabInstance:
       objectReference: {fileID: 1349354506}
     - target: {fileID: 8838873493981643333, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_VersionIndex
-      value: 2387
+      value: 2393
       objectReference: {fileID: 0}
     - target: {fileID: 8990340353905176534, guid: b5c6ba196c058f248b91f1ed73d3a01a, type: 3}
       propertyPath: m_Mesh
@@ -1139,3 +1265,5 @@ SceneRoots:
   - {fileID: 1737984796}
   - {fileID: 1913421000}
   - {fileID: 2035154806}
+  - {fileID: 45544103}
+  - {fileID: 560731746}
