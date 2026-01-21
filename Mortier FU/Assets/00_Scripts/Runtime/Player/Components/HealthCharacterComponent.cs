@@ -5,39 +5,42 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public enum E_DeathCause {
+    public enum E_DeathCause
+    {
         Unknown,
         BombshellExplosion,
         Fall,
         VehicleCrash
     }
 
-    public struct DeathContext {
+    public struct DeathContext
+    {
         public PlayerCharacter Killer;
         public E_DeathCause DeathCause;
     }
-    
+
     public class HealthCharacterComponent : CharacterComponent
     {
-        /// Sent every time health changes. Provide the old health and the new health.
-        public Action<float, float> OnHealthChanged;
-        public Action<float> OnMaxHealthChanged;
+        private float _currentHealth;
+        private float _maxHealth;
 
         public Action<object> OnDeath;
 
-        private float _currentHealth;
-        private float _maxHealth;
-        
-        public float CurrentHealth => _currentHealth;
-        public float MaxHealth => _maxHealth;
-        public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
-        public bool IsAlive => _currentHealth > 0f;
+        /// Sent every time health changes. Provide the old health and the new health.
+        public Action<float, float> OnHealthChanged;
+
+        public Action<float> OnMaxHealthChanged;
 
         public HealthCharacterComponent(PlayerCharacter character) : base(character)
         {
             _maxHealth = 1f;
             _currentHealth = 1f;
         }
+
+        public float CurrentHealth => _currentHealth;
+        public float MaxHealth => _maxHealth;
+        public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
+        public bool IsAlive => _currentHealth > 0f;
 
         public override void Initialize()
         {
@@ -50,7 +53,7 @@ namespace MortierFu
             // Cannot take damage if already dead
             if (!IsAlive)
                 return;
-            
+
             float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
@@ -60,7 +63,7 @@ namespace MortierFu
                 blinkCount: 5,
                 blinkDuration: 0.08f
             );
-            
+
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
                 Instigator = source as PlayerCharacter, // Si ça ça marche jsuis content
@@ -70,48 +73,63 @@ namespace MortierFu
                 MaxHealth = _maxHealth,
                 Delta = -amount
             });
-            
+
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
             if (!IsAlive)
             {
                 _currentHealth = 0;
                 OnDeath?.Invoke(source);
-                
-                EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath() {
+
+                EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath()
+                {
                     Character = Character,
                     Context = ResolveDeathContext(character, source)
                 });
-
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
             }
         }
 
-        private DeathContext ResolveDeathContext(PlayerCharacter character, object source) {
+        private DeathContext ResolveDeathContext(PlayerCharacter character, object source)
+        {
             // If killed by a player's bombshell
-            if (source is PlayerCharacter killer) {
-                return new DeathContext {
+            if (source is PlayerCharacter killer)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
+
+                return new DeathContext
+                {
                     Killer = killer,
                     DeathCause = E_DeathCause.BombshellExplosion
                 };
             }
 
             // Died by falling
-            if (source is DeathTrigger) {
+            if (source is DeathTrigger)
+            {
                 var kn = character.KnockbackState;
-                
+
                 // Only consider recent push
-                if(kn.ComputeLastBumpElapsedTime() < 8f)
+                if (kn.ComputeLastBumpElapsedTime() < 8f)
                 {
-                    if (kn.LastBumpSource is Bumper bumper) {
-                        return new DeathContext {
+                    if (kn.LastBumpSource is Bumper bumper)
+                    {
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_CarCrash,
+                            character.transform.position);
+
+                        return new DeathContext
+                        {
                             Killer = kn.LastPusher,
                             DeathCause = E_DeathCause.VehicleCrash
                         };
                     }
-                    
-                    if (kn.LastPusher) {
-                        return new DeathContext {
+
+                    if (kn.LastPusher)
+                    {
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death,
+                            character.transform.position);
+
+                        return new DeathContext
+                        {
                             Killer = kn.LastPusher,
                             DeathCause = E_DeathCause.Fall
                         };
@@ -119,7 +137,10 @@ namespace MortierFu
                 }
             }
 
-            return new DeathContext {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Fall, character.transform.position);
+
+            return new DeathContext
+            {
                 Killer = null,
                 DeathCause = E_DeathCause.Fall
             };
@@ -143,7 +164,8 @@ namespace MortierFu
             });
         }
 
-        public override void Reset() {
+        public override void Reset()
+        {
             float previousHealth = _currentHealth;
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
