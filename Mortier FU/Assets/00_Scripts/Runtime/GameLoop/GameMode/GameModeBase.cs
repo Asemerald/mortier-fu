@@ -585,7 +585,7 @@ namespace MortierFu
 
             player.Metrics.TotalDeaths++;
             alivePlayers.Remove(player.Character);
-            cameraSystem.Controller.RemoveTarget(player.transform);
+            cameraSystem.Controller.RemoveTarget(evt.Character.transform);
 
             if (evt.Context.Killer)
             {
