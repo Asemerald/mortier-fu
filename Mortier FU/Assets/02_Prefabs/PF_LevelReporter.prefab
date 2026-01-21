@@ -64,6 +64,37 @@ Transform:
   - {fileID: 3862948409411120684}
   m_Father: {fileID: 6070222457573841960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4715390823372672268
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5538538734176667989}
+  m_Layer: 0
+  m_Name: RoundWinnerSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5538538734176667989
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715390823372672268}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6070222457573841960}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5018275282080223790
 GameObject:
   m_ObjectHideFlags: 0
@@ -192,6 +223,7 @@ Transform:
   m_Children:
   - {fileID: 4352717474269166703}
   - {fileID: 2263864279897111582}
+  - {fileID: 5538538734176667989}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4158406251926292994
@@ -209,6 +241,7 @@ MonoBehaviour:
   SpawnPoints:
   - {fileID: 8270493795685870074}
   - {fileID: 3862948409411120684}
+  RoundWinnerSpawnPoint: {fileID: 5538538734176667989}
   _cameraMapConfig:
     PositionForRace: {x: 0, y: 10, z: -10}
     OrthoSize: 20
@@ -218,6 +251,7 @@ MonoBehaviour:
   Radius: 4
   _enableDebug: 1
   _winnerSpawnColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _raceWinnerSpawnColor: {r: 0.5764706, g: 0.4392157, b: 0.8588236, a: 1}
   _spawnPointColor: {r: 0.1176471, g: 0.5647059, b: 1, a: 1}
   _augmentPointColor: {r: 0.26050434, g: 0.8396226, b: 0.13069598, a: 1}
   _widgetSize: 0.1
