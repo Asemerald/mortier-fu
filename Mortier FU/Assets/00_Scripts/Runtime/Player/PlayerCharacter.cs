@@ -52,8 +52,8 @@ namespace MortierFu
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
 
-        private List<IEffect<PlayerCharacter>> _activeEffects = new();
-        private List<Ability> PuddleAbilities; //TODO: Make it better
+        // private List<IEffect<PlayerCharacter>> _activeEffects = new();
+        //private List<Ability> PuddleAbilities; //TODO: Make it better
 
         private LocomotionState _locomotionState;
         private KnockbackState _knockbackState;
@@ -69,7 +69,7 @@ namespace MortierFu
         public PlayerInput PlayerInput => Owner?.PlayerInput;
         public ShakeService ShakeService => _shakeService;
 
-        public List<Ability> GetPuddleAbilities => PuddleAbilities;
+        // public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
@@ -121,8 +121,8 @@ namespace MortierFu
             _augments = new List<IAugment>();
             Augments = _augments.AsReadOnly();
 
-            _activeEffects = new List<IEffect<PlayerCharacter>>();
-            PuddleAbilities = new List<Ability>();
+            // _activeEffects = new List<IEffect<PlayerCharacter>>();
+            //   PuddleAbilities = new List<Ability>();
 
             InitStateMachine();
         }
@@ -167,15 +167,15 @@ namespace MortierFu
             Aspect.Reset();
             Mortar.Reset();
 
-            var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
+            /* var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
 
-            foreach (var effect in effectsCopy)
-            {
-                effect.OnCompleted -= RemoveEffect;
-                effect.Cancel(this);
-            }
+              foreach (var effect in effectsCopy)
+              {
+                  effect.OnCompleted -= RemoveEffect;
+                  effect.Cancel(this);
+              }
 
-            _activeEffects.Clear();
+            _activeEffects.Clear();*/
 
             _knockbackState.Reset();
             _dashState.Reset();
@@ -279,20 +279,20 @@ namespace MortierFu
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
-        public void AddPuddleEffect(Ability ability)
-        {
-            if (!PuddleAbilities.Contains(ability)) //TODO: see later if we add duplicate or power up the effect
-            {
-                PuddleAbilities.Add(ability);
-            }
-        }
+        /* public void AddPuddleEffect(Ability ability)
+         {
+             if (!PuddleAbilities.Contains(ability)) //TODO: see later if we add duplicate or power up the effect
+             {
+                 PuddleAbilities.Add(ability);
+             }
+         }
 
-        public void RemovePuddleEffect(Ability ability)
-        {
-            PuddleAbilities.Remove(ability);
-        }
+         public void RemovePuddleEffect(Ability ability)
+         {
+             PuddleAbilities.Remove(ability);
+         }*/
 
-        private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
+        //   private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
 
         // Could also implement a RemoveAugment method if needed
 
@@ -394,7 +394,7 @@ namespace MortierFu
             _animator.SetFloat(_speedHash, Controller.SpeedRatio);
         }
 
-        public void ApplyEffect(IEffect<PlayerCharacter> effect)
+        /*public void ApplyEffect(IEffect<PlayerCharacter> effect)
         {
             if (HasEffect(effect))
                 return;
@@ -408,7 +408,7 @@ namespace MortierFu
         {
             effect.OnCompleted -= RemoveEffect;
             _activeEffects.Remove(effect);
-        }
+        }*/
 
         private void PlayDashSFX(InputAction.CallbackContext context)
         {
@@ -435,7 +435,7 @@ namespace MortierFu
                 0.5f,
                 Ease.OutQuad
             ).ToUniTask();
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
             _animator.CrossFade("WinRound", 0.1f, 0);

@@ -39,7 +39,7 @@ namespace MortierFu
         protected AugmentSelectionSystem augmentSelectionSys;
         protected LevelSystem levelSystem;
         protected BombshellSystem bombshellSys;
-        protected PuddleSystem puddleSys;
+       // protected PuddleSystem puddleSys;
         protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
@@ -95,7 +95,7 @@ namespace MortierFu
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
-            puddleSys = SystemManager.Instance.Get<PuddleSystem>();
+           // puddleSys = SystemManager.Instance.Get<PuddleSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -369,7 +369,7 @@ namespace MortierFu
             EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
 
             bombshellSys.ClearActiveBombshells();
-            puddleSys.ClearActivePuddles();
+            //puddleSys.ClearActivePuddles();
 
             if (stormInstance)
             {

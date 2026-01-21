@@ -9,10 +9,10 @@ namespace MortierFu
         
         public PuddleFactory(PuddleSystem system)
         {
-            _system = system;
+          //  _system = system;
         }
 
-        public void CreatePuddle(PlayerCharacter owner, Vector3 pos, Vector3 scale, float lifetime, List<Ability> abilities)
+        public void CreatePuddle(PlayerCharacter owner, Vector3 pos, Vector3 scale, float lifetime)
         {
             //TODO: Refacto
             var puddleData = new Puddle.Data
@@ -25,10 +25,10 @@ namespace MortierFu
 
             var puddle = _system.RequestPuddle(puddleData);
 
-            foreach (var ability in abilities)
+         /*   foreach (var ability in abilities)
             {
                 puddle.AddAbility(ability);
-            }
+            }*/
         }
     }
 }

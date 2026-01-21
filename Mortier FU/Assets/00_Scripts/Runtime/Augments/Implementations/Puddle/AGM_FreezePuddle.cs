@@ -22,14 +22,14 @@ namespace MortierFu
         public override void Initialize()
         {
             base.Initialize();
-            Owner.AddPuddleEffect(db.FreezePuddleParams.Ability);
+            // Owner.AddPuddleEffect(db.FreezePuddleParams.Ability);
         }
 
         protected override void OnTriggerBombshellImpact(TriggerBombshellImpact evt)
         {
             if (evt.Bombshell.Owner != Owner) return;
             if (!evt.HitGround) return;
-            
+
             Vector3 pos = evt.HitPoint;
 
             SpawnPlayerPuddle(Owner, pos, db.FreezePuddleParams.Scale, db.FreezePuddleParams.LifeTime);
@@ -41,7 +41,7 @@ namespace MortierFu
 
         public override void Dispose()
         {
-            Owner.RemovePuddleEffect(db.FreezePuddleParams.Ability);
+            //  Owner.RemovePuddleEffect(db.FreezePuddleParams.Ability);
         }
     }
 }
