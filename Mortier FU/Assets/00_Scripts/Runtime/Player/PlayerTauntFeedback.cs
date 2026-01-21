@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -28,7 +29,7 @@ namespace MortierFu
         [SerializeField] private float _scaleInDuration = 0.5f;
         [SerializeField] private float _holdDuration = 0.5f;
         [SerializeField] private float _scaleOutDuration = 0.3f;
-
+        
         #endregion
 
         #region Private Fields
@@ -49,12 +50,18 @@ namespace MortierFu
             _tauntImg.sprite = _characterIcons[_character.Owner.PlayerIndex];
             _tauntImg.enabled = false;
         }
-
+        
         #endregion
 
         #region Taunt
 
-        public async UniTask PlayTauntAsync()
+        public void Taunt()
+        {
+            if (!_character.Health.IsAlive) return;
+            PlayTauntAsync().Forget();
+        }
+
+        private async UniTaskVoid PlayTauntAsync()
         {
             if (_isTaunting || _tauntImg == null) return;
 

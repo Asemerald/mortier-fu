@@ -140,15 +140,6 @@ namespace MortierFu
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Taunt"",
-                    ""type"": ""Button"",
-                    ""id"": ""c0bb901f-e8fd-4eed-b240-12a980b97a3f"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Pause"",
                     ""type"": ""Button"",
                     ""id"": ""f140deea-93a7-46e4-913c-644aac725ea0"",
@@ -354,17 +345,6 @@ namespace MortierFu
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleAim"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""a4ab0d74-a58d-46e7-a656-091619198311"",
-                    ""path"": ""<Gamepad>/buttonEast"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Taunt"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -1000,10 +980,32 @@ namespace MortierFu
             ]
         },
         {
-            ""name"": ""Nothing"",
-            ""id"": ""e85f4505-6147-4ba7-b5eb-fb77df66acb4"",
-            ""actions"": [],
-            ""bindings"": []
+            ""name"": ""Global"",
+            ""id"": ""12340f8e-501e-46e1-947a-4b85dd0361e8"",
+            ""actions"": [
+                {
+                    ""name"": ""Taunt"",
+                    ""type"": ""Button"",
+                    ""id"": ""bbbc3419-2971-44e7-9dbc-5f1a9e2c40ae"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""91658ed2-c65d-4380-9969-8788e47f1eae"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -1060,7 +1062,6 @@ namespace MortierFu
             m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
             m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
             m_Gameplay_ToggleAim = m_Gameplay.FindAction("ToggleAim", throwIfNotFound: true);
-            m_Gameplay_Taunt = m_Gameplay.FindAction("Taunt", throwIfNotFound: true);
             m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
@@ -1078,15 +1079,16 @@ namespace MortierFu
             m_UI_Join = m_UI.FindAction("Join", throwIfNotFound: true);
             m_UI_StartGame = m_UI.FindAction("StartGame", throwIfNotFound: true);
             m_UI_UnPause = m_UI.FindAction("UnPause", throwIfNotFound: true);
-            // Nothing
-            m_Nothing = asset.FindActionMap("Nothing", throwIfNotFound: true);
+            // Global
+            m_Global = asset.FindActionMap("Global", throwIfNotFound: true);
+            m_Global_Taunt = m_Global.FindAction("Taunt", throwIfNotFound: true);
         }
 
         ~@PlayerActionInput()
         {
             UnityEngine.Debug.Assert(!m_Gameplay.enabled, "This will cause a leak and performance issues, PlayerActionInput.Gameplay.Disable() has not been called.");
             UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, PlayerActionInput.UI.Disable() has not been called.");
-            UnityEngine.Debug.Assert(!m_Nothing.enabled, "This will cause a leak and performance issues, PlayerActionInput.Nothing.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Global.enabled, "This will cause a leak and performance issues, PlayerActionInput.Global.Disable() has not been called.");
         }
 
         /// <summary>
@@ -1167,7 +1169,6 @@ namespace MortierFu
         private readonly InputAction m_Gameplay_Shoot;
         private readonly InputAction m_Gameplay_Aim;
         private readonly InputAction m_Gameplay_ToggleAim;
-        private readonly InputAction m_Gameplay_Taunt;
         private readonly InputAction m_Gameplay_Pause;
         /// <summary>
         /// Provides access to input actions defined in input action map "Gameplay".
@@ -1200,10 +1201,6 @@ namespace MortierFu
             /// Provides access to the underlying input action "Gameplay/ToggleAim".
             /// </summary>
             public InputAction @ToggleAim => m_Wrapper.m_Gameplay_ToggleAim;
-            /// <summary>
-            /// Provides access to the underlying input action "Gameplay/Taunt".
-            /// </summary>
-            public InputAction @Taunt => m_Wrapper.m_Gameplay_Taunt;
             /// <summary>
             /// Provides access to the underlying input action "Gameplay/Pause".
             /// </summary>
@@ -1249,9 +1246,6 @@ namespace MortierFu
                 @ToggleAim.started += instance.OnToggleAim;
                 @ToggleAim.performed += instance.OnToggleAim;
                 @ToggleAim.canceled += instance.OnToggleAim;
-                @Taunt.started += instance.OnTaunt;
-                @Taunt.performed += instance.OnTaunt;
-                @Taunt.canceled += instance.OnTaunt;
                 @Pause.started += instance.OnPause;
                 @Pause.performed += instance.OnPause;
                 @Pause.canceled += instance.OnPause;
@@ -1281,9 +1275,6 @@ namespace MortierFu
                 @ToggleAim.started -= instance.OnToggleAim;
                 @ToggleAim.performed -= instance.OnToggleAim;
                 @ToggleAim.canceled -= instance.OnToggleAim;
-                @Taunt.started -= instance.OnTaunt;
-                @Taunt.performed -= instance.OnTaunt;
-                @Taunt.canceled -= instance.OnTaunt;
                 @Pause.started -= instance.OnPause;
                 @Pause.performed -= instance.OnPause;
                 @Pause.canceled -= instance.OnPause;
@@ -1560,24 +1551,29 @@ namespace MortierFu
         /// </summary>
         public UIActions @UI => new UIActions(this);
 
-        // Nothing
-        private readonly InputActionMap m_Nothing;
-        private List<INothingActions> m_NothingActionsCallbackInterfaces = new List<INothingActions>();
+        // Global
+        private readonly InputActionMap m_Global;
+        private List<IGlobalActions> m_GlobalActionsCallbackInterfaces = new List<IGlobalActions>();
+        private readonly InputAction m_Global_Taunt;
         /// <summary>
-        /// Provides access to input actions defined in input action map "Nothing".
+        /// Provides access to input actions defined in input action map "Global".
         /// </summary>
-        public struct NothingActions
+        public struct GlobalActions
         {
             private @PlayerActionInput m_Wrapper;
 
             /// <summary>
             /// Construct a new instance of the input action map wrapper class.
             /// </summary>
-            public NothingActions(@PlayerActionInput wrapper) { m_Wrapper = wrapper; }
+            public GlobalActions(@PlayerActionInput wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "Global/Taunt".
+            /// </summary>
+            public InputAction @Taunt => m_Wrapper.m_Global_Taunt;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
-            public InputActionMap Get() { return m_Wrapper.m_Nothing; }
+            public InputActionMap Get() { return m_Wrapper.m_Global; }
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
             public void Enable() { Get().Enable(); }
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
@@ -1585,9 +1581,9 @@ namespace MortierFu
             /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
             public bool enabled => Get().enabled;
             /// <summary>
-            /// Implicitly converts an <see ref="NothingActions" /> to an <see ref="InputActionMap" /> instance.
+            /// Implicitly converts an <see ref="GlobalActions" /> to an <see ref="InputActionMap" /> instance.
             /// </summary>
-            public static implicit operator InputActionMap(NothingActions set) { return set.Get(); }
+            public static implicit operator InputActionMap(GlobalActions set) { return set.Get(); }
             /// <summary>
             /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
             /// </summary>
@@ -1595,11 +1591,14 @@ namespace MortierFu
             /// <remarks>
             /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
             /// </remarks>
-            /// <seealso cref="NothingActions" />
-            public void AddCallbacks(INothingActions instance)
+            /// <seealso cref="GlobalActions" />
+            public void AddCallbacks(IGlobalActions instance)
             {
-                if (instance == null || m_Wrapper.m_NothingActionsCallbackInterfaces.Contains(instance)) return;
-                m_Wrapper.m_NothingActionsCallbackInterfaces.Add(instance);
+                if (instance == null || m_Wrapper.m_GlobalActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_GlobalActionsCallbackInterfaces.Add(instance);
+                @Taunt.started += instance.OnTaunt;
+                @Taunt.performed += instance.OnTaunt;
+                @Taunt.canceled += instance.OnTaunt;
             }
 
             /// <summary>
@@ -1608,18 +1607,21 @@ namespace MortierFu
             /// <remarks>
             /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
             /// </remarks>
-            /// <seealso cref="NothingActions" />
-            private void UnregisterCallbacks(INothingActions instance)
+            /// <seealso cref="GlobalActions" />
+            private void UnregisterCallbacks(IGlobalActions instance)
             {
+                @Taunt.started -= instance.OnTaunt;
+                @Taunt.performed -= instance.OnTaunt;
+                @Taunt.canceled -= instance.OnTaunt;
             }
 
             /// <summary>
-            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="NothingActions.UnregisterCallbacks(INothingActions)" />.
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="GlobalActions.UnregisterCallbacks(IGlobalActions)" />.
             /// </summary>
-            /// <seealso cref="NothingActions.UnregisterCallbacks(INothingActions)" />
-            public void RemoveCallbacks(INothingActions instance)
+            /// <seealso cref="GlobalActions.UnregisterCallbacks(IGlobalActions)" />
+            public void RemoveCallbacks(IGlobalActions instance)
             {
-                if (m_Wrapper.m_NothingActionsCallbackInterfaces.Remove(instance))
+                if (m_Wrapper.m_GlobalActionsCallbackInterfaces.Remove(instance))
                     UnregisterCallbacks(instance);
             }
 
@@ -1629,21 +1631,21 @@ namespace MortierFu
             /// <remarks>
             /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
             /// </remarks>
-            /// <seealso cref="NothingActions.AddCallbacks(INothingActions)" />
-            /// <seealso cref="NothingActions.RemoveCallbacks(INothingActions)" />
-            /// <seealso cref="NothingActions.UnregisterCallbacks(INothingActions)" />
-            public void SetCallbacks(INothingActions instance)
+            /// <seealso cref="GlobalActions.AddCallbacks(IGlobalActions)" />
+            /// <seealso cref="GlobalActions.RemoveCallbacks(IGlobalActions)" />
+            /// <seealso cref="GlobalActions.UnregisterCallbacks(IGlobalActions)" />
+            public void SetCallbacks(IGlobalActions instance)
             {
-                foreach (var item in m_Wrapper.m_NothingActionsCallbackInterfaces)
+                foreach (var item in m_Wrapper.m_GlobalActionsCallbackInterfaces)
                     UnregisterCallbacks(item);
-                m_Wrapper.m_NothingActionsCallbackInterfaces.Clear();
+                m_Wrapper.m_GlobalActionsCallbackInterfaces.Clear();
                 AddCallbacks(instance);
             }
         }
         /// <summary>
-        /// Provides a new <see cref="NothingActions" /> instance referencing this action map.
+        /// Provides a new <see cref="GlobalActions" /> instance referencing this action map.
         /// </summary>
-        public NothingActions @Nothing => new NothingActions(this);
+        public GlobalActions @Global => new GlobalActions(this);
         private int m_GamepadSchemeIndex = -1;
         /// <summary>
         /// Provides access to the input control scheme.
@@ -1738,13 +1740,6 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnToggleAim(InputAction.CallbackContext context);
-            /// <summary>
-            /// Method invoked when associated input action "Taunt" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-            /// </summary>
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnTaunt(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Pause" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
@@ -1860,12 +1855,19 @@ namespace MortierFu
             void OnUnPause(InputAction.CallbackContext context);
         }
         /// <summary>
-        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Nothing" which allows adding and removing callbacks.
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Global" which allows adding and removing callbacks.
         /// </summary>
-        /// <seealso cref="NothingActions.AddCallbacks(INothingActions)" />
-        /// <seealso cref="NothingActions.RemoveCallbacks(INothingActions)" />
-        public interface INothingActions
+        /// <seealso cref="GlobalActions.AddCallbacks(IGlobalActions)" />
+        /// <seealso cref="GlobalActions.RemoveCallbacks(IGlobalActions)" />
+        public interface IGlobalActions
         {
+            /// <summary>
+            /// Method invoked when associated input action "Taunt" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt(InputAction.CallbackContext context);
         }
     }
 }
