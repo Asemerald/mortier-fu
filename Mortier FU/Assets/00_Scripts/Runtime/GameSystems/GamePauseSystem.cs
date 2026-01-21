@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEditor.Profiling;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -35,7 +36,8 @@ namespace MortierFu
         {
             if (!IsPaused) return;
 
-            PrimaryPlayerInput.SwitchCurrentActionMap(_previousInputMap);
+            PrimaryPlayerInput.SwitchCurrentActionMap(_previousInputMap); 
+            PrimaryPlayerInput.actions.FindActionMap("Global").Enable();
 
             IsPaused = false;
             Time.timeScale = 1f;

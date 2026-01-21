@@ -52,15 +52,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Taunt",
-                    "type": "Button",
-                    "id": "c0bb901f-e8fd-4eed-b240-12a980b97a3f",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Pause",
                     "type": "Button",
                     "id": "f140deea-93a7-46e4-913c-644aac725ea0",
@@ -266,17 +257,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleAim",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a4ab0d74-a58d-46e7-a656-091619198311",
-                    "path": "<Gamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Taunt",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -912,10 +892,32 @@
             ]
         },
         {
-            "name": "Nothing",
-            "id": "e85f4505-6147-4ba7-b5eb-fb77df66acb4",
-            "actions": [],
-            "bindings": []
+            "name": "Global",
+            "id": "12340f8e-501e-46e1-947a-4b85dd0361e8",
+            "actions": [
+                {
+                    "name": "Taunt",
+                    "type": "Button",
+                    "id": "bbbc3419-2971-44e7-9dbc-5f1a9e2c40ae",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "91658ed2-c65d-4380-9969-8788e47f1eae",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Taunt",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

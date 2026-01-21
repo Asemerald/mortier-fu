@@ -19,6 +19,8 @@ namespace MortierFu
         /// </summary>
         public static bool AllowGameplayActions { get; set; }
 
+        [SerializeField] private PlayerTauntFeedback _tauntFeedback;
+        
         [Header("Dash Trail")] [SerializeField]
         private GameObject _dashTrailPrefab;
 
@@ -30,7 +32,6 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private Animator _animator;
 
-        [SerializeField] private PlayerTauntFeedback _tauntFeedback;
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
 
@@ -145,9 +146,8 @@ namespace MortierFu
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
 
-            _tauntAction.started += ctx => _tauntFeedback.PlayTauntAsync().Forget();
-
             _dashAction.started += PlayDashSFX;
+            _tauntAction.started += Taunt;
 
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
@@ -193,13 +193,14 @@ namespace MortierFu
             Mortar.Dispose();
 
             _dashAction.started -= PlayDashSFX;
+            _tauntAction.started -= Taunt;
 
             if (_toggleAimAction == null || Mortar == null) return;
 
             _toggleAimAction.started -= Mortar.BeginAiming;
             _toggleAimAction.canceled -= Mortar.EndAiming;
         }
-
+        
         private void InitStateMachine()
         {
             _stateMachine = new StateMachine();
@@ -440,8 +441,7 @@ namespace MortierFu
 
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
-
-
+        
         private void At(IState from, IState to, IPredicate condition) =>
             _stateMachine.AddTransition(from, to, condition);
 
@@ -452,6 +452,7 @@ namespace MortierFu
         private bool ShouldShowStats => Stats != null;
 #endif
 
+        private void Taunt(InputAction.CallbackContext ctx) => _tauntFeedback.Taunt();
 
         #region SKINS
 

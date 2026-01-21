@@ -103,6 +103,7 @@ namespace MortierFu
                 : "UI";
 
             PlayerInput.SwitchCurrentActionMap(targetMap);
+            PlayerInput.actions.FindActionMap("Global", true).Enable();
         }
 
         private void CancelUI(InputAction.CallbackContext ctx)
@@ -156,6 +157,7 @@ namespace MortierFu
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
             
             _playerInput.SwitchCurrentActionMap("Gameplay");
+            PlayerInput.actions.FindActionMap("Global").Enable();
         }
 
         /// <summary>
