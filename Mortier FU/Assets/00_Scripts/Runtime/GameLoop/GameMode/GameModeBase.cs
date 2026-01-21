@@ -88,9 +88,6 @@ namespace MortierFu
         public event Func<UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
-        private const string k_gameplayActionMap = "Gameplay";
-        private const string k_uiActionMap = "UI";
-
         public virtual async UniTask StartGame()
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();

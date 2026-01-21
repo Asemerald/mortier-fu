@@ -218,7 +218,7 @@ namespace MortierFu
         private void OpenControlPanel()
         {
             PlayPanelSelectionFeedback();
-            AnimateOpenPanel(_controlsPanel, _controlPanelCTS, null, _panelScaleDuration, _panelScaleEase).Forget();
+            AnimateOpenPanel(_controlsPanel, _controlPanelCTS, null, 0.2f, Ease.OutCubic).Forget();
         }
 
         private void OpenEndGamePanel()
