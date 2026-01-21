@@ -72,7 +72,6 @@ namespace MortierFu
         private Ease _actionButtonEaseOut = Ease.OutBack;
 
         [SerializeField] private Ease _actionImageEaseInOut = Ease.InOutQuad;
-        [SerializeField] private Ease _readyEaseIn = Ease.InBack;
         [SerializeField] private Ease _slotEaseIn = Ease.InQuint;
 
         [Header("Ready Animation Settings")] [SerializeField]
