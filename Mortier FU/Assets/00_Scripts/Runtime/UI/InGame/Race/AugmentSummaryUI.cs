@@ -43,6 +43,7 @@ namespace MortierFu
         [SerializeField] private float _augmentIconAnimDuration = 0.8f;
         [SerializeField] private Ease _augmentIconScaleEase = Ease.OutBack;
         [SerializeField] private Ease _augmentIconMoveEase = Ease.OutCubic;
+        [SerializeField] private float _childAnimationExponentFactor = 1.2f;
 
         #endregion
 
@@ -54,7 +55,7 @@ namespace MortierFu
 
         #region Runtime State
 
-        private List<Tween> _activeTweens = new ();
+        private List<Tween> _activeTweens = new();
         private CancellationTokenSource _cts;
 
         #endregion
@@ -148,7 +149,7 @@ namespace MortierFu
                 var playerTransform = _playerImages[i].transform;
                 var playerTween = Tween.Scale(playerTransform, Vector3.zero, Vector3.one * _playerTargetScale,
                     _playerScaleDuration, _playerScaleEase);
-                
+
                 _activeTweens.Add(playerTween);
 
                 await UniTask.Yield();
@@ -188,20 +189,29 @@ namespace MortierFu
                 );
             }
 
+            float minDelay = 0.05f;
+            float maxDelay = _childAnimDelay;
+
             for (int i = 0; i < childCount; i++)
             {
                 ct.ThrowIfCancellationRequested();
-                
+
                 Transform child = parent.GetChild(i);
                 if (!child.gameObject.activeSelf) continue;
 
-                var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _augmentIconAnimDuration, _augmentIconScaleEase);
-                var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _augmentIconAnimDuration, _augmentIconMoveEase);
+                var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _augmentIconAnimDuration,
+                    _augmentIconScaleEase);
+                var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _augmentIconAnimDuration,
+                    _augmentIconMoveEase);
 
                 _activeTweens.Add(scaleTween);
                 _activeTweens.Add(moveTween);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_childAnimDelay), cancellationToken: ct);
+                float t = (float)i / (childCount - 1);
+                float delay = Mathf.Lerp(maxDelay, minDelay, Mathf.Pow(t, _childAnimationExponentFactor));
+
+                Debug.LogError(delay);
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: ct);
             }
         }
     }
