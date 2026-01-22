@@ -27,6 +27,6 @@ namespace MortierFu
         [Header("References")]
         public AssetReferenceGameObject BombshellPrefab;
         public LayerMask WhatIsCollidable;
-
+        public LayerMask WhatIsPreviewable;
     }
 }

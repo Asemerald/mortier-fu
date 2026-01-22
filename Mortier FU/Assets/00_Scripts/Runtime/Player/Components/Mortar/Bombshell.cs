@@ -116,8 +116,6 @@ namespace MortierFu
             // Place the projectile according to the computed trajectory
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
-            
-            Debug.Log($"Trajectory: Dist {groundDir.magnitude} issues {bombshellHeight}m and {_travelTime}s");
         }
         
         private float CalculateBombshellHeight(float targetDistance)
@@ -135,7 +133,6 @@ namespace MortierFu
         {
             _aspect.OnGet();
         }
-
 
         public void OnRelease()
         {
@@ -160,7 +157,7 @@ namespace MortierFu
 
             int safety = 0;
             while (remainingDistance > 0f && safety++ < 5)
-            { 
+            {
                 RaycastHit hit;
                 if (Physics.SphereCast(startPos, radius, moveDir, out hit,
                                        remainingDistance, _system.Settings.WhatIsCollidable,
@@ -208,6 +205,8 @@ namespace MortierFu
                         // Update startPos and moveDir for the next loop iteration
                         startPos = centerAtHit;
                         moveDir = (_velocity.sqrMagnitude > 0f) ? _velocity.normalized : Vector3.zero;
+
+                        HandleImpactPreview().Forget();
                         
                         // If velocity dropped to near zero, break
                         if (_velocity.sqrMagnitude < 0.0001f) break;
@@ -235,17 +234,39 @@ namespace MortierFu
             }
         }
         
-        private async UniTask HandleImpactPreview()
-        {
-            float resolvedTravelTime = _travelTime / _data.Speed;
-            float delay = resolvedTravelTime * _system.Settings.ImpactPreviewDelayFactor;
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        private async UniTask HandleImpactPreview() {
+            const float k_maxSimulationTime = 20f;
+
+            Vector3 currentPos = transform.position;
+            Vector3 currentVel = _velocity;
+            float radius = _data.Scale * 0.5f;
+            float dT = Time.fixedDeltaTime * _data.Speed;
             
-            if (TEMP_FXHandler.Instance)
+            RaycastHit hitResult;
+            for (float previewTime = Time.fixedDeltaTime; previewTime  < k_maxSimulationTime; previewTime += Time.fixedDeltaTime)
             {
-                TEMP_FXHandler.Instance.InstantiatePreview(_data.TargetPos, resolvedTravelTime - delay, _data.AoeRange);
+                if (Physics.SphereCast(currentPos, radius, currentVel.normalized, out hitResult,
+                        currentVel.magnitude * dT, _system.Settings.WhatIsPreviewable, QueryTriggerInteraction.Collide)) 
+                {
+                    float delay = previewTime * _system.Settings.ImpactPreviewDelayFactor;
+                    Vector3 previewPoint = hitResult.point.Add(y: 0.3f);
+                    
+                    await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+                    if (TEMP_FXHandler.Instance) {
+                        TEMP_FXHandler.Instance.InstantiatePreview(previewPoint, previewTime - delay, _data.AoeRange);
+                    } else Logs.LogWarning("No FX Handler");
+
+                    break;
+
+                } else {
+                    // Update velocity
+                    currentVel += Physics.gravity * (_data.GravityScale * dT);
+                    
+                    // Apply velocity to position
+                    currentPos += currentVel * dT;
+                }
             }
-            else Logs.LogWarning("No FX Handler");
         }
 
         /// <summary>
