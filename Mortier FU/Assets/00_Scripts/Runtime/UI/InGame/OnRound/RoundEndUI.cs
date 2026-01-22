@@ -12,6 +12,13 @@ namespace MortierFu
 {
     public class RoundEndUI : MonoBehaviour
     {
+        private static readonly E_DeathCause[] KillDisplayOrder =
+        {
+            E_DeathCause.BombshellExplosion,
+            E_DeathCause.Fall,
+            E_DeathCause.VehicleCrash
+        };
+
         [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
         [SerializeField] private Image _winnerBackgroundColorImage;
@@ -47,8 +54,14 @@ namespace MortierFu
         private Vector2[] _leaderboardPositions;
 
         [SerializeField] private Sprite[] _placeSprites;
-        [SerializeField] private Sprite[] _killContextSprites;
         [SerializeField] private Sprite[] _scoreSprites;
+
+        [SerializeField] private Sprite _bombshellKillContextSprite;
+        [SerializeField] private Sprite _bombshellKillScoreSprite;
+        [SerializeField] private Sprite _fallKillContextSprite;
+        [SerializeField] private Sprite _fallKillScoreSprite;
+        [SerializeField] private Sprite _vehicleCrashKillContextSprite;
+        [SerializeField] private Sprite _vehicleCrashKillScoreSprite;
 
         [SerializeField] private Image[] _scoreImages;
         [SerializeField] private Image[] _killContextImages;
@@ -59,6 +72,8 @@ namespace MortierFu
         private Vector3 _originalScale;
 
         private int _previousTopPlayerIndex = 0;
+
+        private int[] _displayedScores;
 
         private void Awake()
         {
@@ -78,31 +93,31 @@ namespace MortierFu
 
             var teams = gm.Teams;
 
+            _displayedScores = new int[_playerSlots.Length];
+
+            foreach (var team in teams)
+            {
+                _displayedScores[team.Index] =
+                    team.Score
+                    - GetPlacementBonus(team, gm)
+                    - GetTotalKillScore(team, gm);
+            }
+            
             InitializePlayerPanels(teams, _leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
 
-            DisplayKillIndicators(teams);
-
             AnimateRoundEndSequence(teams, gm).Forget();
         }
-
-        private void DisplayKillIndicators(ReadOnlyCollection<PlayerTeam> teams)
+        
+        private int GetPlacementBonus(PlayerTeam team, GameModeBase gm)
         {
-            foreach (var team in teams)
+            return team.Rank switch
             {
-                int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
-
-                int roundKills = team.Members.Sum(m => m.Metrics.RoundKills.Count);
-
-                /*TextMeshProUGUI placeText = _playerPlaceTexts[idx];
-                int maxIndicators = Mathf.Min(placeText.transform.childCount, 3);
-
-                for (int i = 0; i < maxIndicators; i++)
-                {
-                    placeText.transform.GetChild(i).gameObject.SetActive(i < roundKills);
-                }*/
-            }
+                1 => gm.Data.FirstRankBonusScore,
+                2 => gm.Data.SecondRankBonusScore,
+                3 => gm.Data.ThirdRankBonusScore,
+                _ => 0
+            };
         }
 
         #endregion
@@ -163,60 +178,214 @@ namespace MortierFu
 
             tasks.Clear();
 
-            await AnimateScoreSliders(teams);
-            
-            
-         //   int roundKills = team.Members.Sum(m => m.Metrics.RoundKills.Count);
+            await AnimatePlacementScore(teams, gm);
+
+            // Jusque là tout est good
+
+            foreach (var cause in KillDisplayOrder)
+            {
+                var showTasks = new List<UniTask>();
+
+                foreach (var team in teams)
+                {
+                    int playerIdx = team.Index;
+                    if (!IsValidPlayerIndex(playerIdx))
+                        continue;
+
+                    int killCount = GetKillCountForCause(team, cause);
+                    if (killCount <= 0)
+                        continue;
+
+                    var contextImg = _killContextImages[playerIdx];
+
+                    var scoreImg = _scoreImages[playerIdx];
+
+                    contextImg.transform.localScale = Vector3.zero;
+                    scoreImg.transform.localScale = Vector3.zero;
+
+                    contextImg.sprite = GetKillContextSprite(cause);
+                    scoreImg.sprite = GetKillScoreSprite(cause);
+
+                    contextImg.gameObject.SetActive(true);
+                    scoreImg.gameObject.SetActive(true);
+
+                    showTasks.Add(
+                        Tween.Scale(contextImg.transform, Vector3.one, 0.5f, Ease.OutBack)
+                            .Group(Tween.Scale(scoreImg.transform, Vector3.one, 0.5f, Ease.OutBack))
+                            .ToUniTask()
+                    );
+                }
+
+                if (showTasks.Count == 0)
+                    continue;
+
+                await UniTask.WhenAll(showTasks);
+
+                await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
+
+                var hideTasks = new List<UniTask>();
+
+                foreach (var team in teams)
+                {
+                    int playerIdx = team.Index;
+                    if (!IsValidPlayerIndex(playerIdx))
+                        continue;
+
+                    var contextImg = _killContextImages[playerIdx];
+                    var scoreImg = _scoreImages[playerIdx];
+
+                    if (!contextImg.gameObject.activeSelf)
+                        continue;
+
+                    hideTasks.Add(
+                        Tween.Scale(contextImg.transform, Vector3.zero, 0.4f, Ease.InBack)
+                            .Group(Tween.Scale(scoreImg.transform, Vector3.zero, 0.4f, Ease.InBack))
+                            .ToUniTask()
+                    );
+                }
+
+                await UniTask.WhenAll(hideTasks);
+
+                foreach (var team in teams)
+                {
+                    int playerIdx = team.Index;
+                    if (!IsValidPlayerIndex(playerIdx))
+                        continue;
+
+                    _killContextImages[playerIdx].gameObject.SetActive(false);
+                    _scoreImages[playerIdx].gameObject.SetActive(false);
+                }
+
+                await AnimateKillScoreForCause(teams, gm, cause);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
+            }
         }
 
-        private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private Sprite GetKillContextSprite(E_DeathCause cause)
         {
-            await AnimatePlacementText(teams, gm);
-
-            /* UpdatePlayerPlaceAndScores(teams, gm);
-
-             ShowPlacementInfo(teams, gm);
-             await UniTask.Delay(TimeSpan.FromSeconds(_placementDisplayDuration));
-
-             HidePlacementInfo();
-
-             await UniTask.Delay(TimeSpan.FromSeconds(_animateSliderDelay));
-             await AnimateScoreSliders(teams);
-
-             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
-
-             var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
-             await AnimateLeaderboardPositions(sortedTeams);
-
-             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();*/
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion => _bombshellKillContextSprite,
+                E_DeathCause.Fall => _fallKillContextSprite,
+                E_DeathCause.VehicleCrash => _vehicleCrashKillContextSprite,
+                _ => null
+            };
         }
 
-        private void UpdatePlayerPlaceAndScores(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private Sprite GetKillScoreSprite(E_DeathCause cause)
         {
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion => _bombshellKillScoreSprite,
+                E_DeathCause.Fall => _fallKillScoreSprite,
+                E_DeathCause.VehicleCrash => _vehicleCrashKillScoreSprite,
+                _ => null
+            };
+        }
+        
+        private int GetKillScore(E_DeathCause cause, GameModeBase gm)
+        {
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion =>
+                    gm.Data.KillBonusScore,
+
+                E_DeathCause.Fall =>
+                    gm.Data.KillBonusScore + gm.Data.KillPushBonusScore,
+
+                E_DeathCause.VehicleCrash =>
+                    gm.Data.KillBonusScore + gm.Data.KillCarCrashBonusScore,
+
+                _ => 0
+            };
+        }
+        
+        private int GetTotalKillScore(PlayerTeam team, GameModeBase gm)
+        {
+            int total = 0;
+
+            foreach (var cause in KillDisplayOrder)
+            {
+                int count = GetKillCountForCause(team, cause);
+                total += count * GetKillScore(cause, gm);
+            }
+
+            return total;
+        }
+        
+        private async UniTask AnimateKillScoreForCause(
+            ReadOnlyCollection<PlayerTeam> teams,
+            GameModeBase gm,
+            E_DeathCause cause)
+        {
+            var tasks = new List<UniTask>();
+            int scorePerKill = GetKillScore(cause, gm);
+
             foreach (var team in teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
-                /* _playerPlaceTexts[idx].text = GetPlaceText(team.Rank, gm.GetScorePerRank(team.Rank));
-                 */
+                int killCount = GetKillCountForCause(team, cause);
+                if (killCount <= 0) continue;
+
+                int gain = killCount * scorePerKill;
+                int start = _displayedScores[idx];
+                int end = start + gain;
+
+                _displayedScores[idx] = end;
+
+                tasks.Add(
+                    AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration)
+                );
             }
+
+            await UniTask.WhenAll(tasks);
         }
 
-        private async UniTask AnimateScoreSliders(ReadOnlyCollection<PlayerTeam> teams)
+        private int GetKillCountForCause(PlayerTeam team, E_DeathCause cause)
+        {
+            return team.Members.Sum(m =>
+                m.Metrics.RoundKills.Count(k => k == cause));
+        }
+        
+        private async UniTask AnimatePlacementScore(
+            ReadOnlyCollection<PlayerTeam> teams,
+            GameModeBase gm)
         {
             var tasks = new List<UniTask>();
 
             foreach (var team in teams)
             {
                 int idx = team.Index;
-                if (!IsValidPlayerIndex(idx) || _scoreSliders[idx] == null) continue;
+                if (!IsValidPlayerIndex(idx)) continue;
 
-                tasks.Add(AnimateSlider(_scoreSliders[idx], _scoreSliders[idx].value, team.Score,
-                    _sliderAnimationDuration));
+                int bonus = GetPlacementBonus(team, gm);
+                if (bonus <= 0) continue;
+
+                int start = _displayedScores[idx];
+                int end = start + bonus;
+
+                _displayedScores[idx] = end;
+
+                tasks.Add(
+                    AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration)
+                );
             }
 
             await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        {
+            await AnimatePlacementText(teams, gm);
+
+             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
+
+             var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
+             await AnimateLeaderboardPositions(sortedTeams);
+
+             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
         }
 
         private async UniTask AnimateSlider(Slider slider, float start, float end, float duration)
@@ -233,7 +402,7 @@ namespace MortierFu
             slider.value = end;
         }
 
-        private async UniTask AnimateLeaderboardPositions(System.Collections.Generic.List<PlayerTeam> sortedTeams)
+        private async UniTask AnimateLeaderboardPositions(List<PlayerTeam> sortedTeams)
         {
             var animations = new UniTask[sortedTeams.Count];
 
