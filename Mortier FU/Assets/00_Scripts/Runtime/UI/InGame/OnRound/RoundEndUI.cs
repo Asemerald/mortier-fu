@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -20,7 +21,6 @@ namespace MortierFu
 
         [SerializeField] private Image[] _playerIcons;
 
-        [SerializeField] private TextMeshProUGUI[] _playerPlaceTexts;
         [SerializeField] private Slider[] _scoreSliders;
 
         [Header("Assets")] [SerializeField] private Sprite[] _playerDefaultSprites;
@@ -46,6 +46,14 @@ namespace MortierFu
         [Header("Leaderboard Positions")] [SerializeField]
         private Vector2[] _leaderboardPositions;
 
+        [SerializeField] private Sprite[] _placeSprites;
+        [SerializeField] private Sprite[] _killContextSprites;
+        [SerializeField] private Sprite[] _scoreSprites;
+
+        [SerializeField] private Image[] _scoreImages;
+        [SerializeField] private Image[] _killContextImages;
+        [SerializeField] private Image[] _placeImages;
+        [SerializeField] private float _placementDisplayDuration = 2f;
         private int[] _leaderboardOrder;
 
         private Vector3 _originalScale;
@@ -87,13 +95,13 @@ namespace MortierFu
 
                 int roundKills = team.Members.Sum(m => m.Metrics.RoundKills.Count);
 
-                TextMeshProUGUI placeText = _playerPlaceTexts[idx];
+                /*TextMeshProUGUI placeText = _playerPlaceTexts[idx];
                 int maxIndicators = Mathf.Min(placeText.transform.childCount, 3);
 
                 for (int i = 0; i < maxIndicators; i++)
                 {
                     placeText.transform.GetChild(i).gameObject.SetActive(i < roundKills);
-                }
+                }*/
             }
         }
 
@@ -101,20 +109,86 @@ namespace MortierFu
 
         #region Slider & Leaderboard (existing code, unchanged)
 
+        private async UniTask AnimatePlacementText(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (var team in teams)
+            {
+                int playerIdx = team.Index;
+                int rankIndex = team.Rank - 1;
+
+                if (!IsValidPlayerIndex(playerIdx)) continue;
+
+                if (_scoreSliders[playerIdx] != null)
+                    _scoreSliders[playerIdx].maxValue = gm.Data.ScoreToWin;
+
+                _placeImages[playerIdx].gameObject.transform.localScale = Vector3.zero;
+                _scoreImages[playerIdx].gameObject.transform.localScale = Vector3.zero;
+
+                _placeImages[playerIdx].sprite = _placeSprites[rankIndex];
+                _scoreImages[playerIdx].sprite = _scoreSprites[rankIndex];
+
+                _placeImages[playerIdx].gameObject.SetActive(true);
+                _scoreImages[playerIdx].gameObject.SetActive(true);
+
+                tasks.Add(
+                    Tween.Scale(_placeImages[playerIdx].transform, Vector3.one, 1f, Ease.OutBack)
+                        .Group(Tween.Scale(_scoreImages[playerIdx].transform, Vector3.one, 1f, Ease.OutBack))
+                        .ToUniTask()
+                );
+            }
+
+            await UniTask.WhenAll(tasks);
+
+            tasks.Clear();
+
+            foreach (var team in teams)
+            {
+                int playerIdx = team.Index;
+
+                if (!IsValidPlayerIndex(playerIdx)) continue;
+
+                _placeImages[playerIdx].gameObject.transform.localScale = Vector3.one;
+                _scoreImages[playerIdx].gameObject.transform.localScale = Vector3.one;
+
+                tasks.Add(
+                    Tween.Scale(_placeImages[playerIdx].transform, Vector3.zero, 1f, Ease.InBack)
+                        .Group(Tween.Scale(_scoreImages[playerIdx].transform, Vector3.zero, 1f, Ease.InBack))
+                        .ToUniTask()
+                );
+            }
+
+            await UniTask.WhenAll(tasks);
+
+            tasks.Clear();
+
+            await AnimateScoreSliders(teams);
+            
+            
+         //   int roundKills = team.Members.Sum(m => m.Metrics.RoundKills.Count);
+        }
+
         private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
         {
-            UpdatePlayerPlaceAndScores(teams, gm);
+            await AnimatePlacementText(teams, gm);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_animateSliderDelay));
-            await AnimateScoreSliders(teams);
+            /* UpdatePlayerPlaceAndScores(teams, gm);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
+             ShowPlacementInfo(teams, gm);
+             await UniTask.Delay(TimeSpan.FromSeconds(_placementDisplayDuration));
 
-            var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
+             HidePlacementInfo();
 
-            await AnimateLeaderboardPositions(sortedTeams);
+             await UniTask.Delay(TimeSpan.FromSeconds(_animateSliderDelay));
+             await AnimateScoreSliders(teams);
 
-            _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
+             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
+
+             var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
+             await AnimateLeaderboardPositions(sortedTeams);
+
+             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();*/
         }
 
         private void UpdatePlayerPlaceAndScores(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
@@ -124,21 +198,25 @@ namespace MortierFu
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
-                _playerPlaceTexts[idx].text = GetPlaceText(team.Rank, gm.GetScorePerRank(team.Rank));
-                if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = gm.Data.ScoreToWin;
+                /* _playerPlaceTexts[idx].text = GetPlaceText(team.Rank, gm.GetScorePerRank(team.Rank));
+                 */
             }
         }
 
         private async UniTask AnimateScoreSliders(ReadOnlyCollection<PlayerTeam> teams)
         {
+            var tasks = new List<UniTask>();
+
             foreach (var team in teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx) || _scoreSliders[idx] == null) continue;
 
-                await AnimateSlider(_scoreSliders[idx], _scoreSliders[idx].value, team.Score, _sliderAnimationDuration);
+                tasks.Add(AnimateSlider(_scoreSliders[idx], _scoreSliders[idx].value, team.Score,
+                    _sliderAnimationDuration));
             }
+
+            await UniTask.WhenAll(tasks);
         }
 
         private async UniTask AnimateSlider(Slider slider, float start, float end, float duration)
@@ -260,18 +338,6 @@ namespace MortierFu
         private bool IsValidPlayerIndex(int idx) =>
             idx >= 0 && idx < _playerSlots.Length;
 
-        private string GetPlaceText(int rank, int score)
-        {
-            string rankText = rank switch
-            {
-                1 => "1st Place",
-                2 => "2nd Place",
-                3 => "3rd Place",
-                4 => "4th Place",
-                _ => $"{rank}th Place"
-            };
-            return $"{rankText} + {score}";
-        }
 
         public void ResetUI()
         {
@@ -282,14 +348,12 @@ namespace MortierFu
             for (int i = 0; i < _playerIcons.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
+                _scoreImages[i].gameObject.SetActive(false);
+                _placeImages[i].gameObject.SetActive(false);
+                _killContextImages[i].gameObject.SetActive(false);
 
                 if (i < _playerIcons.Length)
                     _playerIcons[i].sprite = _playerDefaultSprites[i];
-
-                if (_playerPlaceTexts == null || i >= _playerPlaceTexts.Length) continue;
-                var placeText = _playerPlaceTexts[i];
-                for (int k = 0; k < placeText.transform.childCount; k++)
-                    placeText.transform.GetChild(k).gameObject.SetActive(false);
             }
         }
 
