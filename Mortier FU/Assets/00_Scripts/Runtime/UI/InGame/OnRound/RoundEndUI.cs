@@ -120,27 +120,47 @@ namespace MortierFu
                     _scoreSliders[idx].maxValue = gm.Data.ScoreToWin;
 
                 _placeImages[idx].transform.localScale = Vector3.zero;
-                _scoreImages[idx].transform.localScale = Vector3.zero;
 
                 _placeImages[idx].sprite = _placeSprites[rankIndex];
-                _scoreImages[idx].sprite = _scoreSprites[rankIndex];
 
                 _placeImages[idx].SetNativeSize();
-                _scoreImages[idx].SetNativeSize();
-                
+
                 _placeImages[idx].gameObject.SetActive(true);
-                _scoreImages[idx].gameObject.SetActive(true);
 
                 showTasks.Add(
                     Tween.Scale(_placeImages[idx].transform, Vector3.one, _showPlacementScaleDuration,
                             _showPlacementEase)
-                        .Group(Tween.Scale(_scoreImages[idx].transform, Vector3.one, _showPlacementScaleDuration,
-                            _showPlacementEase))
                         .ToUniTask()
                 );
             }
 
             await UniTask.WhenAll(showTasks);
+
+            showTasks.Clear();
+
+            foreach (var team in teams)
+            {
+                int idx = team.Index;
+                if (!IsValidPlayerIndex(idx)) continue;
+
+                int rankIndex = team.Rank - 1;
+                if (_scoreSliders[idx] != null)
+                    _scoreSliders[idx].maxValue = gm.Data.ScoreToWin;
+
+                _scoreImages[idx].transform.localScale = Vector3.zero;
+
+                _scoreImages[idx].sprite = _scoreSprites[rankIndex];
+
+                _scoreImages[idx].SetNativeSize();
+
+                _scoreImages[idx].gameObject.SetActive(true);
+
+                showTasks.Add(
+                    Tween.Scale(_scoreImages[idx].transform, Vector3.one, _showPlacementScaleDuration,
+                            _showPlacementEase)
+                        .ToUniTask()
+                );
+            }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
@@ -204,23 +224,17 @@ namespace MortierFu
 
                     var cause = kills[killRound];
                     var contextImg = _killContextImages[idx];
-                    var scoreImg = _scoreImages[idx];
 
                     contextImg.sprite = GetKillContextSprite(cause);
-                    scoreImg.sprite = GetKillScoreSprite(cause);
 
                     contextImg.transform.localScale = Vector3.zero;
-                    scoreImg.transform.localScale = Vector3.zero;
 
                     contextImg.SetNativeSize();
-                    scoreImg.SetNativeSize();
-                    
+
                     contextImg.gameObject.SetActive(true);
-                    scoreImg.gameObject.SetActive(true);
 
                     showTasks.Add(
                         Tween.Scale(contextImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
-                            .Group(Tween.Scale(scoreImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase))
                             .ToUniTask()
                     );
                 }
@@ -228,6 +242,36 @@ namespace MortierFu
                 if (showTasks.Count > 0)
                     await UniTask.WhenAll(showTasks);
 
+                showTasks.Clear();
+
+                foreach (var team in teams)
+                {
+                    int idx = team.Index;
+                    if (!IsValidPlayerIndex(idx)) continue;
+
+                    var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
+                    if (killRound >= kills.Count) continue;
+
+                    var cause = kills[killRound];
+                    var scoreImg = _scoreImages[idx];
+
+                    scoreImg.sprite = GetKillScoreSprite(cause);
+
+                    scoreImg.transform.localScale = Vector3.zero;
+
+                    scoreImg.SetNativeSize();
+
+                    scoreImg.gameObject.SetActive(true);
+
+                    showTasks.Add(
+                        Tween.Scale(scoreImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
+                            .ToUniTask()
+                    );
+                }
+
+                if (showTasks.Count > 0)
+                    await UniTask.WhenAll(showTasks);
+                
                 await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
                 var hideTasks = new List<UniTask>();
@@ -257,8 +301,6 @@ namespace MortierFu
                     _killContextImages[idx].gameObject.SetActive(false);
                     _scoreImages[idx].gameObject.SetActive(false);
                 }
-
-                await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_updateSlidersDelay));
 
