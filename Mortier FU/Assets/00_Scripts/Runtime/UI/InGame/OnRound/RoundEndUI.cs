@@ -9,6 +9,7 @@ using PrimeTween;
 
 namespace MortierFu
 {
+    //TODO Script horrible à refaire plus tard
     public class RoundEndUI : MonoBehaviour
     {
         [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
@@ -77,37 +78,50 @@ namespace MortierFu
         private int _previousTopPlayerIndex = 0;
         private int[] _displayedScores;
 
+        private GameModeBase _gm;
+
         private void Awake()
         {
             _originalScale = _playerSlots[0].transform.localScale;
             _leaderboardOrder = Enumerable.Range(0, _playerSlots.Length).ToArray();
             ResetUI();
             SetPlayersToLeaderboardOrder(_leaderboardOrder);
+
+            _gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gm != null)
+            {
+                _gm.OnRoundEnded += OnRoundEnded;
+                _gm.OnScoreDisplayOver += ResetUI;
+            }
         }
 
-        public void OnRoundEnded(RoundInfo round, GameModeBase gm)
+        private void OnDestroy()
+        {
+            _gm.OnRoundEnded -= OnRoundEnded;
+            _gm.OnScoreDisplayOver -= ResetUI;
+        }
+
+        private void OnRoundEnded(RoundInfo round)
         {
             ResetUI();
-            var teams = gm.Teams;
+            var teams = _gm.Teams;
 
             _displayedScores = new int[_playerSlots.Length];
             foreach (var team in teams)
             {
                 _displayedScores[team.Index] =
                     team.Score
-                    - GetPlacementBonus(team, gm)
-                    - GetTotalKillScore(team, gm);
+                    - GetPlacementBonus(team, _gm)
+                    - GetTotalKillScore(team, _gm);
             }
 
-            InitializePlayerPanels(teams, _leaderboardOrder);
-            ShowRoundWinner(round.WinningTeam);
-
-            AnimateRoundEndSequence(teams, gm).Forget();
+            AnimateRoundEndSequence(teams, round).Forget();
         }
 
         #region Animate Sliders / Placement / Kills
 
-        private async UniTask AnimatePlacementText(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private async UniTask AnimatePlacementText(ReadOnlyCollection<PlayerTeam> teams)
         {
             var showTasks = new List<UniTask>();
             foreach (var team in teams)
@@ -117,7 +131,7 @@ namespace MortierFu
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
 
                 _placeImages[idx].transform.localScale = Vector3.zero;
 
@@ -145,7 +159,7 @@ namespace MortierFu
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
 
                 _scoreImages[idx].transform.localScale = Vector3.zero;
 
@@ -189,7 +203,7 @@ namespace MortierFu
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
-                int bonus = GetPlacementBonus(team, gm);
+                int bonus = GetPlacementBonus(team, _gm);
                 if (bonus <= 0) continue;
 
                 int start = _displayedScores[idx];
@@ -204,10 +218,10 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_startKillAnimDelay));
 
-            await AnimateKillsByRound(teams, gm);
+            await AnimateKillsByRound(teams);
         }
 
-        private async UniTask AnimateKillsByRound(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private async UniTask AnimateKillsByRound(ReadOnlyCollection<PlayerTeam> teams)
         {
             int maxKills = teams.Max(t => t.Members.Sum(m => m.Metrics.RoundKills.Count));
 
@@ -271,7 +285,7 @@ namespace MortierFu
 
                 if (showTasks.Count > 0)
                     await UniTask.WhenAll(showTasks);
-                
+
                 await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
                 var hideTasks = new List<UniTask>();
@@ -315,7 +329,7 @@ namespace MortierFu
 
                     var cause = kills[killRound];
                     int start = _displayedScores[idx];
-                    int end = start + GetKillScore(cause, gm);
+                    int end = start + GetKillScore(cause);
                     _displayedScores[idx] = end;
 
                     sliderTasks.Add(AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration));
@@ -368,9 +382,15 @@ namespace MortierFu
 
         #region Leaderboard / Helpers
 
-        private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, GameModeBase gm)
+        private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, RoundInfo round)
         {
-            await AnimatePlacementText(teams, gm);
+            await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.ShowRoundWinnerDelay));
+            InitializePlayerPanels(teams, _leaderboardOrder);
+            ShowRoundWinner(round.WinningTeam);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
+            
+            await AnimatePlacementText(teams);
             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
 
             var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
@@ -472,13 +492,13 @@ namespace MortierFu
             };
         }
 
-        private int GetKillScore(E_DeathCause cause, GameModeBase gm)
+        private int GetKillScore(E_DeathCause cause)
         {
             return cause switch
             {
-                E_DeathCause.BombshellExplosion => gm.Data.KillBonusScore,
-                E_DeathCause.Fall => gm.Data.KillBonusScore + gm.Data.KillPushBonusScore,
-                E_DeathCause.VehicleCrash => gm.Data.KillBonusScore + gm.Data.KillCarCrashBonusScore,
+                E_DeathCause.BombshellExplosion => _gm.Data.KillBonusScore,
+                E_DeathCause.Fall => _gm.Data.KillBonusScore + _gm.Data.KillPushBonusScore,
+                E_DeathCause.VehicleCrash => _gm.Data.KillBonusScore + _gm.Data.KillCarCrashBonusScore,
                 _ => 0
             };
         }
@@ -488,7 +508,7 @@ namespace MortierFu
             int total = 0;
             foreach (var member in team.Members)
             {
-                total += member.Metrics.RoundKills.Sum(k => GetKillScore(k, gm));
+                total += member.Metrics.RoundKills.Sum(k => GetKillScore(k));
             }
 
             return total;

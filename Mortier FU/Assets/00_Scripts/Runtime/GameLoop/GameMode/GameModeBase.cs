@@ -408,7 +408,8 @@ namespace MortierFu
             {
                 cameraSystem.Controller.EndFightCameraMovement(
                     _currentRound.WinningTeam.Members[0].Character.transform);
-                _currentRound.WinningTeam.Members[0].Character.WinRoundDance(1.6f).Forget();
+                _currentRound.WinningTeam.Members[0].transform.rotation = levelSystem.GetRoundWinnerSpawnPoint().rotation;
+                _currentRound.WinningTeam.Members[0].Character.WinRoundDance();
             }
 
             OnRoundEnded?.Invoke(_currentRound);

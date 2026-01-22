@@ -20,7 +20,7 @@ namespace MortierFu
         public static bool AllowGameplayActions { get; set; }
 
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
-        
+
         [Header("Dash Trail")] [SerializeField]
         private GameObject _dashTrailPrefab;
 
@@ -200,7 +200,7 @@ namespace MortierFu
             _toggleAimAction.started -= Mortar.BeginAiming;
             _toggleAimAction.canceled -= Mortar.EndAiming;
         }
-        
+
         private void InitStateMachine()
         {
             _stateMachine = new StateMachine();
@@ -419,29 +419,11 @@ namespace MortierFu
             }
         }
 
-        // TODO : à refaire
-        public async UniTask WinRoundDance(float delay)
+        public void WinRoundDance()
         {
-            Vector3 lookDir = _main.transform.position - transform.position;
-            lookDir.y = 0f;
-
-            if (lookDir.sqrMagnitude < 0.001f)
-                return;
-
-            Quaternion targetRot = Quaternion.LookRotation(lookDir);
-
-            await Tween.Rotation(
-                transform,
-                targetRot,
-                0.5f,
-                Ease.OutQuad
-            ).ToUniTask();
-
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
-        
+
         private void At(IState from, IState to, IPredicate condition) =>
             _stateMachine.AddTransition(from, to, condition);
 
