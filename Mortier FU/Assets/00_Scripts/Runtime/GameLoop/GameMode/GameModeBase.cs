@@ -235,7 +235,7 @@ namespace MortierFu
             }
         }
 
-        private void SpawnPlayers()
+        private void SpawnPlayers(bool useRoundWinnerSpawnPoint = false)
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
@@ -244,10 +244,28 @@ namespace MortierFu
             {
                 foreach (var member in team.Members)
                 {
-                    var spawnPoint = levelSystem.IsRaceMap() && team.Rank == 1
-                        ? levelSystem.GetWinnerSpawnPoint()
-                        : levelSystem.GetSpawnPoint(spawnIndex);
+                    Transform spawnPoint;
+
+                    if (levelSystem.IsRaceMap())
+                    {
+                        spawnPoint = team.Rank == 1
+                            ? levelSystem.GetWinnerSpawnPoint()
+                            : levelSystem.GetSpawnPoint(spawnIndex);
+                    }
+                    else
+                    {
+                        if (useRoundWinnerSpawnPoint && team.Rank == 1)
+                        {
+                            spawnPoint = levelSystem.GetRoundWinnerSpawnPoint();
+                        }
+                        else
+                        {
+                            spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
+                        }
+                    }
+
                     member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
+
                     if (opposite)
                         spawnIndex--;
                     else
@@ -375,7 +393,7 @@ namespace MortierFu
             }
 
             ResetPlayers();
-            SpawnPlayers();
+            SpawnPlayers(true);
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             EnablePlayerInputs(false);
             PlayerCharacter.AllowGameplayActions = false;
@@ -390,7 +408,8 @@ namespace MortierFu
             {
                 cameraSystem.Controller.EndFightCameraMovement(
                     _currentRound.WinningTeam.Members[0].Character.transform);
-                _currentRound.WinningTeam.Members[0].Character.WinRoundDance(1.6f).Forget();
+                _currentRound.WinningTeam.Members[0].transform.rotation = levelSystem.GetRoundWinnerSpawnPoint().rotation;
+                _currentRound.WinningTeam.Members[0].Character.WinRoundDance();
             }
 
             OnRoundEnded?.Invoke(_currentRound);
@@ -489,8 +508,6 @@ namespace MortierFu
         protected virtual void StartRace()
         {
             UpdateGameState(GameState.RaceInProgress);
-
-            // cameraSystem.Controller.ClearTargetGroupMember();
 
             ResetPlayers();
             SpawnPlayers();

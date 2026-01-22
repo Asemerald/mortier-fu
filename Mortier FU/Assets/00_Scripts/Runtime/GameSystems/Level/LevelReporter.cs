@@ -8,6 +8,7 @@ namespace MortierFu
     public class LevelReporter : MonoBehaviour
     {
         [Header("Level Design")] public Transform[] SpawnPoints;
+        public Transform RoundWinnerSpawnPoint;
 
         [SerializeField] private CameraMapConfig _cameraMapConfig;
 
@@ -67,6 +68,7 @@ namespace MortierFu
         private bool _enableDebug = true;
 
         [SerializeField] private Color _winnerSpawnColor = Color.yellow;
+        [SerializeField] private Color _raceWinnerSpawnColor = Color.mediumPurple;
         [SerializeField] private Color _spawnPointColor = Color.dodgerBlue;
         [SerializeField] private Color _augmentPointColor = Color.softRed;
         [SerializeField] private float _widgetSize = 0.1f;
@@ -90,6 +92,12 @@ namespace MortierFu
             {
                 Gizmos.color = _winnerSpawnColor;
                 Gizmos.DrawSphere(WinnerSpawnPoint.position, _widgetSize);
+            }
+
+            if (RoundWinnerSpawnPoint)
+            {
+                Gizmos.color = _raceWinnerSpawnColor;
+                Gizmos.DrawSphere(RoundWinnerSpawnPoint.position, _widgetSize);
             }
 
             if (IsRaceMap)
