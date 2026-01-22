@@ -21,7 +21,6 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Mortar_ImpactNone { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ImpactProps { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ImpactPlayer { get; private set; }
-        [field: SerializeField] public EventReference SFX_Mortar_ImpactKill { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_Cant { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ReloadComplete { get; private set; }
         

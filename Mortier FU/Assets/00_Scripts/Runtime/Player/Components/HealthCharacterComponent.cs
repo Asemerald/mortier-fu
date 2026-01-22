@@ -82,8 +82,10 @@ namespace MortierFu
                     Character = Character,
                     Context = ResolveDeathContext(character, source)
                 });
-
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
+                
+                //TODO : placeholder
+                if (isLethal) AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Fall, character.transform.position);
+                else AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
             }
         }
 

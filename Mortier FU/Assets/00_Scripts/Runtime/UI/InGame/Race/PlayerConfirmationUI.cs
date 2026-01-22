@@ -379,6 +379,8 @@ namespace MortierFu
 
             slot.AButtonImage.gameObject.SetActive(false);
             slot.Animator.enabled = true;
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
         [Serializable]

@@ -163,18 +163,20 @@ namespace MortierFu
             switch (bus)
             {
                 case BusEnum.MASTER:
-                    masterBus.setVolume(volumeCurve.Evaluate(vol));
+                    masterBus.setVolume(vol);
                     break;
                 case BusEnum.MUSIC:
-                    musicBus.setVolume(volumeCurve.Evaluate(vol));
+                    musicBus.setVolume(vol);
                     break;
                 case BusEnum.SFX:
-                    sfxBus.setVolume(volumeCurve.Evaluate(vol));
+                    sfxBus.setVolume(vol);
                     break;
                 case BusEnum.AMBIENCE:
-                    ambienceBus.setVolume(volumeCurve.Evaluate(vol));
+                    ambienceBus.setVolume(vol);
                     break;
             }
+            
+            Debug.Log("slider change");
         }
 
         public enum BusEnum
