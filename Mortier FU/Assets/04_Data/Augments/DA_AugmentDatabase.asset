@@ -105,7 +105,7 @@ MonoBehaviour:
     OnAttackBombshellSpeedMod:
       Value: 0.3
       ModType: 100
-    MaxStacks: 10
+    MaxStacksOver: 0
   PoisonPuddleParams:
     Ability:
       PersistAfterExit: 1
@@ -119,8 +119,9 @@ MonoBehaviour:
       ModType: 100
   TakeTheTempoParams:
     FireRateMod:
-      Value: 0.095
-      ModType: 300
+      Value: 0.8
+      ModType: 100
+    MaxStacksTempo: 8
   TsarBombaParams:
     BombshellImpactRadiusMult:
       Value: 0.25
