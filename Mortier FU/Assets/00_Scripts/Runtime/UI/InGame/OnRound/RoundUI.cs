@@ -6,9 +6,7 @@ namespace MortierFu
     public class RoundUI : MonoBehaviour
     {
         [SerializeField] private RoundAnnouncementUI _roundAnnouncementUI;
-        [SerializeField] private RoundEndUI _roundEndUI;
         [SerializeField] private GameEndUI _gameEndUI;
-       // [SerializeField] private GameplayInfoUI _gameplayInfoUI;
         
         private LobbyService _lobbyService;
         
@@ -19,7 +17,6 @@ namespace MortierFu
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             
             _roundAnnouncementUI.gameObject.SetActive(false);
-            _roundEndUI.gameObject.SetActive(false);
             _gameEndUI.gameObject.SetActive(false);
         }
         
@@ -34,9 +31,7 @@ namespace MortierFu
             }
 
             _gm.OnRoundStarted += HandleRoundStarted;
-            _gm.OnRoundEnded += HandleRoundEnded;
             _gm.OnGameEnded += HandleGameEnded;
-            _gm.OnScoreDisplayOver += HandleScoreDisplayOver;
         }
         
         private void OnDisable()
@@ -44,9 +39,7 @@ namespace MortierFu
             if (_gm == null) return;
 
             _gm.OnRoundStarted -= HandleRoundStarted;
-            _gm.OnRoundEnded -= HandleRoundEnded;
             _gm.OnGameEnded -= HandleGameEnded;
-            _gm.OnScoreDisplayOver -= HandleScoreDisplayOver;
         }
 
         private void HandleRoundStarted(RoundInfo currentRound)
@@ -55,21 +48,11 @@ namespace MortierFu
             _roundAnnouncementUI.OnRoundStarted(_gm);
         }
 
-        private void HandleRoundEnded(RoundInfo round)
-        {
-            _roundEndUI.gameObject.SetActive(true);
-            _roundEndUI.OnRoundEnded(round, _gm);
-        }
         
         private void HandleGameEnded(int winnerIndex)
         {
             _gameEndUI.gameObject.SetActive(true);
             _gameEndUI.DisplayVictoryScreen(winnerIndex, _lobbyService.GetPlayers().Count);
-        }
-        
-        private void HandleScoreDisplayOver()
-        {
-            _roundEndUI.ResetUI();
         }
     }
 }
