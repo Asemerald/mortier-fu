@@ -248,6 +248,7 @@ namespace MortierFu
                         ? levelSystem.GetWinnerSpawnPoint()
                         : levelSystem.GetSpawnPoint(spawnIndex);
                     member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
+                    
                     if (opposite)
                         spawnIndex--;
                     else

@@ -226,6 +226,7 @@ namespace MortierFu
 
             _raceGameObject.SetActive(true);
 
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
 
             await Sequence.Create()
@@ -290,6 +291,7 @@ namespace MortierFu
         {
             int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
             _countdownImage.sprite = _countdownSprites[index];
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownNumber);
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 

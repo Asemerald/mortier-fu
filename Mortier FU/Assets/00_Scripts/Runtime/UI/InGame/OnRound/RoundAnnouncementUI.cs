@@ -138,7 +138,15 @@ namespace MortierFu
             {
                 SetCountdownVisual(t);
                 // TODO: Add sound effect here or maybe in AnimateCountdown
+                if (t > 0)
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownNumber);
+                }
                 await AnimateCountdown();
+                if (t <= 1)
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
+                }
             }
         }
 

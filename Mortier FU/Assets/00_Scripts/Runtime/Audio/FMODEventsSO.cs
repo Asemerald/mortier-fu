@@ -15,6 +15,7 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Player_Death { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_CarCrash { get; private set; }
         [field: SerializeField] public EventReference SFX_Player_Footsteps { get; private set; }
+        [field: SerializeField] public EventReference SFX_Player_Summon { get; private set; }
         
         [field: SerializeField] public EventReference SFX_Mortar_Shot { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ImpactNone { get; private set; }
@@ -27,6 +28,7 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Strike_Dash { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Cant { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Knockback { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_Break { get; private set; }
         
         [field: SerializeField] public EventReference SFX_Augment_Grab { get; private set; }
         [field: SerializeField] public EventReference SFX_Augment_Bounce { get; private set; }
@@ -38,7 +40,8 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Augment_NoPick { get; private set; }
         
         [field: SerializeField] public EventReference SFX_GameplayUI_EndRace { get; private set; }
-        [field: SerializeField] public EventReference SFX_GameplayUI_Countdown { get; private set; }
+        [field: SerializeField] public EventReference SFX_GameplayUI_CountdownNumber { get; private set; }
+        [field: SerializeField] public EventReference SFX_GameplayUI_CountdownGo { get; private set; }
         [field: SerializeField] public EventReference SFX_GameplayUI_MatchPoint { get; private set; }
         [field: SerializeField] public EventReference SFX_GameplayUI_NewLeader { get; private set; }
         [field: SerializeField] public EventReference SFX_GameplayUI_ScoreIncrease { get; private set; }

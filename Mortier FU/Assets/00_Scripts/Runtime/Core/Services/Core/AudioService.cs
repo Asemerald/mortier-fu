@@ -27,7 +27,8 @@ namespace MortierFu
         private Bus musicBus;
         private Bus ambienceBus;
 
-        private EventInstance musicEventInstance;
+        private EventInstance musicEventInstance, ambienceEventInstance;
+        private static bool breakPlayed;
 
         #region EventInstance functions
         
@@ -62,6 +63,16 @@ namespace MortierFu
             var instance = PlayOneShot(eventRef, panning);
             instance.setParameterByName("ShotPower", power);
             instance.release();
+        }
+
+        public static async UniTask PlayBreakAudio(EventReference eventRef, Vector3 position)
+        {
+            if (breakPlayed) return;
+            
+            PlayOneShot(eventRef, position);
+            breakPlayed = true;
+            await Task.Delay(TimeSpan.FromSeconds(0.1f));
+            breakPlayed = false;
         }
 
         private static float GetPanningFromWorldSpace(Vector3 position)
@@ -124,6 +135,27 @@ namespace MortierFu
         public void SetPhase(int value)
         {
             RuntimeManager.StudioSystem.setParameterByName("Phase", value);
+        }
+        
+        public void SetPause(int value)
+        {
+            RuntimeManager.StudioSystem.setParameterByName("Pause", value);
+        }
+        
+        public void StartAmbience()
+        {
+            ambienceEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
+            ambienceEventInstance.start();
+        }
+        
+        private UniTask StopAmbience()
+        {
+            if (ambienceEventInstance.isValid())
+            {
+                ambienceEventInstance.stop(STOP_MODE.ALLOWFADEOUT);
+                ambienceEventInstance.release();
+            }
+            return UniTask.CompletedTask;
         }
 
         public void SetVolume(BusEnum bus, float vol)
