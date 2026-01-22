@@ -508,8 +508,6 @@ namespace MortierFu
         {
             UpdateGameState(GameState.RaceInProgress);
 
-            // cameraSystem.Controller.ClearTargetGroupMember();
-
             ResetPlayers();
             SpawnPlayers();
             EnablePlayerGravity();
