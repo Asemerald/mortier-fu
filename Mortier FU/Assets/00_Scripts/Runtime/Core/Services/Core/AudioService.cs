@@ -18,14 +18,14 @@ namespace MortierFu
 
         public static FMODEventsSO FMODEvents;
 
-        [SerializeField] private AnimationCurve volumeCurve;
+        [SerializeField] private static AnimationCurve volumeCurve;
         private List<EventInstance> eventInstances;
         
         //BUS
-        private Bus masterBus;
-        private Bus sfxBus;
-        private Bus musicBus;
-        private Bus ambienceBus;
+        private static Bus masterBus;
+        private static Bus sfxBus;
+        private static Bus musicBus;
+        private static Bus ambienceBus;
 
         private EventInstance musicEventInstance, ambienceEventInstance;
         private static bool breakPlayed;
@@ -158,7 +158,7 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public void SetVolume(BusEnum bus, float vol)
+        public static void SetVolume(BusEnum bus, float vol)
         {
             switch (bus)
             {
