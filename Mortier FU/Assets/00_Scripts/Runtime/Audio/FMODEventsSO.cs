@@ -33,6 +33,8 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Augment_Buff { get; private set; }
         [field: SerializeField] public EventReference SFX_Augment_Showcase { get; private set; }
         [field: SerializeField] public EventReference SFX_Augment_ToWorld { get; private set; }
+        [field: SerializeField] public EventReference SFX_Augment_Flip { get; private set; }
+        [field: SerializeField] public EventReference SFX_Augment_Pop { get; private set; }
         [field: SerializeField] public EventReference SFX_Augment_NoPick { get; private set; }
         
         [field: SerializeField] public EventReference SFX_GameplayUI_EndRace { get; private set; }

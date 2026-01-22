@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{7cb37d99-77e9-4ccc-a9cb-0352fbd0c029}">
+		<property name="color">
+			<value>Green</value>
+		</property>
 		<property name="name">
 			<value>SFX_Augment_ToWorld</value>
 		</property>
@@ -28,6 +31,9 @@
 		<relationship name="timeline">
 			<destination>{3cf434bc-7c02-4fb1-90bf-daadbeb5cf27}</destination>
 		</relationship>
+		<relationship name="parameters">
+			<destination>{48b29e10-a9ff-4158-a151-07318392b19c}</destination>
+		</relationship>
 		<relationship name="banks">
 			<destination>{90509f06-0d55-42d1-9edb-41f006b08f47}</destination>
 		</relationship>
@@ -38,6 +44,9 @@
 		</relationship>
 	</object>
 	<object class="MasterTrack" id="{6ff257f6-48a1-4e53-ac00-1d454f2024be}">
+		<relationship name="modules">
+			<destination>{efb26ebf-6ac3-412a-bdde-2c05fe6cae66}</destination>
+		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{4ee97fdd-942d-4779-a381-908434f3895e}</destination>
 		</relationship>
@@ -60,7 +69,15 @@
 			<value>false</value>
 		</property>
 	</object>
+	<object class="ActionSheet" id="{48b29e10-a9ff-4158-a151-07318392b19c}">
+		<relationship name="modules">
+			<destination>{efb26ebf-6ac3-412a-bdde-2c05fe6cae66}</destination>
+		</relationship>
+	</object>
 	<object class="EventMixerMaster" id="{4ee97fdd-942d-4779-a381-908434f3895e}">
+		<property name="volume">
+			<value>-1</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{65a09020-9324-4f90-87a3-8d766f1f6527}</destination>
 		</relationship>
@@ -69,6 +86,11 @@
 		</relationship>
 		<relationship name="mixer">
 			<destination>{a2409203-8483-4f60-bab4-4606f5ffe417}</destination>
+		</relationship>
+	</object>
+	<object class="MultiSound" id="{efb26ebf-6ac3-412a-bdde-2c05fe6cae66}">
+		<relationship name="sounds">
+			<destination>{2c62c45a-3c7f-4f79-84da-c430347fa1ce}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{97501382-0f27-4868-80fc-f0bee4ed5308}">
@@ -84,6 +106,14 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{3efa12df-131a-481b-8332-d3c42c56a609}" />
+	<object class="SingleSound" id="{2c62c45a-3c7f-4f79-84da-c430347fa1ce}">
+		<relationship name="modulators">
+			<destination>{3a1056fd-f11c-4a62-a43d-9b837d50bba3}</destination>
+		</relationship>
+		<relationship name="audioFile">
+			<destination>{bc96b3e8-c9b0-4ae4-bba9-9881649c1648}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusFader" id="{a6aa4e14-9953-4366-bf0b-1eabb2509d9b}" />
 	<object class="PannerEffect" id="{b4696d91-13cd-4d12-b52d-f1341b5625ff}">
 		<property name="surroundPanExtent">
@@ -108,6 +138,14 @@
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{f221fc4c-d053-4be4-9085-186547781e53}" />
+	<object class="RandomizerModulator" id="{3a1056fd-f11c-4a62-a43d-9b837d50bba3}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>4.5</value>
+		</property>
+	</object>
 	<object class="Automator" id="{b7bd3cd3-e2f3-4067-a215-41f8f9bd0645}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanDirection</value>
