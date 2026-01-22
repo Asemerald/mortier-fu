@@ -12,6 +12,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Round_Cyan
       objectReference: {fileID: 0}
+    - target: {fileID: 2365331833605718553, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 0.9529412
+      objectReference: {fileID: 0}
+    - target: {fileID: 2365331833605718553, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0.09063554
+      objectReference: {fileID: 0}
     - target: {fileID: 2850224650801465136, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: m_LocalPosition.x
       value: 13.143689
@@ -57,28 +65,32 @@ PrefabInstance:
       value: PF_AugmentPickup_SuperRare Variant
       objectReference: {fileID: 0}
     - target: {fileID: 3351881414094995742, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3351881414094995742, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.b
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3351881414094995742, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.g
-      value: 0.2120986
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3351881414094995742, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.r
-      value: 0
+      value: 0.040236473
       objectReference: {fileID: 0}
     - target: {fileID: 3557213877427108701, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.b
-      value: 0.98039216
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3557213877427108701, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.g
-      value: 0.9628837
+      value: 0.9736843
       objectReference: {fileID: 0}
     - target: {fileID: 3557213877427108701, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.r
-      value: 0.38431373
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4471228101159169244, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -88,6 +100,10 @@ PrefabInstance:
       propertyPath: _rarity
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4652835081648688136, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+      propertyPath: '_augmentVFXRarityPrototypes.Array.data[2]'
+      value: 
+      objectReference: {fileID: 8820408256247076127}
     - target: {fileID: 7081685317294371661, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: m_Name
       value: Round_Blue_02
@@ -102,7 +118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8456660773539135994, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.g
-      value: 0.21367073
+      value: 0.48039198
       objectReference: {fileID: 0}
     - target: {fileID: 8456660773539135994, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
       propertyPath: InitialModule.startColor.maxColor.r
@@ -113,3 +129,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+--- !u!114 &8820408256247076127 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4652835081648688136, guid: 3cf3e4a8c5695b849872a0d3c748c733, type: 3}
+  m_PrefabInstance: {fileID: 4249799673870735639}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f3cff2aa8ab18e4cb95a753706bec14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.NewAugmentPickup
