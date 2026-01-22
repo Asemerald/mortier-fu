@@ -41,6 +41,9 @@ namespace MortierFu
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
             stats.FireRate.RemoveAllModifiersFromSource(this);
+            stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageModPreproc.ToMod(this));
+            stats.FireRate.AddModifier(db.BerserkerParams.FireRateModPreproc.ToMod(this));
+            stats.MoveSpeed.AddModifier(db.BerserkerParams.MoveSpeedModPreproc.ToMod(this));
         }
 
         public override void Dispose()
