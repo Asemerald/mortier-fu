@@ -18,16 +18,17 @@ namespace MortierFu
 
         public static FMODEventsSO FMODEvents;
 
-        [SerializeField] private AnimationCurve volumeCurve;
+        [SerializeField] private static AnimationCurve volumeCurve;
         private List<EventInstance> eventInstances;
         
         //BUS
-        private Bus masterBus;
-        private Bus sfxBus;
-        private Bus musicBus;
-        private Bus ambienceBus;
+        private static Bus masterBus;
+        private static Bus sfxBus;
+        private static Bus musicBus;
+        private static Bus ambienceBus;
 
-        private EventInstance musicEventInstance;
+        private EventInstance musicEventInstance, ambienceEventInstance;
+        private static bool breakPlayed;
 
         #region EventInstance functions
         
@@ -62,6 +63,16 @@ namespace MortierFu
             var instance = PlayOneShot(eventRef, panning);
             instance.setParameterByName("ShotPower", power);
             instance.release();
+        }
+
+        public static async UniTask PlayBreakAudio(EventReference eventRef, Vector3 position)
+        {
+            if (breakPlayed) return;
+            
+            PlayOneShot(eventRef, position);
+            breakPlayed = true;
+            await Task.Delay(TimeSpan.FromSeconds(0.1f));
+            breakPlayed = false;
         }
 
         private static float GetPanningFromWorldSpace(Vector3 position)
@@ -125,24 +136,47 @@ namespace MortierFu
         {
             RuntimeManager.StudioSystem.setParameterByName("Phase", value);
         }
+        
+        public void SetPause(int value)
+        {
+            RuntimeManager.StudioSystem.setParameterByName("Pause", value);
+        }
+        
+        public void StartAmbience()
+        {
+            ambienceEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
+            ambienceEventInstance.start();
+        }
+        
+        private UniTask StopAmbience()
+        {
+            if (ambienceEventInstance.isValid())
+            {
+                ambienceEventInstance.stop(STOP_MODE.ALLOWFADEOUT);
+                ambienceEventInstance.release();
+            }
+            return UniTask.CompletedTask;
+        }
 
-        public void SetVolume(BusEnum bus, float vol)
+        public static void SetVolume(BusEnum bus, float vol)
         {
             switch (bus)
             {
                 case BusEnum.MASTER:
-                    masterBus.setVolume(volumeCurve.Evaluate(vol));
+                    masterBus.setVolume(vol);
                     break;
                 case BusEnum.MUSIC:
-                    musicBus.setVolume(volumeCurve.Evaluate(vol));
+                    musicBus.setVolume(vol);
                     break;
                 case BusEnum.SFX:
-                    sfxBus.setVolume(volumeCurve.Evaluate(vol));
+                    sfxBus.setVolume(vol);
                     break;
                 case BusEnum.AMBIENCE:
-                    ambienceBus.setVolume(volumeCurve.Evaluate(vol));
+                    ambienceBus.setVolume(vol);
                     break;
             }
+            
+            Debug.Log("slider change");
         }
 
         public enum BusEnum

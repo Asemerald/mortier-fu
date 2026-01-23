@@ -74,18 +74,21 @@ namespace MortierFu
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MasterVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
         }
 
         private void OnMusicVolumeChanged(float value)
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MusicVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
         }
 
         private void OnSfxVolumeChanged(float value)
         {
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.SfxVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.SFX, value);
         }
         
         private void SaveSettings()

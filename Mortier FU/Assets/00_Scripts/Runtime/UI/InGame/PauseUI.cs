@@ -371,7 +371,8 @@ namespace MortierFu
 
         private void Pause()
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
+            ServiceManager.Instance.Get<AudioService>().SetPause(1);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             Show();
             _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
@@ -379,7 +380,8 @@ namespace MortierFu
 
         private void UnPause()
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, 0);
+            ServiceManager.Instance.Get<AudioService>().SetPause(0);
             _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
             Hide();
         }

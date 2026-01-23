@@ -29,6 +29,8 @@ namespace MortierFu
             _life--;
             if (_life <= 0)
             {
+                AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint);
+                
                 Destruct(contactPoint);
                 return;
             }

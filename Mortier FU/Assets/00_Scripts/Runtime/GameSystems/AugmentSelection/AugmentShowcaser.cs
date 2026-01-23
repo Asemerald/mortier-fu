@@ -152,7 +152,7 @@ namespace MortierFu
             }
 
             _augmentPoints = new Transform[_pickups.Count];
-
+            
             for (var i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -212,7 +212,7 @@ namespace MortierFu
             Quaternion midRot = startRot * Quaternion.Euler(0f, -120f, 0f);
             Quaternion endRot = startRot * Quaternion.Euler(0f, -180f, 0f);
 
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, cardUI.transform.position);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Flip, cardUI.transform.position);
 
             await Tween.LocalRotation(
                 t,

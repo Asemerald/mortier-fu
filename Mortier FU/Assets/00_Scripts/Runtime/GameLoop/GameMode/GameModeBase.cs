@@ -264,7 +264,7 @@ namespace MortierFu
                         }
                     }
 
-                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
+                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);                    
 
                     if (opposite)
                         spawnIndex--;
@@ -536,7 +536,8 @@ namespace MortierFu
 
         public virtual void EndGame()
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
+            
+          Service.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
             ReturnToMainMenuAfterDelay(5f).Forget();

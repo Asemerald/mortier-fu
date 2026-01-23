@@ -141,6 +141,8 @@ namespace MortierFu
                 _spawnVFXInstance.transform.position = character.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Summon, character.transform.position);
+
                 character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
                 _particleSystemInstance?.Play();

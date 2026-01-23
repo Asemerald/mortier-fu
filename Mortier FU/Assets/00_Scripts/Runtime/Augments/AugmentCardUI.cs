@@ -112,6 +112,8 @@ namespace MortierFu
             
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             _explosionCardVFXPrefab.SetActive(true);
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Pop, _explosionCardVFXPrefab.transform.position);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
