@@ -537,7 +537,7 @@ namespace MortierFu
         public virtual void EndGame()
         {
             
-          Service.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
             ReturnToMainMenuAfterDelay(5f).Forget();
