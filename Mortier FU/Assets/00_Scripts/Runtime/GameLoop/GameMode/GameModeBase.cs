@@ -148,7 +148,7 @@ namespace MortierFu
                 UpdateGameState(GameState.DisplayAugment);
                 StartRace();
 
-                await cameraSystem.Controller.ApplyCameraMapConfigAsync(levelSystem.CurrentCameraMapConfig);
+                await cameraSystem.Controller.ApplyCameraMapConfigAsync();
 
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
