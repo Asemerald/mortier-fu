@@ -87,6 +87,7 @@ namespace MortierFu
         public override void OnExit()
         {
             _knockbackTimer.Stop();
+            _knockbackTimer.Reset();
             
             if(debug) 
                 Logs.Log("Exiting Knockback State");

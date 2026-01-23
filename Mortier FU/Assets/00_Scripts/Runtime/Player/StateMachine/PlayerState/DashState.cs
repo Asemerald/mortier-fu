@@ -105,6 +105,7 @@ namespace MortierFu
         public override void OnExit()
         {
             _dashTriggerTimer.Stop();
+            _dashTriggerTimer.Reset();
 
             if (_trailInstance)
                 _trailInstance.emitting = false;
@@ -115,6 +116,7 @@ namespace MortierFu
 
         public void Reset()
         {
+            _dashTriggerTimer.Reset();
             _dashTriggerTimer.Stop();
 
             _dashCooldownTimer.OnTimerStop -= OnCooldownTimerStop;
