@@ -35,6 +35,8 @@ namespace MortierFu
         private ArenaCameraMode _arenaMode = ArenaCameraMode.FollowingPlayers;
         private bool _isArenaMap;
 
+        private LevelSystem _levelSystem;
+
         public Camera Camera => _camera;
 
         private void Start()
@@ -42,6 +44,7 @@ namespace MortierFu
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
 
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
         }
 
         public void SetArenaMode(bool isArena)
@@ -92,8 +95,8 @@ namespace MortierFu
 
             if (_isStaticRaceCamera) return;
 
-            _virtualTarget.position = _cameraSettings.RacePosition;
-            _currentOrthoSize = _cameraSettings.DefaultOrtho;
+            _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
+            _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
             ApplyLens();
         }
 
@@ -128,13 +131,13 @@ namespace MortierFu
             {
                 _virtualTarget.position = Vector3.Lerp(
                     _virtualTarget.position,
-                    _cameraSettings.MapPosition,
+                    _levelSystem.CurrentCameraMapConfig.PositionForMap,
                     Time.deltaTime * _cameraSettings.PositionLerpSpeed
                 );
 
                 _currentOrthoSize = Mathf.Lerp(
                     _currentOrthoSize,
-                    _cameraSettings.DefaultOrtho,
+                    _levelSystem.CurrentCameraMapConfig.OrthoSize,
                     Time.deltaTime * _cameraSettings.ZoomLerpSpeed
                 );
 
@@ -181,14 +184,14 @@ namespace MortierFu
             ApplyLens();
         }
 
-        public async UniTask ApplyCameraMapConfigAsync(CameraMapConfig mapConfig, float tolerance = 0.01f,
+        public async UniTask ApplyCameraMapConfigAsync(float tolerance = 0.01f,
             float maxWaitSeconds = 2f)
         {
             _isStaticRaceCamera = true;
             ClearTargetGroupMember();
 
-            _virtualTarget.localPosition = mapConfig.PositionForRace;
-            _currentOrthoSize = mapConfig.OrthoSize;
+            _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
+            _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
 
             ApplyLens();
 
@@ -199,8 +202,9 @@ namespace MortierFu
                 Vector3 camPos = _cinemachineCamera.transform.position;
                 float camOrtho = _cinemachineCamera.Lens.OrthographicSize;
 
-                bool positionReached = Vector3.Distance(camPos, mapConfig.PositionForRace) <= tolerance;
-                bool orthoReached = Mathf.Abs(camOrtho - mapConfig.OrthoSize) <= tolerance;
+                bool positionReached = Vector3.Distance(camPos, _levelSystem.CurrentCameraMapConfig.PositionForRace) <=
+                                       tolerance;
+                bool orthoReached = Mathf.Abs(camOrtho - _levelSystem.CurrentCameraMapConfig.OrthoSize) <= tolerance;
 
                 if (positionReached && orthoReached)
                     break;
@@ -221,8 +225,8 @@ namespace MortierFu
         {
             if (_isArenaMap)
             {
-                _virtualTarget.position = _cameraSettings.MapPosition;
-                _currentOrthoSize = _cameraSettings.DefaultOrtho;
+                _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForMap;
+                _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
                 ApplyLens();
                 return;
             }
