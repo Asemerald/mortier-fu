@@ -137,7 +137,7 @@ namespace MortierFu
             UpdateGameState(GameState.StartGame);
             OnGameStarted?.Invoke();
 
-            ServiceManager.Instance.Get<AudioService>().StartMusic().Forget();
+            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Gameplay).Forget();
 
             while (currentState != GameState.EndGame)
             {
@@ -537,7 +537,7 @@ namespace MortierFu
         public virtual void EndGame()
         {
             
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_Victory);
+            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
             ReturnToMainMenuAfterDelay(5f).Forget();

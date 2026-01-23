@@ -37,6 +37,7 @@ namespace MortierFu
 
             Players.Add(player);
             ServiceManager.Instance.Get<ShakeService>().ShakeController(player, ShakeService.ShakeType.MID);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
             player.OnPlayerInitialized += HandlePlayerInitialized;
             player.OnPlayerDestroyed += HandlePlayerDestroyed;
 
@@ -49,6 +50,7 @@ namespace MortierFu
             if (player == null || !Players.Contains(player))
                 return;
 
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
             player.OnPlayerInitialized -= HandlePlayerInitialized;
             player.OnPlayerDestroyed -= HandlePlayerDestroyed;
 
