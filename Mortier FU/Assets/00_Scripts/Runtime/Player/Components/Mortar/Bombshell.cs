@@ -163,6 +163,16 @@ namespace MortierFu
                                        remainingDistance, _system.Settings.WhatIsCollidable,
                                        QueryTriggerInteraction.Collide))
                 {
+                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+                    {
+                        // Water intercept collisions
+                        // TODO: Add water splash sound
+                       // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
+                        TEMP_FXHandler.Instance.InstantiateWaterExplosionFX(hit.point);
+                        ReturnToPool();
+                        break;
+                    }
+                    
                     // Move center to the point where the sphere center would be at impact
                     Vector3 centerAtHit = startPos + moveDir * hit.distance;
                     
