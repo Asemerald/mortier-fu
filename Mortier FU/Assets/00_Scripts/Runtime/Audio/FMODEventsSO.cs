@@ -23,6 +23,7 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_Mortar_ImpactPlayer { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_Cant { get; private set; }
         [field: SerializeField] public EventReference SFX_Mortar_ReloadComplete { get; private set; }
+        [field: SerializeField] public EventReference SFX_Mortar_Water { get; private set; }
         
         [field: SerializeField] public EventReference SFX_Strike_Dash { get; private set; }
         [field: SerializeField] public EventReference SFX_Strike_Cant { get; private set; }
@@ -56,6 +57,9 @@ namespace MortierFu
         [field: SerializeField] public EventReference SFX_UI_ChangeSkin { get; private set; }
         [field: SerializeField] public EventReference SFX_UI_Ready { get; private set; }
         [field: SerializeField] public EventReference SFX_UI_Pause { get; private set; }
+        
+        [field: SerializeField] public EventReference SFX_TransitionIn { get; private set; }
+        [field: SerializeField] public EventReference SFX_TransitionOut { get; private set; }
         
         
         [field: SerializeField] public EventReference MUS_MainMenu { get; private set; }
