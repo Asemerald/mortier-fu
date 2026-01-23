@@ -277,9 +277,27 @@ MonoBehaviour:
   - {fileID: 5473502701223027496, guid: 64c7fab0c456e834c96633f06e40b7ee, type: 3}
   - {fileID: 5473502701223027496, guid: 45d12737c01888947b89a9ee9c8c32a4, type: 3}
   - {fileID: 5473502701223027496, guid: 7044d46ca2c37bd46ba2abbaa0be3ea3, type: 3}
-  _waterTombOffsetY: 1.5
-  _waterRiseDuration: 1.3
-  _waterRiseEase: 9
+  _waterTombOffsetY: 4
+  _waterRaycastHeight: 10
+  _whatIsWater:
+    serializedVersion: 2
+    m_Bits: 16
+  _riseSettings:
+    duration: 2.2
+    ease: 9
+    customEase:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cycles: 1
+    cycleMode: 0
+    startDelay: 1.2
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
 --- !u!1 &8358214891320462638
 GameObject:
   m_ObjectHideFlags: 0
