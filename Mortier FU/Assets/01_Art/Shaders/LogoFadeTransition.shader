@@ -65,14 +65,11 @@ Shader "UI/TransitionMaskURP"
 
             half4 frag (Varyings i) : SV_Target
             {
-                // Sample mask (1 channel suffit)
                 half mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, i.uv).r;
-
-                // Smoothstep + OneMinus (comme ton graph)
+                
                 half fade = smoothstep(_MaskAmount, _MaskAmount + _Softness, mask);
                 fade = 1.0h - fade;
-
-                // 🔥 RGB noir forcé, Alpha contrôlé
+                
                 return half4(0, 0, 0, fade * i.color.a);
             }
             ENDHLSL
