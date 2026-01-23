@@ -167,6 +167,7 @@ namespace MortierFu
                     {
                         // Water intercept collisions
                         // TODO: Add water splash sound
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, hit.point);
                        // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
                         TEMP_FXHandler.Instance.InstantiateWaterExplosionFX(hit.point);
                         ReturnToPool();

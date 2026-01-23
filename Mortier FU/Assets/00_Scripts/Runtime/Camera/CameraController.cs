@@ -6,6 +6,12 @@ namespace MortierFu
 {
     public class CameraController : MonoBehaviour
     {
+        enum ArenaCameraMode
+        {
+            FollowingPlayers,
+            StaticMapView
+        }
+
         [Header("Cinemachine")] [SerializeField]
         private CinemachineCamera _cinemachineCamera;
 
@@ -26,6 +32,11 @@ namespace MortierFu
 
         private bool _isStaticRaceCamera = false;
 
+        private ArenaCameraMode _arenaMode = ArenaCameraMode.FollowingPlayers;
+        private bool _isArenaMap;
+
+        private LevelSystem _levelSystem;
+
         public Camera Camera => _camera;
 
         private void Start()
@@ -33,6 +44,12 @@ namespace MortierFu
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
 
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+        }
+
+        public void SetArenaMode(bool isArena)
+        {
+            _isArenaMap = isArena;
         }
 
         private void LateUpdate()
@@ -63,7 +80,7 @@ namespace MortierFu
         public void RemoveTarget(Transform playerTransform)
         {
             if (playerTransform == null) return;
-            
+
             _targetGroup.RemoveMember(playerTransform);
         }
 
@@ -78,43 +95,103 @@ namespace MortierFu
 
             if (_isStaticRaceCamera) return;
 
-            _virtualTarget.position = _cameraSettings.RacePosition;
-            _currentOrthoSize = _cameraSettings.DefaultOrtho;
+            _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
+            _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
             ApplyLens();
         }
 
         private void UpdateCameraForTargets()
         {
             Bounds bounds = CalculateTargetsBounds();
-            Vector3 center = bounds.center;
             float extent = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
 
+            if (_isArenaMap)
+            {
+                HandleArenaFallback(bounds.center, extent);
+                return;
+            }
+
+            FollowPlayers(bounds.center, extent);
+        }
+
+        private void HandleArenaFallback(Vector3 center, float extent)
+        {
+            if (_arenaMode == ArenaCameraMode.FollowingPlayers &&
+                extent > _cameraSettings.ArenaStopFollowExtent)
+            {
+                _arenaMode = ArenaCameraMode.StaticMapView;
+            }
+            else if (_arenaMode == ArenaCameraMode.StaticMapView &&
+                     extent < _cameraSettings.ArenaResumeFollowExtent)
+            {
+                _arenaMode = ArenaCameraMode.FollowingPlayers;
+            }
+
+            if (_arenaMode == ArenaCameraMode.StaticMapView)
+            {
+                _virtualTarget.position = Vector3.Lerp(
+                    _virtualTarget.position,
+                    _levelSystem.CurrentCameraMapConfig.PositionForMap,
+                    Time.deltaTime * _cameraSettings.PositionLerpSpeed
+                );
+
+                _currentOrthoSize = Mathf.Lerp(
+                    _currentOrthoSize,
+                    _levelSystem.CurrentCameraMapConfig.OrthoSize,
+                    Time.deltaTime * _cameraSettings.ZoomLerpSpeed
+                );
+
+                ApplyLens();
+            }
+            else
+            {
+                FollowPlayers(center, extent);
+            }
+        }
+
+        private void FollowPlayers(Vector3 center, float extent)
+        {
             _virtualTarget.position = Vector3.Lerp(
                 _virtualTarget.position,
                 center,
-                Time.deltaTime * _cameraSettings.PositionLerpSpeed);
+                Time.deltaTime * _cameraSettings.PositionLerpSpeed
+            );
 
-            float clampedExtent =
-                Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
-            float t = Mathf.InverseLerp(_cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent,
-                clampedExtent);
+            float clampedExtent = Mathf.Clamp(
+                extent,
+                _cameraSettings.MinPlayersExtent,
+                _cameraSettings.MaxPlayersExtent
+            );
 
-            float targetOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, t);
+            float t = Mathf.InverseLerp(
+                _cameraSettings.MinPlayersExtent,
+                _cameraSettings.MaxPlayersExtent,
+                clampedExtent
+            );
 
-            _currentOrthoSize =
-                Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
+            float targetOrtho = Mathf.Lerp(
+                _cameraSettings.MinOrthoSize,
+                _cameraSettings.MaxOrthoSize,
+                t
+            );
+
+            _currentOrthoSize = Mathf.Lerp(
+                _currentOrthoSize,
+                targetOrtho,
+                Time.deltaTime * _cameraSettings.ZoomLerpSpeed
+            );
 
             ApplyLens();
         }
 
-        public async UniTask ApplyCameraMapConfigAsync(CameraMapConfig mapConfig, float tolerance = 0.01f,
+        public async UniTask ApplyCameraMapConfigAsync(float tolerance = 0.01f,
             float maxWaitSeconds = 2f)
         {
             _isStaticRaceCamera = true;
             ClearTargetGroupMember();
 
-            _virtualTarget.localPosition = mapConfig.PositionForRace;
-            _currentOrthoSize = mapConfig.OrthoSize;
+            _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
+            _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
 
             ApplyLens();
 
@@ -125,8 +202,9 @@ namespace MortierFu
                 Vector3 camPos = _cinemachineCamera.transform.position;
                 float camOrtho = _cinemachineCamera.Lens.OrthographicSize;
 
-                bool positionReached = Vector3.Distance(camPos, mapConfig.PositionForRace) <= tolerance;
-                bool orthoReached = Mathf.Abs(camOrtho - mapConfig.OrthoSize) <= tolerance;
+                bool positionReached = Vector3.Distance(camPos, _levelSystem.CurrentCameraMapConfig.PositionForRace) <=
+                                       tolerance;
+                bool orthoReached = Mathf.Abs(camOrtho - _levelSystem.CurrentCameraMapConfig.OrthoSize) <= tolerance;
 
                 if (positionReached && orthoReached)
                     break;
@@ -145,16 +223,27 @@ namespace MortierFu
 
         private void ResetCameraInstant()
         {
+            if (_isArenaMap)
+            {
+                _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForMap;
+                _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
+                ApplyLens();
+                return;
+            }
+
             if (!_targetGroup.IsEmpty)
             {
                 Bounds b = CalculateTargetsBounds();
                 _virtualTarget.position = b.center;
             }
 
-            float midOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, 0.5f);
+            float midOrtho = Mathf.Lerp(
+                _cameraSettings.MinOrthoSize,
+                _cameraSettings.MaxOrthoSize,
+                0.5f
+            );
 
             _currentOrthoSize = midOrtho;
-
             ApplyLens();
         }
 

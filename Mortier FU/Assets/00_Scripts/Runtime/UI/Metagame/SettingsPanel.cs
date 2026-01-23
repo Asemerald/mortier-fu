@@ -62,12 +62,14 @@ namespace MortierFu
         {
             Screen.fullScreen = value;
             _saveService.Settings.IsFullscreen = value;
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
         }
 
         private void OnVSyncChanged(bool value)
         {
             QualitySettings.vSyncCount = value ? 1 : 0;
             _saveService.Settings.IsVSyncEnabled = value;
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
         }
 
         private void OnMasterVolumeChanged(float value)
@@ -75,6 +77,7 @@ namespace MortierFu
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MasterVolume = value;
             AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
         }
 
         private void OnMusicVolumeChanged(float value)
@@ -82,6 +85,7 @@ namespace MortierFu
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.MusicVolume = value;
             AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
         }
 
         private void OnSfxVolumeChanged(float value)
@@ -89,6 +93,7 @@ namespace MortierFu
             // TODO : Apply volume to FMOD Bus
             _saveService.Settings.SfxVolume = value;
             AudioService.SetVolume(AudioService.BusEnum.SFX, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
         }
         
         private void SaveSettings()

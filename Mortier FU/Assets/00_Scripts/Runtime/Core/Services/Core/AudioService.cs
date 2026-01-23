@@ -27,7 +27,7 @@ namespace MortierFu
         private static Bus musicBus;
         private static Bus ambienceBus;
 
-        private EventInstance musicEventInstance, ambienceEventInstance;
+        protected EventInstance musicEventInstance, ambienceEventInstance;
         private static bool breakPlayed;
 
         #region EventInstance functions
@@ -103,23 +103,28 @@ namespace MortierFu
             return eventInstance;
         }
 
-        public async UniTask StartMusic()
+        public async UniTask StartMusic(EventReference eventReference)
         {
             if (!RuntimeManager.IsInitialized)
             {
                 Logs.LogWarning("[SoundManager] FMOD not initialized yet, retrying...");
-                await WaitForFMODAndStartMusic();
+                await WaitForFMODAndStartMusic(eventReference);
                 return;
             }
 
-            musicEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
+            if (musicEventInstance.isValid())
+            {
+                await StopMusic();
+            }
+
+            musicEventInstance = CreateInstance(eventReference, false);
             musicEventInstance.start();
         }
 
-        private async UniTask WaitForFMODAndStartMusic()
+        private async UniTask WaitForFMODAndStartMusic(EventReference eventReference)
         {
             while (!RuntimeManager.IsInitialized) await Task.Delay(TimeSpan.FromSeconds(0.1f)) ;
-            StartMusic().Forget();
+            StartMusic(eventReference).Forget();
         }
 
         private UniTask StopMusic()
@@ -142,8 +147,13 @@ namespace MortierFu
             RuntimeManager.StudioSystem.setParameterByName("Pause", value);
         }
         
-        public void StartAmbience()
+        public async UniTask StartAmbience(EventReference eventReference)
         {
+            if (ambienceEventInstance.isValid())
+            {
+                await StopAmbience();
+            }
+            
             ambienceEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
             ambienceEventInstance.start();
         }
@@ -175,8 +185,6 @@ namespace MortierFu
                     ambienceBus.setVolume(vol);
                     break;
             }
-            
-            Debug.Log("slider change");
         }
 
         public enum BusEnum
