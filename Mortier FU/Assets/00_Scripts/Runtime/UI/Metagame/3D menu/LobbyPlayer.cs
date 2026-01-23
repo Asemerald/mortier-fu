@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -19,8 +20,10 @@ namespace MortierFu
         
         [Header("UI")]
         [SerializeField] private GameObject readyIndicator;
-        [SerializeField] private GameObject[] skinSelectionIndicator; // pour montrer qu'on est en mode skin
-        [SerializeField] private GameObject[] faceSelectionIndicator; // pour montrer qu'on est en mode face
+        [SerializeField] private Image[] skinSelectionIndicator; // pour montrer qu'on est en mode skin
+        [SerializeField] private Image[] faceSelectionIndicator; // pour montrer qu'on est en mode face
+        [SerializeField] private Sprite selectedArrowSprite;
+        [SerializeField] private Sprite unselectedArrowSprite;
         [SerializeField] private GameObject[] joinButtonIndicators;
         
         private int currentSkinIndex = 0;
@@ -178,16 +181,20 @@ namespace MortierFu
             }
         }
         
-        private void UpdateSelectionIndicators()
+        private void UpdateSelectionIndicators(bool hide = false)
         {
             foreach (var t in skinSelectionIndicator)
             {
-                t.SetActive(!isSelectingFace);
+                t.gameObject.SetActive(!hide);
+                t.sprite = isSelectingFace ? unselectedArrowSprite : selectedArrowSprite;
+                t.gameObject.GetComponentInChildren<Image>().sprite = isSelectingFace ? unselectedArrowSprite : selectedArrowSprite; // pardon pour ça si qqun le voit un jour
             }
 
             foreach (var t in faceSelectionIndicator)
             {
-                t.SetActive(isSelectingFace);
+                t.gameObject.SetActive(!hide);
+                t.sprite = isSelectingFace ? selectedArrowSprite : unselectedArrowSprite;
+                t.gameObject.GetComponentInChildren<Image>().sprite = isSelectingFace ? selectedArrowSprite : unselectedArrowSprite; // idem hein 
             }
         }
     
@@ -205,6 +212,9 @@ namespace MortierFu
                 if (isReady)
                     _animator.SetTrigger("ReadyTrigger");
             }
+            
+            //Hide selection indicators when ready
+            UpdateSelectionIndicators(true);
         }
     
         public void Unready()
@@ -230,7 +240,7 @@ namespace MortierFu
         {
             UpdateSkinDisplay();
             UpdateFaceShader();
-            UpdateSelectionIndicators();
+            UpdateSelectionIndicators(false);
         
             if (readyIndicator != null)
             {
