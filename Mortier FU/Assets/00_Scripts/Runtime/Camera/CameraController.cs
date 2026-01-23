@@ -6,6 +6,12 @@ namespace MortierFu
 {
     public class CameraController : MonoBehaviour
     {
+        enum ArenaCameraMode
+        {
+            FollowingPlayers,
+            StaticMapView
+        }
+
         [Header("Cinemachine")] [SerializeField]
         private CinemachineCamera _cinemachineCamera;
 
@@ -26,6 +32,9 @@ namespace MortierFu
 
         private bool _isStaticRaceCamera = false;
 
+        private ArenaCameraMode _arenaMode = ArenaCameraMode.FollowingPlayers;
+        private bool _isArenaMap;
+
         public Camera Camera => _camera;
 
         private void Start()
@@ -33,6 +42,11 @@ namespace MortierFu
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
 
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
+        }
+
+        public void SetArenaMode(bool isArena)
+        {
+            _isArenaMap = isArena;
         }
 
         private void LateUpdate()
@@ -63,7 +77,7 @@ namespace MortierFu
         public void RemoveTarget(Transform playerTransform)
         {
             if (playerTransform == null) return;
-            
+
             _targetGroup.RemoveMember(playerTransform);
         }
 
@@ -86,23 +100,83 @@ namespace MortierFu
         private void UpdateCameraForTargets()
         {
             Bounds bounds = CalculateTargetsBounds();
-            Vector3 center = bounds.center;
             float extent = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
 
+            if (_isArenaMap)
+            {
+                HandleArenaFallback(bounds.center, extent);
+                return;
+            }
+
+            FollowPlayers(bounds.center, extent);
+        }
+
+        private void HandleArenaFallback(Vector3 center, float extent)
+        {
+            if (_arenaMode == ArenaCameraMode.FollowingPlayers &&
+                extent > _cameraSettings.ArenaStopFollowExtent)
+            {
+                _arenaMode = ArenaCameraMode.StaticMapView;
+            }
+            else if (_arenaMode == ArenaCameraMode.StaticMapView &&
+                     extent < _cameraSettings.ArenaResumeFollowExtent)
+            {
+                _arenaMode = ArenaCameraMode.FollowingPlayers;
+            }
+
+            if (_arenaMode == ArenaCameraMode.StaticMapView)
+            {
+                _virtualTarget.position = Vector3.Lerp(
+                    _virtualTarget.position,
+                    _cameraSettings.MapPosition,
+                    Time.deltaTime * _cameraSettings.PositionLerpSpeed
+                );
+
+                _currentOrthoSize = Mathf.Lerp(
+                    _currentOrthoSize,
+                    _cameraSettings.DefaultOrtho,
+                    Time.deltaTime * _cameraSettings.ZoomLerpSpeed
+                );
+
+                ApplyLens();
+            }
+            else
+            {
+                FollowPlayers(center, extent);
+            }
+        }
+
+        private void FollowPlayers(Vector3 center, float extent)
+        {
             _virtualTarget.position = Vector3.Lerp(
                 _virtualTarget.position,
                 center,
-                Time.deltaTime * _cameraSettings.PositionLerpSpeed);
+                Time.deltaTime * _cameraSettings.PositionLerpSpeed
+            );
 
-            float clampedExtent =
-                Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
-            float t = Mathf.InverseLerp(_cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent,
-                clampedExtent);
+            float clampedExtent = Mathf.Clamp(
+                extent,
+                _cameraSettings.MinPlayersExtent,
+                _cameraSettings.MaxPlayersExtent
+            );
 
-            float targetOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, t);
+            float t = Mathf.InverseLerp(
+                _cameraSettings.MinPlayersExtent,
+                _cameraSettings.MaxPlayersExtent,
+                clampedExtent
+            );
 
-            _currentOrthoSize =
-                Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
+            float targetOrtho = Mathf.Lerp(
+                _cameraSettings.MinOrthoSize,
+                _cameraSettings.MaxOrthoSize,
+                t
+            );
+
+            _currentOrthoSize = Mathf.Lerp(
+                _currentOrthoSize,
+                targetOrtho,
+                Time.deltaTime * _cameraSettings.ZoomLerpSpeed
+            );
 
             ApplyLens();
         }
@@ -145,16 +219,27 @@ namespace MortierFu
 
         private void ResetCameraInstant()
         {
+            if (_isArenaMap)
+            {
+                _virtualTarget.position = _cameraSettings.MapPosition;
+                _currentOrthoSize = _cameraSettings.DefaultOrtho;
+                ApplyLens();
+                return;
+            }
+
             if (!_targetGroup.IsEmpty)
             {
                 Bounds b = CalculateTargetsBounds();
                 _virtualTarget.position = b.center;
             }
 
-            float midOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, 0.5f);
+            float midOrtho = Mathf.Lerp(
+                _cameraSettings.MinOrthoSize,
+                _cameraSettings.MaxOrthoSize,
+                0.5f
+            );
 
             _currentOrthoSize = midOrtho;
-
             ApplyLens();
         }
 

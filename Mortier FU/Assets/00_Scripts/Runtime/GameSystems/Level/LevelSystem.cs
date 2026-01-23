@@ -35,7 +35,7 @@ namespace MortierFu
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
-
+            _cameraSystem.Controller.SetArenaMode(false);
 #if UNITY_EDITOR
             string sceneKey = EditorPrefs.GetString("OverrideRaceMapAddress", "");
             if (!string.IsNullOrEmpty(sceneKey))
@@ -90,7 +90,7 @@ namespace MortierFu
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
-
+            _cameraSystem.Controller.SetArenaMode(true);
 #if UNITY_EDITOR
             string sceneKey = EditorPrefs.GetString("OverrideArenaMapAddress", "");
             if (!string.IsNullOrEmpty(sceneKey))
