@@ -235,19 +235,28 @@ namespace MortierFu
         }
         
         private async UniTask HandleImpactPreview() {
-            const float k_maxSimulationTime = 20f;
+            const float k_maxSimulationTime = 30f;
 
             Vector3 currentPos = transform.position;
             Vector3 currentVel = _velocity;
             float radius = _data.Scale * 0.5f;
-            float dT = Time.fixedDeltaTime * _data.Speed;
+            float simulationSpeedFactor = _system.Settings.SimulationSpeedCurve.Evaluate(_data.Speed);
+            float dT = Time.fixedDeltaTime * simulationSpeedFactor * _data.Speed;
+
+            int simulationIterationCount = 0;
             
             RaycastHit hitResult;
-            for (float previewTime = Time.fixedDeltaTime; previewTime  < k_maxSimulationTime; previewTime += Time.fixedDeltaTime)
+            for (float previewTime = Time.fixedDeltaTime; previewTime  < k_maxSimulationTime; previewTime += Time.fixedDeltaTime * simulationSpeedFactor) 
             {
+                simulationIterationCount++;
+                
+                Debug.DrawLine(currentPos, currentPos + currentVel * dT, Color.red, 4f);
+                
                 if (Physics.SphereCast(currentPos, radius, currentVel.normalized, out hitResult,
                         currentVel.magnitude * dT, _system.Settings.WhatIsPreviewable, QueryTriggerInteraction.Collide)) 
                 {
+                    Logs.Log("Physics Simulation took " + simulationIterationCount + " iterations.");
+                    
                     float delay = previewTime * _system.Settings.ImpactPreviewDelayFactor;
                     Vector3 previewPoint = hitResult.point.Add(y: 0.3f);
                     

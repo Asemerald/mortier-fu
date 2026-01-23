@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace MortierFu
 {
     public class AGM_BouncySnowball : AugmentBase
