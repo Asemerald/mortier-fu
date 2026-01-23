@@ -51,7 +51,7 @@ namespace MortierFu
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
 
                     CurrentCameraMapConfig = _boundReporter.CameraConfig;
-                    
+
                     return;
                 }
                 else
@@ -85,7 +85,7 @@ namespace MortierFu
             scene = default;
             return false;
         }
-        
+
         public async UniTask LoadArenaMap()
         {
             await FinishUnfinishedBusiness();
@@ -104,6 +104,9 @@ namespace MortierFu
 
                     if (Settings.EnableDebug)
                         Logs.Log($"[LevelSystem]: Enforce the use of the debug scene: {sceneKey}");
+
+                    CurrentCameraMapConfig = _boundReporter.CameraConfig;
+
                     return;
                 }
                 else
@@ -122,6 +125,8 @@ namespace MortierFu
 
             if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
+
+            CurrentCameraMapConfig = _boundReporter.CameraConfig;
         }
 
         private async UniTask UnloadCurrentMap()
@@ -147,7 +152,7 @@ namespace MortierFu
 
             return BoundReporter.WinnerSpawnPoint ?? FallbackTransform;
         }
-        
+
         public Transform GetRoundWinnerSpawnPoint()
         {
             if (BoundReporter == null)
