@@ -67,6 +67,7 @@ namespace MortierFu
         [SerializeField] private float _updateSlidersDelay = 0.2f;
         [SerializeField] private float _hideKillScaleDuration = 0.5f;
         [SerializeField] private float _showKillScaleDuration = 0.5f;
+        [SerializeField] private float _showSecondKillDelay = 0.2f;
 
         [SerializeField] private Ease _showPlacementEase = Ease.OutBack;
         [SerializeField] private Ease _hidePlacementEase = Ease.InBack;
@@ -235,7 +236,7 @@ namespace MortierFu
 
                     var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
                     if (killRound >= kills.Count) continue;
-
+                    
                     var cause = kills[killRound];
                     var contextImg = _killContextImages[idx];
 
@@ -338,7 +339,7 @@ namespace MortierFu
                 if (sliderTasks.Count > 0)
                     await UniTask.WhenAll(sliderTasks);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
+                await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
             }
         }
 
