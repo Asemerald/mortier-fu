@@ -10,8 +10,6 @@ namespace MortierFu
         private GameInitializer _gameInitializer;
 
         [SerializeField] private Slider _progressBar;
-        [SerializeField] private RectTransform _runnerSprite;
-        [SerializeField] private float _runnerOffsetY = 75f;
 
         [Header("Optional")] [SerializeField] private Animator _runnerAnimator;
 
@@ -23,30 +21,12 @@ namespace MortierFu
             if (_gameInitializer == null)
                 Debug.LogWarning("BootstrapPanel: GameInitializer reference is missing");
 
-            if (_progressBar == null || _runnerSprite == null)
+            if (_progressBar == null)
                 Debug.LogWarning("BootstrapPanel: ProgressBar or RunnerSprite missing");
 
             _fillArea = _progressBar.fillRect.parent as RectTransform;
 
             StartProgressLoop().Forget();
-        }
-
-        private void Update()
-        {
-            UpdateRunnerPosition(_progressBar.normalizedValue);
-        }
-
-        private void UpdateRunnerPosition(float progress)
-        {
-            if (_fillArea == null) return;
-
-            Vector3 start = _fillArea.rect.min;
-            Vector3 end = _fillArea.rect.max;
-
-            float x = Mathf.Lerp(start.x, end.x, progress);
-            float y = _runnerOffsetY;
-
-            _runnerSprite.anchoredPosition = new Vector2(x, y);
         }
 
         private async UniTaskVoid StartProgressLoop()
