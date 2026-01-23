@@ -36,16 +36,19 @@ namespace MortierFu
         
         private void OpenLobbyPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
             lobbyPanel.Show();
         }
         private void OpenSettingsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
             settingsPanel.Show();
         }
         private void OpenCreditsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
             creditsPanel.Show();
         }
