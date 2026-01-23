@@ -102,6 +102,8 @@ namespace MortierFu
         {
             if (isReady) return;
     
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider, transform.position);
+            
             // Navigation verticale : changer de mode (skin/face)
             if (input.y < -0.5f && !isSelectingFace)
             {
@@ -201,6 +203,7 @@ namespace MortierFu
             isReady = !isReady;
             UpdateVisuals();
             MenuManager.Instance?.CheckAllPlayersReady();
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
             
             if (_animator != null)
             {
@@ -219,6 +222,7 @@ namespace MortierFu
             if (isReady)
             {
                 isReady = false;
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
                 UpdateVisuals();
             }
         }

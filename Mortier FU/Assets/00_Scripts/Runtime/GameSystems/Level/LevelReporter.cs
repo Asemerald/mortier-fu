@@ -137,7 +137,9 @@ namespace MortierFu
     public struct CameraMapConfig
     {
         [Header("Camera Placement")] public Vector3 PositionForRace;
-
+        
+        public Vector3 PositionForMap;
+        
         [Header("Zoom & Bounds")] public float OrthoSize;
 
         //public bool OverrideDefaultSettings;

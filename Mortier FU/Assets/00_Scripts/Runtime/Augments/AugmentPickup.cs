@@ -8,6 +8,7 @@ namespace MortierFu
         [SerializeField] private E_AugmentRarity _rarity;
 
         [SerializeField] private ParticleSystem _dissolveColor01;
+        [SerializeField] private ParticleSystem _dissolveColor02;
         [SerializeField] private ParticleSystem _roundColor01;
         [SerializeField] private ParticleSystem _roundColor02;
         [SerializeField] private MeshRenderer _planeMeshRenderer;
@@ -87,6 +88,12 @@ namespace MortierFu
             {
                 var main = _dissolveColor01.main;
                 main.startColor = source._dissolveColor01.main.startColor;
+            }
+
+            if (_dissolveColor02 && source._dissolveColor02)
+            {
+                var main = _dissolveColor02.main;
+                main.startColor = source._dissolveColor02.main.startColor;
             }
 
             if (_roundColor01 && source._roundColor01)

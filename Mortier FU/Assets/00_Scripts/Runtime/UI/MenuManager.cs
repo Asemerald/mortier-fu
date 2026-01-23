@@ -74,6 +74,8 @@ namespace MortierFu
 
             CheckReferences();
             CheckActivePanels();
+            
+            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
         }
 
         private void Start()
