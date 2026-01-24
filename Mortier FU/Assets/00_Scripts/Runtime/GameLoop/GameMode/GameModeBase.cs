@@ -175,7 +175,7 @@ namespace MortierFu
                     }
                 }
 
-                await levelSystem.LoadArenaMap();
+                await levelSystem.LoadArenaMap(true );
 
                 StartRound();
 

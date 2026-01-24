@@ -42,6 +42,7 @@ namespace MortierFu
             }
             
             await handle;
+            
             Logs.Log($"[SceneService]: Successfully loaded {sceneName}.");
 
             if (active) {
