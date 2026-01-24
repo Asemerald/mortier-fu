@@ -86,6 +86,7 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundStarted;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
+        public event Func<RoundInfo, UniTask> OnRoundEndedAsync;
         public event Action OnRaceStart;
         public event Func<UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
@@ -166,6 +167,8 @@ namespace MortierFu
 
                 EnablePlayerGravity(false);
 
+                
+                // TODO: Potentiellement horrible 
                 if (OnRaceEndedUI != null)
                 {
                     foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
@@ -185,10 +188,18 @@ namespace MortierFu
                 UpdateGameState(GameState.EndRound);
                 EndRound();
 
-                UpdateGameState(GameState.DisplayScores);
-                DisplayScores();
+                // TODO: Potentiellement horrible 
+                if (OnRoundEndedAsync != null)
+                {
+                    foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
+                    {
+                        var handler = (Func<RoundInfo, UniTask>)@delegate;
+                        await handler.Invoke(_currentRound);
+                    }
+                }
 
-                await UniTask.Delay(TimeSpan.FromSeconds(Data.DisplayScoresDuration));
+                UpdateGameState(GameState.DisplayScores);
+                //DisplayScores();
 
                 HideScores();
 
@@ -390,7 +401,6 @@ namespace MortierFu
             EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
 
             bombshellSys.ClearActiveBombshells();
-            //puddleSys.ClearActivePuddles();
 
             if (stormInstance)
             {
@@ -411,9 +421,9 @@ namespace MortierFu
                 var winner = _currentRound.WinningTeam.Members[0];
 
                 winner.Character.Reset();
-                
+
                 SpawnWinnerTeam(_currentRound.WinningTeam);
-                
+
                 cameraSystem.Controller.EndFightCameraMovement(
                     winner.Character.transform);
 
