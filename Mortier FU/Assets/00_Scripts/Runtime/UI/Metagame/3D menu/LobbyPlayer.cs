@@ -200,6 +200,11 @@ namespace MortierFu
     
         public void ToggleReady()
         {
+            if (MenuManager.Instance.AllPlayersReady())
+            {
+                return;
+            }
+            
             isReady = !isReady;
             UpdateVisuals();
             MenuManager.Instance?.CheckAllPlayersReady();

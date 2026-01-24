@@ -107,7 +107,7 @@ namespace MortierFu
 
         private void InitializeSliders()
         {
-            int max = _gm.Data.ScoreToWin;
+            int max = _gm.ScoreToWin;
 
             foreach (var slider in _scoreSliders)
             {
@@ -134,7 +134,7 @@ namespace MortierFu
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
 
                 _placeImages[idx].transform.localScale = Vector3.zero;
 
@@ -162,7 +162,7 @@ namespace MortierFu
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
 
                 _scoreImages[idx].transform.localScale = Vector3.zero;
 

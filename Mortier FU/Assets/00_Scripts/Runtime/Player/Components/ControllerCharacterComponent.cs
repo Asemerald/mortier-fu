@@ -120,7 +120,7 @@ namespace MortierFu
                 input = Vector2.zero;
 
             Vector2 targetDirection = input.normalized;
-            float targetSpeed = Stats.MoveSpeed.Value * factor;
+            float targetSpeed = Stats.MoveSpeed.Value * factor * Character.ExternalSpeedMultiplier; // pour le caca qui slow
 
             Vector2 targetVelocity = targetDirection * targetSpeed;
 

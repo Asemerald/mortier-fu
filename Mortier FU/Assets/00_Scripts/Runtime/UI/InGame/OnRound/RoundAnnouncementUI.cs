@@ -53,7 +53,7 @@ namespace MortierFu
             bool isMatchPoint = false;
             for (int i = 0; i < gm.Teams.Count; i++)
             {
-                if (gm.Teams[i].Score >= gm.Data.ScoreToWin)
+                if (gm.Teams[i].Score >= gm.ScoreToWin)
                 {
                     isMatchPoint = true;
                     break;
