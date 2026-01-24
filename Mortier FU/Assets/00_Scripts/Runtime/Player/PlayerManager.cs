@@ -46,20 +46,20 @@ namespace MortierFu
         {
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
-            
+
             // lobby type shit
             _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
-            
+
             _navigateAction = _playerInput.actions.FindAction("Navigate");
             _submitAction = _playerInput.actions.FindAction("Submit");
-            
+
             if (_navigateAction != null)
                 _navigateAction.performed += Navigate;
             if (_submitAction != null)
                 _submitAction.performed += Submit;
-            
+
             _playerInput.SwitchCurrentActionMap("UI");
-            
+
             if (PlayerIndex == 0)
             {
                 Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
@@ -79,10 +79,10 @@ namespace MortierFu
 
             if (_pauseAction != null)
                 _pauseAction.performed -= TogglePause;
-            
+
             if (_unPauseAction != null)
                 _unPauseAction.performed -= TogglePause;
-            
+
             if (_cancelUIAction != null)
                 _cancelUIAction.performed -= CancelUI;
         }
@@ -92,10 +92,10 @@ namespace MortierFu
         {
             if (PlayerIndex != 0)
                 return;
-            
+
             _gamePauseSystem.TogglePause();
         }
-        
+
         public void EnableGameplayInputMap(bool enable = true)
         {
             string targetMap = enable
@@ -155,7 +155,7 @@ namespace MortierFu
             if (_pauseAction != null) _pauseAction.performed += TogglePause;
             if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
-            
+
             _playerInput.SwitchCurrentActionMap("Gameplay");
             PlayerInput.actions.FindActionMap("Global").Enable();
         }
@@ -188,20 +188,18 @@ namespace MortierFu
 
             Team = null;
         }
-        
+
         #region Lobby Methods
-        
+
         private InputAction _navigateAction;
         private InputAction _submitAction;
-        
+
         private LobbyPlayer _lobbyPlayer;
-        
-       
 
         public int SkinIndex = 0;
         public int FaceColumn = 1;
         public int FaceRow = 1;
-        
+
         private Vector2 _previousNavigateInput = Vector2.zero;
         private float _lastNavigateTime = 0f;
         private float _navigateCooldown = 0.3f;
@@ -216,7 +214,7 @@ namespace MortierFu
             // Vérifier si on vient de passer le seuil sur l'axe X (horizontal)
             bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _threshold;
             bool isPushedNowX = Mathf.Abs(currentInput.x) >= _threshold;
-    
+
             // Vérifier si on vient de passer le seuil sur l'axe Y (vertical)
             bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _threshold;
             bool isPushedNowY = Mathf.Abs(currentInput.y) >= _threshold;
@@ -227,9 +225,9 @@ namespace MortierFu
             // Changer seulement si :
             // - On vient de pousser le stick sur X OU Y
             // - OU le stick est poussé ET le cooldown est écoulé
-            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY)) 
+            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY))
                                  || ((isPushedNowX || isPushedNowY) && cooldownExpired);
-    
+
             if (shouldTrigger)
             {
                 _lobbyPlayer.ChangeSkin(currentInput);
@@ -238,21 +236,21 @@ namespace MortierFu
 
             _previousNavigateInput = currentInput;
         }
-        
-        
+
+
         public void Submit(InputAction.CallbackContext context)
         {
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.ToggleReady();
-            
+
                 // Sauvegarder les valeurs de customisation
                 SkinIndex = _lobbyPlayer.SkinIndex;
                 FaceColumn = _lobbyPlayer.FaceColumn;
                 FaceRow = _lobbyPlayer.FaceRow;
             }
         }
-        
+
         #endregion
     }
 }

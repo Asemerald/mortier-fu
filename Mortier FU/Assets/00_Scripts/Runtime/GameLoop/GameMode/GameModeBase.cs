@@ -58,6 +58,8 @@ namespace MortierFu
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
+        public int ScoreToWin { get; private set; }
+
         public bool IsReady
         {
             get
@@ -430,7 +432,7 @@ namespace MortierFu
         {
             foreach (var team in teams)
             {
-                if (team.Score >= Data.ScoreToWin)
+                if (team.Score >= ScoreToWin)
                 {
                     if (team.Rank != 1) continue;
                     gameVictor = team;
@@ -457,7 +459,7 @@ namespace MortierFu
                         }
                     }
 
-                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, ScoreToWin);
 
                     // notify analytics system
                     var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
@@ -555,6 +557,11 @@ namespace MortierFu
         {
             currentState = newState;
             OnGameStateChanged?.Invoke(newState);
+        }
+        
+        public void SetScoreToWin(int score)
+        {
+            ScoreToWin = score;
         }
 
         public virtual async UniTask Initialize()
