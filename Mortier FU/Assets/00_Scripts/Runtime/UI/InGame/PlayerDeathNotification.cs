@@ -48,6 +48,11 @@ namespace MortierFu
             if (deathContext.Killer != null) {
                 int killerId = deathContext.Killer.Owner.PlayerIndex;
                 _killerImg.sprite = _avatarSprites[killerId];
+                transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                transform.localPosition = Vector3.right * -150;
             }
 
             foreach (var canvasGroup in _killerExclusive) {
