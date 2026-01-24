@@ -90,13 +90,13 @@ namespace MortierFu
             _gm = GameService.CurrentGameMode as GameModeBase;
 
             if (_gm == null) return;
-            _gm.OnRoundEnded += OnRoundEnded;
+            _gm.OnRoundEndedAsync += AnimateRoundEndSequence;
             _gm.OnScoreDisplayOver += ResetUI;
         }
 
         private void OnDestroy()
         {
-            _gm.OnRoundEnded -= OnRoundEnded;
+            _gm.OnRoundEndedAsync -= AnimateRoundEndSequence;
             _gm.OnScoreDisplayOver -= ResetUI;
         }
 
@@ -113,13 +113,6 @@ namespace MortierFu
             {
                 slider.value = Mathf.Clamp(0, 0, max);
             }
-        }
-
-        private void OnRoundEnded(RoundInfo round)
-        {
-            ResetUI();
-
-            AnimateRoundEndSequence(round).Forget();
         }
 
         #region Animate Sliders / Placement / Kills
@@ -399,6 +392,8 @@ namespace MortierFu
 
         private async UniTask AnimateRoundEndSequence(RoundInfo round)
         {
+            ResetUI();
+            
             await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.ShowRoundWinnerDelay));
             InitializePlayerPanels(_leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
@@ -411,6 +406,8 @@ namespace MortierFu
             var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
             await AnimateLeaderboardPositions(sortedTeams);
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.StopShowScoreBoardDelay));
         }
 
         private async UniTask AnimateLeaderboardPositions(List<PlayerTeam> sortedTeams)
