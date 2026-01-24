@@ -75,7 +75,7 @@ namespace MortierFu
         public void HandleMovementFixedUpdate()
         {
             Vector3 currentVelocity = rigidbody.linearVelocity;
-            Vector3 targetVelocity = new Vector3(_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
+            Vector3 targetVelocity = new (_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
 
             // -------------------------------
             // 1) APPLICATION DU KNOCKBACK
@@ -120,7 +120,7 @@ namespace MortierFu
                 input = Vector2.zero;
 
             Vector2 targetDirection = input.normalized;
-            float targetSpeed = Stats.MoveSpeed.Value * factor;
+            float targetSpeed = Stats.MoveSpeed.Value * factor * Character.ExternalSpeedMultiplier; // pour le caca qui slow
 
             Vector2 targetVelocity = targetDirection * targetSpeed;
 
@@ -153,6 +153,7 @@ namespace MortierFu
 
         public void ResetVelocity()
         {
+            _knockback = Vector3.zero;
             rigidbody.linearVelocity = Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
             _moveDirection = Vector3.zero;

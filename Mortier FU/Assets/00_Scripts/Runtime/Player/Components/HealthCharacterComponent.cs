@@ -109,7 +109,7 @@ namespace MortierFu
                 var kn = character.KnockbackState;
 
                 // Only consider recent push
-                if (kn.ComputeLastBumpElapsedTime() < 8f)
+                if (kn.ComputeLastBumpElapsedTime() < 4f)
                 {
                     if (kn.LastBumpSource is Bumper bumper)
                     {

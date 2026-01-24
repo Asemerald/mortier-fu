@@ -31,7 +31,7 @@ namespace MortierFu
 
         private CameraSystem _cameraSystem;
 
-        public async UniTask LoadRaceMap()
+        public async UniTask LoadRaceMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
@@ -61,6 +61,11 @@ namespace MortierFu
                 }
             }
 #endif
+            
+            if (useTransition)
+            {
+                TransitionManager.Instance.TryPlayTransition(color);
+            }
 
             var map = _raceMapLocations.RandomElement();
 
@@ -85,8 +90,8 @@ namespace MortierFu
             scene = default;
             return false;
         }
-
-        public async UniTask LoadArenaMap()
+        
+        public async UniTask LoadArenaMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
@@ -116,6 +121,10 @@ namespace MortierFu
                 }
             }
 #endif
+            if (useTransition)
+            {
+                TransitionManager.Instance.PlayTransitionAsync(color).Forget();
+            }
 
             var map = _arenaMapLocations.RandomElement();
 

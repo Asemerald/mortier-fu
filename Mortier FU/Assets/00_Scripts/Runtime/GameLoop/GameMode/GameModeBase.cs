@@ -58,6 +58,8 @@ namespace MortierFu
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
+        public int ScoreToWin { get; private set; }
+
         public bool IsReady
         {
             get
@@ -142,7 +144,7 @@ namespace MortierFu
             while (currentState != GameState.EndGame)
             {
                 EnablePlayerGravity(false);
-                await levelSystem.LoadRaceMap();
+                await levelSystem.LoadRaceMap(true);
                 ServiceManager.Instance.Get<AudioService>().SetPhase(1);
 
                 UpdateGameState(GameState.DisplayAugment);
@@ -173,7 +175,7 @@ namespace MortierFu
                     }
                 }
 
-                await levelSystem.LoadArenaMap();
+                await levelSystem.LoadArenaMap(true);
 
                 StartRound();
 
@@ -235,7 +237,7 @@ namespace MortierFu
             }
         }
 
-        private void SpawnPlayers(bool useRoundWinnerSpawnPoint = false)
+        private void SpawnPlayers()
         {
             bool opposite = _currentRound.RoundIndex % 2 == 0;
             int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
@@ -254,23 +256,26 @@ namespace MortierFu
                     }
                     else
                     {
-                        if (useRoundWinnerSpawnPoint && team.Rank == 1)
-                        {
-                            spawnPoint = levelSystem.GetRoundWinnerSpawnPoint();
-                        }
-                        else
-                        {
-                            spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
-                        }
+                        spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
                     }
 
-                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);                    
+                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
 
                     if (opposite)
                         spawnIndex--;
                     else
                         spawnIndex++;
                 }
+            }
+        }
+
+        private void SpawnWinnerTeam(PlayerTeam winnerTeam)
+        {
+            var spawnPoint = levelSystem.GetRoundWinnerSpawnPoint();
+
+            foreach (var member in winnerTeam.Members)
+            {
+                member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
             }
         }
 
@@ -392,8 +397,6 @@ namespace MortierFu
                 stormInstance.Stop();
             }
 
-            ResetPlayers();
-            SpawnPlayers(true);
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             EnablePlayerInputs(false);
             PlayerCharacter.AllowGameplayActions = false;
@@ -403,13 +406,17 @@ namespace MortierFu
 
             _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
 
-
             if (_currentRound.WinningTeam != null)
             {
+                var winner = _currentRound.WinningTeam.Members[0];
+
+                winner.Character.Reset();
+                SpawnWinnerTeam(_currentRound.WinningTeam);
+
                 cameraSystem.Controller.EndFightCameraMovement(
-                    _currentRound.WinningTeam.Members[0].Character.transform);
-                _currentRound.WinningTeam.Members[0].transform.rotation = levelSystem.GetRoundWinnerSpawnPoint().rotation;
-                _currentRound.WinningTeam.Members[0].Character.WinRoundDance();
+                    winner.Character.transform);
+
+                winner.Character.WinRoundDance();
             }
 
             OnRoundEnded?.Invoke(_currentRound);
@@ -430,7 +437,7 @@ namespace MortierFu
         {
             foreach (var team in teams)
             {
-                if (team.Score >= Data.ScoreToWin)
+                if (team.Score >= ScoreToWin)
                 {
                     if (team.Rank != 1) continue;
                     gameVictor = team;
@@ -457,7 +464,7 @@ namespace MortierFu
                         }
                     }
 
-                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, Data.ScoreToWin);
+                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, ScoreToWin);
 
                     // notify analytics system
                     var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
@@ -536,7 +543,6 @@ namespace MortierFu
 
         public virtual void EndGame()
         {
-            
             ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
@@ -555,6 +561,11 @@ namespace MortierFu
         {
             currentState = newState;
             OnGameStateChanged?.Invoke(newState);
+        }
+
+        public void SetScoreToWin(int score)
+        {
+            ScoreToWin = score;
         }
 
         public virtual async UniTask Initialize()

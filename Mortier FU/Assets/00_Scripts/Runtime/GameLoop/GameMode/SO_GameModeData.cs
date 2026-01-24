@@ -8,7 +8,6 @@ namespace MortierFu
         public int MinPlayerCount = 1;
         public int MaxPlayerCount = 4;
         
-        public int ScoreToWin = 1000;
         public int FirstRankBonusScore = 100;
         public int SecondRankBonusScore = 30;   
         public int ThirdRankBonusScore = 10;

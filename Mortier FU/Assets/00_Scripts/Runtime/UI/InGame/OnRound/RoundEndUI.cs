@@ -67,6 +67,7 @@ namespace MortierFu
         [SerializeField] private float _updateSlidersDelay = 0.2f;
         [SerializeField] private float _hideKillScaleDuration = 0.5f;
         [SerializeField] private float _showKillScaleDuration = 0.5f;
+        [SerializeField] private float _showSecondKillDelay = 0.2f;
 
         [SerializeField] private Ease _showPlacementEase = Ease.OutBack;
         [SerializeField] private Ease _hidePlacementEase = Ease.InBack;
@@ -76,7 +77,6 @@ namespace MortierFu
         private int[] _leaderboardOrder;
         private Vector3 _originalScale;
         private int _previousTopPlayerIndex = 0;
-        private int[] _displayedScores;
 
         private GameModeBase _gm;
 
@@ -89,11 +89,9 @@ namespace MortierFu
 
             _gm = GameService.CurrentGameMode as GameModeBase;
 
-            if (_gm != null)
-            {
-                _gm.OnRoundEnded += OnRoundEnded;
-                _gm.OnScoreDisplayOver += ResetUI;
-            }
+            if (_gm == null) return;
+            _gm.OnRoundEnded += OnRoundEnded;
+            _gm.OnScoreDisplayOver += ResetUI;
         }
 
         private void OnDestroy()
@@ -102,36 +100,41 @@ namespace MortierFu
             _gm.OnScoreDisplayOver -= ResetUI;
         }
 
+        private void Start()
+        {
+            InitializeSliders();
+        }
+
+        private void InitializeSliders()
+        {
+            int max = _gm.ScoreToWin;
+
+            foreach (var slider in _scoreSliders)
+            {
+                slider.value = Mathf.Clamp(0, 0, max);
+            }
+        }
+
         private void OnRoundEnded(RoundInfo round)
         {
             ResetUI();
-            var teams = _gm.Teams;
 
-            _displayedScores = new int[_playerSlots.Length];
-            foreach (var team in teams)
-            {
-                _displayedScores[team.Index] =
-                    team.Score
-                    - GetPlacementBonus(team, _gm)
-                    - GetTotalKillScore(team, _gm);
-            }
-
-            AnimateRoundEndSequence(teams, round).Forget();
+            AnimateRoundEndSequence(round).Forget();
         }
 
         #region Animate Sliders / Placement / Kills
 
-        private async UniTask AnimatePlacementText(ReadOnlyCollection<PlayerTeam> teams)
+        private async UniTask AnimatePlacementText()
         {
             var showTasks = new List<UniTask>();
-            foreach (var team in teams)
+            foreach (var team in _gm.Teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
 
                 _placeImages[idx].transform.localScale = Vector3.zero;
 
@@ -152,14 +155,14 @@ namespace MortierFu
 
             showTasks.Clear();
 
-            foreach (var team in teams)
+            foreach (var team in _gm.Teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
                 int rankIndex = team.Rank - 1;
                 if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.Data.ScoreToWin;
+                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
 
                 _scoreImages[idx].transform.localScale = Vector3.zero;
 
@@ -179,7 +182,7 @@ namespace MortierFu
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
             var hideTasks = new List<UniTask>();
-            foreach (var team in teams)
+            foreach (var team in _gm.Teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
@@ -198,19 +201,24 @@ namespace MortierFu
             await UniTask.Delay(TimeSpan.FromSeconds(_updateSlidersDelay));
 
             var sliderTasks = new List<UniTask>();
-            foreach (var team in teams)
+            foreach (var team in _gm.Teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
 
-                int bonus = GetPlacementBonus(team, _gm);
+                int bonus = GetPlacementBonus(team);
                 if (bonus <= 0) continue;
 
-                int start = _displayedScores[idx];
-                int end = start + bonus;
-                _displayedScores[idx] = end;
+                int start = Mathf.RoundToInt(_scoreSliders[idx].value);
+                int max = (int)_scoreSliders[idx].maxValue;
 
-                sliderTasks.Add(AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration));
+                if (start >= max)
+                    continue;
+
+                int end = Mathf.Min(start + bonus, max);
+
+                sliderTasks.Add(
+                    AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration));
             }
 
             if (sliderTasks.Count > 0)
@@ -218,17 +226,18 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_startKillAnimDelay));
 
-            await AnimateKillsByRound(teams);
+            await AnimateKillsByRound();
         }
 
-        private async UniTask AnimateKillsByRound(ReadOnlyCollection<PlayerTeam> teams)
+        private async UniTask AnimateKillsByRound()
         {
-            int maxKills = teams.Max(t => t.Members.Sum(m => m.Metrics.RoundKills.Count));
+            int maxKills = _gm.Teams.Max(t => t.Members.Sum(m => m.Metrics.RoundKills.Count));
 
             for (int killRound = 0; killRound < maxKills; killRound++)
             {
-                var showTasks = new List<UniTask>();
-                foreach (var team in teams)
+                var showContextTasks = new List<UniTask>();
+
+                foreach (var team in _gm.Teams)
                 {
                     int idx = team.Index;
                     if (!IsValidPlayerIndex(idx)) continue;
@@ -240,25 +249,22 @@ namespace MortierFu
                     var contextImg = _killContextImages[idx];
 
                     contextImg.sprite = GetKillContextSprite(cause);
-
                     contextImg.transform.localScale = Vector3.zero;
-
                     contextImg.SetNativeSize();
-
                     contextImg.gameObject.SetActive(true);
 
-                    showTasks.Add(
+                    showContextTasks.Add(
                         Tween.Scale(contextImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
                             .ToUniTask()
                     );
                 }
 
-                if (showTasks.Count > 0)
-                    await UniTask.WhenAll(showTasks);
+                if (showContextTasks.Count > 0)
+                    await UniTask.WhenAll(showContextTasks);
 
-                showTasks.Clear();
+                var showScoreTasks = new List<UniTask>();
 
-                foreach (var team in teams)
+                foreach (var team in _gm.Teams)
                 {
                     int idx = team.Index;
                     if (!IsValidPlayerIndex(idx)) continue;
@@ -270,32 +276,31 @@ namespace MortierFu
                     var scoreImg = _scoreImages[idx];
 
                     scoreImg.sprite = GetKillScoreSprite(cause);
-
                     scoreImg.transform.localScale = Vector3.zero;
-
                     scoreImg.SetNativeSize();
-
                     scoreImg.gameObject.SetActive(true);
 
-                    showTasks.Add(
+                    showScoreTasks.Add(
                         Tween.Scale(scoreImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
                             .ToUniTask()
                     );
                 }
 
-                if (showTasks.Count > 0)
-                    await UniTask.WhenAll(showTasks);
+                if (showScoreTasks.Count > 0)
+                    await UniTask.WhenAll(showScoreTasks);
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
 
                 var hideTasks = new List<UniTask>();
-                foreach (var team in teams)
+
+                foreach (var team in _gm.Teams)
                 {
                     int idx = team.Index;
                     if (!IsValidPlayerIndex(idx)) continue;
 
                     var contextImg = _killContextImages[idx];
                     var scoreImg = _scoreImages[idx];
+
                     if (!contextImg.gameObject.activeSelf) continue;
 
                     hideTasks.Add(
@@ -308,10 +313,11 @@ namespace MortierFu
                 if (hideTasks.Count > 0)
                     await UniTask.WhenAll(hideTasks);
 
-                foreach (var team in teams)
+                foreach (var team in _gm.Teams)
                 {
                     int idx = team.Index;
                     if (!IsValidPlayerIndex(idx)) continue;
+
                     _killContextImages[idx].gameObject.SetActive(false);
                     _scoreImages[idx].gameObject.SetActive(false);
                 }
@@ -319,7 +325,8 @@ namespace MortierFu
                 await UniTask.Delay(TimeSpan.FromSeconds(_updateSlidersDelay));
 
                 var sliderTasks = new List<UniTask>();
-                foreach (var team in teams)
+
+                foreach (var team in _gm.Teams)
                 {
                     int idx = team.Index;
                     if (!IsValidPlayerIndex(idx)) continue;
@@ -327,18 +334,24 @@ namespace MortierFu
                     var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
                     if (killRound >= kills.Count) continue;
 
-                    var cause = kills[killRound];
-                    int start = _displayedScores[idx];
-                    int end = start + GetKillScore(cause);
-                    _displayedScores[idx] = end;
+                    int start = Mathf.RoundToInt(_scoreSliders[idx].value);
+                    int max = (int)_scoreSliders[idx].maxValue;
 
-                    sliderTasks.Add(AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration));
+                    if (start >= max)
+                        continue;
+
+                    int gain = GetKillScore(kills[killRound]);
+                    int end = Mathf.Min(start + gain, max);
+
+                    sliderTasks.Add(
+                        AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration)
+                    );
                 }
 
                 if (sliderTasks.Count > 0)
                     await UniTask.WhenAll(sliderTasks);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
+                await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
             }
         }
 
@@ -367,6 +380,8 @@ namespace MortierFu
         private async UniTask AnimateSlider(Slider slider, float start, float end, float duration)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_ScoreIncrease);
+            slider.value = start;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -382,18 +397,18 @@ namespace MortierFu
 
         #region Leaderboard / Helpers
 
-        private async UniTask AnimateRoundEndSequence(ReadOnlyCollection<PlayerTeam> teams, RoundInfo round)
+        private async UniTask AnimateRoundEndSequence(RoundInfo round)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.ShowRoundWinnerDelay));
-            InitializePlayerPanels(teams, _leaderboardOrder);
+            InitializePlayerPanels(_leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
-            
-            await AnimatePlacementText(teams);
+
+            await AnimatePlacementText();
             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay));
 
-            var sortedTeams = teams.OrderByDescending(t => t.Score).ToList();
+            var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
             await AnimateLeaderboardPositions(sortedTeams);
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
         }
@@ -444,12 +459,12 @@ namespace MortierFu
             }
         }
 
-        private void InitializePlayerPanels(ReadOnlyCollection<PlayerTeam> teams, int[] orderOverride = null)
+        private void InitializePlayerPanels(int[] orderOverride = null)
         {
             for (int i = 0; i < _playerSlots.Length; i++)
                 _playerSlots[i].gameObject.SetActive(false);
 
-            foreach (var team in teams)
+            foreach (var team in _gm.Teams)
             {
                 int idx = team.Index;
                 if (!IsValidPlayerIndex(idx)) continue;
@@ -463,7 +478,7 @@ namespace MortierFu
             if (orderOverride != null)
                 SetPlayersToLeaderboardOrder(orderOverride);
 
-            var topTeam = teams.OrderByDescending(t => t.Score).FirstOrDefault();
+            var topTeam = _gm.Teams.OrderByDescending(t => t.Score).FirstOrDefault();
             if (topTeam != null && IsValidPlayerIndex(topTeam.Index))
                 _playerIcons[topTeam.Index].sprite = _playerWinnerIcons[topTeam.Index];
         }
@@ -481,13 +496,13 @@ namespace MortierFu
             _winnerBackgroundColorImage.gameObject.SetActive(true);
         }
 
-        private int GetPlacementBonus(PlayerTeam team, GameModeBase gm)
+        private int GetPlacementBonus(PlayerTeam team)
         {
             return team.Rank switch
             {
-                1 => gm.Data.FirstRankBonusScore,
-                2 => gm.Data.SecondRankBonusScore,
-                3 => gm.Data.ThirdRankBonusScore,
+                1 => _gm.Data.FirstRankBonusScore,
+                2 => _gm.Data.SecondRankBonusScore,
+                3 => _gm.Data.ThirdRankBonusScore,
                 _ => 0
             };
         }
@@ -503,7 +518,7 @@ namespace MortierFu
             };
         }
 
-        private int GetTotalKillScore(PlayerTeam team, GameModeBase gm)
+        private int GetTotalKillScore(PlayerTeam team)
         {
             int total = 0;
             foreach (var member in team.Members)
@@ -516,7 +531,7 @@ namespace MortierFu
 
         private bool IsValidPlayerIndex(int idx) => idx >= 0 && idx < _playerSlots.Length;
 
-        public void ResetUI()
+        private void ResetUI()
         {
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
