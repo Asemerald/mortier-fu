@@ -42,7 +42,7 @@ namespace MortierFu
                 return;
             }
 
-            notif.Initialize(this, evt.Character);
+            notif.Initialize(this, evt.Character, evt.Context);
             
             Debug.Log($"Create notif bacause {evt.Character.Owner.PlayerIndex} died !");
         }
