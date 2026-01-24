@@ -156,8 +156,8 @@ namespace MortierFu
             if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
 
-            _playerInput.SwitchCurrentActionMap("Gameplay");
-            PlayerInput.actions.FindActionMap("Global").Enable();
+          //  _playerInput.SwitchCurrentActionMap("Gameplay");
+           // PlayerInput.actions.FindActionMap("Global").Enable();
         }
 
         /// <summary>
