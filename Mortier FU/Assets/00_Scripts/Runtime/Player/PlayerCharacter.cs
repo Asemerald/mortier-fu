@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
@@ -533,5 +534,45 @@ namespace MortierFu
         }
 
         #endregion
+        
+        #region Caca Qui Slow
+        
+        private Coroutine _speedModifierCoroutine;
+        public float ExternalSpeedMultiplier { get; private set; } = 1f;
+        
+        /// <summary>
+        /// Smoothly transitions an external movement speed multiplier on the player.
+        /// Controller components should multiply their base speed by PlayerCharacter.ExternalSpeedMultiplier.
+        /// </summary>
+        public void SetExternalSpeedMultiplier(float targetMultiplier, float transitionDuration)
+        {
+            if (_speedModifierCoroutine != null)
+                StopCoroutine(_speedModifierCoroutine);
+            _speedModifierCoroutine = StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
+        }
+        
+        private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
+        {
+            float start = ExternalSpeedMultiplier;
+            if (duration <= 0f)
+            {
+                ExternalSpeedMultiplier = target;
+                yield break;
+            }
+        
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                ExternalSpeedMultiplier = Mathf.Lerp(start, target, elapsed / duration);
+                yield return null;
+            }
+        
+            ExternalSpeedMultiplier = target;
+            _speedModifierCoroutine = null;
+        }
+        
+        #endregion
+        
     }
 }
