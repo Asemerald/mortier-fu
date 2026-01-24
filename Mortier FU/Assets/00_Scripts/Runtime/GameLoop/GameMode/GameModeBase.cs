@@ -411,8 +411,9 @@ namespace MortierFu
                 var winner = _currentRound.WinningTeam.Members[0];
 
                 winner.Character.Reset();
+                
                 SpawnWinnerTeam(_currentRound.WinningTeam);
-
+                
                 cameraSystem.Controller.EndFightCameraMovement(
                     winner.Character.transform);
 
