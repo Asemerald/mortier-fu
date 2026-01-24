@@ -1,62 +1,108 @@
-using System;
-using System.Collections;
-using MortierFu.Shared;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using UnityEngine.Video;
 
 namespace MortierFu
 {
     public class TransitionManager : MonoBehaviour
     {
         public static TransitionManager Instance { get; private set; }
-        
-        private static readonly int MaskAmount = Shader.PropertyToID("_MaskAmount");
-        [SerializeField] private Material material;
 
-        private float maskAmount = 0f;
-        private float targetValue = 1f;
+        [SerializeField] private VideoPlayer _videoPlayer;
+        [SerializeField] private VideoClip _blueTransitionClip;
+        [SerializeField] private VideoClip _redTransitionClip;
+        [SerializeField] private VideoClip _yellowTransitionClip;
+        [SerializeField] private VideoClip _greenTransitionClip;
+
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private bool _isPlaying;
+
+        public bool IsTransitionPlaying => _isPlaying;
 
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Logs.LogWarning("[TransitionManager]: Multiple instances detected. Destroying duplicate.", this);
                 Destroy(this.gameObject);
                 return;
             }
             Instance = this;
+            DontDestroyOnLoad(this.gameObject);
         }
 
-        private void Start()
+        // Awaitable 
+        public UniTask PlayTransitionAsync(TransitionColor color)
         {
-            material.SetFloat(MaskAmount, 0f);
+            // Try to acquire immediately; if busy, ignore and return completed task.
+            if (!_semaphore.Wait(0))
+                return UniTask.CompletedTask;
+
+            // We own the semaphore now; return the task so caller can await the play.
+            return PlayTransitionNoAcquireAsync(color);
         }
 
-        private void Update() {
-            float maskAmountChange = targetValue > maskAmount ? +.1f : -.1f;
-            maskAmount += maskAmountChange * Time.deltaTime * 6f; //TODO: expose speed
-            maskAmount = Mathf.Clamp01(maskAmount);
+        // Fire-and-forget 
+        public bool TryPlayTransition(TransitionColor color)
+        {
+            if (!_semaphore.Wait(0))
+                return false;
 
-            material.SetFloat(MaskAmount, maskAmount);
+            // Start without awaiting the caller
+            PlayTransitionNoAcquireAsync(color).Forget();
+            return true;
         }
-        
-        public void FadeIn()
+
+        // Assumes semaphore already acquired.
+        private async UniTask PlayTransitionNoAcquireAsync(TransitionColor color)
         {
-            targetValue = 1f;
+            _isPlaying = true;
+            var tcs = new UniTaskCompletionSource<bool>();
+
+            void OnEnd(VideoPlayer vp) => tcs.TrySetResult(true);
+
+            try
+            {
+                var clip = GetClip(color);
+                if (clip == null)
+                {
+                    tcs.TrySetResult(true);
+                }
+                else
+                {
+                    _videoPlayer.clip = clip;
+                    _videoPlayer.loopPointReached += OnEnd;
+                    _videoPlayer.Play();
+                }
+
+                await tcs.Task;
+            }
+            finally
+            {
+                _videoPlayer.loopPointReached -= OnEnd;
+                _isPlaying = false;
+                _semaphore.Release();
+            }
         }
-        
-        public void EndTransition()
+
+        private VideoClip GetClip(TransitionColor color)
         {
-            targetValue = 0f;
+            return color switch
+            {
+                TransitionColor.Blue => _blueTransitionClip,
+                TransitionColor.Red => _redTransitionClip,
+                TransitionColor.Yellow => _yellowTransitionClip,
+                TransitionColor.Green => _greenTransitionClip,
+                _ => null
+            };
         }
-        
-        public bool IsTransitionning()
-        {
-            return !Mathf.Approximately(maskAmount, targetValue);
-        }
-        
-        
+    }
+
+    public enum TransitionColor
+    {
+        Blue,
+        Red,
+        Yellow,
+        Green
     }
 }
