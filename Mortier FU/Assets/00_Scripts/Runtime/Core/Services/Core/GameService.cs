@@ -35,7 +35,9 @@ namespace MortierFu
 
         public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
         {
+            int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
             _currentGameMode = new T(); 
+            _currentGameMode.SetScoreToWin(scoreToWin);
             await _currentGameMode.Initialize();
         }
 
