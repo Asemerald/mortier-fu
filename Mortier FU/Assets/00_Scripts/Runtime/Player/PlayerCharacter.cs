@@ -182,6 +182,8 @@ namespace MortierFu
             _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);
+            
+            ExternalSpeedMultiplier = 1f;
         }
 
         void OnDestroy()
