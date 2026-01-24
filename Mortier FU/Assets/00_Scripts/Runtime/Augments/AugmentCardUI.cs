@@ -10,8 +10,10 @@ namespace MortierFu
     public class AugmentCardUI : MonoBehaviour
     {
         [SerializeField] private SO_RaritySpritesFactory _raritySpritesFactory;
-        
+
+        [SerializeField] private Image _titleImageBg;
         [SerializeField] private TextMeshProUGUI _nameTxt;
+        [SerializeField] private RawImage _titleRarityFilter;
         [SerializeField] private TextMeshProUGUI _descTxt;
         [SerializeField] private Image _augmentBorder;
         [SerializeField] private Image _augmentIcon;
@@ -85,6 +87,7 @@ namespace MortierFu
             _explosionCardVFXPrefab.SetActive(false);
 
             _nameTxt.SetText(augment.Name.ToUpper());
+            _titleRarityFilter.texture = _raritySpritesFactory.GetTitleRarityFilter(augment.Rarity);
             _nameTxt.color = data.NameColor;
             _descTxt.SetText(augment.Description);
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
@@ -122,7 +125,7 @@ namespace MortierFu
 
         public void DisableObjectsOnFlip()
         {
-            _nameTxt.gameObject.SetActive(false);
+            _titleImageBg.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
 
             _augmentBack.gameObject.SetActive(true);
@@ -131,7 +134,7 @@ namespace MortierFu
 
         private void DisableObjects()
         {
-            _nameTxt.gameObject.SetActive(false);
+            _titleImageBg.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
 
             _augmentBack.gameObject.SetActive(false);
@@ -162,7 +165,7 @@ namespace MortierFu
 
             _infoRoot.anchoredPosition = _initialInfoPos;
 
-            _nameTxt.gameObject.SetActive(true);
+            _titleImageBg.gameObject.SetActive(true);
             _descTxt.gameObject.SetActive(true);
             _augmentCard.gameObject.SetActive(true);
             _augmentBorder.gameObject.SetActive(true);
