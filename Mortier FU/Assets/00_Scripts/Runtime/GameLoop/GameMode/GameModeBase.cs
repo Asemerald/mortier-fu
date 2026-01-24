@@ -144,7 +144,7 @@ namespace MortierFu
             while (currentState != GameState.EndGame)
             {
                 EnablePlayerGravity(false);
-                await levelSystem.LoadRaceMap();
+                await levelSystem.LoadRaceMap(true);
                 ServiceManager.Instance.Get<AudioService>().SetPhase(1);
 
                 UpdateGameState(GameState.DisplayAugment);
@@ -175,7 +175,7 @@ namespace MortierFu
                     }
                 }
 
-                await levelSystem.LoadArenaMap(true );
+                await levelSystem.LoadArenaMap(true);
 
                 StartRound();
 

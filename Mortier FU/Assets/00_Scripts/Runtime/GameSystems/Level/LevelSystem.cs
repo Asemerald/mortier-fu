@@ -123,7 +123,7 @@ namespace MortierFu
 #endif
             if (useTransition)
             {
-                TransitionManager.Instance.TryPlayTransition(color);
+                TransitionManager.Instance.PlayTransitionAsync(color).Forget();
             }
 
             var map = _arenaMapLocations.RandomElement();
