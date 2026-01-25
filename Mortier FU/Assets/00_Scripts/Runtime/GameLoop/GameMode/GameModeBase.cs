@@ -419,9 +419,9 @@ namespace MortierFu
 
             if (_currentRound.WinningTeam != null)
             {
-                Sequence.Create()
-                    .Chain(Tween.GlobalTimeScale(0f, 0.1f, 0.2f, Ease.InOutCubic))
-                    .ChainDelay(2f)
+                Sequence.Create(useUnscaledTime: true)
+                    .Chain(Tween.GlobalTimeScale(0f, 0.1f, 0.1f, Ease.OutCubic))
+                    .Chain(Tween.GlobalTimeScale(0.3f, 0.6f, Ease.Linear))
                     .Chain(Tween.GlobalTimeScale(1f, 0.9f, Ease.InOutCubic));
                 
                 var winner = _currentRound.WinningTeam.Members[0];
