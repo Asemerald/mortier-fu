@@ -8,7 +8,6 @@ using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.InputSystem;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Vector3 = UnityEngine.Vector3;
 
@@ -302,7 +301,10 @@ namespace MortierFu
             }
 
 #if UNITY_EDITOR
-            PlayerInputSwapper.Instance.UpdateActivePlayer();
+            if (EditorPrefs.GetBool("DummyDebugToolEnabled", true))
+            {
+                PlayerInputSwapper.Instance.UpdateActivePlayer();
+            }
 #endif
         }
 
@@ -420,9 +422,9 @@ namespace MortierFu
             if (_currentRound.WinningTeam != null)
             {
                 Sequence.Create(useUnscaledTime: true)
-                    .Chain(Tween.GlobalTimeScale(0f, 0.1f, 0.1f, Ease.OutCubic))
-                    .Chain(Tween.GlobalTimeScale(0.3f, 0.6f, Ease.Linear))
-                    .Chain(Tween.GlobalTimeScale(1f, 0.9f, Ease.InOutCubic));
+                    .Chain(Tween.GlobalTimeScale(0f, 0.04f, 0.3f, Ease.OutCubic))
+                    .Chain(Tween.GlobalTimeScale(0.2f, 1.6f, Ease.Linear))
+                    .Chain(Tween.GlobalTimeScale(1f, 1f, Ease.InOutCubic));
                 
                 var winner = _currentRound.WinningTeam.Members[0];
                 winner.Character.Reset();

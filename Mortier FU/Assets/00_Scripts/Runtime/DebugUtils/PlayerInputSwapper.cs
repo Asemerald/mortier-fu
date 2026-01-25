@@ -3,6 +3,10 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace MortierFu
 {
     public class PlayerInputSwapper : MonoBehaviour
@@ -17,6 +21,12 @@ namespace MortierFu
 #if !UNITY_EDITOR
             Destroy(this);
             return;
+#else
+            if (!EditorPrefs.GetBool("DummyDebugToolEnabled", true))
+            {
+                Destroy(this);
+                return;
+            }
 #endif
             Instance = this;
         }
