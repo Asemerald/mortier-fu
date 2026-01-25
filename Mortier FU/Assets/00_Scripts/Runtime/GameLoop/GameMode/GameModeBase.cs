@@ -701,7 +701,7 @@ namespace MortierFu
                 return victor?.Index ?? -1;
             }
 
-            return -1; // Aucun gagnant pour l'instant
+            return _currentRound.WinningTeam.Index; // Aucun gagnant pour l'instant
         }
     }
 }
