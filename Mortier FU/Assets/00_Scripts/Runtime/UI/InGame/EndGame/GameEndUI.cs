@@ -1,51 +1,82 @@
+using System;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace MortierFu
 {
     public class GameEndUI : MonoBehaviour
     {
         [Header("References")] [SerializeField]
-        private Image _winnerImage;
+        private Image _winnerImageBackground;
 
-        [SerializeField] private Image _winnerImageBackground;
-        [SerializeField] private Image[] _playerImages;
+        [Header("Assets")] [SerializeField] private Sprite[] _winnerBackgroundSprites;
 
-        [Header("Assets")] [SerializeField] private Sprite[] _winnerTextSprites;
-        [SerializeField] private Sprite[] _winnerBackgroundSprites;
-        [SerializeField] private Sprite[] _winnerIconSprites;
+        [SerializeField] private Button _continueGameButton;
+        [SerializeField] private Button _newGameButton;
+        [SerializeField] private Button _mainMenuButton;
 
-        public void DisplayVictoryScreen(int winnerIndex, int activePlayerCount)
+        [SerializeField] private Sprite[] _continueGameSprites;
+        [SerializeField] private Sprite[] _newGameSprites;
+        [SerializeField] private Sprite[] _mainMenuSprites;
+
+        private GameModeBase _gm;
+        
+        private EventSystem _eventSystem;
+
+        private void Awake()
         {
-            DisplayPlayerImages(activePlayerCount, winnerIndex);
-
-            SetWinner(winnerIndex);
+            _gm = GameService.CurrentGameMode as GameModeBase;
+            _eventSystem = EventSystem.current;
+            _winnerImageBackground.gameObject.SetActive(false);
+            
+            _continueGameButton.onClick.AddListener(OnClickContinueGame);
+            _newGameButton.onClick.AddListener(OnClickNewGame);
+            _mainMenuButton.onClick.AddListener(OnClickMainMenu);
         }
 
-        private void DisplayPlayerImages(int playerCount, int winnerIndex)
+        private void OnEnable()
         {
-            for (int i = 0; i < _playerImages.Length; i++)
+            if (_gm != null)
             {
-                _playerImages[i].gameObject.SetActive(i < playerCount);
+                _gm.OnGameEnded += SetWinner;
             }
+        }
 
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (i == winnerIndex)
-                {
-                    _playerImages[i].sprite = _winnerIconSprites[i];
-                }
-            }
+        private void OnDisable()
+        {
+            _gm.OnGameEnded -= SetWinner;
+        }
+
+        private void OnClickContinueGame()
+        {
+            int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
+            
+            _gm.SetScoreToWin(scoreToWin * 2);
+        }
+
+        private void OnClickNewGame()
+        {
+           
+        }
+        
+        private void OnClickMainMenu()
+        {
+            _gm.ReturnToMainMenu();
         }
 
         private void SetWinner(int playerIndex)
         {
-            if (playerIndex >= 0 && playerIndex < _winnerTextSprites.Length)
+            if (playerIndex >= 0 && playerIndex < _winnerBackgroundSprites.Length)
             {
-                _winnerImage.sprite = _winnerTextSprites[playerIndex];
                 _winnerImageBackground.sprite = _winnerBackgroundSprites[playerIndex];
-                _winnerImage.gameObject.SetActive(true);
+                _continueGameButton.image.sprite = _continueGameSprites[playerIndex];
+                _newGameButton.image.sprite = _newGameSprites[playerIndex];
+                _mainMenuButton.image.sprite = _mainMenuSprites[playerIndex];
+                
                 _winnerImageBackground.gameObject.SetActive(true);
+                
+                _eventSystem.SetSelectedGameObject(_continueGameButton.gameObject);
             }
             else
             {
