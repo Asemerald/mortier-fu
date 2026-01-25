@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3736889445097152113}
   - component: {fileID: 7783497374717560335}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: "PF_VoitureFormat\xE9e_Rouge"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -48,6 +48,7 @@ MonoBehaviour:
   _collider: {fileID: 2550390888820479535}
   _renderer: {fileID: 4047351584701514758}
   _filter: {fileID: 3590395574836449728}
+  _trailRenderers: []
   Speed: 0
 --- !u!1001 &8419671349942691596
 PrefabInstance:
@@ -57,6 +58,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3736889445097152113}
     m_Modifications:
+    - target: {fileID: 1699698903484244834, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 2747432334651903783, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
@@ -112,6 +117,10 @@ PrefabInstance:
     - target: {fileID: 3272717844674581917, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
       propertyPath: m_Name
       value: PF_voiture
+      objectReference: {fileID: 0}
+    - target: {fileID: 3272717844674581917, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 5544980802542084874, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
       propertyPath: 'm_Materials.Array.data[4]'
