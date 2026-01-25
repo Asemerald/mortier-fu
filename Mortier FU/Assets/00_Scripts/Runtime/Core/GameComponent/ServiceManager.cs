@@ -28,7 +28,7 @@ namespace MortierFu
                     await system.Initialize();
                 }
                 
-                Logs.Log($"[ServiceManager] Initialized {_components.Count} services.");
+//                Logs.Log($"[ServiceManager] Initialized {_components.Count} services.");
             }
             catch (Exception e)
             {
