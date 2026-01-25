@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -49,19 +50,19 @@ namespace MortierFu
 
         private void OnClickContinueGame()
         {
-          //  int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
+            int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
             
-         //   _gm.SetScoreToWin(scoreToWin * 2);
+            _gm.SetScoreToWin(scoreToWin * 2);
         }
 
         private void OnClickNewGame()
         {
-            ServiceManager.Instance.Get<GameService>().RestartGame();
+           
         }
         
         private void OnClickMainMenu()
         {
-          //  _gm.ReturnToMainMenu();
+            _gm.ReturnToMainMenu();
         }
 
         private void SetWinner(int playerIndex)
