@@ -138,7 +138,7 @@ namespace MortierFu
             CurrentCameraMapConfig = _boundReporter.CameraConfig;
         }
 
-        private async UniTask UnloadCurrentMap()
+        public async UniTask UnloadCurrentMap()
         {
             if (!_mapHandle.IsValid()) return;
 

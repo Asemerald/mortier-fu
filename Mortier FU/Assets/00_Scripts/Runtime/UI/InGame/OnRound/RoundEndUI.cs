@@ -74,7 +74,6 @@ namespace MortierFu
         [SerializeField] private float _updateSlidersDelay = 0.2f;
         [SerializeField] private float _hideKillScaleDuration = 0.5f;
         [SerializeField] private float _showKillScaleDuration = 0.5f;
-        [SerializeField] private float _showSecondKillDelay = 0.2f;
         [SerializeField] private float _goldenBombshellScaleUpDuration = 0.5f;
         [SerializeField] private float _goldenBombshellScaleUpFactor = 1.15f;
 
@@ -258,7 +257,7 @@ private async UniTask AnimateGoldenBombshellLoop(
                         target,
                         baseScale,
                         0.2f,
-                        _goldenBombshellScaleUp
+                        _goldenBombshellScaleDown
                     ).ToUniTask(cancellationToken: token);
 
                     await UniTask.Delay(
