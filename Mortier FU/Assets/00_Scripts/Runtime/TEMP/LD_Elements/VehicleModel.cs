@@ -1,4 +1,5 @@
 ﻿using NaughtyAttributes;
+using PrimeTween;
 using UnityEngine;
 
 namespace MortierFu
@@ -11,14 +12,35 @@ namespace MortierFu
         [SerializeField] private BoxCollider _collider;
         [SerializeField] private MeshRenderer _renderer;
         [SerializeField] private MeshFilter _filter;
-        [SerializeField] private TrailRenderer[] _trailRenderers;
 
+        [SerializeField] private bool _engineShakeAnimation;
+        [SerializeField] private ShakeSettings _engineShakeSettings = new ShakeSettings()
+        {
+            strength = Vector3.one * 0.1f,
+            cycles = -1,
+        };
+        private Tween _engineShake;
+        
         [ReadOnly]
         public float Speed;
         
         public Rigidbody Rigidbody { get; private set; }
 
         void Awake() => Rigidbody = GetComponent<Rigidbody>();
+
+        void OnEnable()
+        {
+            if (_engineShake.isAlive)
+                _engineShake.Complete();
+            
+            _engineShake = Tween.ShakeScale(_renderer.transform, _engineShakeSettings);
+        }
+
+        void OnDisable()
+        {
+            if (_engineShake.isAlive)
+                _engineShake.Complete();
+        }
         
         public void ConfigureAsClone(VehicleModel source)
         {
