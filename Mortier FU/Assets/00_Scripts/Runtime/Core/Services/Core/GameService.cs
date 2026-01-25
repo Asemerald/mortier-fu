@@ -76,6 +76,36 @@ namespace MortierFu
             
             Logs.Log("Gameplay pipeline done !");
         }
+
+        public void RestartGame()
+        {
+            RestartGameAsync().Forget();
+        }
+
+        private async UniTaskVoid RestartGameAsync()
+        {
+            Logs.Log("Restarting game...");
+            _sceneService.ShowLoadingScreen();
+
+            _currentGameMode?.Dispose();
+            _currentGameMode = null;
+            
+            SystemManager.Instance.Dispose();
+            await _sceneService.UnloadScene(k_gameplayScene);
+            
+            int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
+            
+            await InitializeGameMode<GM_FFA>();
+
+            if (_currentGameMode != null)
+            {
+                _currentGameMode.SetScoreToWin(scoreToWin);
+                _currentGameMode.SetScoreToWin(scoreToWin);
+                await _currentGameMode.Initialize();
+            }
+
+            ExecuteGameplayPipeline().Forget();
+        }
         
         public void Dispose()
         {
