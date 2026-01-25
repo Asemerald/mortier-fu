@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu.Services;
 using NaughtyAttributes;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Serialization;
 
 namespace MortierFu
@@ -57,6 +58,9 @@ namespace MortierFu
             _serviceManager = new ServiceManager(this);
             _systemManager = new SystemManager(this);
 
+            config.shaderVariantsToPreload.WarmUp();
+            _progress = 0.1f;
+
             await InitializeGameService();
             _progress = 0.2f;
             
@@ -67,6 +71,10 @@ namespace MortierFu
             // Initialise les systèmes de base avant les mods
             await _systemManager.Initialize();
             _progress = 0.5f;
+            
+            // --- Initialize Addressables
+            await Addressables.InitializeAsync();
+            _progress = 0.6f;
             
             // --- Load mod resources
             await _loaderService.LoadAllModResources();
