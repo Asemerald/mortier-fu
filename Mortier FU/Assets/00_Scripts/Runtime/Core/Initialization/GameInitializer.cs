@@ -14,6 +14,9 @@ namespace MortierFu
 
         [Expandable] public SO_GameConfig config;
         
+        [Header("Warmup Manager")]
+        public WarmupManager warmupManager;
+        
         private float _progress = 0f;
 
         public float GetInitializationProgress() => _progress;
@@ -75,23 +78,23 @@ namespace MortierFu
             
             // Initialise les systèmes de base avant les mods
             await _systemManager.Initialize();
-            _progress = 0.5f;
+            _progress = 0.4f;
             
             // --- Initialize Addressables
             await Addressables.InitializeAsync();
-            _progress = 0.6f;
+            _progress = 0.5f;
             
             // --- Load mod resources
             await _loaderService.LoadAllModResources();
-            _progress = 0.7f;
+            _progress = 0.6f;
             
             // --- Load GameConfig banks
             await _audioService.LoadBanks(config.fmodBanks);
-            _progress = 0.85f;
+            _progress = 0.7f;
             
             // --- Load mods banks TODO FIX PARCE QUE ÇA MARCHE PAS
             await _audioService.LoadBanks(_modService.GetAllModFmodBanks());
-            _progress = 0.9f;
+            _progress = 0.8f;
             
 #if UNITY_EDITOR
             // --- Check for missing services (only in editor)
@@ -103,6 +106,9 @@ namespace MortierFu
                 return;
             }
 #endif
+            await warmupManager.WarmupAllAsync();
+            _progress = 0.9f;
+            
             // --- Load MainMenu Scene
             await _sceneService.LoadScene(sceneName, true);
             
