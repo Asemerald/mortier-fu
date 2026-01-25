@@ -59,6 +59,11 @@ namespace MortierFu
             _systemManager = new SystemManager(this);
 
             config.shaderVariantsToPreload.WarmUp();
+
+            while (!config.shaderVariantsToPreload.isWarmedUp)
+            {
+                await UniTask.Yield();
+            }
             _progress = 0.1f;
 
             await InitializeGameService();
