@@ -559,13 +559,18 @@ namespace MortierFu
             ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
-            ReturnToMainMenuAfterDelay(5f).Forget();
+        }
+        
+        public void ReturnToMainMenu()
+        {
+            ReturnToMainMenuAfterDelay().Forget();
         }
 
-        private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
+        private async UniTaskVoid ReturnToMainMenuAfterDelay()
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            await sceneService.LoadScene("MainMenu", true, true);
+            await sceneService.UnloadScene("Gameplay");
+            await levelSystem.UnloadCurrentMap();
+            await sceneService.LoadScene("MainMenu", true);
             //TODO: a full check au cas ou
             SystemManager.Instance.Dispose();
         }
