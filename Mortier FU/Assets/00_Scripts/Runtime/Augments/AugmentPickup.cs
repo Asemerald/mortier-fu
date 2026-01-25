@@ -1,6 +1,7 @@
 using System;
 using MortierFu.Shared;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -15,6 +16,7 @@ namespace MortierFu
         [SerializeField] private MeshRenderer _planeMeshRenderer;
         [SerializeField] private ParticleSystem _logoParticleSystem;
         [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
+        [SerializeField] private GameObject[] _pickupVFX;
 
         private Transform _attachmentPoint;
         
@@ -49,6 +51,8 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
             _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
+            Instantiate(_pickupVFX[(int)_rarity], transform.position, transform.rotation);
+            
             Reset();
         }
 

@@ -6,6 +6,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -192,7 +193,10 @@ namespace MortierFu
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
                     picker.Character.transform.position);
                 _shakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
-
+                
+                var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)randomAugment.Augment.Rarity];
+                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
+                
                 remainingAugments.Remove(randomAugment);
 
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
@@ -239,6 +243,9 @@ namespace MortierFu
 
             character.AddAugment(augment.Augment);
 
+            var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
+            Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), character.transform);
+            
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
             _pickedAugments[character].Add(augment.Augment);

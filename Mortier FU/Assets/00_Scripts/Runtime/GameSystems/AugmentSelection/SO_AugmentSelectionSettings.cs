@@ -49,5 +49,6 @@ namespace MortierFu
         [Header("References")]
         public AssetReferenceGameObject AugmentPickupPrefab;
         public AssetReferenceGameObject AugmentVFXPrefab;
+        public GameObject[] AugmentCharaVFX;
     }
 }

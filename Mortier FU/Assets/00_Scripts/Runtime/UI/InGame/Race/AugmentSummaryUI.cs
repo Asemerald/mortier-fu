@@ -9,6 +9,7 @@ using NaughtyAttributes;
 
 namespace MortierFu
 {
+
     public class AugmentSummaryUI : MonoBehaviour
     {
         #region Variables
@@ -117,6 +118,11 @@ namespace MortierFu
                     child.localScale = Vector3.zero;
                     child.localPosition = Vector3.zero;
 
+                    if(child.gameObject.gameObject.TryGetComponent(out LastAugmentBreathingAnimation breathingAnim))
+                    {
+                        breathingAnim.enabled = false;
+                    }
+
                     if (c >= augments.Count)
                     {
                         child.gameObject.SetActive(false);
@@ -166,8 +172,28 @@ namespace MortierFu
                 if (tween.isAlive)
                     await tween.ToUniTask(cancellationToken: ct);
             }
-
+            
+            var runningBreathingAnimations = new List<LastAugmentBreathingAnimation>();
+            for (int i = 0; i < playerCount; i++)
+            {
+                var playerIcon = _playerImages[i].transform;
+                var lastAugment = playerIcon.GetChild(0);
+                
+                if (lastAugment.gameObject.activeSelf && lastAugment.TryGetComponent(out LastAugmentBreathingAnimation breathingAnim))
+                {
+                    breathingAnim.enabled = true;
+                    runningBreathingAnimations.Add(breathingAnim);
+                }
+            }
+            
             await UniTask.Delay(TimeSpan.FromSeconds(_finalPauseDuration), cancellationToken: ct);
+
+            foreach (var breathingAnim in runningBreathingAnimations)
+            {
+                breathingAnim.enabled = false;
+            }
+            
+            runningBreathingAnimations.Clear();
         }
 
         private async UniTask AnimateChildren(Transform parent, CancellationToken ct)
@@ -200,9 +226,9 @@ namespace MortierFu
                 if (!child.gameObject.activeSelf) continue;
 
                 var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _augmentIconAnimDuration,
-                    _augmentIconScaleEase);
+                                             _augmentIconScaleEase);
                 var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _augmentIconAnimDuration,
-                    _augmentIconMoveEase);
+                                                    _augmentIconMoveEase);
 
                 _activeTweens.Add(scaleTween);
                 _activeTweens.Add(moveTween);
@@ -210,7 +236,8 @@ namespace MortierFu
                 float t = (float)i / (childCount - 1);
                 float delay = Mathf.Lerp(maxDelay, minDelay, Mathf.Pow(t, _childAnimationExponentFactor));
 
-                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: ct);
+                if(i < childCount - 1)
+                    await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: ct);
             }
         }
     }
