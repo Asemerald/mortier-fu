@@ -102,6 +102,7 @@ namespace MortierFu
 
         private void OnDisable()
         {
+            if (Player1InputAction == null) return;
             Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
             Player1InputAction.actions.FindAction("StartGame").performed -=
                 OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
