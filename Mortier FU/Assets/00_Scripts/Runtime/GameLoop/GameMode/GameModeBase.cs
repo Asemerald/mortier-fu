@@ -5,6 +5,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
+using PrimeTween;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -418,8 +419,12 @@ namespace MortierFu
 
             if (_currentRound.WinningTeam != null)
             {
+                Sequence.Create()
+                    .Chain(Tween.GlobalTimeScale(0f, 0.1f, 0.2f, Ease.InOutCubic))
+                    .ChainDelay(2f)
+                    .Chain(Tween.GlobalTimeScale(1f, 0.9f, Ease.InOutCubic));
+                
                 var winner = _currentRound.WinningTeam.Members[0];
-
                 winner.Character.Reset();
 
                 SpawnWinnerTeam(_currentRound.WinningTeam);

@@ -183,6 +183,9 @@ namespace MortierFu
         
         private void UpdateSelectionIndicators(bool hide = false)
         {
+            if (skinSelectionIndicator is null || skinSelectionIndicator.Length <= 0) return;
+            if (faceSelectionIndicator is null || faceSelectionIndicator.Length <= 0) return;
+            
             foreach (var t in skinSelectionIndicator)
             {
                 t.gameObject.SetActive(!hide);
