@@ -208,42 +208,28 @@ namespace MortierFu
             Vector3 baseScale = Vector3.one;
             Vector3 upScale = Vector3.one * 1.08f;
 
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    await Tween.Rotation(
-                        target,
-                        new Vector3(0f, 0f, -90f),
-                        6f,
-                        Ease.Linear).ToUniTask(cancellationToken: token);
+            await Tween.Rotation(
+                target,
+                new Vector3(0f, 0f, -90f),
+                6f,
+                Ease.Linear).ToUniTask(cancellationToken: token);
 
-                    await Tween.Scale(
-                        target,
-                        upScale,
-                        1.2f,
-                        Ease.OutSine
-                    ).ToUniTask(cancellationToken: token);
+            await Tween.Scale(
+                target,
+                upScale,
+                1.2f,
+                Ease.OutSine
+            ).ToUniTask(cancellationToken: token);
 
-                    await Tween.Scale(
-                        target,
-                        baseScale,
-                        1.2f,
-                        Ease.InSine
-                    ).ToUniTask(cancellationToken: token);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
-            {
-                target.localScale = baseScale;
-                target.rotation = Quaternion.identity;
-            }
+            await Tween.Scale(
+                target,
+                baseScale,
+                1.2f,
+                Ease.InSine
+            ).ToUniTask(cancellationToken: token);
         }
 
-        private async UniTask AnimateGoldenBombshellLoop(
+private async UniTask AnimateGoldenBombshellLoop(
             Transform target,
             CancellationToken token
         )
@@ -734,6 +720,7 @@ namespace MortierFu
             foreach (var img in _goldenBombshellHaloImg)
             {
                 img.transform.localScale = Vector3.zero;
+                img.transform.rotation = Quaternion.identity;
                 img.gameObject.SetActive(false);
             }
         }
