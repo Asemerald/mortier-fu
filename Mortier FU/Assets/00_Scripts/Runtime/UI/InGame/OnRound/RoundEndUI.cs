@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,6 +47,9 @@ namespace MortierFu
 
         [SerializeField] private Sprite[] _placeSprites;
         [SerializeField] private Sprite[] _scoreSprites;
+        [SerializeField] private Sprite[] _goldenBombshellSprites;
+
+        [SerializeField] private Image[] _goldenBombshellImg;
 
         [Header("Kill Assets")] [SerializeField]
         private Sprite _bombshellKillContextSprite;
@@ -74,11 +78,13 @@ namespace MortierFu
         [SerializeField] private Ease _showKillEase = Ease.OutBack;
         [SerializeField] private Ease _hideKillEase = Ease.InBack;
 
+        private GameModeBase _gm;
+
+        private CancellationTokenSource _goldenBombshellCts;
+
         private int[] _leaderboardOrder;
         private Vector3 _originalScale;
         private int _previousTopPlayerIndex = 0;
-
-        private GameModeBase _gm;
 
         private void Awake()
         {
@@ -94,15 +100,15 @@ namespace MortierFu
             _gm.OnScoreDisplayOver += ResetUI;
         }
 
+        private void Start()
+        {
+            InitializeSliders();
+        }
+
         private void OnDestroy()
         {
             _gm.OnRoundEndedAsync -= AnimateRoundEndSequence;
             _gm.OnScoreDisplayOver -= ResetUI;
-        }
-
-        private void Start()
-        {
-            InitializeSliders();
         }
 
         private void InitializeSliders()
@@ -116,6 +122,101 @@ namespace MortierFu
         }
 
         #region Animate Sliders / Placement / Kills
+
+        private async UniTask ShowGoldenBombshellIndicator()
+        {
+            if (_gm == null) return;
+
+            _goldenBombshellCts?.Cancel();
+            _goldenBombshellCts = new CancellationTokenSource();
+            
+            var showTasks = new List<UniTask>();
+
+            for (int i = 0; i < _gm.Teams.Count; i++)
+            {
+                var team = _gm.Teams[i];
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx)) 
+                    continue;
+
+                bool isTeamAtMatchPoint = team.Score >= _gm.ScoreToWin - 1;
+
+                if (isTeamAtMatchPoint)
+                {
+                    _goldenBombshellImg[idx].sprite = _goldenBombshellSprites[idx];
+                    _goldenBombshellImg[idx].SetNativeSize();
+                }
+
+                _goldenBombshellImg[idx].gameObject.SetActive(true);
+
+                showTasks.Add(
+                    Tween.Scale(
+                        _goldenBombshellImg[idx].transform,
+                        Vector3.one,
+                        0.5f,
+                        Ease.OutBack
+                    ).ToUniTask()
+                );
+                
+                if (isTeamAtMatchPoint)
+                {
+                    AnimateGoldenBombshellLoop(
+                        _goldenBombshellImg[idx].transform,
+                        _goldenBombshellCts.Token
+                    ).Forget();
+                }
+            }
+
+            await UniTask.WhenAll(showTasks);
+        }
+
+        private async UniTask AnimateGoldenBombshellLoop(
+            Transform target,
+            CancellationToken token
+        )
+        {
+            Vector3 baseScale = Vector3.one;
+            Vector3 upScale = Vector3.one * 1.15f;
+
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    await Tween.PunchScale(
+                        target,
+                        Vector3.one * 0.08f,
+                        0.25f
+                    ).ToUniTask(cancellationToken: token);
+
+                    await Tween.Scale(
+                        target,
+                        upScale,
+                        0.2f,
+                        Ease.OutBack
+                    ).ToUniTask(cancellationToken: token);
+
+                    await Tween.Scale(
+                        target,
+                        baseScale,
+                        0.2f,
+                        Ease.InBack
+                    ).ToUniTask(cancellationToken: token);
+
+                    await UniTask.Delay(
+                        TimeSpan.FromSeconds(0.8f),
+                        cancellationToken: token
+                    );
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                target.localScale = baseScale;
+            }
+        }
 
         private async UniTask AnimatePlacementText()
         {
@@ -395,8 +496,10 @@ namespace MortierFu
             ResetUI();
             
             await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.ShowRoundWinnerDelay));
+            
             InitializePlayerPanels(_leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
+            ShowGoldenBombshellIndicator().Forget();
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
 
@@ -406,8 +509,10 @@ namespace MortierFu
             var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
             await AnimateLeaderboardPositions(sortedTeams);
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(_gm.Data.StopShowScoreBoardDelay));
+            
+            _goldenBombshellCts?.Cancel();
         }
 
         private async UniTask AnimateLeaderboardPositions(List<PlayerTeam> sortedTeams)
@@ -530,10 +635,12 @@ namespace MortierFu
 
         private void ResetUI()
         {
+            _goldenBombshellCts?.Cancel();
+            
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
             _winnerBackgroundColorImage.gameObject.SetActive(false);
-
+            
             for (int i = 0; i < _playerIcons.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
@@ -543,6 +650,12 @@ namespace MortierFu
 
                 if (i < _playerIcons.Length)
                     _playerIcons[i].sprite = _playerDefaultSprites[i];
+            }
+            
+            foreach (var img in _goldenBombshellImg)
+            {
+                img.transform.localScale = Vector3.zero;
+                img.gameObject.SetActive(false);
             }
         }
 
