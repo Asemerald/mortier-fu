@@ -48,7 +48,7 @@ public class DiscordService : IGameService
             // ✅ Token valide ? On l'utilise directement
             if (now < saved.expiresAt)
             {
-                Logs.Log("[DiscordService] Using saved access token.");
+//                Logs.Log("[DiscordService] Using saved access token.");
                 _client.UpdateToken(AuthorizationTokenType.Bearer, saved.accessToken, (_) => _client.Connect());
                 return UniTask.CompletedTask;
             }
@@ -104,7 +104,7 @@ public class DiscordService : IGameService
 
     private void OnStatusChanged(Client.Status status, Client.Error error, int errorCode)
     {
-        Logs.Log($"[DiscordService] Status changed: {status}, Error: {error}, Code: {errorCode}");
+//        Logs.Log($"[DiscordService] Status changed: {status}, Error: {error}, Code: {errorCode}");
         if(error != Client.Error.None)
         {
             Logs.LogError($"[DiscordService] Error occurred: {error}, Code: {errorCode}");
@@ -119,13 +119,13 @@ public class DiscordService : IGameService
 
     private void ClientReady()
     {
-            Logs.Log("[DiscordService] Client is ready!");
+//            Logs.Log("[DiscordService] Client is ready!");
             Activity activity = new Activity();
             activity.SetType(ActivityTypes.Playing);
             activity.SetState("Soon sur steam la famille");
             _client.UpdateRichPresence(activity, (ClientResult result) => {
                 if (result.Successful()) {
-                    Logs.Log("Rich presence updated!");
+//                    Logs.Log("Rich presence updated!");
                 } else {
                     Logs.LogError("Failed to update rich presence");
                 }

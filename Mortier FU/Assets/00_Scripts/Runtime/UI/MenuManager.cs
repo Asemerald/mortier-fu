@@ -6,6 +6,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -91,6 +92,8 @@ namespace MortierFu
             }
 
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[0].Enable();
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[1].Enable();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 

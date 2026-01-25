@@ -61,7 +61,7 @@ namespace MortierFu
         
         private void OnClickMainMenu()
         {
-          //  _gm.ReturnToMainMenu();
+          _gm.ReturnToMainMenu();
         }
 
         private void SetWinner(int playerIndex)
@@ -75,7 +75,7 @@ namespace MortierFu
                 
                 _winnerImageBackground.gameObject.SetActive(true);
                 
-                _eventSystem.SetSelectedGameObject(_continueGameButton.gameObject);
+                _eventSystem.SetSelectedGameObject(_mainMenuButton.gameObject);
             }
             else
             {
