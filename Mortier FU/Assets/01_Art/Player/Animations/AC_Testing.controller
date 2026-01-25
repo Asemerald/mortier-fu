@@ -1,38 +1,13 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1107 &-5636955599099134751
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Base Layer
-  m_ChildStates:
-  - serializedVersion: 1
-    m_State: {fileID: 482362239568674410}
-    m_Position: {x: 228.47403, y: 261.68512, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: -5176248334308689255}
-    m_Position: {x: 512.21106, y: 106.66783, z: 0}
-  m_ChildStateMachines: []
-  m_AnyStateTransitions: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 482362239568674410}
---- !u!1102 &-5176248334308689255
+--- !u!1102 &-8716487175430796274
 AnimatorState:
   serializedVersion: 6
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Take 001
+  m_Name: A_Player_Lobby_ReadyToSitting
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -45,7 +20,93 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 2c2b6de1a90a02a4c9591437c0ceda58, type: 2}
+  m_Motion: {fileID: 7400000, guid: aa8b77650a531c2459eb3a99b4d1632a, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &-8321498019678572045
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: A_Player_TitlescreenIdle
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: 458a3a8ca37f3e14e8b7684969acf1e1, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1107 &-5636955599099134751
+AnimatorStateMachine:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Base Layer
+  m_ChildStates:
+  - serializedVersion: 1
+    m_State: {fileID: -8321498019678572045}
+    m_Position: {x: 280, y: 240, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 8983087853016452408}
+    m_Position: {x: 380.164, y: 152.86443, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 4426337562112392017}
+    m_Position: {x: 153.82515, y: 301.33438, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -3699568602217650903}
+    m_Position: {x: 481.9126, y: 318.98465, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: -8716487175430796274}
+    m_Position: {x: 20, y: 220, z: 0}
+  m_ChildStateMachines: []
+  m_AnyStateTransitions: []
+  m_EntryTransitions: []
+  m_StateMachineTransitions: {}
+  m_StateMachineBehaviours: []
+  m_AnyStatePosition: {x: 50, y: 20, z: 0}
+  m_EntryPosition: {x: 50, y: 120, z: 0}
+  m_ExitPosition: {x: 800, y: 120, z: 0}
+  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
+  m_DefaultState: {fileID: -8321498019678572045}
+--- !u!1102 &-3699568602217650903
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: A_Player_Lobby_Spawn
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: 613038026291bac46b9f4a2a0ff6cfd6, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -73,14 +134,14 @@ AnimatorController:
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
---- !u!1102 &482362239568674410
+--- !u!1102 &4426337562112392017
 AnimatorState:
   serializedVersion: 6
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: A_Player_VictoryLoop_V2
+  m_Name: A_Player_Lobby_SittingToReady
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -93,7 +154,33 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: fd1d7d1c8dc618b4e995cfd77483bc0a, type: 2}
+  m_Motion: {fileID: 7400000, guid: 5115b8d6eadde1c4f9788cd9532cf0f7, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &8983087853016452408
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: A_Player_TitlescreenIntro
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: ef471640b5a317a48a845c7aa9c553e1, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
