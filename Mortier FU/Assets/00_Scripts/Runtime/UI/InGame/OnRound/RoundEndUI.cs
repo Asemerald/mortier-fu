@@ -52,6 +52,7 @@ namespace MortierFu
 
         [SerializeField] private Image[] _goldenBombshellImg;
         [SerializeField] private Image[] _goldenBombshellBgdImg;
+        [SerializeField] private Image[] _goldenBombshellHaloImg;
 
         [Header("Kill Assets")] [SerializeField]
         private Sprite _bombshellKillContextSprite;
@@ -159,6 +160,7 @@ namespace MortierFu
                 if (!isTeamAtMatchPoint) continue;
 
                 _goldenBombshellImg[idx].gameObject.SetActive(true);
+                _goldenBombshellHaloImg[idx].gameObject.SetActive(true);
 
                 showTasks.Add(
                     Tween.Scale(
@@ -166,25 +168,68 @@ namespace MortierFu
                         Vector3.one,
                         _goldenBombshellScaleUpDuration,
                         _goldenBombshellScaleUp
-                    ).ToUniTask()
+                    ).Group(Tween.Scale(
+                        _goldenBombshellHaloImg[idx].transform,
+                        Vector3.one,
+                        _goldenBombshellScaleUpDuration,
+                        _goldenBombshellScaleUp
+                    )).ToUniTask()
                 );
             }
 
             await UniTask.WhenAll(showTasks);
-            
+
             for (int i = 0; i < _gm.Teams.Count; i++)
             {
                 var team = _gm.Teams[i];
                 int idx = team.Index;
 
-                AnimateGoldenBombshellLoop(
-                    _goldenBombshellImg[idx].transform,
-                    _goldenBombshellCts.Token
-                ).Forget();
+                if (_goldenBombshellImg[idx].gameObject.activeInHierarchy)
+                {
+                    AnimateGoldenBombshellLoop(
+                        _goldenBombshellImg[idx].transform,
+                        _goldenBombshellCts.Token
+                    ).Forget();
+                }
+
+                if (_goldenBombshellHaloImg[idx].gameObject.activeInHierarchy)
+                {
+                    AnimateHaloLoop(_goldenBombshellHaloImg[idx].transform,
+                        _goldenBombshellCts.Token).Forget();
+                }
             }
         }
 
-        private async UniTask AnimateGoldenBombshellLoop(
+        private async UniTask AnimateHaloLoop(
+            Transform target,
+            CancellationToken token
+        )
+        {
+            Vector3 baseScale = Vector3.one;
+            Vector3 upScale = Vector3.one * 1.08f;
+
+            await Tween.Rotation(
+                target,
+                new Vector3(0f, 0f, -90f),
+                6f,
+                Ease.Linear).ToUniTask(cancellationToken: token);
+
+            await Tween.Scale(
+                target,
+                upScale,
+                1.2f,
+                Ease.OutSine
+            ).ToUniTask(cancellationToken: token);
+
+            await Tween.Scale(
+                target,
+                baseScale,
+                1.2f,
+                Ease.InSine
+            ).ToUniTask(cancellationToken: token);
+        }
+
+private async UniTask AnimateGoldenBombshellLoop(
             Transform target,
             CancellationToken token
         )
@@ -412,7 +457,8 @@ namespace MortierFu
 
                     hideTasks.Add(
                         Tween.Scale(contextImg.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase)
-                            .Group(Tween.Scale(scoreImg.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase))
+                            .Group(Tween.Scale(scoreImg.transform, Vector3.zero, _hideKillScaleDuration,
+                                _hideKillEase))
                             .ToUniTask()
                     );
                 }
@@ -668,6 +714,13 @@ namespace MortierFu
             foreach (var img in _goldenBombshellImg)
             {
                 img.transform.localScale = Vector3.zero;
+                img.gameObject.SetActive(false);
+            }
+
+            foreach (var img in _goldenBombshellHaloImg)
+            {
+                img.transform.localScale = Vector3.zero;
+                img.transform.rotation = Quaternion.identity;
                 img.gameObject.SetActive(false);
             }
         }

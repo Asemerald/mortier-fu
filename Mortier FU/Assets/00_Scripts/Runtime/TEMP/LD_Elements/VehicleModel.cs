@@ -12,6 +12,7 @@ namespace MortierFu
         [SerializeField] private BoxCollider _collider;
         [SerializeField] private MeshRenderer _renderer;
         [SerializeField] private MeshFilter _filter;
+        [SerializeField] private Transform _modelScaler;
 
         [SerializeField] private bool _engineShakeAnimation;
         [SerializeField] private ShakeSettings _engineShakeSettings = new ShakeSettings()
@@ -30,10 +31,12 @@ namespace MortierFu
 
         void OnEnable()
         {
+            if (!_engineShakeAnimation) return;
+            
             if (_engineShake.isAlive)
                 _engineShake.Complete();
             
-            _engineShake = Tween.ShakeScale(_renderer.transform, _engineShakeSettings);
+            _engineShake = Tween.ShakeScale(_modelScaler, _engineShakeSettings);
         }
 
         void OnDisable()
