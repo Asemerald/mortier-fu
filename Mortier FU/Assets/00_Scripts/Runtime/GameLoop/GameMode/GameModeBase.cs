@@ -151,7 +151,7 @@ namespace MortierFu
                 UpdateGameState(GameState.DisplayAugment);
                 StartRace();
 
-                await cameraSystem.Controller.ApplyCameraMapConfigAsync();
+                await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
 
                 var augmentPickers = GetAugmentPickers();
                 await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
@@ -166,7 +166,6 @@ namespace MortierFu
                 EndRace();
 
                 EnablePlayerGravity(false);
-
                 
                 // TODO: Potentiellement horrible 
                 if (OnRaceEndedUI != null)

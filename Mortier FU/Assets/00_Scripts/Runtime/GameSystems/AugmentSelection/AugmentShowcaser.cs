@@ -60,6 +60,9 @@ namespace MortierFu
                 _system.Settings.CardSpacingRange.Max,
                 alpha);
 
+            const int k_referenceOrthoSize = 20;
+            cardScale *= _cam.orthographicSize  / k_referenceOrthoSize;
+
             float step = cardScale * 2f + cardSpace;
             Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f -
                              _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
