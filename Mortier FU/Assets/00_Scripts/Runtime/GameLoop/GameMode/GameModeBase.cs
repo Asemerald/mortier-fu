@@ -421,18 +421,14 @@ namespace MortierFu
 
             if (_currentRound.WinningTeam != null)
             {
-                Sequence.Create(useUnscaledTime: true)
-                    .Chain(Tween.GlobalTimeScale(0f, 0.04f, 0.3f, Ease.OutCubic))
-                    .Chain(Tween.GlobalTimeScale(0.2f, 1.6f, Ease.Linear))
-                    .Chain(Tween.GlobalTimeScale(1f, 1f, Ease.InOutCubic));
-                
                 var winner = _currentRound.WinningTeam.Members[0];
                 winner.Character.Reset();
 
                 SpawnWinnerTeam(_currentRound.WinningTeam);
 
                 cameraSystem.Controller.EndFightCameraMovement(
-                    winner.Character.transform);
+                    winner.Character.transform,
+                    2f);
 
                 winner.Character.WinRoundDance();
             }
@@ -701,7 +697,7 @@ namespace MortierFu
                 return victor?.Index ?? -1;
             }
 
-            return -1; // Aucun gagnant pour l'instant
+            return _currentRound.WinningTeam.Index; // Aucun gagnant pour l'instant
         }
     }
 }

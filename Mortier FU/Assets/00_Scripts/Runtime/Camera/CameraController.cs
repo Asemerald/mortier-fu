@@ -321,7 +321,7 @@ namespace MortierFu
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / zoomDuration);
 
-                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t);
+                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t * t);
                 _cinemachineCamera.Lens.OrthographicSize = newOrtho;
                 _renderOnTopCamera.orthographicSize = newOrtho;
             }

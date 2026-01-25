@@ -1,4 +1,5 @@
 using System;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -31,6 +32,7 @@ namespace MortierFu
             _system = system;
             _index = augmentIndex;
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            
             _initialRotation = transform.rotation;
         }
 
@@ -55,6 +57,11 @@ namespace MortierFu
             gameObject.SetActive(false);
 
             transform.rotation = _initialRotation;
+            
+            // Set Z rotation to 0
+            Vector3 eulerAngles = transform.eulerAngles;
+            eulerAngles.z = 0;
+            transform.eulerAngles = eulerAngles;
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -67,6 +74,11 @@ namespace MortierFu
 
         private void Update()
         {
+            // Set Z rotation to 0
+            Vector3 eulerAngles = transform.eulerAngles;
+            eulerAngles.z = 0;
+            transform.eulerAngles = eulerAngles;
+            
             if (!_attachmentPoint) return;
             
             transform.position = _attachmentPoint.position;
