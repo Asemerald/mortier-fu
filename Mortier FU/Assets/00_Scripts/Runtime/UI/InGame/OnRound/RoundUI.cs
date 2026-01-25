@@ -6,8 +6,7 @@ namespace MortierFu
     public class RoundUI : MonoBehaviour
     {
         [SerializeField] private RoundAnnouncementUI _roundAnnouncementUI;
-        [SerializeField] private GameEndUI _gameEndUI;
-        
+
         private GameModeBase _gm;
 
         private void Awake()
@@ -40,6 +39,5 @@ namespace MortierFu
             _roundAnnouncementUI.gameObject.SetActive(true);
             _roundAnnouncementUI.OnRoundStarted(_gm);
         }
-        
     }
 }
