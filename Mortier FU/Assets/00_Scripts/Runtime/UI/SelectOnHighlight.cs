@@ -19,10 +19,21 @@ namespace MortierFu
             _button = GetComponent<Button>();
             
         }
-        
-        
-        
-        
-        
+
+        private void Update()
+        {
+            if (_selectable == null) return;
+
+            if (EventSystem.current.currentSelectedGameObject == _selectable.gameObject)
+            {
+                if (_highlight != null)
+                    _highlight.SetActive(true);
+            }
+            else
+            {
+                if (_highlight != null)
+                    _highlight.SetActive(false);
+            }
+        }
     }
 }
