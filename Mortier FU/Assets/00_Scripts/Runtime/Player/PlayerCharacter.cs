@@ -581,7 +581,7 @@ namespace MortierFu
                 return;
             
             // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
-            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint, _feetPoint);
+            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position, _feetPoint.rotation );
             Destroy(caca, 10f);
         }
         
