@@ -9,6 +9,7 @@ using PrimeTween;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Random = UnityEngine.Random;
 using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
@@ -145,6 +146,20 @@ namespace MortierFu
             Logs.Log("Starting the game...");
         }
 
+        private TransitionColor GetTransitionColor()
+        {
+            if (_currentRound.WinningTeam == null || _currentRound.WinningTeam.Members.Count <= 0)
+                return (TransitionColor)Random.Range(0, Enum.GetNames(typeof(TransitionColor)).Length);
+            
+            return _currentRound.WinningTeam.Members[0].PlayerIndex switch
+            {
+                0 => TransitionColor.Blue,
+                1 => TransitionColor.Red,
+                2 => TransitionColor.Green,
+                _ => TransitionColor.Yellow
+            };
+        }
+
         protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
@@ -155,7 +170,9 @@ namespace MortierFu
             while (currentState != GameState.EndGame)
             {
                 EnablePlayerGravity(false);
-                await levelSystem.LoadRaceMap(true);
+
+                var transitionColor = GetTransitionColor();
+                await levelSystem.LoadRaceMap(true, transitionColor);
                 ServiceManager.Instance.Get<AudioService>().SetPhase(1);
 
                 UpdateGameState(GameState.DisplayAugment);
@@ -186,8 +203,8 @@ namespace MortierFu
                         await handler.Invoke();
                     }
                 }
-
-                await levelSystem.LoadArenaMap(true);
+                
+                await levelSystem.LoadArenaMap(true, transitionColor);
 
                 StartRound();
 
