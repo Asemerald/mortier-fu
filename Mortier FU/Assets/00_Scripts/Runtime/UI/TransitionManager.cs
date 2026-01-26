@@ -71,6 +71,7 @@ namespace MortierFu
                 return false;
 
             StartTransitionNoAcquireAsync(color).Forget();
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_TransitionIn);
             return true;
         }
 
@@ -80,6 +81,7 @@ namespace MortierFu
             if (_isPlaying)
             {
                 _shouldExit = true;
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_TransitionOut);
             }
         }
 
