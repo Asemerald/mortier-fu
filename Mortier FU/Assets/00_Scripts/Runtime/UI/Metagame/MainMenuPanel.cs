@@ -52,12 +52,14 @@ namespace MortierFu
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
+            MenuManager.Instance.HidePlayerGO(true);
             settingsPanel.Show();
         }
         private void OpenCreditsPanel()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
+            MenuManager.Instance.HidePlayerGO(true);
             creditsPanel.Show();
         }
         private void QuitGame()

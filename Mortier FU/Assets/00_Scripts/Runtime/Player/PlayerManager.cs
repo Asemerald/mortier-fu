@@ -188,6 +188,11 @@ namespace MortierFu
 
             Team = null;
         }
+        
+        public void SelfDestroy()
+        {
+            Destroy(gameObject);
+        }
 
         #region Lobby Methods
 

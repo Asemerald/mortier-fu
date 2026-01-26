@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -33,6 +34,20 @@ namespace MortierFu
             }
             
             Players.Clear();
+        }
+        
+        public void RemovePlayer(PlayerManager player)
+        {
+            if (player == null || !Players.Contains(player))
+                return;
+
+            Players.Remove(player);
+            
+            // remove player from PlayerInputManager
+            player.SelfDestroy();
+            
+            Logs.Log($"[LobbyService] Player {player.PlayerIndex} removed from the lobby.");
+            OnPlayerLeft?.Invoke(player);
         }
 
         public void RegisterPlayer(PlayerManager player)

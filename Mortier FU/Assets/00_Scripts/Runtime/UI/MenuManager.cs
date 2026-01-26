@@ -125,6 +125,11 @@ namespace MortierFu
                 OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         }
 
+        public void HidePlayerGO(bool hide)
+        {
+            playerGO.SetActive(hide);
+        }
+
         public void SetPlayer1InputAction(PlayerInput playerInput)
         {
             Player1InputAction = playerInput;
@@ -209,12 +214,14 @@ namespace MortierFu
                 SettingsPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
+                HidePlayerGO(false);
             }
             else if (CreditsPanel.IsVisible())
             {
                 CreditsPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
+                HidePlayerGO(false);
             }
             else if (LobbyPanel.IsVisible())
             {
@@ -229,6 +236,17 @@ namespace MortierFu
             cameraManager.TeleportToPosition(1);
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
             PlayerInputBridge.Instance.CanJoin(false);
+            
+            // Disconnect all players from lobby except Player 1
+            var lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            var players = new List<PlayerManager>(lobbyService.GetPlayers());
+            foreach (var player in players)
+            {
+                if (player.PlayerIndex != 0)
+                {
+                    lobbyService.RemovePlayer(player);
+                }
+            }
             
             return UniTask.CompletedTask;
         }
