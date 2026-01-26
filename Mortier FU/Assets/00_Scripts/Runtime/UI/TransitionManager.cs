@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -211,6 +212,27 @@ namespace MortierFu
                 _ => null
             };
         }
+        
+        [SerializeField] private float maxLoopTime = 5f;
+        
+        private float _currentLoopTime = 0f;
+
+        private void Update()
+        {
+            if (_isPlaying && !_shouldExit)
+            {
+                _currentLoopTime += Time.deltaTime;
+                if (_currentLoopTime >= maxLoopTime)
+                {
+                    EndTransition();
+                    _currentLoopTime = 0f;
+                }
+            }
+            else
+            {
+                _currentLoopTime = 0f;
+            }
+        }
     }
 
     public enum TransitionColor
@@ -220,4 +242,6 @@ namespace MortierFu
         Yellow,
         Green
     }
+    
+    
 }
