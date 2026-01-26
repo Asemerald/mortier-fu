@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,7 +23,6 @@ namespace MortierFu
     
         private void Start()
         {
-            Show();
             InitializeButtons();
         }
 
@@ -33,12 +34,19 @@ namespace MortierFu
             quitButton.onClick.AddListener(QuitGame);
         }
         
-        
         private void OpenLobbyPanel()
+        {
+            LobbyTransition().Forget();
+        }
+        
+        private UniTask LobbyTransition()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             Hide();
+            MenuManager.Instance.cameraManager.TeleportToPosition(2);
             lobbyPanel.Show();
+            
+            return UniTask.CompletedTask;
         }
         private void OpenSettingsPanel()
         {

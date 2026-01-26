@@ -30,6 +30,15 @@ public class MainMenuCameraManager : MonoBehaviour
         StartCoroutine(CameraTransitionRoutine(cameraPositions[index]));
     }
     
+    public void TeleportToPosition(int index)
+    {
+        if (index < 0 || index >= cameraPositions.Length)
+            return;
+
+        mainCamera.position = cameraPositions[index].position;
+        mainCamera.rotation = cameraPositions[index].rotation;
+    }
+    
     private System.Collections.IEnumerator CameraTransitionRoutine(Transform targetPosition)
     {
         Vector3 startPos = mainCamera.position;

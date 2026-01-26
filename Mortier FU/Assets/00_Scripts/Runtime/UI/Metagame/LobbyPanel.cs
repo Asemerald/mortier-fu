@@ -60,8 +60,6 @@ namespace MortierFu
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
             _topUpdateMaxScoreBtn.onClick.RemoveListener(OnTopUpdateMaxScoreClicked);
             _bottomUpdateMaxScoreBtn.onClick.RemoveListener(OnBottomUpdateMaxScoreClicked);
-
-            PlayerInputBridge.Instance.CanJoin(false);
         }
         
         public int SelectedMaxScore => _steps[_currentMaxScoreIndex].ScoreToWin;

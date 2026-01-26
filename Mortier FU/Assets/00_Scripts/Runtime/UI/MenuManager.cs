@@ -43,7 +43,8 @@ namespace MortierFu
         [field: SerializeField] private int minPlayers = 2;
 
         [Header("Utils")] [field: SerializeField]
-        private MainMenuCameraManager cameraManager;
+        public MainMenuCameraManager cameraManager;
+        [SerializeField] private float delayBeforeMainMenuShow = 2f;
 
         [Header("References")] public GameObject playerGO;
 
@@ -97,6 +98,17 @@ namespace MortierFu
             _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[0].Enable();
             _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[1].Enable();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            
+            ShowMainMenuAfterDelay(delayBeforeMainMenuShow).Forget();
+            
+            PlayerInputBridge.Instance.CanJoin(true);
+        }
+        
+        private async UniTask ShowMainMenuAfterDelay(float delay)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            MainMenuPanel.gameObject.SetActive(true);
+            _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
         }
 
         private void OnEnable()
@@ -118,7 +130,7 @@ namespace MortierFu
             Player1InputAction = playerInput;
             Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
             
-            //Playerin
+            PlayerInputBridge.Instance.CanJoin(false);
         }
 
         public async UniTask StartGame()
@@ -206,10 +218,19 @@ namespace MortierFu
             }
             else if (LobbyPanel.IsVisible())
             {
-                LobbyPanel.Hide();
-                MainMenuPanel.Show();
-                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+                TransitionFromLobbyToMainMenu().Forget();
             }
+        }
+        
+        private UniTask TransitionFromLobbyToMainMenu()
+        {
+            LobbyPanel.Hide();
+            MainMenuPanel.Show();
+            cameraManager.TeleportToPosition(1);
+            _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            PlayerInputBridge.Instance.CanJoin(false);
+            
+            return UniTask.CompletedTask;
         }
 
         private void SelectPlayer1ReadyButton()
@@ -250,10 +271,11 @@ namespace MortierFu
 
         private void CheckActivePanels()
         {
-            if (!MainMenuPanel.isActiveAndEnabled)
+            // off to disable tween
+            /*if (!MainMenuPanel.isActiveAndEnabled)
             {
                 MainMenuPanel.gameObject.SetActive(true);
-            }
+            }*/
 
             if (!SettingsPanel.isActiveAndEnabled)
             {
