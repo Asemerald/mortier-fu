@@ -10,13 +10,32 @@ namespace MortierFu
         public static TransitionManager Instance { get; private set; }
 
         [SerializeField] private VideoPlayer _videoPlayer;
-        [SerializeField] private VideoClip _blueTransitionClip;
-        [SerializeField] private VideoClip _redTransitionClip;
-        [SerializeField] private VideoClip _yellowTransitionClip;
-        [SerializeField] private VideoClip _greenTransitionClip;
+        
+        [Header("Blue Transition")]
+        [SerializeField] private VideoClip _blueStartClip;
+        [SerializeField] private VideoClip _blueLoopClip;
+        [SerializeField] private VideoClip _blueExitClip;
+        
+        [Header("Red Transition")]
+        [SerializeField] private VideoClip _redStartClip;
+        [SerializeField] private VideoClip _redLoopClip;
+        [SerializeField] private VideoClip _redExitClip;
+        
+        [Header("Yellow Transition")]
+        [SerializeField] private VideoClip _yellowStartClip;
+        [SerializeField] private VideoClip _yellowLoopClip;
+        [SerializeField] private VideoClip _yellowExitClip;
+        
+        [Header("Green Transition")]
+        [SerializeField] private VideoClip _greenStartClip;
+        [SerializeField] private VideoClip _greenLoopClip;
+        [SerializeField] private VideoClip _greenExitClip;
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private bool _isPlaying;
+        private bool _shouldExit;
+        private TransitionColor _currentColor;
+        private CancellationTokenSource _loopCts;
 
         public bool IsTransitionPlaying => _isPlaying;
 
@@ -31,68 +50,162 @@ namespace MortierFu
             DontDestroyOnLoad(this.gameObject);
         }
 
-        // Awaitable 
-        public UniTask PlayTransitionAsync(TransitionColor color)
+        private void OnDestroy()
         {
-            // Try to acquire immediately; if busy, ignore and return completed task.
+            _loopCts?.Cancel();
+            _loopCts?.Dispose();
+        }
+
+        // Démarre la transition (Start → Loop)
+        public UniTask StartTransitionAsync(TransitionColor color)
+        {
             if (!_semaphore.Wait(0))
                 return UniTask.CompletedTask;
 
-            // We own the semaphore now; return the task so caller can await the play.
-            return PlayTransitionNoAcquireAsync(color);
+            return StartTransitionNoAcquireAsync(color);
         }
 
-        // Fire-and-forget 
-        public bool TryPlayTransition(TransitionColor color)
+        public bool TryStartTransition(TransitionColor color)
         {
             if (!_semaphore.Wait(0))
                 return false;
 
-            // Start without awaiting the caller
-            PlayTransitionNoAcquireAsync(color).Forget();
+            StartTransitionNoAcquireAsync(color).Forget();
             return true;
         }
 
-        // Assumes semaphore already acquired.
-        private async UniTask PlayTransitionNoAcquireAsync(TransitionColor color)
+        // Termine la transition (attend la fin du loop actuel → Exit)
+        public void EndTransition()
+        {
+            if (_isPlaying)
+            {
+                _shouldExit = true;
+            }
+        }
+
+        private async UniTask StartTransitionNoAcquireAsync(TransitionColor color)
         {
             _isPlaying = true;
-            var tcs = new UniTaskCompletionSource<bool>();
+            _shouldExit = false;
+            _currentColor = color;
+            _loopCts?.Cancel();
+            _loopCts = new CancellationTokenSource();
 
+            try
+            {
+                // 1. Joue le Start
+                var startClip = GetStartClip(color);
+                if (startClip != null)
+                {
+                    await PlayClipAsync(startClip);
+                }
+
+                // 2. Loop jusqu'à ce qu'on demande l'exit
+                var loopClip = GetLoopClip(color);
+                if (loopClip != null)
+                {
+                    await LoopClipAsync(loopClip, _loopCts.Token);
+                }
+
+                // 3. Joue l'Exit
+                if (_shouldExit)
+                {
+                    var exitClip = GetExitClip(color);
+                    if (exitClip != null)
+                    {
+                        await PlayClipAsync(exitClip);
+                    }
+                }
+            }
+            finally
+            {
+                _isPlaying = false;
+                _shouldExit = false;
+                _loopCts?.Dispose();
+                _loopCts = null;
+                _semaphore.Release();
+            }
+        }
+
+        private async UniTask PlayClipAsync(VideoClip clip)
+        {
+            var tcs = new UniTaskCompletionSource<bool>();
             void OnEnd(VideoPlayer vp) => tcs.TrySetResult(true);
 
             try
             {
-                var clip = GetClip(color);
-                if (clip == null)
-                {
-                    tcs.TrySetResult(true);
-                }
-                else
-                {
-                    _videoPlayer.clip = clip;
-                    _videoPlayer.loopPointReached += OnEnd;
-                    _videoPlayer.Play();
-                }
-
+                _videoPlayer.clip = clip;
+                _videoPlayer.isLooping = false;
+                _videoPlayer.loopPointReached += OnEnd;
+                _videoPlayer.Play();
                 await tcs.Task;
             }
             finally
             {
                 _videoPlayer.loopPointReached -= OnEnd;
-                _isPlaying = false;
-                _semaphore.Release();
             }
         }
 
-        private VideoClip GetClip(TransitionColor color)
+        private async UniTask LoopClipAsync(VideoClip clip, CancellationToken ct)
+        {
+            _videoPlayer.clip = clip;
+            _videoPlayer.isLooping = false;
+            _videoPlayer.Play();
+
+            while (!_shouldExit && !ct.IsCancellationRequested)
+            {
+                var tcs = new UniTaskCompletionSource<bool>();
+                void OnEnd(VideoPlayer vp) => tcs.TrySetResult(true);
+
+                try
+                {
+                    _videoPlayer.loopPointReached += OnEnd;
+                    await tcs.Task;
+                }
+                finally
+                {
+                    _videoPlayer.loopPointReached -= OnEnd;
+                }
+
+                if (!_shouldExit && !ct.IsCancellationRequested)
+                {
+                    _videoPlayer.Play();
+                }
+            }
+        }
+
+        private VideoClip GetStartClip(TransitionColor color)
         {
             return color switch
             {
-                TransitionColor.Blue => _blueTransitionClip,
-                TransitionColor.Red => _redTransitionClip,
-                TransitionColor.Yellow => _yellowTransitionClip,
-                TransitionColor.Green => _greenTransitionClip,
+                TransitionColor.Blue => _blueStartClip,
+                TransitionColor.Red => _redStartClip,
+                TransitionColor.Yellow => _yellowStartClip,
+                TransitionColor.Green => _greenStartClip,
+                _ => null
+            };
+        }
+
+        private VideoClip GetLoopClip(TransitionColor color)
+        {
+            return color switch
+            {
+                TransitionColor.Blue => _blueLoopClip,
+                TransitionColor.Red => _redLoopClip,
+                TransitionColor.Yellow => _yellowLoopClip,
+                TransitionColor.Green => _greenLoopClip,
+                _ => null
+            };
+        }
+
+        private VideoClip GetExitClip(TransitionColor color)
+        {
+            return color switch
+            {
+                TransitionColor.Blue => _blueExitClip,
+                TransitionColor.Red => _redExitClip,
+                TransitionColor.Yellow => _yellowExitClip,
+                TransitionColor.Green => _greenExitClip,
                 _ => null
             };
         }
