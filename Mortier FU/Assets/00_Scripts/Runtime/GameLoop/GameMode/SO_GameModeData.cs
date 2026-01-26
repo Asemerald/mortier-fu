@@ -8,7 +8,6 @@ namespace MortierFu
         public int MinPlayerCount = 1;
         public int MaxPlayerCount = 4;
         
-        public int ScoreToWin = 1000;
         public int FirstRankBonusScore = 100;
         public int SecondRankBonusScore = 30;   
         public int ThirdRankBonusScore = 10;
@@ -18,7 +17,7 @@ namespace MortierFu
 
         public float AugmentSelectionDuration = 20;
         public float RoundStartCountdown = 5f;
-        public float DisplayScoresDuration = 15f;
+        public float StopShowScoreBoardDelay = 2f;
         public float ShowRoundWinnerDelay = 1.6f;
         public float StormSpawnTime = 30;
     }

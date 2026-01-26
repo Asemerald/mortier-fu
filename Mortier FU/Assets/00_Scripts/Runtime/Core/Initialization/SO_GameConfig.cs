@@ -8,6 +8,9 @@ namespace MortierFu
     public class SO_GameConfig : ScriptableObject
     {
         [Header("Core FMOD Banks")] public AssetReference[] fmodBanks;
+        
+        [Header("Shaders to Preload")]
+        public ShaderVariantCollection shaderVariantsToPreload;
 
         [Header("Optional global assets")] 
         public AssetReferenceT<SO_LevelSettings> LevelSettings;

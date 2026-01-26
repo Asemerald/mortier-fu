@@ -1,5 +1,7 @@
 using System;
+using MortierFu.Shared;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -13,7 +15,9 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _roundColor02;
         [SerializeField] private MeshRenderer _planeMeshRenderer;
         [SerializeField] private ParticleSystem _logoParticleSystem;
+        [SerializeField] private Light _light;
         [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
+        [SerializeField] private GameObject[] _pickupVFX;
 
         private Transform _attachmentPoint;
         
@@ -31,6 +35,7 @@ namespace MortierFu
             _system = system;
             _index = augmentIndex;
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            
             _initialRotation = transform.rotation;
         }
 
@@ -47,6 +52,8 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
             _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
+            Instantiate(_pickupVFX[(int)_rarity], transform.position, transform.rotation);
+            
             Reset();
         }
 
@@ -55,6 +62,11 @@ namespace MortierFu
             gameObject.SetActive(false);
 
             transform.rotation = _initialRotation;
+            
+            // Set Z rotation to 0
+            Vector3 eulerAngles = transform.eulerAngles;
+            eulerAngles.z = 0;
+            transform.eulerAngles = eulerAngles;
         }
 
         public void SetAugmentVisual(SO_Augment augment)
@@ -67,6 +79,11 @@ namespace MortierFu
 
         private void Update()
         {
+            // Set Z rotation to 0
+            Vector3 eulerAngles = transform.eulerAngles;
+            eulerAngles.z = 0;
+            transform.eulerAngles = eulerAngles;
+            
             if (!_attachmentPoint) return;
             
             transform.position = _attachmentPoint.position;
@@ -88,29 +105,50 @@ namespace MortierFu
             {
                 var main = _dissolveColor01.main;
                 main.startColor = source._dissolveColor01.main.startColor;
+                
+                _dissolveColor01.gameObject.SetActive(source._dissolveColor01.gameObject.activeSelf);
+                _dissolveColor01.transform.localScale = source._dissolveColor01.transform.localScale;
             }
 
             if (_dissolveColor02 && source._dissolveColor02)
             {
                 var main = _dissolveColor02.main;
                 main.startColor = source._dissolveColor02.main.startColor;
+                
+                _dissolveColor02.gameObject.SetActive(source._dissolveColor02.gameObject.activeSelf);
+                _dissolveColor02.transform.localScale = source._dissolveColor02.transform.localScale;
             }
 
             if (_roundColor01 && source._roundColor01)
             {
                 var main = _roundColor01.main;
                 main.startColor = source._roundColor01.main.startColor;
+                
+                _roundColor01.gameObject.SetActive(source._roundColor01.gameObject.activeSelf);
             }
 
             if (_roundColor02 && source._roundColor02)
             {
                 var main = _roundColor02.main;
                 main.startColor = source._roundColor02.main.startColor;
+                
+                _roundColor02.gameObject.SetActive(source._roundColor02.gameObject.activeSelf);
             }
 
             if (_planeMeshRenderer && source._planeMeshRenderer)
             {
                 _planeMeshRenderer.sharedMaterial = source._planeMeshRenderer.sharedMaterial;
+                
+                _planeMeshRenderer.transform.localScale = source._planeMeshRenderer.transform.localScale;
+            }
+            
+            if (_light && source._light)
+            {
+                _light.color = source._light.color;
+                _light.intensity = source._light.intensity;
+                _light.areaSize = source._light.areaSize;
+                
+                _light.gameObject.SetActive(source._light.gameObject.activeSelf);
             }
         }
 

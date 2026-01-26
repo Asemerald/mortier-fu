@@ -6,12 +6,10 @@ public class MainMenuCameraManager : MonoBehaviour
     [SerializeField] private Transform mainCamera;
     [SerializeField] private Transform[] cameraPositions;
     [SerializeField] private float transitionDuration = 2f;
-    [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    
+    
 
-    private int currentPositionIndex = 0;
-    private float transitionTimer = 0f;
-    private bool isTransitioning = false;
-
+    [ContextMenu("Initialize Camera")]
     private void Start()
     {
         if (cameraPositions.Length > 0)
@@ -19,34 +17,40 @@ public class MainMenuCameraManager : MonoBehaviour
             mainCamera.transform.position = cameraPositions[0].position;
             mainCamera.transform.rotation = cameraPositions[0].rotation;
         }
+        
+        MoveToPosition(1);
     }
-
-    private void Update()
+    
+    public void MoveToPosition(int index)
     {
-        if (isTransitioning)
+        if (index < 0 || index >= cameraPositions.Length)
+            return;
+
+        StopAllCoroutines();
+        StartCoroutine(CameraTransitionRoutine(cameraPositions[index]));
+    }
+    
+    private System.Collections.IEnumerator CameraTransitionRoutine(Transform targetPosition)
+    {
+        Vector3 startPos = mainCamera.position;
+        Quaternion startRot = mainCamera.rotation;
+        Vector3 endPos = targetPosition.position;
+        Quaternion endRot = targetPosition.rotation;
+
+        float elapsed = 0f;
+
+        while (elapsed < transitionDuration) 
         {
-            transitionTimer += Time.deltaTime;
-            float t = Mathf.Clamp01(transitionTimer / transitionDuration);
-            t = transitionCurve.Evaluate(t);
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / transitionDuration);
 
-            Transform targetPosition = cameraPositions[currentPositionIndex];
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition.position, t);
-            mainCamera.transform.rotation = Quaternion.Slerp(mainCamera.transform.rotation, targetPosition.rotation, t);
+            mainCamera.position = Vector3.Lerp(startPos, endPos, t);
+            mainCamera.rotation = Quaternion.Slerp(startRot, endRot, t);
 
-            if (t >= 1f)
-            {
-                isTransitioning = false;
-            }
+            yield return null;
         }
-    }
 
-    [ContextMenu("Move To Next Position")]
-    public void MoveToNextPosition()
-    {
-        if (cameraPositions.Length == 0) return;
-
-        currentPositionIndex = (currentPositionIndex + 1) % cameraPositions.Length;
-        transitionTimer = 0f;
-        isTransitioning = true;
+        mainCamera.position = endPos;
+        mainCamera.rotation = endRot;
     }
 }

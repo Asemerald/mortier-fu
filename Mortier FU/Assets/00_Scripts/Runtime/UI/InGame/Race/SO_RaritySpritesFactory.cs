@@ -21,6 +21,20 @@ namespace MortierFu
             return null;
         }
 
+        public Texture GetTitleRarityFilter(E_AugmentRarity rarity)
+        {
+            foreach (var entry in _spritesPerRarity)
+            {
+                if (entry.Rarity == rarity)
+                {
+                    return entry.TitleFilter;
+                }
+            }
+
+            Debug.LogWarning($"RarityBgSpriteFactory: No background sprite found for rarity {rarity}. Returning null.");
+            return null;
+        }
+
         public Sprite GetRarityBorderSpriteFromRarity(E_AugmentRarity rarity)
         {
             foreach (var entry in _spritesPerRarity)
@@ -56,6 +70,7 @@ namespace MortierFu
             public Sprite BorderSprite;
             public Sprite BgSprite;
             public Sprite CardBgSprite;
+            public Texture TitleFilter;
         }
     }
 }

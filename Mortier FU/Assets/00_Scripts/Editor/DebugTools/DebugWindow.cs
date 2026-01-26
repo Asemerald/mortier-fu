@@ -19,16 +19,23 @@ namespace MortierFu.Editor {
         private const string k_countdownSpeedMultiplier = "CountdownSpeedMult";
         private const string k_overrideArenaMapAddress = "OverrideArenaMapAddress";
         private const string k_overrideRaceMapAddress = "OverrideRaceMapAddress";
+        private const string k_dummyDebugToolEnabled = "DummyDebugToolEnabled";
         
         private static bool SkipMenuEnabled {
             get => EditorPrefs.GetBool(k_skipMenuEnabled, false);
             set => EditorPrefs.SetBool(k_skipMenuEnabled, value);
-        }
+        }   
 
         private static int CountdownSpeedMultiplier
         {
             get => EditorPrefs.GetInt(k_countdownSpeedMultiplier, 1);
             set => EditorPrefs.SetInt(k_countdownSpeedMultiplier, value);
+        }
+
+        private static bool DummyDebugToolEnabled
+        {
+            get => EditorPrefs.GetBool(k_dummyDebugToolEnabled, true);
+            set => EditorPrefs.SetBool(k_dummyDebugToolEnabled, value);
         }
         
         private void CreateGUI() {
@@ -100,9 +107,18 @@ namespace MortierFu.Editor {
             speedMultiplierSlider.labelElement.style.minWidth = 200;
             speedMultiplierSlider.labelElement.style.width = 200;
             
+            var dummyDebugToolToggle = new Toggle("Dummy Debug Tool") {
+                tooltip = "If toggled, can use one controller to control dummy characters.",
+                value = DummyDebugToolEnabled
+            };
+            dummyDebugToolToggle.RegisterValueChangedCallback(evt => DummyDebugToolEnabled = evt.newValue);
+            dummyDebugToolToggle.labelElement.style.minWidth = 200;
+            dummyDebugToolToggle.labelElement.style.width = 200;
+            
             _contentContainer.AddHeader("GLOBAL");
             _contentContainer.Add(skipMenuToggle);
             _contentContainer.Add(speedMultiplierSlider);
+            _contentContainer.Add(dummyDebugToolToggle);
             
             string arenaMapAddress = ReadOverrideMapAddress(k_overrideArenaMapAddress);
             if (!string.IsNullOrEmpty(arenaMapAddress)) {

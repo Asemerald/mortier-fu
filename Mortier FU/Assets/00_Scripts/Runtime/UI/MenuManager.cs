@@ -6,6 +6,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -21,6 +22,12 @@ namespace MortierFu
         [field: SerializeField] public Button CreditsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
 
+        [Header("Lobby UI Selection")] [SerializeField]
+        private Button _player1ReadySelectedButton;
+
+        [SerializeField] private GameObject _playGameObject;
+        [SerializeField] private GameObject _gameMaxScoreObject;
+
         [field: Header("Settings References")]
         [field: SerializeField]
         public SettingsPanel SettingsPanel { get; private set; }
@@ -32,13 +39,13 @@ namespace MortierFu
         [field: Header("Lobby References")]
         [field: SerializeField]
         public LobbyPanel LobbyPanel { get; private set; }
-        
-        [field: SerializeField] 
-        private int minPlayers = 2;
 
-        [Header("Utils")] 
+        [field: SerializeField] private int minPlayers = 2;
 
-        [field: SerializeField] private MainMenuCameraManager cameraManager;
+        [Header("Utils")] [field: SerializeField]
+        private MainMenuCameraManager cameraManager;
+
+        [Header("References")] public GameObject playerGO;
 
         private EventSystem _eventSystem;
 
@@ -74,7 +81,7 @@ namespace MortierFu
 
             CheckReferences();
             CheckActivePanels();
-            
+
             ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
         }
 
@@ -87,34 +94,44 @@ namespace MortierFu
             }
 
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[0].Enable();
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[1].Enable();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
-        
+
+        private void OnEnable()
+        {
+            _playGameObject.SetActive(false);
+            _gameMaxScoreObject.SetActive(false);
+        }
 
         private void OnDisable()
         {
+            if (Player1InputAction == null) return;
             Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
-            Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            Player1InputAction.actions.FindAction("StartGame").performed -=
+                OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         }
-        
+
         public void SetPlayer1InputAction(PlayerInput playerInput)
         {
             Player1InputAction = playerInput;
             Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
-            Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            
+            //Playerin
         }
 
         public async UniTask StartGame()
         {
             Logs.Log("MenuManager: Starting Game...");
-            
+
             // When game mode is selected
             await _gameService.InitializeGameMode<GM_FFA>();
 
             // Should handle game mode teams
 
             _gameService.ExecuteGameplayPipeline().Forget();
-            
+
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 
@@ -128,15 +145,15 @@ namespace MortierFu
                 StartGame().Forget();
             }
         }
-        
+
         public void CheckAllPlayersReady()
         {
-            if (_lobbyService.CurrentPlayerCount < minPlayers) 
+            if (_lobbyService.CurrentPlayerCount < minPlayers)
             {
                 Logs.Log($"[MenuManager]: Not enough players ({_lobbyService.CurrentPlayerCount}/{minPlayers}).");
                 return;
             }
-        
+
             bool allReady = true;
             foreach (var player in _lobbyService.GetPlayers())
             {
@@ -146,12 +163,27 @@ namespace MortierFu
                     break;
                 }
             }
-        
+
             if (allReady)
             {
-                Logs.Log("[MenuManager]: All players ready! Starting game...");
-                StartGame().Forget();
+                _gameMaxScoreObject.SetActive(true);
+                SelectPlayer1ReadyButton();
+                _playGameObject.SetActive(true);
+                Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame;
             }
+        }
+
+        public bool AllPlayersReady()
+        {
+            foreach (var player in _lobbyService.GetPlayers())
+            {
+                if (!player.IsReady)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public void OnCancel(InputAction.CallbackContext context)
@@ -174,11 +206,18 @@ namespace MortierFu
             }
             else if (LobbyPanel.IsVisible())
             {
-                SwitchCameraPosition();
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
             }
+        }
+
+        private void SelectPlayer1ReadyButton()
+        {
+            if (_eventSystem == null || _player1ReadySelectedButton == null)
+                return;
+
+            _eventSystem.SetSelectedGameObject(_player1ReadySelectedButton.gameObject);
         }
 
         private void CheckReferences()
@@ -230,10 +269,6 @@ namespace MortierFu
             {
                 LobbyPanel.gameObject.SetActive(true);
             }
-        }
-        public void SwitchCameraPosition()
-        {
-            cameraManager.MoveToNextPosition();
         }
 
         public void ChangeSelectedButton(Button newSelected)

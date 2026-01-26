@@ -102,11 +102,11 @@ public class TriangleCounter : MonoBehaviour
         foreach (var c in topMeshes)
             sb.AppendLine(
                 $"{rank++}-{c.Name}: {c.TotalTris} tris, {c.DuplicateCount} duplicates ({c.TrisPerDuplicate:F2} tris/instance)");
-        Logs.Log(sb.ToString());
+     //   Logs.Log(sb.ToString());
 
-        Logs.Log($"Total: {totalTris} tris");
-        foreach (var kvp in sceneCounts)
-            Logs.Log($"{kvp.Key}: {kvp.Value} tris");
+//        Logs.Log($"Total: {totalTris} tris");
+       // foreach (var kvp in sceneCounts)
+       //     Logs.Log($"{kvp.Key}: {kvp.Value} tris");
     }
 
     private long CountMeshTriangles(Mesh mesh)

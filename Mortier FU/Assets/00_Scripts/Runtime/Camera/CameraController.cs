@@ -193,6 +193,9 @@ namespace MortierFu
             _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
             _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
 
+            Vector3 followOffset = _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
+            Vector3 camTargetPos = _virtualTarget.position + followOffset;
+            
             ApplyLens();
 
             float elapsed = 0f;
@@ -201,9 +204,8 @@ namespace MortierFu
             {
                 Vector3 camPos = _cinemachineCamera.transform.position;
                 float camOrtho = _cinemachineCamera.Lens.OrthographicSize;
-
-                bool positionReached = Vector3.Distance(camPos, _levelSystem.CurrentCameraMapConfig.PositionForRace) <=
-                                       tolerance;
+                
+                bool positionReached = Vector3.Distance(camPos, camTargetPos) <= tolerance;
                 bool orthoReached = Mathf.Abs(camOrtho - _levelSystem.CurrentCameraMapConfig.OrthoSize) <= tolerance;
 
                 if (positionReached && orthoReached)
@@ -321,7 +323,7 @@ namespace MortierFu
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / zoomDuration);
 
-                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t);
+                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t * t);
                 _cinemachineCamera.Lens.OrthographicSize = newOrtho;
                 _renderOnTopCamera.orthographicSize = newOrtho;
             }
