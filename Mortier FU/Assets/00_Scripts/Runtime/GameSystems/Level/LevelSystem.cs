@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using MortierFu.Shared;
 using Cysharp.Threading.Tasks;
@@ -7,6 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -37,7 +39,7 @@ namespace MortierFu
             
             if (useTransition)
             {
-                TransitionManager.Instance.TryStartTransition(color);
+                await TransitionManager.Instance.StartTransitionAsync(color);
             }
             
             await UnloadCurrentMap();
@@ -76,7 +78,7 @@ namespace MortierFu
 
             if (useTransition)
             {
-                TransitionManager.Instance.EndTransition();
+                await TransitionManager.Instance.EndTransition();
             }
             
             if (Settings.EnableDebug)
@@ -103,7 +105,7 @@ namespace MortierFu
             
             if (useTransition)
             {
-                TransitionManager.Instance.TryStartTransition(color);
+                await TransitionManager.Instance.StartTransitionAsync(color);
             }
             
             await UnloadCurrentMap();
@@ -143,7 +145,7 @@ namespace MortierFu
 
             if (useTransition)
             {
-                TransitionManager.Instance.EndTransition();
+                await TransitionManager.Instance.EndTransition();
             }
 
             if (Settings.EnableDebug)

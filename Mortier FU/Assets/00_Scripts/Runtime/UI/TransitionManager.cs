@@ -58,12 +58,16 @@ namespace MortierFu
         }
 
         // Démarre la transition (Start → Loop)
-        public UniTask StartTransitionAsync(TransitionColor color)
+        public async UniTask StartTransitionAsync(TransitionColor color)
         {
             if (!_semaphore.Wait(0))
-                return UniTask.CompletedTask;
+                return;
+                
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_TransitionIn);
 
-            return StartTransitionNoAcquireAsync(color);
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            
+            await StartTransitionNoAcquireAsync(color);
         }
 
         public bool TryStartTransition(TransitionColor color)
@@ -77,12 +81,18 @@ namespace MortierFu
         }
 
         // Termine la transition (attend la fin du loop actuel → Exit)
-        public void EndTransition()
+        public async UniTask EndTransition()
         {
             if (_isPlaying)
             {
                 _shouldExit = true;
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_TransitionOut);
+            }
+            
+            // Only end when video is finished
+            while (_isPlaying)
+            {
+                await UniTask.Yield();
             }
         }
 
