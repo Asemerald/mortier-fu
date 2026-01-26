@@ -18,15 +18,17 @@ namespace MortierFu
 
         private void Awake()
         {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
             Destroy(this);
             return;
 #else
+            #if UNITY_EDITOR
             if (!EditorPrefs.GetBool("DummyDebugToolEnabled", true))
             {
                 Destroy(this);
                 return;
             }
+            #endif
 #endif
             Instance = this;
         }

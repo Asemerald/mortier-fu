@@ -15,6 +15,7 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _roundColor02;
         [SerializeField] private MeshRenderer _planeMeshRenderer;
         [SerializeField] private ParticleSystem _logoParticleSystem;
+        [SerializeField] private Light _light;
         [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
         [SerializeField] private GameObject[] _pickupVFX;
 
@@ -104,29 +105,50 @@ namespace MortierFu
             {
                 var main = _dissolveColor01.main;
                 main.startColor = source._dissolveColor01.main.startColor;
+                
+                _dissolveColor01.gameObject.SetActive(source._dissolveColor01.gameObject.activeSelf);
+                _dissolveColor01.transform.localScale = source._dissolveColor01.transform.localScale;
             }
 
             if (_dissolveColor02 && source._dissolveColor02)
             {
                 var main = _dissolveColor02.main;
                 main.startColor = source._dissolveColor02.main.startColor;
+                
+                _dissolveColor02.gameObject.SetActive(source._dissolveColor02.gameObject.activeSelf);
+                _dissolveColor02.transform.localScale = source._dissolveColor02.transform.localScale;
             }
 
             if (_roundColor01 && source._roundColor01)
             {
                 var main = _roundColor01.main;
                 main.startColor = source._roundColor01.main.startColor;
+                
+                _roundColor01.gameObject.SetActive(source._roundColor01.gameObject.activeSelf);
             }
 
             if (_roundColor02 && source._roundColor02)
             {
                 var main = _roundColor02.main;
                 main.startColor = source._roundColor02.main.startColor;
+                
+                _roundColor02.gameObject.SetActive(source._roundColor02.gameObject.activeSelf);
             }
 
             if (_planeMeshRenderer && source._planeMeshRenderer)
             {
                 _planeMeshRenderer.sharedMaterial = source._planeMeshRenderer.sharedMaterial;
+                
+                _planeMeshRenderer.transform.localScale = source._planeMeshRenderer.transform.localScale;
+            }
+            
+            if (_light && source._light)
+            {
+                _light.color = source._light.color;
+                _light.intensity = source._light.intensity;
+                _light.areaSize = source._light.areaSize;
+                
+                _light.gameObject.SetActive(source._light.gameObject.activeSelf);
             }
         }
 

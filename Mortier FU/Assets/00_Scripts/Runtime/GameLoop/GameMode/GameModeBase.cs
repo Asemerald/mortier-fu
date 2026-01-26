@@ -45,11 +45,6 @@ namespace MortierFu
         protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
-        protected ACT_Storm stormInstance;
-
-        private AsyncOperationHandle<SO_StormSettings> _stormSettingsHandle;
-        public SO_StormSettings StormSettings => _stormSettingsHandle.Result;
-
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
         public SO_GameModeData Data => _dataHandle.Result;
 
@@ -91,12 +86,27 @@ namespace MortierFu
         public event Func<UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
+        public virtual async UniTask Initialize()
+        {
+            // Resolve Dependencies
+            lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            sceneService = ServiceManager.Instance.Get<SceneService>();
+
+            // Load configuration
+            _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
+
+            timer = new CountdownTimer(0f);
+
+            _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
+
+            Logs.Log("Game mode initialized successfully.");
+        }
+
         public virtual async UniTask StartGame()
         {
             augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
             cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
-            // puddleSys = SystemManager.Instance.Get<PuddleSystem>();
             levelSystem = SystemManager.Instance.Get<LevelSystem>();
 
             teams = new List<PlayerTeam>();
@@ -166,7 +176,7 @@ namespace MortierFu
                 EndRace();
 
                 EnablePlayerGravity(false);
-                
+
                 // TODO: Potentiellement horrible 
                 if (OnRaceEndedUI != null)
                 {
@@ -384,10 +394,6 @@ namespace MortierFu
             PlayerCharacter.AllowGameplayActions = true;
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
-
-            // timer.Reset(_gameModeData.StormSpawnTime);
-            // timer.OnTimerStop += SpawnStorm;
-            // timer.Start();
         }
 
         protected void HandleStartOfCountdown()
@@ -397,17 +403,11 @@ namespace MortierFu
 
         protected virtual void EndRound()
         {
-            timer.OnTimerStop -= SpawnStorm;
             timer.Stop();
 
             EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
 
             bombshellSys.ClearActiveBombshells();
-
-            if (stormInstance)
-            {
-                stormInstance.Stop();
-            }
 
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
             EnablePlayerInputs(false);
@@ -433,17 +433,6 @@ namespace MortierFu
             }
 
             OnRoundEnded?.Invoke(_currentRound);
-        }
-
-        private void SpawnStorm() => SpawnStormTask().Forget();
-
-        protected virtual async UniTaskVoid SpawnStormTask()
-        {
-            var stormGo = await StormSettings.StormPrefab.InstantiateAsync();
-            stormInstance = stormGo.GetComponent<ACT_Storm>();
-            stormInstance.Initialize(Vector3.zero, StormSettings);
-
-            Logs.Log("Storm instantiated !");
         }
 
         protected virtual void EvaluateScores()
@@ -557,17 +546,35 @@ namespace MortierFu
         public virtual void EndGame()
         {
             ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
+
+            foreach (var team in teams)
+            {
+                foreach (var member in team.Members)
+                {
+                    member.EnableGameplayInputMap(false);
+                }
+            }
+            
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
-            ReturnToMainMenuAfterDelay(5f).Forget();
         }
 
-        private async UniTaskVoid ReturnToMainMenuAfterDelay(float delay)
+        public void ReturnToMainMenu()
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            await sceneService.LoadScene("MainMenu", true, true);
-            //TODO: a full check au cas ou
+            ReturnToMainMenuAfterDelay().Forget();
+        }
+
+        private async UniTaskVoid ReturnToMainMenuAfterDelay()
+        {
             SystemManager.Instance.Dispose();
+
+            lobbyService.ClearPlayers();
+
+            await levelSystem.UnloadCurrentMap();
+            await sceneService.UnloadScene("Gameplay");
+
+            await sceneService.LoadScene("MainMenu", true);
+            //TODO: a full check au cas ou
         }
 
         protected virtual void UpdateGameState(GameState newState)
@@ -581,38 +588,13 @@ namespace MortierFu
             ScoreToWin = score;
         }
 
-        public virtual async UniTask Initialize()
-        {
-            // Resolve Dependencies
-            lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            sceneService = ServiceManager.Instance.Get<SceneService>();
-
-            // Load configuration
-            _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
-
-            // Load Storm settings
-            _stormSettingsHandle = await SystemManager.Config.StormSettings.LazyLoadAssetRef();
-
-            timer = new CountdownTimer(0f);
-
-            _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
-
-            Logs.Log("Game mode initialized successfully.");
-        }
-
         public virtual void Update()
         {
         }
 
         public virtual void Dispose()
         {
-            if (stormInstance)
-            {
-                Addressables.ReleaseInstance(stormInstance.gameObject);
-            }
-
             Addressables.Release(_dataHandle);
-            Addressables.Release(_stormSettingsHandle);
 
             EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
             _playerDeathBinding = null;

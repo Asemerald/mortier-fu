@@ -1100,7 +1100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6534235912530527116, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
       propertyPath: m_AllowJoining
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1299,10 +1299,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   _videoPlayer: {fileID: 1473426257}
-  _blueTransitionClip: {fileID: 32900000, guid: 35ca4f668afba974c884c971791afa05, type: 3}
-  _redTransitionClip: {fileID: 32900000, guid: 4e04dadf113f1a644ba2c3982b1528ee, type: 3}
-  _yellowTransitionClip: {fileID: 32900000, guid: 7c044be6cfa109a4486abeb1666d599a, type: 3}
-  _greenTransitionClip: {fileID: 32900000, guid: 1d70509d5c1f2694e92397a4eaf86387, type: 3}
+  _blueStartClip: {fileID: 32900000, guid: cf35d2a8764fc874d9cf5dd8fc3f0b5b, type: 3}
+  _blueLoopClip: {fileID: 32900000, guid: ecbe593847781a54b8e387cf6ee5fdc8, type: 3}
+  _blueExitClip: {fileID: 32900000, guid: b4c88f08566ffb3418479a66843ba068, type: 3}
+  _redStartClip: {fileID: 32900000, guid: 0ebe39c01d39e5a4bb5ce34a218976b2, type: 3}
+  _redLoopClip: {fileID: 32900000, guid: a70518ad825b8be4e914a49a36275292, type: 3}
+  _redExitClip: {fileID: 32900000, guid: b5d03f7452c8f8f49a0fdd45f3d01881, type: 3}
+  _yellowStartClip: {fileID: 32900000, guid: 7963c53258e5b8e48a5ab1241d860f14, type: 3}
+  _yellowLoopClip: {fileID: 32900000, guid: 96f78121eabd93841a77240fb3ec3dd6, type: 3}
+  _yellowExitClip: {fileID: 32900000, guid: e9d7f646e44e5e24ba95ef02cfe62bbb, type: 3}
+  _greenStartClip: {fileID: 32900000, guid: 333da9df01936a44e8b5daae54b3e041, type: 3}
+  _greenLoopClip: {fileID: 32900000, guid: 7c95ec2ed901a42409f5bd2fedd56c7d, type: 3}
+  _greenExitClip: {fileID: 32900000, guid: 7c0e11e34f8884b44987d186210e700a, type: 3}
 --- !u!1 &1052335403
 GameObject:
   m_ObjectHideFlags: 0
@@ -1399,7 +1407,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0

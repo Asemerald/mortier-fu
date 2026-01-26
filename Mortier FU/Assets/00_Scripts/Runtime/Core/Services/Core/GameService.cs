@@ -76,6 +76,53 @@ namespace MortierFu
             
             Logs.Log("Gameplay pipeline done !");
         }
+
+        public void RestartGame()
+        {
+            RestartGameAsync().Forget();
+        }
+
+        private async UniTaskVoid RestartGameAsync()
+        {
+            Logs.Log("Restarting game...");
+            _sceneService.ShowLoadingScreen();
+
+            _currentGameMode?.Dispose();
+            _currentGameMode = null;
+            
+            SystemManager.Instance.Dispose();
+            await _sceneService.UnloadScene(k_gameplayScene);
+            
+            await InitializeGameMode<GM_FFA>();
+
+            if (_currentGameMode == null)
+            {
+                Logs.LogError("Cannot execute the gameplay pipeline with a null or invalid game mode !");
+                return;
+            }
+            
+            // Load gameplay scene
+            await _sceneService.LoadScene(k_gameplayScene, true);
+            
+            // Register all game systems
+            SystemManager.Instance.CreateAndRegister<GamePauseSystem>();
+            SystemManager.Instance.CreateAndRegister<CameraSystem>();
+            SystemManager.Instance.CreateAndRegister<LevelSystem>();
+            SystemManager.Instance.CreateAndRegister<BombshellSystem>();
+            // SystemManager.Instance.CreateAndRegister<PuddleSystem>();
+            SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
+            SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
+            SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
+
+            await SystemManager.Instance.Initialize();
+            
+            // Start the game mode
+            await _currentGameMode.StartGame();
+
+            _sceneService.HideLoadingScreen();
+            
+            Logs.Log("Gameplay pipeline done !");
+        }
         
         public void Dispose()
         {

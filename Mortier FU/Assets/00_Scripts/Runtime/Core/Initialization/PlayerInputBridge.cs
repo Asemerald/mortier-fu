@@ -67,8 +67,17 @@ namespace MortierFu
 
         public void CanJoin(bool canJoin)
         {
-            PlayerInputManager.joinBehavior = canJoin ? PlayerJoinBehavior.JoinPlayersWhenButtonIsPressed : PlayerJoinBehavior.JoinPlayersManually;
-            Logs.Log($"[PlayerInputBridge] CanJoin set to: {canJoin}");
+            switch (canJoin)
+            {
+                case true:
+                    PlayerInputManager.EnableJoining();
+                    Logs.Log("[PlayerInputBridge] Players can now join.");
+                    break;
+                case false:
+                    PlayerInputManager.DisableJoining();
+                    Logs.Log("[PlayerInputBridge] Players can no longer join.");
+                    break;
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
@@ -22,6 +23,16 @@ namespace MortierFu
         {
             Players.Clear();
             Logs.Log("[LobbyService] Disposed.");
+        }
+
+        public void ClearPlayers()
+        {
+            for (int i = Players.Count - 1; i >= 0; i--)
+            {
+               Object.DestroyImmediate(Players[i].gameObject);
+            }
+            
+            Players.Clear();
         }
 
         public void RegisterPlayer(PlayerManager player)

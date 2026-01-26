@@ -34,6 +34,12 @@ namespace MortierFu
         public async UniTask LoadRaceMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             await FinishUnfinishedBusiness();
+            
+            if (useTransition)
+            {
+                TransitionManager.Instance.TryStartTransition(color);
+            }
+            
             await UnloadCurrentMap();
             _cameraSystem.Controller.SetArenaMode(false);
 #if UNITY_EDITOR
@@ -61,11 +67,6 @@ namespace MortierFu
                 }
             }
 #endif
-            
-            if (useTransition)
-            {
-                TransitionManager.Instance.TryPlayTransition(color);
-            }
 
             var map = _raceMapLocations.RandomElement();
 
@@ -73,6 +74,11 @@ namespace MortierFu
                 SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
 
+            if (useTransition)
+            {
+                TransitionManager.Instance.EndTransition();
+            }
+            
             if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
 
@@ -94,6 +100,12 @@ namespace MortierFu
         public async UniTask LoadArenaMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             await FinishUnfinishedBusiness();
+            
+            if (useTransition)
+            {
+                TransitionManager.Instance.TryStartTransition(color);
+            }
+            
             await UnloadCurrentMap();
             _cameraSystem.Controller.SetArenaMode(true);
 #if UNITY_EDITOR
@@ -121,10 +133,7 @@ namespace MortierFu
                 }
             }
 #endif
-            if (useTransition)
-            {
-                TransitionManager.Instance.PlayTransitionAsync(color).Forget();
-            }
+            
 
             var map = _arenaMapLocations.RandomElement();
 
@@ -132,13 +141,18 @@ namespace MortierFu
                 SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
 
+            if (useTransition)
+            {
+                TransitionManager.Instance.EndTransition();
+            }
+
             if (Settings.EnableDebug)
                 Logs.Log($"[LevelSystem]: Random map selected: {_mapHandle.Result.Scene.name} !");
 
             CurrentCameraMapConfig = _boundReporter.CameraConfig;
         }
 
-        private async UniTask UnloadCurrentMap()
+        public async UniTask UnloadCurrentMap()
         {
             if (!_mapHandle.IsValid()) return;
 

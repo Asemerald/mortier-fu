@@ -6,6 +6,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -43,6 +44,8 @@ namespace MortierFu
 
         [Header("Utils")] [field: SerializeField]
         private MainMenuCameraManager cameraManager;
+
+        [Header("References")] public GameObject playerGO;
 
         private EventSystem _eventSystem;
 
@@ -91,6 +94,8 @@ namespace MortierFu
             }
 
             _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[0].Enable();
+            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[1].Enable();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
@@ -112,6 +117,8 @@ namespace MortierFu
         {
             Player1InputAction = playerInput;
             Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
+            
+            //Playerin
         }
 
         public async UniTask StartGame()
@@ -199,7 +206,6 @@ namespace MortierFu
             }
             else if (LobbyPanel.IsVisible())
             {
-                SwitchCameraPosition();
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
@@ -263,11 +269,6 @@ namespace MortierFu
             {
                 LobbyPanel.gameObject.SetActive(true);
             }
-        }
-
-        public void SwitchCameraPosition()
-        {
-            cameraManager.MoveToNextPosition();
         }
 
         public void ChangeSelectedButton(Button newSelected)

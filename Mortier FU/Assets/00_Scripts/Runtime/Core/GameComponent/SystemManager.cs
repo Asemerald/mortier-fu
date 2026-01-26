@@ -29,7 +29,7 @@ namespace MortierFu
                     if(system.IsInitialized) continue; 
                     await system.Initialize();
                 }
-                Logs.Log($"[GameSystems] Initialized {_components.Count} systems.");
+//                Logs.Log($"[GameSystems] Initialized {_components.Count} systems.");
             }
             catch (Exception e)
             {
