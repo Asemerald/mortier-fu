@@ -75,10 +75,10 @@ namespace MortierFu
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive,
                 SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
-
+            
             if (useTransition)
             {
-                await TransitionManager.Instance.EndTransition();
+                TransitionManager.Instance.EndTransition().Forget();
             }
             
             if (Settings.EnableDebug)
@@ -142,10 +142,10 @@ namespace MortierFu
             _mapHandle = Addressables.LoadSceneAsync(map, LoadSceneMode.Additive,
                 SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
             await _mapHandle;
-
+            
             if (useTransition)
             {
-                await TransitionManager.Instance.EndTransition();
+                TransitionManager.Instance.EndTransition().Forget();
             }
 
             if (Settings.EnableDebug)

@@ -64,10 +64,10 @@ namespace MortierFu
                 return;
                 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_TransitionIn);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
             
-            await StartTransitionNoAcquireAsync(color);
+            StartTransitionNoAcquireAsync(color).Forget();
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }
 
         public bool TryStartTransition(TransitionColor color)
@@ -234,7 +234,7 @@ namespace MortierFu
                 _currentLoopTime += Time.deltaTime;
                 if (_currentLoopTime >= maxLoopTime)
                 {
-                    EndTransition();
+                    EndTransition().Forget();
                     _currentLoopTime = 0f;
                 }
             }

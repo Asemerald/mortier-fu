@@ -135,6 +135,7 @@ namespace MortierFu
                 Logs.LogWarning(
                     "Not enough players or too many players for this gamemode ! Falling back to playground.");
                 await levelSystem.LoadArenaMap();
+                
                 StartRound();
                 return;
             }
@@ -174,7 +175,7 @@ namespace MortierFu
                 var transitionColor = GetTransitionColor();
                 await levelSystem.LoadRaceMap(true, transitionColor);
                 ServiceManager.Instance.Get<AudioService>().SetPhase(1);
-
+                
                 UpdateGameState(GameState.DisplayAugment);
                 StartRace();
 
