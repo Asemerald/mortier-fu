@@ -44,8 +44,8 @@ namespace MortierFu
         private void Awake()
         {
             // Lock and hide cursor
-            /*Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;*/
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             
             InitializeAsync().Forget();
         }

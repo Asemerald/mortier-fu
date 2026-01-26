@@ -46,7 +46,7 @@ namespace MortierFu
         public MainMenuCameraManager cameraManager;
         [SerializeField] private float delayBeforeMainMenuShow = 2f;
 
-        [Header("References")] public GameObject playerGO;
+        [Header("References")] public GameObject[] playerGO;
 
         private EventSystem _eventSystem;
 
@@ -127,7 +127,10 @@ namespace MortierFu
 
         public void HidePlayerGO(bool hide)
         {
-            playerGO.SetActive(hide);
+            for (int i = 0; i < playerGO.Length; i++)
+            {
+                playerGO[i].SetActive(!hide);
+            }
         }
 
         public void SetPlayer1InputAction(PlayerInput playerInput)

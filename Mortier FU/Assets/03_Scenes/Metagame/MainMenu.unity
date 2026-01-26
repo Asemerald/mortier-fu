@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 8245566}
   serializedVersion: 2
   m_LocalRotation: {x: 0.0011878853, y: -0.003893686, z: 0.000014197358, w: -0.9999917}
-  m_LocalPosition: {x: 267.72, y: 2.5, z: 9.85}
+  m_LocalPosition: {x: 267.72, y: 2.23, z: 9.85}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9644,7 +9644,9 @@ MonoBehaviour:
   minPlayers: 2
   cameraManager: {fileID: 6846201641333718831}
   delayBeforeMainMenuShow: 2
-  playerGO: {fileID: 705843594}
+  playerGO:
+  - {fileID: 1943037474}
+  - {fileID: 1943037473}
 --- !u!4 &1892091464
 Transform:
   m_ObjectHideFlags: 0
@@ -12025,6 +12027,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 705843595}
   m_SourcePrefab: {fileID: 100100000, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+--- !u!1 &1943037473 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -7868516590158368177, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 1943037472}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1943037474 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1859724009498661768, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 1943037472}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1969458264
 GameObject:
   m_ObjectHideFlags: 0

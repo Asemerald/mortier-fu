@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public class SelectOnHighlight : MonoBehaviour, IPointerEnterHandler
+    public class SelectOnHighlight : MonoBehaviour
     {
         private Selectable _selectable;
         
@@ -20,10 +20,8 @@ namespace MortierFu
             
         }
         
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _selectable.Select();
-        }
+        
+        
         
         
     }
