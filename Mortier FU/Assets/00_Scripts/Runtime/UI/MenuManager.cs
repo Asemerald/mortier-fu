@@ -45,6 +45,8 @@ namespace MortierFu
         [Header("Utils")] [field: SerializeField]
         private MainMenuCameraManager cameraManager;
 
+        [Header("References")] public GameObject playerGO;
+
         private EventSystem _eventSystem;
 
         public PlayerInput Player1InputAction { get; private set; }
@@ -115,6 +117,8 @@ namespace MortierFu
         {
             Player1InputAction = playerInput;
             Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
+            
+            //Playerin
         }
 
         public async UniTask StartGame()
@@ -202,7 +206,6 @@ namespace MortierFu
             }
             else if (LobbyPanel.IsVisible())
             {
-                SwitchCameraPosition();
                 LobbyPanel.Hide();
                 MainMenuPanel.Show();
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
@@ -266,11 +269,6 @@ namespace MortierFu
             {
                 LobbyPanel.gameObject.SetActive(true);
             }
-        }
-
-        public void SwitchCameraPosition()
-        {
-            cameraManager.MoveToNextPosition();
         }
 
         public void ChangeSelectedButton(Button newSelected)

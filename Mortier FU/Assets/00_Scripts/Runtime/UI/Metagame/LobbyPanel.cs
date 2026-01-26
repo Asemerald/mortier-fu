@@ -53,7 +53,6 @@ namespace MortierFu
             _topUpdateMaxScoreBtn.onClick.AddListener(OnTopUpdateMaxScoreClicked);
             _bottomUpdateMaxScoreBtn.onClick.AddListener(OnBottomUpdateMaxScoreClicked);
             PlayerInputBridge.Instance.CanJoin(true);
-            MenuManager.Instance?.SwitchCameraPosition();
         }
 
         private void OnDisable()
