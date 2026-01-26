@@ -203,6 +203,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
   m_ShowMaskGraphic: 1
+--- !u!1 &1487037231844651712
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7136404212544225045}
+  m_Layer: 11
+  m_Name: FeetPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7136404212544225045
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487037231844651712}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5910405665845529266}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1501980948306438806
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,8 +554,10 @@ MonoBehaviour:
     - {fileID: 9169786927834691503}
     - {fileID: 8952470654534667790}
     - {fileID: 7895097378170865012}
+    CosmeticsOutlineMeshes: []
     SpawnVFXPrefab: {fileID: 688233631026927870, guid: dcfbe80c162ff894fbc5d0cbcaa5fd74, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: afc67180802c5ad4493a3d3e3e6d0c3d, type: 2}
+    CacaQuiSlowPrefabVfx: {fileID: 1251336871681427917, guid: 002b1bf81f1e00b4e8fd1d8a60778a93, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 8d6464ed92c701c489b5c928536d9181, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 757c4f23c2daa1c43afedc2fddc2343c, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: aae5d1875f2f0a04793c984252e408fd, type: 2}
@@ -609,8 +642,10 @@ MonoBehaviour:
     - {fileID: 9169786927834691503}
     - {fileID: 8952470654534667790}
     - {fileID: 7895097378170865012}
+    CosmeticsOutlineMeshes: []
     SpawnVFXPrefab: {fileID: 1612055708514398196, guid: 8d526819b3493384597dc0fa6c4c1f55, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 0d31027d3b2a467448f3d9b846bd0721, type: 2}
+    CacaQuiSlowPrefabVfx: {fileID: 1251336871681427917, guid: 002b1bf81f1e00b4e8fd1d8a60778a93, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 07b6479461aa31845b63f3295ba3b894, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 4aaa38b198b39474d8382ad546726dcf, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: 1c26da7ea31b9924cb4434a70e9fbd90, type: 2}
@@ -695,8 +730,10 @@ MonoBehaviour:
     - {fileID: 9169786927834691503}
     - {fileID: 8952470654534667790}
     - {fileID: 7895097378170865012}
+    CosmeticsOutlineMeshes: []
     SpawnVFXPrefab: {fileID: 8671296310660779095, guid: 2fa2048cd66d04c42ac493c1225a15b9, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 2ffedcde71ac33d40a374c128a051386, type: 2}
+    CacaQuiSlowPrefabVfx: {fileID: 1251336871681427917, guid: 002b1bf81f1e00b4e8fd1d8a60778a93, type: 3}
   - BurnBaseVoronoiMat: {fileID: 2100000, guid: 36466ee140156a84a90a731f9512ac39, type: 2}
     DotsAlphaSpikesMat: {fileID: 2100000, guid: 8eddc1dda3c2a7e4492fa81d8eb00d5f, type: 2}
     OrangeSpikesMat: {fileID: 2100000, guid: 19562d1bbb3bb7c4eae541cd898aa5d6, type: 2}
@@ -781,11 +818,14 @@ MonoBehaviour:
     - {fileID: 9169786927834691503}
     - {fileID: 8952470654534667790}
     - {fileID: 7895097378170865012}
+    CosmeticsOutlineMeshes: []
     SpawnVFXPrefab: {fileID: 145384326513769077, guid: 826cb40b4efd13b43833fd787127c772, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: fb59539a77743c542a67aa9687a34907, type: 2}
+    CacaQuiSlowPrefabVfx: {fileID: 1251336871681427917, guid: 002b1bf81f1e00b4e8fd1d8a60778a93, type: 3}
   _animator: {fileID: 7582028062639496719}
   _characterStatsTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
   _strikePoint: {fileID: 3774432769024524082}
+  _feetPoint: {fileID: 7136404212544225045}
   <Stats>k__BackingField: {fileID: 0}
   availableInGameSkins:
   - {fileID: 2429830758701034080}
@@ -1516,6 +1556,7 @@ Transform:
   - {fileID: 3818359591958173233}
   - {fileID: 3774432769024524082}
   - {fileID: 739302919052619580}
+  - {fileID: 7136404212544225045}
   m_Father: {fileID: 4235952571684798799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8023714888944586360
@@ -3639,6 +3680,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b63cf748106924c44aee4ac6829496b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::AnimatorToAudioBridge
+  character: {fileID: 7161519617783280849}
 --- !u!114 &8835826871769372180
 MonoBehaviour:
   m_ObjectHideFlags: 0

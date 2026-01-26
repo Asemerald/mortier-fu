@@ -35,6 +35,7 @@ namespace MortierFu
 
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
+        [SerializeField] private Transform _feetPoint;
 
         private StateMachine _stateMachine;
 
@@ -572,6 +573,16 @@ namespace MortierFu
         
             ExternalSpeedMultiplier = target;
             _speedModifierCoroutine = null;
+        }
+
+        public void PlayCacaQuiSlowVFX()
+        {
+            if (ExternalSpeedMultiplier > 0.5f)
+                return;
+            
+            // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
+            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint, _feetPoint);
+            Destroy(caca, 10f);
         }
         
         #endregion
