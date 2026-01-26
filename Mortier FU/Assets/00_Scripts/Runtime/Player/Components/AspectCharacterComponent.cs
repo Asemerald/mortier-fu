@@ -20,6 +20,7 @@ namespace MortierFu
         public Material PlayerOutlineMaterial;
         public SkinnedMeshRenderer[] PlayerMeshes;
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
+        public SkinnedMeshRenderer[] CosmeticsOutlineMeshes;
         public GameObject SpawnVFXPrefab;
         public Material DashTrailMaterial;
     }
@@ -71,7 +72,12 @@ namespace MortierFu
             {
                 mesh.material = _outlineMaterialInstance;
             }
-
+            
+            foreach (var mesh in AspectMaterials.CosmeticsOutlineMeshes)
+            {
+                mesh.material = _outlineMaterialInstance;
+            }
+            
             _startingOutlineColor = _outlineMaterialInstance.color;
             _startingColor = _materialInstance.color;
 
