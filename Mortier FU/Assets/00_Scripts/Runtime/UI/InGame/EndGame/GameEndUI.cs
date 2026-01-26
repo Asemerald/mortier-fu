@@ -18,7 +18,15 @@ namespace MortierFu
         [SerializeField] private Sprite[] _continueGameSprites;
         [SerializeField] private Sprite[] _newGameSprites;
         [SerializeField] private Sprite[] _mainMenuSprites;
-
+        
+        [SerializeField] private GameObject _winPlayer;
+        [SerializeField] private SkinnedMeshRenderer[] _playerMeshes;
+        [SerializeField] private SkinnedMeshRenderer[] _playerOutlineMeshes;
+        [SerializeField] private Material[] _playerOutlineMaterials;
+        [SerializeField] private Material[] _playerMaterials;
+        
+        [SerializeField] private Camera _renderCamera;
+        
         private GameModeBase _gm;
         
         private EventSystem _eventSystem;
@@ -27,7 +35,10 @@ namespace MortierFu
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
             _eventSystem = EventSystem.current;
+            
+            _renderCamera.gameObject.SetActive(false);
             _winnerImageBackground.gameObject.SetActive(false);
+            _winPlayer.gameObject.SetActive(false);
             
             _continueGameButton.onClick.AddListener(OnClickContinueGame);
             _newGameButton.onClick.AddListener(OnClickNewGame);
@@ -72,8 +83,20 @@ namespace MortierFu
                 _continueGameButton.image.sprite = _continueGameSprites[playerIndex];
                 _newGameButton.image.sprite = _newGameSprites[playerIndex];
                 _mainMenuButton.image.sprite = _mainMenuSprites[playerIndex];
+
+                foreach (var mesh in _playerMeshes)
+                {
+                    mesh.material = _playerMaterials[playerIndex];
+                }
+                
+                foreach (var outlineMesh in _playerOutlineMeshes)
+                {
+                    outlineMesh.material = _playerOutlineMaterials[playerIndex];
+                }
                 
                 _winnerImageBackground.gameObject.SetActive(true);
+                _renderCamera.gameObject.SetActive(true);
+                _winPlayer.gameObject.SetActive(true);
                 
                 _eventSystem.SetSelectedGameObject(_mainMenuButton.gameObject);
             }
