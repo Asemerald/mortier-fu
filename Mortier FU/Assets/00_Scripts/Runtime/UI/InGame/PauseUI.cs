@@ -147,8 +147,8 @@ namespace MortierFu
 
             if (_gm != null)
             {
-                _confirmEndGameButton.onClick.AddListener(_gm.ReturnToMainMenu);
                 _confirmEndGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
+                _confirmEndGameButton.onClick.AddListener(_gm.ReturnToMainMenu);
             }
 
             _cancelEndGameButton.onClick.AddListener(Return);
