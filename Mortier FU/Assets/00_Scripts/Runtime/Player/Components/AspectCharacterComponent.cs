@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
-    [System.Serializable]
+    [Serializable]
     public struct CharacterAspectMaterials
     {
         public Material BurnBaseVoronoiMat;

@@ -54,7 +54,11 @@ namespace MortierFu
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
-
+        
+        // Assets specified by player color.
+        [field: SerializeField]
+        public SO_PlayerAssets Assets { get; private set; }
+        
         // private List<IEffect<PlayerCharacter>> _activeEffects = new();
         //private List<Ability> PuddleAbilities; //TODO: Make it better
 
