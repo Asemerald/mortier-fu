@@ -20,7 +20,7 @@ public class LobbyMenu3D : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Logs.LogWarning("[LobbyMenu3D]: Multiple instances detected. Destroying duplicate.", this);
-            Destroy(this.gameObject);
+            Destroy(gameObject);
             return;
         }
         Instance = this;
@@ -29,7 +29,6 @@ public class LobbyMenu3D : MonoBehaviour
         if (_lobby == null)
         {
             Logs.LogError("[LobbyMenu3D]: LobbyService could not be found in ServiceManager.", this);
-            return;
         }
     }
 

@@ -17,9 +17,9 @@ namespace MortierFu
 
         public event Action<PlayerManager> OnPlayerJoined;
         public event Action<PlayerManager> OnPlayerLeft;
-        
+
         public int CurrentPlayerCount => Players.Count;
-        
+
         public void Dispose()
         {
             Players.Clear();
@@ -30,22 +30,22 @@ namespace MortierFu
         {
             for (int i = Players.Count - 1; i >= 0; i--)
             {
-               Object.DestroyImmediate(Players[i].gameObject);
+                Object.DestroyImmediate(Players[i].gameObject);
             }
-            
+
             Players.Clear();
         }
-        
+
         public void RemovePlayer(PlayerManager player)
         {
             if (player == null || !Players.Contains(player))
                 return;
 
             Players.Remove(player);
-            
+
             // remove player from PlayerInputManager
             player.SelfDestroy();
-            
+
             Logs.Log($"[LobbyService] Player {player.PlayerIndex} removed from the lobby.");
             OnPlayerLeft?.Invoke(player);
         }
@@ -54,7 +54,7 @@ namespace MortierFu
         {
             if (player == null || Players.Contains(player))
                 return;
-            
+
             if (Players.Count >= _maxPlayers)
             {
                 Logs.LogWarning($"[LobbyService] Max players reached ({_maxPlayers}).");
@@ -62,12 +62,16 @@ namespace MortierFu
             }
 
             Players.Add(player);
-            ServiceManager.Instance.Get<ShakeService>().ShakeController(player, ShakeService.ShakeType.MID);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
+            
+#if !UNITY_EDITOR
+            var shakeService = ServiceManager.Instance?.Get<ShakeService>();
+            shakeService?.ShakeController(player, ShakeService.ShakeType.MID);
+            
+           AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
+#endif
             player.OnPlayerInitialized += HandlePlayerInitialized;
             player.OnPlayerDestroyed += HandlePlayerDestroyed;
 
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex} joined the lobby.");
             OnPlayerJoined?.Invoke(player);
         }
 
@@ -102,7 +106,7 @@ namespace MortierFu
         {
             return UniTask.CompletedTask;
         }
-        
+
         public PlayerManager GetPlayerByIndex(int index)
         {
             return Players[index];

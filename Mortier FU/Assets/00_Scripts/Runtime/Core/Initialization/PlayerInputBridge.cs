@@ -56,6 +56,13 @@ namespace MortierFu
 
             var deviceService = ServiceManager.Instance.Get<DeviceService>();
             deviceService?.RegisterPlayerInput(playerInput);
+            
+            Debug.Log($"[PlayerInputBridge] Found PlayerInput component: {playerInput != null}");
+            
+            var playerManager = playerInput.GetComponent<PlayerManager>();
+            Debug.Log($"[PlayerInputBridge] Found PlayerManager component: {playerManager != null}");
+
+            ServiceManager.Instance.Get<LobbyService>()?.RegisterPlayer(playerManager);
         }
 
         private void OnPlayerLeft(PlayerInput playerInput)

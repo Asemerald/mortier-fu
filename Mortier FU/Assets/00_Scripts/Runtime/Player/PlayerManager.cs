@@ -40,7 +40,7 @@ namespace MortierFu
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
-        public bool IsReady => _lobbyPlayer.IsReady;
+        public bool IsReady => _lobbyPlayer != null && _lobbyPlayer.IsReady;
 
         private void Awake()
         {
@@ -48,7 +48,13 @@ namespace MortierFu
             DontDestroyOnLoad(gameObject);
 
             // lobby type shit
-            _lobbyPlayer = LobbyMenu3D.Instance.playerPrefabs[PlayerIndex].GetComponent<LobbyPlayer>();
+            if (LobbyMenu3D.Instance != null)
+            {
+                var list = LobbyMenu3D.Instance.playerPrefabs;
+
+                if (PlayerIndex < list.Length && list[PlayerIndex] != null)
+                    _lobbyPlayer = list[PlayerIndex].GetComponent<LobbyPlayer>();
+            }
 
             _navigateAction = _playerInput.actions.FindAction("Navigate");
             _submitAction = _playerInput.actions.FindAction("Submit");
@@ -60,17 +66,10 @@ namespace MortierFu
 
             _playerInput.SwitchCurrentActionMap("UI");
 
-            if (PlayerIndex == 0)
-            {
-                Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
-                MenuManager.Instance.SetPlayer1InputAction(_playerInput);
-            }
-        }
+            if (PlayerIndex != 0 || MenuManager.Instance == null) return;
 
-        private void Start()
-        {
-            ServiceManager.Instance.Get<LobbyService>().RegisterPlayer(this);
-            OnPlayerInitialized?.Invoke(this);
+            Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
+            MenuManager.Instance.SetPlayer1InputAction(_playerInput);
         }
 
         private void OnDestroy()
@@ -156,8 +155,8 @@ namespace MortierFu
             if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
             if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
 
-          //  _playerInput.SwitchCurrentActionMap("Gameplay");
-           // PlayerInput.actions.FindActionMap("Global").Enable();
+            //  _playerInput.SwitchCurrentActionMap("Gameplay");
+            // PlayerInput.actions.FindActionMap("Global").Enable();
         }
 
         /// <summary>
@@ -188,7 +187,7 @@ namespace MortierFu
 
             Team = null;
         }
-        
+
         public void SelfDestroy()
         {
             Destroy(gameObject);
