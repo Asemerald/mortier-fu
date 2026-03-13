@@ -30,6 +30,12 @@ namespace MortierFu
         [Tooltip("Delay after all card flips and before revealing boons.")]
         public float RevealDelay = 1f;
         
+        [Tooltip("Delay between each boon reveal")]
+        public float VFXStagger = 0.5f;
+        
+        [Tooltip("Delay after all boons have been revealed and before moving them.")]
+        public float BoonDelay = 1f;
+        
         [Header("Card Animation Ranges")]
         [Tooltip("Randomized duration range for the movement and scaling animation when each card moves to its target position.")]
         public MinMaxRange CardMoveDurationRange = new(0.3f, 0.6f);

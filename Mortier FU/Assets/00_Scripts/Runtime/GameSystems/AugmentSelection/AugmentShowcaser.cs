@@ -125,9 +125,8 @@ namespace MortierFu
             }
 
             await UniTask.WhenAll(flipTasks);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
-
+            
+            await UniTask.Delay(TimeSpan.FromSeconds( _system.Settings.RevealDelay), cancellationToken: ct);
             int[] shuffled = GetShuffledIndices(_pickups.Count);
             int j = -1;
             foreach (int idx in shuffled)
@@ -142,12 +141,14 @@ namespace MortierFu
                 pickup.PlayRevealSequence(pickupVFX).Forget();
 
                 float t = (shuffled.Length - j) / (float)shuffled.Length;
-                await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + 0.09f),
+                
+                await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger),
                     cancellationToken: ct);
+               
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.RevealDelay), cancellationToken: ct);
-
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.BoonDelay), cancellationToken: ct);
+            
             if (_pickups.Count != augmentPoints.Length)
             {
                 Logs.LogWarning("[AugmentShowcaser] Number of pickups and positions do not match.");
