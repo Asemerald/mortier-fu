@@ -183,7 +183,7 @@ namespace MortierFu
             await _countdownSequence;
         }
 
-        private async UniTask PlayCountdown(int seconds = 3)
+        private async UniTask PlayCountdown(int seconds = 0)
         {
             var gm = GameService.CurrentGameMode as GameModeBase;
 
@@ -228,6 +228,9 @@ namespace MortierFu
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
+            
+            gm?.EnablePlayerInputs();
+            PlayerCharacter.AllowGameplayActions = false;
 
             await Sequence.Create()
                 .Group(Tween.Position(
@@ -243,15 +246,15 @@ namespace MortierFu
                     1f,
                     _readyPopDuration,
                     Ease.OutQuad
+                ))
+                .Group(Tween.Scale(
+                    t,
+                    Vector3.one * _readyStartingScale,
+                    Vector3.one * _readyScaleUp,
+                    0.2f,
+                    Ease.OutBack
                 ));
-
-            await Tween.Scale(
-                t,
-                Vector3.one * _readyStartingScale,
-                Vector3.one * _readyScaleUp,
-                0.2f,
-                Ease.OutBack
-            );
+            
 
             await Tween.Alpha(
                 _raceCanvasGroup,
@@ -265,8 +268,6 @@ namespace MortierFu
             gameObject.SetActive(false);
 
             // TODO: Désolé c'est horrible
-            gm?.EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = false;
         }
 
 
@@ -331,7 +332,7 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(4), cancellationToken: ct);
+            await UniTask.Delay(TimeSpan.FromSeconds(1.6), cancellationToken: ct);
 
             await PlayCountdown();
         }
