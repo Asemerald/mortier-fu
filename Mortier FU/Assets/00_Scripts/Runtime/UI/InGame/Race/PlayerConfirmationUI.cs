@@ -332,7 +332,7 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(4), cancellationToken: ct);
+            await UniTask.Delay(TimeSpan.FromSeconds(1.6), cancellationToken: ct);
 
             await PlayCountdown();
         }
