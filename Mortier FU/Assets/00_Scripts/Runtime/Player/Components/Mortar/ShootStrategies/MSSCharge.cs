@@ -79,6 +79,15 @@ namespace MortierFu
             mortar.Shoot();
         }
         
+        public override void CancelAiming()
+        {
+            _isCharging = false;
+            _currentCharge = 0f;
+
+            aimWidget.IsActive = false;
+            aimWidget.Hide();
+        }
+        
         private void OnAiming(InputAction.CallbackContext ctx)
         {
             var aimInput = ctx.ReadValue<Vector2>();

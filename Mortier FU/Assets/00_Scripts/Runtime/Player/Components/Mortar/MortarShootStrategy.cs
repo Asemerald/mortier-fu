@@ -34,6 +34,9 @@ namespace MortierFu
         public virtual void EndAiming()
         { }
         
+        public virtual void CancelAiming()
+        { }
+        
         public virtual void Update()
         { }
     }

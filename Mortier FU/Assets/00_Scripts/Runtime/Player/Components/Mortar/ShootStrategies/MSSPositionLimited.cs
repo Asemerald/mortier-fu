@@ -76,5 +76,10 @@ namespace MortierFu
             Vector3 newPos = Vector3.ClampMagnitude(new Vector3(aimInput.x, 0.0f, aimInput.y) * shotRange, shotRange);
             aimWidget.SetRelativePosition(newPos);
         }
+        
+        public override void CancelAiming()
+        {
+            _enableShoot = false;
+        }
     }
 }

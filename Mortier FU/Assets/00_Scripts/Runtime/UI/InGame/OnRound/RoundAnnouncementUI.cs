@@ -215,7 +215,7 @@ namespace MortierFu
             gameObject.SetActive(false);
             
             // TODO: Désolé c'est horrible
-            gm?.EnablePlayerInputs();
+            gm?.SetPlayerControlContext(PlayerControlContext.RoundGameplay);
         }
 
         #region References

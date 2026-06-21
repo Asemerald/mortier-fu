@@ -56,7 +56,10 @@ namespace MortierFu
 
         public override void OnEnter()
         {
+            character.Mortar.CancelAiming();
+
             _availableCharges -= 1;
+            
             if (!_dashCooldownTimer.IsRunning)
             {
                 _dashCooldownTimer.Start();
@@ -173,7 +176,7 @@ namespace MortierFu
 
                 //var knockbackDir = (other.transform.position - character.transform.position).normalized;
                 var knockbackDir = character.Controller.GetDashDirection().normalized;
-                
+
                 var knockbackForce = knockbackDir * character.Stats.GetDashPushForce();
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();

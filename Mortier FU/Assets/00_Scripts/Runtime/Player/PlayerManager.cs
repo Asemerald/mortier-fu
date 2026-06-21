@@ -22,11 +22,25 @@ namespace MortierFu
 
         private GamePauseSystem _gamePauseSystem;
 
-        private InputAction _pauseAction;
-        private InputAction _unPauseAction;
-        private InputAction _cancelUIAction;
-        private bool _gameplayInputCallbacksBound;
+        private PlayerInputRouter _inputRouter;
+        
+        private PlayerInputRouter InputRouter
+        {
+            get
+            {
+                _inputRouter ??= new PlayerInputRouter(
+                    PlayerInput,
+                    TogglePause,
+                    CancelUI
+                );
 
+                return _inputRouter;
+            }
+        }
+        
+        public PlayerControlContext ControlContext => InputRouter.ControlContext;
+        public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
+        
         public PlayerCharacter Character
         {
             get
@@ -78,7 +92,7 @@ namespace MortierFu
         {
             OnPlayerDestroyed?.Invoke(this);
 
-            UnbindGameplayInputCallbacks();
+            _inputRouter?.Dispose();
 
             if (_navigateAction != null)
                 _navigateAction.performed -= Navigate;
@@ -93,58 +107,32 @@ namespace MortierFu
             if (PlayerIndex != 0)
                 return;
 
+            if (!CurrentPermissions.CanPause)
+                return;
+
             _gamePauseSystem.TogglePause();
         }
-
+        
         public void EnableGameplayInputMap(bool enable = true)
         {
-            string targetMap = enable
-                ? "Gameplay"
-                : "UI";
-
-            PlayerInput.SwitchCurrentActionMap(targetMap);
-            PlayerInput.actions.FindActionMap("Global", true).Enable();
+            SetControlContext(enable
+                ? PlayerControlContext.RoundGameplay
+                : PlayerControlContext.Scoreboard);
+        }
+        
+        public void SetControlContext(PlayerControlContext context)
+        {
+            InputRouter.SetContext(context, Character);
         }
 
         private void BindGameplayInputCallbacks()
         {
-            if (_gameplayInputCallbacksBound)
-                return;
-
-            _pauseAction = PlayerInput.actions.FindAction("Pause");
-            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
-            _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
-
-            if (_pauseAction != null)
-                _pauseAction.performed += TogglePause;
-
-            if (_unPauseAction != null)
-                _unPauseAction.performed += TogglePause;
-
-            if (_cancelUIAction != null)
-                _cancelUIAction.performed += CancelUI;
-
-            _gameplayInputCallbacksBound = true;
+            InputRouter.BindGameplayInputCallbacks();
         }
 
         private void UnbindGameplayInputCallbacks()
         {
-            if (!_gameplayInputCallbacksBound)
-                return;
-
-            if (_pauseAction != null)
-                _pauseAction.performed -= TogglePause;
-
-            if (_unPauseAction != null)
-                _unPauseAction.performed -= TogglePause;
-
-            if (_cancelUIAction != null)
-                _cancelUIAction.performed -= CancelUI;
-
-            _pauseAction = null;
-            _unPauseAction = null;
-            _cancelUIAction = null;
-            _gameplayInputCallbacksBound = false;
+            _inputRouter?.UnbindGameplayInputCallbacks();
         }
 
         private void CancelUI(InputAction.CallbackContext ctx)
@@ -152,7 +140,11 @@ namespace MortierFu
             if (PlayerIndex != 0)
                 return;
 
-            if (!_gamePauseSystem.IsPaused) return;
+            if (!CurrentPermissions.CanCancelUI)
+                return;
+
+            if (!_gamePauseSystem.IsPaused)
+                return;
 
             _gamePauseSystem.Cancel();
         }
@@ -168,6 +160,7 @@ namespace MortierFu
             {
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, spawnRotation);
                 Character.Initialize(this);
+                InputRouter.ApplyCurrentContextTo(Character);
 
                 _isInGame = true;
             }
@@ -179,6 +172,7 @@ namespace MortierFu
                     spawnRotation
                 );
                 _inGameCharacter.SetActive(true);
+                InputRouter.ApplyCurrentContextTo(Character);
 
                 _isInGame = true;
             }
@@ -243,6 +237,12 @@ namespace MortierFu
 
         private void Navigate(InputAction.CallbackContext ctx)
         {
+            if (!CurrentPermissions.CanNavigateUI)
+                return;
+
+            if (ControlContext != PlayerControlContext.Lobby)
+                return;
+            
             if (_lobbyPlayer == null) return;
 
             Vector2 currentInput = ctx.ReadValue<Vector2>();
@@ -276,6 +276,12 @@ namespace MortierFu
 
         public void Submit(InputAction.CallbackContext context)
         {
+            if (!CurrentPermissions.CanConfirmUI)
+                return;
+
+            if (ControlContext != PlayerControlContext.Lobby)
+                return;
+
             if (_lobbyPlayer != null && context.performed)
             {
                 _lobbyPlayer.ToggleReady();

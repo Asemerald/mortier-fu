@@ -317,13 +317,13 @@ namespace MortierFu
             }
         }
 
-        public void EnablePlayerInputs(bool enable = true)
+        public void SetPlayerControlContext(PlayerControlContext context)
         {
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    member.EnableGameplayInputMap(enable);
+                    member.SetControlContext(context);
                 }
             }
 
@@ -333,6 +333,13 @@ namespace MortierFu
                 PlayerInputSwapper.Instance.UpdateActivePlayer();
             }
 #endif
+        }
+
+        public void EnablePlayerInputs(bool enable = true)
+        {
+            SetPlayerControlContext(enable
+                ? PlayerControlContext.RoundGameplay
+                : PlayerControlContext.Scoreboard);
         }
 
         protected virtual void ResetPlayers()
@@ -364,7 +371,7 @@ namespace MortierFu
             ResetPlayers();
             SpawnPlayers();
             EnablePlayerGravity();
-            EnablePlayerInputs(false);
+            SetPlayerControlContext(PlayerControlContext.RoundCountdown);
 
             foreach (var team in teams)
             {
@@ -408,8 +415,7 @@ namespace MortierFu
         {
             timer.OnTimerStop -= HandleEndOfCountdown;
 
-            EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = true;
+            SetPlayerControlContext(PlayerControlContext.RoundGameplay);
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
         }
@@ -428,8 +434,7 @@ namespace MortierFu
             bombshellSys.ClearActiveBombshells();
 
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
-            EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
+            SetPlayerControlContext(PlayerControlContext.RoundEnded);
             alivePlayers.Clear();
 
             EvaluateScores();
@@ -541,8 +546,7 @@ namespace MortierFu
             EnablePlayerGravity();
 
             // Hide previous showcase UI            
-            EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
+            SetPlayerControlContext(PlayerControlContext.AugmentShowcase);
 
             OnRaceStart?.Invoke();
 
@@ -553,7 +557,7 @@ namespace MortierFu
         {
             UpdateGameState(GameState.EndingRace);
 
-            EnablePlayerInputs(false);
+            SetPlayerControlContext(PlayerControlContext.RoundEnded);
 
             // stop selection UI
 
@@ -565,14 +569,7 @@ namespace MortierFu
         {
             ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
 
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.EnableGameplayInputMap(false);
-                }
-            }
-            
+            SetPlayerControlContext(PlayerControlContext.EndGame);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
         }

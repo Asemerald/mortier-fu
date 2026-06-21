@@ -229,8 +229,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
             
-            gm?.EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = false;
+            gm?.SetPlayerControlContext(PlayerControlContext.AugmentRace);
 
             await Sequence.Create()
                 .Group(Tween.Position(

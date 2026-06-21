@@ -124,11 +124,17 @@ namespace MortierFu
 
         public void HandleAimMovement()
         {
+            if (!Character.CanAim)
+                return;
+
             _shootStrategy?.Update();
         }
 
         public void Shoot()
         {
+            if (!Character.CanShoot)
+                return;
+
             if (_shootCooldownTimer.IsRunning)
             {
                 return;
@@ -167,7 +173,7 @@ namespace MortierFu
 
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
-            if (!PlayerCharacter.AllowGameplayActions) return;
+            if (!Character.CanAim) return;
             if (!Character.Health.IsAlive) return;
 
             //Logs.Log("[MortarCharacterComponent]: Begin Aiming");
@@ -186,6 +192,18 @@ namespace MortierFu
             _shootAction.Disable();
 
             //  character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
+        }
+        
+        public void CancelAiming()
+        {
+            AimWidget.Hide();
+
+            _shootStrategy?.CancelAiming();
+
+            if (_shootAction != null)
+                _shootAction.Disable();
+
+            IsShooting = false;
         }
     }
 }

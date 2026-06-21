@@ -18,7 +18,16 @@ namespace MortierFu
         /// <summary>
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
-        public static bool AllowGameplayActions { get; set; }
+        public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
+
+        public PlayerActionPermissions ActionPermissions { get; private set; } =
+            PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
+
+        public bool CanMove => ActionPermissions.CanMove && Health != null && Health.IsAlive;
+        public bool CanAim => ActionPermissions.CanAim && Health != null && Health.IsAlive;
+        public bool CanShoot => ActionPermissions.CanShoot && Health != null && Health.IsAlive;
+        public bool CanDash => ActionPermissions.CanDash && Health != null && Health.IsAlive;
+        public bool CanTaunt => ActionPermissions.CanTaunt && Health != null && Health.IsAlive;
 
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
 
@@ -54,11 +63,10 @@ namespace MortierFu
 
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments;
-        
+
         // Assets specified by player color.
-        [field: SerializeField]
-        public SO_PlayerAssets Assets { get; private set; }
-        
+        [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
+
         // private List<IEffect<PlayerCharacter>> _activeEffects = new();
         //private List<Ability> PuddleAbilities; //TODO: Make it better
 
@@ -109,6 +117,22 @@ namespace MortierFu
 
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
+        }
+
+        public void SetControlContext(PlayerControlContext context)
+        {
+            ControlContext = context;
+            ActionPermissions = PlayerActionPermissions.FromContext(context);
+
+            if (!CanAim)
+            {
+                Mortar?.CancelAiming();
+            }
+
+            if (!CanMove)
+            {
+                Controller?.ResetVelocity();
+            }
         }
 
         void Awake()
@@ -185,7 +209,7 @@ namespace MortierFu
             _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);
-            
+
             ExternalSpeedMultiplier = 1f;
         }
 
@@ -225,26 +249,67 @@ namespace MortierFu
             var deathState = new DeathState(this, _animator);
 
             // Define transitions
-            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
-            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
-            At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
-                                                                     && _dashState.AvailableCharges > 0 &&
-                                                                     Controller.GetDashDirection().sqrMagnitude >
-                                                                     0.01f));
-            At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
-            At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered &&
-                                                                     _dashState.AvailableCharges > 0 &&
-                                                                     Controller.GetDashDirection().sqrMagnitude >
-                                                                     0.01f));
-            At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
-            At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
-            Any(deathState, new FuncPredicate(() => !Health.IsAlive));
+            // Retour vers locomotion après états temporaires
+            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive
+            ));
+
+            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive
+            ));
+
+            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished
+            ));
+
+            // Locomotion -> Dash
+            At(_locomotionState, _dashState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanDash,
+                () => _dashAction.triggered
+                      && _dashState.AvailableCharges > 0
+                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
+            ));
+
+            // Locomotion -> Aim
+            At(_locomotionState, aimState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanAim,
+                () => _toggleAimAction.IsPressed()
+            ));
+
+            // Aim -> Locomotion
+            At(aimState, _locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed() || !CanAim
+            ));
+
+            // Aim -> Dash
+            At(aimState, _dashState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanDash,
+                () => _dashAction.triggered
+                      && _dashState.AvailableCharges > 0
+                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
+            ));
+
+            // Aim -> Shoot
+            At(aimState, shootState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanShoot,
+                () => Mortar.IsShooting
+            ));
+
+            // Shoot -> Aim
+            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished || !CanShoot
+            ));
+
+            // Transitions globales prioritaires
+            Any(deathState, new FuncPredicate(() => !Health.IsAlive
+            ));
+
             Any(_knockbackState,
-                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
-            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
+                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive
+                ));
+
+            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive
+            ));
 
             // Set initial state
             _stateMachine.SetState(_locomotionState);
@@ -300,7 +365,8 @@ namespace MortierFu
                 }
                 catch (Exception e)
                 {
-                    Logs.LogError($"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
+                    Logs.LogError(
+                        $"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
                 }
             }
 
@@ -418,6 +484,9 @@ namespace MortierFu
 
         private void PlayDashSFX(InputAction.CallbackContext context)
         {
+            if (!CanDash)
+                return;
+
             if (_dashState.DashCooldownProgress > 0f)
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
@@ -439,7 +508,13 @@ namespace MortierFu
         private bool ShouldShowStats => Stats != null;
 #endif
 
-        private void Taunt(InputAction.CallbackContext ctx) => _tauntFeedback.Taunt();
+        private void Taunt(InputAction.CallbackContext ctx)
+        {
+            if (!CanTaunt)
+                return;
+
+            _tauntFeedback.Taunt();
+        }
 
         #region SKINS
 
@@ -538,12 +613,12 @@ namespace MortierFu
         }
 
         #endregion
-        
+
         #region Caca Qui Slow
-        
+
         private Coroutine _speedModifierCoroutine;
         public float ExternalSpeedMultiplier { get; private set; } = 1f;
-        
+
         /// <summary>
         /// Smoothly transitions an external movement speed multiplier on the player.
         /// Controller components should multiply their base speed by PlayerCharacter.ExternalSpeedMultiplier.
@@ -552,9 +627,10 @@ namespace MortierFu
         {
             if (_speedModifierCoroutine != null)
                 StopCoroutine(_speedModifierCoroutine);
-            _speedModifierCoroutine = StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
+            _speedModifierCoroutine =
+                StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
         }
-        
+
         private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
         {
             float start = ExternalSpeedMultiplier;
@@ -563,7 +639,7 @@ namespace MortierFu
                 ExternalSpeedMultiplier = target;
                 yield break;
             }
-        
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -571,7 +647,7 @@ namespace MortierFu
                 ExternalSpeedMultiplier = Mathf.Lerp(start, target, elapsed / duration);
                 yield return null;
             }
-        
+
             ExternalSpeedMultiplier = target;
             _speedModifierCoroutine = null;
         }
@@ -580,13 +656,13 @@ namespace MortierFu
         {
             if (ExternalSpeedMultiplier > 0.5f)
                 return;
-            
+
             // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
-            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position, _feetPoint.rotation );
+            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position,
+                _feetPoint.rotation);
             Destroy(caca, 10f);
         }
-        
+
         #endregion
-        
     }
 }
