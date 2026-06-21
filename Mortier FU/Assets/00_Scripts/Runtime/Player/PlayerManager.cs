@@ -21,9 +21,11 @@ namespace MortierFu
         private PlayerCharacter _playerCharacter;
 
         private GamePauseSystem _gamePauseSystem;
+
         private InputAction _pauseAction;
         private InputAction _unPauseAction;
         private InputAction _cancelUIAction;
+        private bool _gameplayInputCallbacksBound;
 
         public PlayerCharacter Character
         {
@@ -76,14 +78,13 @@ namespace MortierFu
         {
             OnPlayerDestroyed?.Invoke(this);
 
-            if (_pauseAction != null)
-                _pauseAction.performed -= TogglePause;
+            UnbindGameplayInputCallbacks();
 
-            if (_unPauseAction != null)
-                _unPauseAction.performed -= TogglePause;
+            if (_navigateAction != null)
+                _navigateAction.performed -= Navigate;
 
-            if (_cancelUIAction != null)
-                _cancelUIAction.performed -= CancelUI;
+            if (_submitAction != null)
+                _submitAction.performed -= Submit;
         }
 
         // TODO: Faire un input manager plus tard
@@ -103,6 +104,47 @@ namespace MortierFu
 
             PlayerInput.SwitchCurrentActionMap(targetMap);
             PlayerInput.actions.FindActionMap("Global", true).Enable();
+        }
+
+        private void BindGameplayInputCallbacks()
+        {
+            if (_gameplayInputCallbacksBound)
+                return;
+
+            _pauseAction = PlayerInput.actions.FindAction("Pause");
+            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
+            _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
+
+            if (_pauseAction != null)
+                _pauseAction.performed += TogglePause;
+
+            if (_unPauseAction != null)
+                _unPauseAction.performed += TogglePause;
+
+            if (_cancelUIAction != null)
+                _cancelUIAction.performed += CancelUI;
+
+            _gameplayInputCallbacksBound = true;
+        }
+
+        private void UnbindGameplayInputCallbacks()
+        {
+            if (!_gameplayInputCallbacksBound)
+                return;
+
+            if (_pauseAction != null)
+                _pauseAction.performed -= TogglePause;
+
+            if (_unPauseAction != null)
+                _unPauseAction.performed -= TogglePause;
+
+            if (_cancelUIAction != null)
+                _cancelUIAction.performed -= CancelUI;
+
+            _pauseAction = null;
+            _unPauseAction = null;
+            _cancelUIAction = null;
+            _gameplayInputCallbacksBound = false;
         }
 
         private void CancelUI(InputAction.CallbackContext ctx)
@@ -146,17 +188,7 @@ namespace MortierFu
             }
 
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
-
-            _pauseAction = PlayerInput.actions.FindAction("Pause");
-            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
-            _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
-
-            if (_pauseAction != null) _pauseAction.performed += TogglePause;
-            if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
-            if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
-
-            //  _playerInput.SwitchCurrentActionMap("Gameplay");
-            // PlayerInput.actions.FindActionMap("Global").Enable();
+            BindGameplayInputCallbacks();
         }
 
         /// <summary>

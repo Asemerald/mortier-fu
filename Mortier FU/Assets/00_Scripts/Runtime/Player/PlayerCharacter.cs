@@ -76,8 +76,6 @@ namespace MortierFu
         public PlayerInput PlayerInput => Owner?.PlayerInput;
         public ShakeService ShakeService => _shakeService;
 
-        // public List<Ability> GetPuddleAbilities => PuddleAbilities;
-
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
 
@@ -191,20 +189,24 @@ namespace MortierFu
             ExternalSpeedMultiplier = 1f;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
-            _stateMachine.Dispose();
+            ClearAugments();
 
-            Health.Dispose();
-            Controller.Dispose();
-            Aspect.Dispose();
-            Mortar.Dispose();
+            _stateMachine?.Dispose();
 
-            _dashAction.started -= PlayDashSFX;
-            _tauntAction.started -= Taunt;
+            Health?.Dispose();
+            Controller?.Dispose();
+            Aspect?.Dispose();
+            Mortar?.Dispose();
+
+            if (_dashAction != null)
+                _dashAction.started -= PlayDashSFX;
+
+            if (_tauntAction != null)
+                _tauntAction.started -= Taunt;
 
             if (_toggleAimAction == null || Mortar == null) return;
-
             _toggleAimAction.started -= Mortar.BeginAiming;
             _toggleAimAction.canceled -= Mortar.EndAiming;
         }
@@ -288,25 +290,20 @@ namespace MortierFu
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
-        /* public void AddPuddleEffect(Ability ability)
-         {
-             if (!PuddleAbilities.Contains(ability)) //TODO: see later if we add duplicate or power up the effect
-             {
-                 PuddleAbilities.Add(ability);
-             }
-         }
-
-         public void RemovePuddleEffect(Ability ability)
-         {
-             PuddleAbilities.Remove(ability);
-         }*/
-
-        //   private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
-
-        // Could also implement a RemoveAugment method if needed
-
         public void ClearAugments()
         {
+            for (int i = _augments.Count - 1; i >= 0; i--)
+            {
+                try
+                {
+                    _augments[i]?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Logs.LogError($"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
+                }
+            }
+
             _augments.Clear();
         }
 
