@@ -6,15 +6,21 @@ namespace MortierFu
 {
     public enum GameState
     {
-        Lobby,
-        StartGame,
-        Round,
-        EndRound,
-        DisplayScores,
-        RaceInProgress,
-        EndingRace,
-        EndGame,
-        DisplayAugment
+        Lobby = 0,
+
+        StartGame = 10,
+
+        AugmentIntro = 20,
+        AugmentRace = 21,
+        EndAugmentRace = 22,
+
+        RoundCountdown = 30,
+        Round = 31,
+        EndRound = 32,
+
+        DisplayScores = 40,
+
+        EndGame = 100,
     }
     
     public interface IGameMode : IDisposable
