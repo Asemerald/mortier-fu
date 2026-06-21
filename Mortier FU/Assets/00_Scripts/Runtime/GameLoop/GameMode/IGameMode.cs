@@ -81,6 +81,8 @@ namespace MortierFu
         /// Determines and returns the index of the winning player or team.
         /// </summary>
         public int GetWinnerPlayerIndex();
+        
+        public void SetMatchConfig(MatchConfig config);
 
         public void SetScoreToWin(int scoreToWin);
     }

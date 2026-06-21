@@ -35,9 +35,11 @@ namespace MortierFu
 
         public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
         {
-            int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
-            _currentGameMode = new T(); 
-            _currentGameMode.SetScoreToWin(scoreToWin);
+            MatchConfig matchConfig = CreateMatchConfigFromMenu();
+
+            _currentGameMode = new T();
+            _currentGameMode.SetMatchConfig(matchConfig);
+
             await _currentGameMode.Initialize();
         }
 
@@ -122,6 +124,23 @@ namespace MortierFu
             _sceneService.HideLoadingScreen();
             
             Logs.Log("Gameplay pipeline done !");
+        }
+        
+        private MatchConfig CreateMatchConfigFromMenu()
+        {
+            int scoreToWin = MatchConfig.Default.ScoreToWin;
+
+            if (MenuManager.Instance != null &&
+                MenuManager.Instance.LobbyPanel != null)
+            {
+                scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
+            }
+            else
+            {
+                Logs.LogWarning("[GameService] MenuManager or LobbyPanel not found. Using default MatchConfig.");
+            }
+
+            return new MatchConfig(scoreToWin);
         }
         
         public void Dispose()

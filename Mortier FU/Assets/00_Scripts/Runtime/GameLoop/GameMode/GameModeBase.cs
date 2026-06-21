@@ -5,8 +5,6 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
-using PrimeTween;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Random = UnityEngine.Random;
@@ -33,9 +31,10 @@ namespace MortierFu
         protected GameState currentState;
 
         private ScoreController _scoreController;
-
         private RoundController _roundController;
-
+        private PlayerSpawnController _playerSpawnController;
+        private AugmentRaceController _augmentRaceController;
+        
         // Dependencies
         protected LobbyService lobbyService;
         protected SceneService sceneService;
@@ -54,7 +53,9 @@ namespace MortierFu
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
-        public int ScoreToWin { get; private set; }
+        public MatchConfig MatchConfig { get; private set; } = MatchConfig.Default;
+
+        public int ScoreToWin => MatchConfig.ScoreToWin;
 
         public bool IsReady
         {
@@ -127,7 +128,16 @@ namespace MortierFu
                 var team = new PlayerTeam(i, player);
                 teams.Add(team);
             }
+            _playerSpawnController = new PlayerSpawnController(teams, levelSystem);
 
+            _augmentRaceController = new AugmentRaceController(
+                teams,
+                augmentSelectionSys,
+                _playerSpawnController,
+                SetPlayerControlContext,
+                () => OnRaceStart?.Invoke()
+            );
+            
             _roundController = new RoundController(teams, alivePlayers);
             _roundController.OnPlayerDied += HandleRoundPlayerDied;
             _roundController.OnPlayerKilled += HandleRoundPlayerKilled;
@@ -171,75 +181,90 @@ namespace MortierFu
                 _ => TransitionColor.Yellow
             };
         }
+        
+        protected virtual async UniTask RunAugmentRacePhaseAsync(TransitionColor transitionColor)
+        {
+            EnablePlayerGravity(false);
+
+            await levelSystem.LoadRaceMap(true, transitionColor);
+
+            ServiceManager.Instance.Get<AudioService>().SetPhase(1);
+
+            UpdateGameState(GameState.DisplayAugment);
+
+            StartRace();
+
+            await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
+
+            await _augmentRaceController.HandleSelectionAsync(Data.AugmentSelectionDuration);
+
+            ServiceManager.Instance.Get<AudioService>().SetPhase(0);
+
+            UpdateGameState(GameState.RaceInProgress);
+
+            await _augmentRaceController.WaitUntilSelectionOverAsync();
+
+            _augmentRaceController.EndSelection();
+
+            EndRace();
+
+            EnablePlayerGravity(false);
+
+            if (OnRaceEndedUI != null)
+            {
+                foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
+                {
+                    var handler = (Func<UniTask>)@delegate;
+                    await handler.Invoke();
+                }
+            }
+        }
+        
+        protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor)
+        {
+            await levelSystem.LoadArenaMap(true, transitionColor);
+
+            StartRound();
+
+            while (_roundController != null && !_roundController.OneTeamStanding)
+            {
+                await UniTask.Yield();
+            }
+
+            UpdateGameState(GameState.EndRound);
+
+            EndRound();
+
+            if (OnRoundEndedAsync != null)
+            {
+                foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
+                {
+                    var handler = (Func<RoundInfo, UniTask>)@delegate;
+                    await handler.Invoke(_currentRound);
+                }
+            }
+
+            UpdateGameState(GameState.DisplayScores);
+
+            HideScores();
+        }
 
         protected async UniTaskVoid GameplayCoroutine()
         {
             UpdateGameState(GameState.StartGame);
             OnGameStarted?.Invoke();
 
-            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Gameplay).Forget();
+            ServiceManager.Instance.Get<AudioService>()
+                .StartMusic(AudioService.FMODEvents.MUS_Gameplay)
+                .Forget();
 
             while (currentState != GameState.EndGame)
             {
-                EnablePlayerGravity(false);
-
                 var transitionColor = GetTransitionColor();
-                await levelSystem.LoadRaceMap(true, transitionColor);
-                ServiceManager.Instance.Get<AudioService>().SetPhase(1);
 
-                UpdateGameState(GameState.DisplayAugment);
-                StartRace();
+                await RunAugmentRacePhaseAsync(transitionColor);
 
-                await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
-
-                var augmentPickers = GetAugmentPickers();
-                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
-                ServiceManager.Instance.Get<AudioService>().SetPhase(0);
-
-                UpdateGameState(GameState.RaceInProgress);
-
-                while (!augmentSelectionSys.IsSelectionOver)
-                    await UniTask.Yield();
-
-                augmentSelectionSys.EndRace();
-                EndRace();
-
-                EnablePlayerGravity(false);
-
-                // TODO: Potentiellement horrible 
-                if (OnRaceEndedUI != null)
-                {
-                    foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
-                    {
-                        var handler = (Func<UniTask>)@delegate;
-                        await handler.Invoke();
-                    }
-                }
-
-                await levelSystem.LoadArenaMap(true, transitionColor);
-
-                StartRound();
-
-                while (_roundController != null && !_roundController.OneTeamStanding)
-                    await UniTask.Yield();
-
-                UpdateGameState(GameState.EndRound);
-                EndRound();
-
-                // TODO: Potentiellement horrible 
-                if (OnRoundEndedAsync != null)
-                {
-                    foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
-                    {
-                        var handler = (Func<RoundInfo, UniTask>)@delegate;
-                        await handler.Invoke(_currentRound);
-                    }
-                }
-
-                UpdateGameState(GameState.DisplayScores);
-                //DisplayScores();
-
-                HideScores();
+                await RunRoundPhaseAsync(transitionColor);
 
                 if (IsGameOver(out gameVictor))
                 {
@@ -262,75 +287,19 @@ namespace MortierFu
             return _scoreController.IsGameOver(out victor);
         }
 
-        private List<PlayerManager> GetAugmentPickers()
-        {
-            var pickers = new List<PlayerManager>();
-            foreach (var team in teams)
-            {
-                if (team.Rank == 1) continue;
-
-                pickers.AddRange(team.Members);
-            }
-
-            if (pickers.Count == 0)
-            {
-                Logs.LogWarning("Found no pickers for this augment selection phase.");
-            }
-
-            return pickers;
-        }
-
         private void EnablePlayerGravity(bool enabled = true)
         {
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.Controller.rigidbody.useGravity = enabled;
-                }
-            }
+            _playerSpawnController?.SetPlayerGravity(enabled);
         }
 
         private void SpawnPlayers()
         {
-            bool opposite = _currentRound.RoundIndex % 2 == 0;
-            int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
-
-            foreach (var team in teams.OrderByDescending(t => t.Rank))
-            {
-                foreach (var member in team.Members)
-                {
-                    Transform spawnPoint;
-
-                    if (levelSystem.IsRaceMap())
-                    {
-                        spawnPoint = team.Rank == 1
-                            ? levelSystem.GetWinnerSpawnPoint()
-                            : levelSystem.GetSpawnPoint(spawnIndex);
-                    }
-                    else
-                    {
-                        spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
-                    }
-
-                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
-
-                    if (opposite)
-                        spawnIndex--;
-                    else
-                        spawnIndex++;
-                }
-            }
+            _playerSpawnController?.SpawnPlayers(_currentRound.RoundIndex);
         }
 
         private void SpawnWinnerTeam(PlayerTeam winnerTeam)
         {
-            var spawnPoint = levelSystem.GetRoundWinnerSpawnPoint();
-
-            foreach (var member in winnerTeam.Members)
-            {
-                member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
-            }
+            _playerSpawnController?.SpawnWinnerTeam(winnerTeam);
         }
 
         public void SetPlayerControlContext(PlayerControlContext context)
@@ -360,13 +329,7 @@ namespace MortierFu
 
         protected virtual void ResetPlayers()
         {
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.Reset();
-                }
-            }
+            _playerSpawnController?.ResetPlayers();
         }
 
         protected virtual void StartRound()
@@ -507,28 +470,14 @@ namespace MortierFu
         {
             UpdateGameState(GameState.RaceInProgress);
 
-            ResetPlayers();
-            SpawnPlayers();
-            EnablePlayerGravity();
-
-            // Hide previous showcase UI            
-            SetPlayerControlContext(PlayerControlContext.AugmentShowcase);
-
-            OnRaceStart?.Invoke();
-
-            Logs.Log("Starting augment selection...");
+            _augmentRaceController.BeginRace(_currentRound.RoundIndex);
         }
 
         protected virtual void EndRace()
         {
             UpdateGameState(GameState.EndingRace);
 
-            SetPlayerControlContext(PlayerControlContext.RoundEnded);
-
-            // stop selection UI
-
-            ResetPlayers();
-            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
+            _augmentRaceController.EndRace();
         }
         
         public int GetWinnerPlayerIndex()
@@ -580,10 +529,16 @@ namespace MortierFu
             OnGameStateChanged?.Invoke(newState);
         }
 
+        public void SetMatchConfig(MatchConfig config)
+        {
+            MatchConfig = config;
+
+            _scoreController?.SetScoreToWin(config.ScoreToWin);
+        }
+
         public void SetScoreToWin(int score)
         {
-            ScoreToWin = score;
-            _scoreController?.SetScoreToWin(score);
+            SetMatchConfig(new MatchConfig(score));
         }
 
         public virtual void Update()
@@ -603,6 +558,8 @@ namespace MortierFu
             }
 
             _scoreController = null;
+            _playerSpawnController = null;
+            _augmentRaceController = null;
 
             teams.Clear();
             timer.Dispose();
