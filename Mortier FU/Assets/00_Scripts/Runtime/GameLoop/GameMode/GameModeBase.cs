@@ -8,7 +8,6 @@ using MortierFu.Shared;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Random = UnityEngine.Random;
-using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,16 +15,17 @@ using UnityEditor;
 
 namespace MortierFu
 {
-    // TODO: Le GameMode de salopard, il fait bientôt 600 lignes, il faudrait peut-être mettre le bébé au régime
+    // Orchestrates the high-level match flow.
+    // Most concrete responsibilities are delegated to dedicated controllers.
     public abstract class GameModeBase : IGameMode
     {
         protected List<PlayerTeam> teams;
-        public List<RoundInfo> RoundHistory { get; protected set; } = new List<RoundInfo>();
+        public List<RoundInfo> RoundHistory { get; protected set; } = new();
         private RoundInfo _currentRound;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
         protected List<PlayerCharacter> alivePlayers;
-        public ReadOnlyCollection<PlayerCharacter> AlivePlayers;
+        public ReadOnlyCollection<PlayerCharacter> AlivePlayers { get; private set; }
 
         protected PlayerTeam gameVictor;
         protected GameState currentState;
@@ -39,7 +39,7 @@ namespace MortierFu
         private ScorePhaseController _scorePhaseController;
         private PlayerTeamSetupController _teamSetupController;
         private GameModeDependencies _dependencies;
-        
+
         // Dependencies
         protected LobbyService lobbyService => _dependencies?.LobbyService;
         protected SceneService sceneService => _dependencies?.SceneService;
@@ -78,15 +78,11 @@ namespace MortierFu
 
         public GameState CurrentState => currentState;
         public int CurrentRoundCount => _currentRound.RoundIndex;
-        public float CountdownRemainingTime => timer.CurrentTime;
+        public float CountdownRemainingTime => timer?.CurrentTime ?? 0f;
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
 
-        /// <summary>
-        /// Invoked when a player kills another player.
-        /// <remarks>Killer / Victim</remarks>
-        /// </summary>
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
 
         public event Action OnGameStarted;
@@ -110,7 +106,7 @@ namespace MortierFu
             _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
 
             timer = new CountdownTimer(0f);
-            
+
             _roundStartController = new RoundStartController(
                 timer,
                 Data,
@@ -118,16 +114,16 @@ namespace MortierFu
                 UpdateGameState,
                 roundInfo => OnRoundStarted?.Invoke(roundInfo)
             );
-            
+
             Logs.Log("Game mode initialized successfully.");
         }
-        
+
         protected virtual List<PlayerTeam> CreateTeamsForMatch(IReadOnlyList<PlayerManager> players)
         {
             return _teamSetupController.CreateFreeForAllTeams(players);
         }
 
-        public virtual async UniTask StartGame()
+        protected virtual void ResolveGameplayDependencies()
         {
             _dependencies.ResolveGameplaySystems();
 
@@ -135,7 +131,10 @@ namespace MortierFu
             {
                 Logs.LogError("[GameModeBase] Missing required gameplay systems.");
             }
+        }
 
+        protected virtual void CreateTeams()
+        {
             _teamSetupController = new PlayerTeamSetupController();
 
             var players = lobbyService.GetPlayers();
@@ -145,14 +144,17 @@ namespace MortierFu
 
             alivePlayers = new List<PlayerCharacter>();
             AlivePlayers = new ReadOnlyCollection<PlayerCharacter>(alivePlayers);
-            
+        }
+
+        protected virtual void CreateControllers()
+        {
             _playerSpawnController = new PlayerSpawnController(teams, levelSystem);
 
             _roundWinnerPresentationController = new RoundWinnerPresentationController(
                 _playerSpawnController,
                 cameraSystem
             );
-            
+
             _scorePhaseController = new ScorePhaseController(
                 teams,
                 cameraSystem,
@@ -160,7 +162,7 @@ namespace MortierFu
                 () => _roundStartController.StopCountdown(),
                 () => OnScoreDisplayOver?.Invoke()
             );
-            
+
             _augmentRaceController = new AugmentRaceController(
                 teams,
                 augmentSelectionSys,
@@ -168,7 +170,7 @@ namespace MortierFu
                 SetPlayerControlContext,
                 () => OnRaceStart?.Invoke()
             );
-            
+
             _roundController = new RoundController(teams, alivePlayers);
             _roundController.OnPlayerDied += HandleRoundPlayerDied;
             _roundController.OnPlayerKilled += HandleRoundPlayerKilled;
@@ -181,11 +183,21 @@ namespace MortierFu
                 ScoreToWin,
                 analyticsSystem
             );
+        }
+
+        public virtual async UniTask StartGame()
+        {
+            ResolveGameplayDependencies();
+
+            CreateTeams();
+
+            CreateControllers();
 
             if (!IsReady)
             {
                 Logs.LogWarning(
                     "Not enough players or too many players for this gamemode ! Falling back to playground.");
+
                 await levelSystem.LoadArenaMap();
 
                 StartRound();
@@ -196,6 +208,7 @@ namespace MortierFu
             gameVictor = null;
 
             GameplayCoroutine().Forget();
+
             Logs.Log("Starting the game...");
         }
 
@@ -212,14 +225,14 @@ namespace MortierFu
                 _ => TransitionColor.Yellow
             };
         }
-        
+
         protected virtual async UniTask RunAugmentRacePhaseAsync(TransitionColor transitionColor)
         {
             EnablePlayerGravity(false);
 
             await levelSystem.LoadRaceMap(true, transitionColor);
 
-            _dependencies.AudioService.SetPhase(1);
+            audioService.SetPhase(1);
 
             UpdateGameState(GameState.AugmentIntro);
 
@@ -250,7 +263,7 @@ namespace MortierFu
                 }
             }
         }
-        
+
         protected virtual async UniTask WaitUntilRoundOverAsync()
         {
             while (_roundController != null && !_roundController.OneTeamStanding)
@@ -258,7 +271,7 @@ namespace MortierFu
                 await UniTask.Yield();
             }
         }
-        
+
         protected virtual async UniTask RunRoundEndPresentationAsync()
         {
             if (OnRoundEndedAsync == null)
@@ -270,7 +283,7 @@ namespace MortierFu
                 await handler.Invoke(_currentRound);
             }
         }
-        
+
         protected virtual UniTask RunScorePhaseAsync()
         {
             DisplayScores();
@@ -279,7 +292,7 @@ namespace MortierFu
 
             return UniTask.CompletedTask;
         }
-        
+
         protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor)
         {
             await levelSystem.LoadArenaMap(true, transitionColor);
@@ -296,7 +309,7 @@ namespace MortierFu
 
             await RunScorePhaseAsync();
         }
-        
+
         protected virtual async UniTask RunMatchLoopAsync()
         {
             while (currentState != GameState.EndGame)
@@ -371,13 +384,6 @@ namespace MortierFu
 #endif
         }
 
-        public void EnablePlayerInputs(bool enable = true)
-        {
-            SetPlayerControlContext(enable
-                ? PlayerControlContext.RoundGameplay
-                : PlayerControlContext.Scoreboard);
-        }
-
         protected virtual void ResetPlayers()
         {
             _playerSpawnController?.ResetPlayers();
@@ -408,7 +414,7 @@ namespace MortierFu
 
             _roundStartController.StartCountdown(_currentRound);
         }
-        
+
         protected virtual void EndRound()
         {
             _roundStartController.StopCountdown();
@@ -467,7 +473,7 @@ namespace MortierFu
 
             _augmentRaceController.EndRace();
         }
-        
+
         public int GetWinnerPlayerIndex()
         {
             if (IsGameOver(out var victor))
@@ -486,7 +492,7 @@ namespace MortierFu
 
         public virtual void EndGame()
         {
-            _dependencies.AudioService
+            audioService
                 .StartMusic(AudioService.FMODEvents.MUS_Victory)
                 .Forget();
 
@@ -502,15 +508,24 @@ namespace MortierFu
 
         private async UniTaskVoid ReturnToMainMenuAfterDelay()
         {
+            var cachedLobbyService = lobbyService;
+            var cachedSceneService = sceneService;
+            var cachedLevelSystem = levelSystem;
+
+            if (cachedLevelSystem != null)
+            {
+                await cachedLevelSystem.UnloadCurrentMap();
+            }
+
+            cachedLobbyService?.ClearPlayers();
+
             SystemManager.Instance.Dispose();
 
-            lobbyService.ClearPlayers();
-
-            await levelSystem.UnloadCurrentMap();
-            await sceneService.UnloadScene("Gameplay");
-
-            await sceneService.LoadScene("MainMenu", true);
-            //TODO: a full check au cas ou
+            if (cachedSceneService != null)
+            {
+                await cachedSceneService.UnloadScene("Gameplay");
+                await cachedSceneService.LoadScene("MainMenu", true);
+            }
         }
 
         protected virtual void UpdateGameState(GameState newState)
@@ -537,7 +552,10 @@ namespace MortierFu
 
         public virtual void Dispose()
         {
-            Addressables.Release(_dataHandle);
+            if (_dataHandle.IsValid())
+            {
+                Addressables.Release(_dataHandle);
+            }
 
             if (_roundController != null)
             {
@@ -547,21 +565,26 @@ namespace MortierFu
                 _roundController = null;
             }
 
+            _roundStartController?.Dispose();
+            _roundStartController = null;
+
             _scoreController = null;
             _playerSpawnController = null;
             _augmentRaceController = null;
             _roundWinnerPresentationController = null;
             _scorePhaseController = null;
             _teamSetupController = null;
+
+            teams?.Clear();
+            alivePlayers?.Clear();
+            RoundHistory?.Clear();
+
+            timer?.Dispose();
+            timer = null;
+
             _dependencies = null;
-            
-            _roundStartController?.Dispose();
-            _roundStartController = null;
-            
-            teams.Clear();
-            timer.Dispose();
         }
-        
+
         private void HandleRoundPlayerDied(PlayerCharacter character)
         {
             if (character == null)
