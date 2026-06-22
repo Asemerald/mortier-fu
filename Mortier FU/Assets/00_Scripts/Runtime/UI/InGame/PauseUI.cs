@@ -69,12 +69,11 @@ namespace MortierFu
         private CancellationTokenSource _animateCancellation;
 
         private EventSystem _eventSystem;
-        private GameService _gameService;
         private GamePauseSystem _gamePauseSystem;
-        private GameModeBase _gm;
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
         private PlayerManager _playerManager;
+        private GameService _gameService;
 
         private Vector3[] _mortarHandsInitialPositions;
         private Vector3[] _mortarHeadsInitialPositions;
@@ -115,7 +114,6 @@ namespace MortierFu
         private void InitReferences()
         {
             _eventSystem = EventSystem.current;
-            _gm = GameService.CurrentGameMode as GameModeBase;
             _gameService = ServiceManager.Instance.Get<GameService>();
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
