@@ -114,6 +114,15 @@ namespace MortierFu
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
         }
+        
+        public void RefreshCustomizationFromOwner()
+        {
+            if (Owner == null)
+                return;
+
+            ApplySkinFromLobby(Owner.SkinIndex);
+            ApplyFaceFromLobby(Owner.FaceColumn, Owner.FaceRow);
+        }
 
         public void SetControlContext(PlayerControlContext context)
         {
