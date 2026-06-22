@@ -10,6 +10,9 @@ namespace MortierFu
     {
         [Header("Player Spawns")]
         [SerializeField] private Transform[] _playerSpawnPoints = new Transform[4];
+        
+        [Header("State")]
+        [SerializeField] private LobbySandboxStateController _stateController;
 
         [Header("Startup")]
         [SerializeField] private bool _spawnPlayersOnStart = true;
@@ -88,7 +91,7 @@ namespace MortierFu
             }
         }
 
-        public void SyncLobbyPlayers()
+        private void SyncLobbyPlayers()
         {
             var players = GetAvailablePlayers();
 
@@ -155,7 +158,7 @@ namespace MortierFu
             return result;
         }
 
-        public void SpawnPlayer(PlayerManager player, int playerIndex)
+        private void SpawnPlayer(PlayerManager player, int playerIndex)
         {
             if (player == null)
                 return;
@@ -169,17 +172,22 @@ namespace MortierFu
             }
 
             player.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
-            player.SetControlContext(PlayerControlContext.LobbySandbox);
+
+            var context = _stateController != null
+                ? _stateController.GetContextForNewPlayer(player)
+                : PlayerControlContext.LobbySandbox;
+
+            player.SetControlContext(context);
 
             if (!_spawnedPlayers.Contains(player))
             {
                 _spawnedPlayers.Add(player);
             }
 
-            Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox.");
+            Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {context}.");
         }
 
-        public void SetSandboxEnabled(bool enabled)
+        private void SetSandboxEnabled(bool enabled)
         {
             var context = enabled
                 ? PlayerControlContext.LobbySandbox

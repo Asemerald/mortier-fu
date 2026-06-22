@@ -9,7 +9,7 @@ namespace MortierFu
     {
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
-
+        [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbyMatchSettingsData _settingsData;
         
         [Header("Rules")]
@@ -42,7 +42,15 @@ namespace MortierFu
 
             Logs.Log("[LobbyMatchLauncher] Launching match from sandbox lobby.");
 
-            if (_sandboxController != null)
+            if (_stateController != null)
+            {
+                if (!_stateController.TryBeginLaunching())
+                {
+                    _isLaunching = false;
+                    return;
+                }
+            }
+            else if (_sandboxController != null)
             {
                 _sandboxController.LockAllPlayers();
             }

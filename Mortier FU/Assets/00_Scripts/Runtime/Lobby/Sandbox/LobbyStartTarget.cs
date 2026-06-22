@@ -8,6 +8,7 @@ namespace MortierFu
     {
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
+        [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbyMatchLauncher _matchLauncher;
 
         [Header("Feedback")]
@@ -64,6 +65,9 @@ namespace MortierFu
             if (player == null)
                 return;
 
+            if (_stateController != null && !_stateController.CanUseStartTarget())
+                return;
+            
             if (!IsPlayerInSandbox(player))
                 return;
 

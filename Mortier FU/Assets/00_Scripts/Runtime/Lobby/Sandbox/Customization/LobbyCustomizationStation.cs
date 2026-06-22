@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -6,45 +7,69 @@ namespace MortierFu
     public sealed class LobbyCustomizationStation : LobbyInteractionZone
     {
         [Header("References")]
-        [SerializeField] private LobbySandboxController _sandboxController;
-        [SerializeField] private LobbyCustomizationPanel _customizationPanel;
+        [SerializeField] private LobbySandboxStateController _stateController;
+        [SerializeField] private LobbyCustomizationPanel[] _playerPanels = new LobbyCustomizationPanel[4];
 
-        private PlayerManager _activePlayer;
+        private readonly Dictionary<PlayerManager, LobbyCustomizationPanel> _activePanels = new();
         
         private void OnEnable()
         {
-            if (_sandboxController != null)
+            if (_stateController != null)
             {
-                _sandboxController.OnGlobalLockStarted += HandleGlobalLockStarted;
+                _stateController.OnCustomizationInterrupted += HandleCustomizationInterrupted;
             }
         }
 
         protected override void OnDisable()
         {
-            if (_sandboxController != null)
+            if (_stateController != null)
             {
-                _sandboxController.OnGlobalLockStarted -= HandleGlobalLockStarted;
+                _stateController.OnCustomizationInterrupted -= HandleCustomizationInterrupted;
             }
 
-            ForceCloseCustomization(restoreSandboxControl: false);
+            ForceCloseAllCustomizations(restoreSandboxControl: false);
 
             base.OnDisable();
         }
         
-        private void HandleGlobalLockStarted()
+        private void ForceCloseAllCustomizations(bool restoreSandboxControl)
         {
-            ForceCloseCustomization(restoreSandboxControl: false);
-        }
+            var players = new List<PlayerManager>(_activePanels.Keys);
 
+            foreach (var player in players)
+            {
+                ForceCloseCustomization(player, restoreSandboxControl);
+            }
+        }
+        
+        private LobbyCustomizationPanel GetPanelForPlayer(PlayerManager player)
+        {
+            if (player == null)
+                return null;
+
+            int index = player.PlayerIndex;
+
+            if (_playerPanels == null)
+                return null;
+
+            if (index < 0 || index >= _playerPanels.Length)
+                return null;
+
+            return _playerPanels[index];
+        }
+        
         protected override bool CanInteract(PlayerManager player)
         {
             if (!base.CanInteract(player))
                 return false;
 
-            if (_activePlayer != null)
+            if (_activePanels.ContainsKey(player))
                 return false;
 
-            return true;
+            if (_stateController == null)
+                return false;
+
+            return _stateController.CanUseCustomizationStation(player);
         }
 
         protected override void Interact(PlayerManager player)
@@ -52,22 +77,30 @@ namespace MortierFu
             if (player == null)
                 return;
 
-            if (_sandboxController != null && _sandboxController.IsGlobalLockActive)
-                return;
-
-            if (_customizationPanel == null)
+            if (_stateController == null)
             {
-                Logs.LogError("[LobbyCustomizationStation] Customization panel reference is missing.");
+                Logs.LogError("[LobbyCustomizationStation] State controller reference is missing.");
                 return;
             }
 
-            _activePlayer = player;
+            var panel = GetPanelForPlayer(player);
+
+            if (panel == null)
+            {
+                Logs.LogError($"[LobbyCustomizationStation] No customization panel assigned for Player {player.PlayerIndex + 1}.");
+                return;
+            }
+
+            if (!_stateController.TryEnterCustomization(player))
+                return;
+
+            _activePanels[player] = panel;
 
             Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} entered customization.");
 
             player.SetControlContext(PlayerControlContext.LobbyCustomization);
 
-            _customizationPanel.Open(
+            panel.Open(
                 player,
                 OnCustomizationConfirmed
             );
@@ -78,23 +111,30 @@ namespace MortierFu
             if (player == null)
                 return;
 
-            if (player != _activePlayer)
-                return;
+            ForceCloseCustomization(player, restoreSandboxControl: true);
 
-            bool restoreSandboxControl =
-                _sandboxController == null || !_sandboxController.IsGlobalLockActive;
-
-            ForceCloseCustomization(restoreSandboxControl);
+            _stateController?.TryExitCustomization(player);
         }
         
-        private void ForceCloseCustomization(bool restoreSandboxControl)
+        private void HandleCustomizationInterrupted(PlayerManager player)
         {
-            if (_activePlayer == null)
+            if (player == null)
                 return;
 
-            var player = _activePlayer;
+            ForceCloseCustomization(player, restoreSandboxControl: false);
+        }
+        
+        private void ForceCloseCustomization(PlayerManager player, bool restoreSandboxControl)
+        {
+            if (player == null)
+                return;
 
-            _customizationPanel?.Close();
+            if (!_activePanels.TryGetValue(player, out var panel))
+                return;
+
+            panel?.Close();
+
+            _activePanels.Remove(player);
 
             if (restoreSandboxControl)
             {
@@ -106,8 +146,6 @@ namespace MortierFu
             }
 
             Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
-
-            _activePlayer = null;
         }
     }
 }

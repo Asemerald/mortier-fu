@@ -6,12 +6,9 @@ namespace MortierFu
     public sealed class LobbySettingsStation : LobbyInteractionZone
     {
         [Header("References")]
-        [SerializeField] private LobbySandboxController _sandboxController;
+        [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbySettingsPanel _settingsPanel;
         [SerializeField] private LobbyCameraFocusController _cameraFocusController;
-
-        [Header("Rules")]
-        [SerializeField] private int _ownerPlayerIndex = 0;
 
         private PlayerManager _activePlayer;
 
@@ -23,10 +20,10 @@ namespace MortierFu
             if (_activePlayer != null)
                 return false;
 
-            if (player.PlayerIndex != _ownerPlayerIndex)
+            if (_stateController == null)
                 return false;
 
-            return true;
+            return _stateController.CanUseSettingsStation(player);
         }
 
         protected override void Interact(PlayerManager player)
@@ -34,9 +31,9 @@ namespace MortierFu
             if (player == null)
                 return;
 
-            if (_sandboxController == null)
+            if (_stateController == null)
             {
-                Logs.LogError("[LobbySettingsStation] Sandbox controller reference is missing.");
+                Logs.LogError("[LobbySettingsStation] State controller reference is missing.");
                 return;
             }
 
@@ -46,13 +43,12 @@ namespace MortierFu
                 return;
             }
 
+            if (!_stateController.TryEnterSettings(player))
+                return;
+
             _activePlayer = player;
 
             Logs.Log($"[LobbySettingsStation] Player {player.PlayerIndex + 1} entered settings.");
-
-            _sandboxController.LockAllPlayers();
-
-            player.SetControlContext(PlayerControlContext.LobbySettingsOwner);
 
             _cameraFocusController?.FocusSettings();
 
@@ -74,7 +70,7 @@ namespace MortierFu
 
             _cameraFocusController?.FocusSandbox();
 
-            _sandboxController.UnlockAllPlayers();
+            _stateController?.TryExitSettings(player);
 
             Logs.Log($"[LobbySettingsStation] Player {player.PlayerIndex + 1} left settings.");
 
