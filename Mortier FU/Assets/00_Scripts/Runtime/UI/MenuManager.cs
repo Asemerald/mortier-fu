@@ -108,8 +108,22 @@ namespace MortierFu
 
         private void LoadLobbyScene()
         {
-            ServiceManager.Instance.Get<SceneService>().LoadScene("Lobby");
-            ServiceManager.Instance.Get<SceneService>().UnloadScene("MainMenu");
+            LoadLobbySceneAsync().Forget();
+        }
+
+        private async UniTaskVoid LoadLobbySceneAsync()
+        {
+            var sceneService = ServiceManager.Instance.Get<SceneService>();
+
+            if (sceneService == null)
+            {
+                Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.");
+                return;
+            }
+
+            await sceneService.LoadScene("Lobby", setAsActiveScene: true);
+
+            await sceneService.UnloadScene("MainMenu");
         }
         
         private async UniTask ShowMainMenuAfterDelay(float delay)
@@ -129,8 +143,7 @@ namespace MortierFu
         {
             if (Player1InputAction == null) return;
             Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
-            Player1InputAction.actions.FindAction("StartGame").performed -=
-                OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
+            Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
         }
 
         public void HidePlayerGO(bool hide)

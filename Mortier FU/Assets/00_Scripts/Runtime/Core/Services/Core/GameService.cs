@@ -10,7 +10,7 @@ namespace MortierFu
         private IGameMode _currentGameMode;
         private SceneService _sceneService;
         
-        private const string k_mainMenuScene = "MainMenu";
+        private const string k_lobbyScene = "Lobby";
         private const string k_gameplayScene = "Gameplay";
         
         private static IGameMode _currentGameModeInstance;
@@ -56,7 +56,7 @@ namespace MortierFu
             SystemManager.Instance.Dispose();
             
             // Unload main menu scene
-            await _sceneService.UnloadScene(k_mainMenuScene);
+            await _sceneService.UnloadScene(k_lobbyScene);
             
             // Load gameplay scene
             await _sceneService.LoadScene(k_gameplayScene, true);
