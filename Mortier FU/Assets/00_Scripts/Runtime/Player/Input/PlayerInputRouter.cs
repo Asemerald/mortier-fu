@@ -13,7 +13,7 @@ namespace MortierFu
         private InputAction _unPauseAction;
         private InputAction _cancelUIAction;
 
-        private bool _gameplayCallbacksBound;
+        private bool _globalGameplayCallbacksBound;
 
         public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
 
@@ -54,7 +54,7 @@ namespace MortierFu
 
         public void BindGameplayInputCallbacks()
         {
-            if (_gameplayCallbacksBound)
+            if (_globalGameplayCallbacksBound)
                 return;
 
             _pauseAction = _playerInput.actions.FindAction("Pause", false);
@@ -70,12 +70,12 @@ namespace MortierFu
             if (_cancelUIAction != null)
                 _cancelUIAction.performed += _onCancelUI;
 
-            _gameplayCallbacksBound = true;
+            _globalGameplayCallbacksBound = true;
         }
 
         public void UnbindGameplayInputCallbacks()
         {
-            if (!_gameplayCallbacksBound)
+            if (!_globalGameplayCallbacksBound)
                 return;
 
             if (_pauseAction != null)
@@ -91,7 +91,7 @@ namespace MortierFu
             _unPauseAction = null;
             _cancelUIAction = null;
 
-            _gameplayCallbacksBound = false;
+            _globalGameplayCallbacksBound = false;
         }
 
         public void Dispose()
@@ -101,7 +101,8 @@ namespace MortierFu
 
         private static bool UsesGameplayActionMap(PlayerControlContext context)
         {
-            return context is PlayerControlContext.AugmentRace
+            return context is PlayerControlContext.LobbySandbox
+                or PlayerControlContext.AugmentRace
                 or PlayerControlContext.RoundCountdown
                 or PlayerControlContext.RoundGameplay
                 or PlayerControlContext.RoundEnded;

@@ -51,6 +51,54 @@ namespace MortierFu
                     canConfirmUI: true,
                     canCancelUI: true
                 ),
+                
+                PlayerControlContext.LobbySandbox => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: true,
+                    canTaunt: true,
+                    canPause: false,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: false
+                ),
+
+                PlayerControlContext.LobbyCustomization => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canPause: false,
+                    canNavigateUI: true,
+                    canConfirmUI: true,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.LobbySettingsOwner => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canPause: false,
+                    canNavigateUI: true,
+                    canConfirmUI: true,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.LobbyLocked => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canPause: false,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: false
+                ),
 
                 PlayerControlContext.Menu => new PlayerActionPermissions(
                     canMove: false,

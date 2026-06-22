@@ -23,7 +23,8 @@ namespace MortierFu
         private GamePauseSystem _gamePauseSystem;
 
         private PlayerInputRouter _inputRouter;
-        
+        private readonly PlayerCustomizationData _customization = new();
+
         private PlayerInputRouter InputRouter
         {
             get
@@ -37,10 +38,10 @@ namespace MortierFu
                 return _inputRouter;
             }
         }
-        
+
         public PlayerControlContext ControlContext => InputRouter.ControlContext;
         public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
-        
+
         public PlayerCharacter Character
         {
             get
@@ -49,36 +50,25 @@ namespace MortierFu
                 return _playerCharacter;
             }
         }
-
+        
         public int PlayerIndex => _playerInput.playerIndex;
         public bool IsInGame => _isInGame;
 
+        public bool IsReady { get; private set; }
+
+        public PlayerCustomizationData Customization => _customization;
+
+        public int SkinIndex => _customization.SkinIndex;
+        public int FaceColumn => _customization.FaceColumn;
+        public int FaceRow => _customization.FaceRow;
+        
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
-
-        public bool IsReady => _lobbyPlayer != null && _lobbyPlayer.IsReady;
 
         private void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
-
-            // lobby type shit
-            if (LobbyMenu3D.Instance != null)
-            {
-                var list = LobbyMenu3D.Instance.playerPrefabs;
-
-                if (PlayerIndex < list.Length && list[PlayerIndex] != null)
-                    _lobbyPlayer = list[PlayerIndex].GetComponent<LobbyPlayer>();
-            }
-
-            _navigateAction = _playerInput.actions.FindAction("Navigate");
-            _submitAction = _playerInput.actions.FindAction("Submit");
-
-            if (_navigateAction != null)
-                _navigateAction.performed += Navigate;
-            if (_submitAction != null)
-                _submitAction.performed += Submit;
 
             _playerInput.SwitchCurrentActionMap("UI");
 
@@ -93,12 +83,30 @@ namespace MortierFu
             OnPlayerDestroyed?.Invoke(this);
 
             _inputRouter?.Dispose();
+            _inputRouter = null;
+            
+            OnPlayerInitialized = null;
+            OnPlayerDestroyed = null;
+        }
 
-            if (_navigateAction != null)
-                _navigateAction.performed -= Navigate;
+        private bool TryResolveGamePauseSystem()
+        {
+            if (_gamePauseSystem != null)
+                return true;
 
-            if (_submitAction != null)
-                _submitAction.performed -= Submit;
+            if (SystemManager.Instance == null)
+            {
+                Logs.LogWarning("[PlayerManager] Cannot resolve GamePauseSystem because SystemManager is not available.");
+                return false;
+            }
+
+            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+
+            if (_gamePauseSystem != null)
+                return true;
+
+            Logs.LogWarning("[PlayerManager] GamePauseSystem is not available.");
+            return false;
         }
 
         // TODO: Faire un input manager plus tard
@@ -110,16 +118,19 @@ namespace MortierFu
             if (!CurrentPermissions.CanPause)
                 return;
 
+            if (!TryResolveGamePauseSystem())
+                return;
+
             _gamePauseSystem.TogglePause();
         }
-        
+
         public void EnableGameplayInputMap(bool enable = true)
         {
             SetControlContext(enable
                 ? PlayerControlContext.RoundGameplay
                 : PlayerControlContext.Scoreboard);
         }
-        
+
         public void SetControlContext(PlayerControlContext context)
         {
             InputRouter.SetContext(context, Character);
@@ -143,6 +154,9 @@ namespace MortierFu
             if (!CurrentPermissions.CanCancelUI)
                 return;
 
+            if (!TryResolveGamePauseSystem())
+                return;
+
             if (!_gamePauseSystem.IsPaused)
                 return;
 
@@ -150,38 +164,46 @@ namespace MortierFu
         }
 
         /// <summary>
-        /// Instancie le personnage du joueur dans la scène de jeu.
+        /// Instancie ou repositionne le personnage du joueur dans la scène de jeu.
         /// </summary>
         public void SpawnInGame(Vector3 spawnPosition, Quaternion spawnRotation)
         {
-            // if (_isInGame)
-            //     return;
-            if (_inGameCharacter == null && playerInGamePrefab != null)
+            if (_inGameCharacter == null)
             {
+                if (playerInGamePrefab == null)
+                {
+                    Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}.");
+                    return;
+                }
+
                 _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, spawnRotation);
-                Character.Initialize(this);
-                InputRouter.ApplyCurrentContextTo(Character);
+                _playerCharacter = _inGameCharacter.GetComponent<PlayerCharacter>();
 
-                _isInGame = true;
+                if (_playerCharacter == null)
+                {
+                    Logs.LogError(
+                        $"[PlayerManager] In-game prefab for Player {PlayerIndex} does not contain a PlayerCharacter component.");
+                    Destroy(_inGameCharacter);
+                    _inGameCharacter = null;
+                    return;
+                }
+
+                _playerCharacter.Initialize(this);
+                InputRouter.ApplyCurrentContextTo(_playerCharacter);
+
+                OnPlayerInitialized?.Invoke(this);
             }
 
-            if (_inGameCharacter != null)
-            {
-                _inGameCharacter.transform.SetPositionAndRotation(
-                    spawnPosition,
-                    spawnRotation
-                );
-                _inGameCharacter.SetActive(true);
-                InputRouter.ApplyCurrentContextTo(Character);
+            _inGameCharacter.transform.SetPositionAndRotation(
+                spawnPosition,
+                spawnRotation
+            );
 
-                _isInGame = true;
-            }
-            else
-            {
-                Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
-            }
+            _inGameCharacter.SetActive(true);
+            InputRouter.ApplyCurrentContextTo(_playerCharacter);
 
-            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+            _isInGame = true;
+
             BindGameplayInputCallbacks();
         }
 
@@ -218,81 +240,5 @@ namespace MortierFu
         {
             Destroy(gameObject);
         }
-
-        #region Lobby Methods
-
-        private InputAction _navigateAction;
-        private InputAction _submitAction;
-
-        private LobbyPlayer _lobbyPlayer;
-
-        public int SkinIndex = 0;
-        public int FaceColumn = 1;
-        public int FaceRow = 1;
-
-        private Vector2 _previousNavigateInput = Vector2.zero;
-        private float _lastNavigateTime = 0f;
-        private float _navigateCooldown = 0.3f;
-        private const float _threshold = 0.7f;
-
-        private void Navigate(InputAction.CallbackContext ctx)
-        {
-            if (!CurrentPermissions.CanNavigateUI)
-                return;
-
-            if (ControlContext != PlayerControlContext.Lobby)
-                return;
-            
-            if (_lobbyPlayer == null) return;
-
-            Vector2 currentInput = ctx.ReadValue<Vector2>();
-
-            // Vérifier si on vient de passer le seuil sur l'axe X (horizontal)
-            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _threshold;
-            bool isPushedNowX = Mathf.Abs(currentInput.x) >= _threshold;
-
-            // Vérifier si on vient de passer le seuil sur l'axe Y (vertical)
-            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _threshold;
-            bool isPushedNowY = Mathf.Abs(currentInput.y) >= _threshold;
-
-            // Vérifier le cooldown
-            bool cooldownExpired = Time.time - _lastNavigateTime >= _navigateCooldown;
-
-            // Changer seulement si :
-            // - On vient de pousser le stick sur X OU Y
-            // - OU le stick est poussé ET le cooldown est écoulé
-            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY))
-                                 || ((isPushedNowX || isPushedNowY) && cooldownExpired);
-
-            if (shouldTrigger)
-            {
-                _lobbyPlayer.ChangeSkin(currentInput);
-                _lastNavigateTime = Time.time;
-            }
-
-            _previousNavigateInput = currentInput;
-        }
-
-
-        public void Submit(InputAction.CallbackContext context)
-        {
-            if (!CurrentPermissions.CanConfirmUI)
-                return;
-
-            if (ControlContext != PlayerControlContext.Lobby)
-                return;
-
-            if (_lobbyPlayer != null && context.performed)
-            {
-                _lobbyPlayer.ToggleReady();
-
-                // Sauvegarder les valeurs de customisation
-                SkinIndex = _lobbyPlayer.SkinIndex;
-                FaceColumn = _lobbyPlayer.FaceColumn;
-                FaceRow = _lobbyPlayer.FaceRow;
-            }
-        }
-
-        #endregion
     }
 }

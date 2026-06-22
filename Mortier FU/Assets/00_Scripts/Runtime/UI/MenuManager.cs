@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -102,6 +103,13 @@ namespace MortierFu
             ShowMainMenuAfterDelay(delayBeforeMainMenuShow).Forget();
             
             PlayerInputBridge.Instance.CanJoin(true);
+            PlayButton.onClick.AddListener(LoadLobbyScene);
+        }
+
+        private void LoadLobbyScene()
+        {
+            ServiceManager.Instance.Get<SceneService>().LoadScene("Lobby");
+            ServiceManager.Instance.Get<SceneService>().UnloadScene("MainMenu");
         }
         
         private async UniTask ShowMainMenuAfterDelay(float delay)

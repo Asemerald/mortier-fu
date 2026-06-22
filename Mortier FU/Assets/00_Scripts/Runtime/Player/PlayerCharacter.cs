@@ -2,11 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
-using PrimeTween;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -62,7 +60,7 @@ namespace MortierFu
         public SO_CharacterStats Stats { get; private set; }
 
         private List<IAugment> _augments = new();
-        public ReadOnlyCollection<IAugment> Augments;
+        public ReadOnlyCollection<IAugment> Augments { get; private set; }
 
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
@@ -76,8 +74,6 @@ namespace MortierFu
         private DashState _dashState;
 
         private ShakeService _shakeService;
-        private CameraSystem _cameraSystem;
-        private Camera _main;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
@@ -178,8 +174,9 @@ namespace MortierFu
             _tauntAction.started += Taunt;
 
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
-            _main = _cameraSystem.Controller.Camera;
+            
+            _dashState.Reset();
+            ExternalSpeedMultiplier = 1f;
         }
 
         public void Reset()
@@ -380,11 +377,23 @@ namespace MortierFu
         private void Update()
         {
             _stateMachine.Update();
+            
+#if UNITY_EDITOR
+            if (_dashAction != null && _dashAction.triggered)
+            {
+                Logs.Log(
+                    $"[PlayerCharacter] Dash input. " +
+                    $"CanDash={CanDash}, " +
+                    $"Charges={_dashState.AvailableCharges}, " +
+                    $"Direction={Controller.GetDashDirection()}"
+                );
+            }
+#endif
 
             Health.Update();
             Controller.Update();
             Aspect.Update();
-            Mortar.Update();
+            Mortar?.Update();
 
             UpdateAnimator();
         }
@@ -396,7 +405,7 @@ namespace MortierFu
             Health.FixedUpdate();
             Controller.FixedUpdate();
             Aspect.FixedUpdate();
-            Mortar.FixedUpdate();
+            Mortar?.FixedUpdate();
         }
 
         private void OnCollisionEnter(Collision other)

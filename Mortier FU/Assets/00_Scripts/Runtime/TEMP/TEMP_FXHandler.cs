@@ -60,4 +60,12 @@ public class TEMP_FXHandler : MonoBehaviour
         
         Destroy(ps.gameObject, ps.main.duration);
     }
+    
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
 }

@@ -53,6 +53,8 @@ namespace MortierFu
             
             _sceneService.ShowLoadingScreen();
             
+            SystemManager.Instance.Dispose();
+            
             // Unload main menu scene
             await _sceneService.UnloadScene(k_mainMenuScene);
             

@@ -5,6 +5,11 @@ namespace MortierFu
         Lobby,
         Menu,
 
+        LobbySandbox,
+        LobbyCustomization,
+        LobbySettingsOwner,
+        LobbyLocked,
+
         AugmentShowcase,
         AugmentRace,
 

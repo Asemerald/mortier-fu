@@ -19,10 +19,11 @@ namespace MortierFu
         internal CountdownTimer _shootCooldownTimer;
         private CameraSystem _cameraSystem;
         private bool _isAiming;
+        private bool _isInitialized;
 
-        public bool CanShoot => !_shootCooldownTimer.IsRunning;
+        public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
 
-        public float ShootCooldownProgress => _shootCooldownTimer.Progress;
+        public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
 
@@ -80,15 +81,24 @@ namespace MortierFu
             _shootAction.Disable();
 
             _shootCooldownTimer.OnTimerStop += OnShootCooldownComplete;
+            
+            _isInitialized = true;
         }
 
-        public override void Update() {
+        public override void Update()
+        {
+            if (!_isInitialized || !AimWidget)
+                return;
+
             AimWidget.UpdateFireRateProgress(1f - ShootCooldownProgress);
         }
 
         public override void Reset()
         {
-            _shootCooldownTimer.Reset();
+            if (!_isInitialized)
+                return;
+
+            _shootCooldownTimer?.Reset();
             _shootCooldownTimer?.Stop();
 
             ResetAimWidget();
@@ -114,12 +124,20 @@ namespace MortierFu
 
         public override void Dispose()
         {
-            Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
+            if (_isInitialized)
+            {
+                Stats.FireRate.OnDirtyUpdated -= UpdateFireRate;
 
-            _shootCooldownTimer.OnTimerStop -= OnShootCooldownComplete;
-            
-            _shootCooldownTimer.Dispose();
-            _shootStrategy?.DeInitialize();
+                if (_shootCooldownTimer != null)
+                {
+                    _shootCooldownTimer.OnTimerStop -= OnShootCooldownComplete;
+                    _shootCooldownTimer.Dispose();
+                }
+
+                _shootStrategy?.DeInitialize();
+            }
+
+            _isInitialized = false;
         }
 
         public void HandleAimMovement()
@@ -132,13 +150,17 @@ namespace MortierFu
 
         public void Shoot()
         {
+            if (!_isInitialized)
+                return;
+
             if (!Character.CanShoot)
                 return;
 
-            if (_shootCooldownTimer.IsRunning)
-            {
+            if (_bombshellSys == null)
                 return;
-            }
+
+            if (_shootCooldownTimer == null || _shootCooldownTimer.IsRunning)
+                return;
 
             Bombshell.Data bombshellData = new Bombshell.Data
             {
@@ -173,30 +195,38 @@ namespace MortierFu
 
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
-            if (!Character.CanAim) return;
-            if (!Character.Health.IsAlive) return;
+            if (!_isInitialized)
+                return;
 
-            //Logs.Log("[MortarCharacterComponent]: Begin Aiming");
+            if (!Character.CanAim)
+                return;
+
+            if (!Character.Health.IsAlive)
+                return;
+
+            if (AimWidget == null || _shootAction == null)
+                return;
+
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
-
-//            character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = true;
         }
 
         public void EndAiming(InputAction.CallbackContext ctx)
         {
-            //Logs.Log("[MortarCharacterComponent]: End Aiming");
-            AimWidget.Hide();
-            _shootStrategy?.EndAiming();
-            _shootAction.Disable();
+            if (!_isInitialized)
+                return;
 
-            //  character.GetComponent<TEMP_AimIndicatorSystem>().isTargeting = false;
+            AimWidget?.Hide();
+            _shootStrategy?.EndAiming();
+
+            if (_shootAction != null)
+                _shootAction.Disable();
         }
         
         public void CancelAiming()
         {
-            AimWidget.Hide();
+            AimWidget?.Hide();
 
             _shootStrategy?.CancelAiming();
 
