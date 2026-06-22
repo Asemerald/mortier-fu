@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using MortierFu.Analytics;
 using MortierFu.Shared;
 
 namespace MortierFu
@@ -158,15 +157,7 @@ namespace MortierFu
 
         private void RegisterGameplaySystems()
         {
-            SystemManager.Instance.CreateAndRegister<GamePauseSystem>();
-            SystemManager.Instance.CreateAndRegister<CameraSystem>();
-            SystemManager.Instance.CreateAndRegister<LevelSystem>();
-            SystemManager.Instance.CreateAndRegister<BombshellSystem>();
-            SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
-            SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
-            SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
-
-            Logs.Log("[GameService] Gameplay systems registered.");
+            GameplaySystemRegistrar.Register(SystemManager.Instance);
         }
 
         private async UniTask StartCurrentGameModeAsync()

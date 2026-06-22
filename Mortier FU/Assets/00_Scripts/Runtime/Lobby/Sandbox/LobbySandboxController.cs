@@ -62,17 +62,13 @@ namespace MortierFu
         {
             if (SystemManager.Instance == null)
             {
-                Logs.LogError("[LobbySandboxController] SystemManager is not available.");
+                Logs.LogError("[LobbySandboxController] SystemManager is missing. Cannot initialize lobby sandbox systems.");
                 return;
             }
 
-            SystemManager.Instance.CreateAndRegisterIfMissing<GamePauseSystem>();
-            SystemManager.Instance.CreateAndRegisterIfMissing<CameraSystem>();
-            SystemManager.Instance.CreateAndRegisterIfMissing<BombshellSystem>();
+            LobbySandboxSystemRegistrar.Register(SystemManager.Instance);
 
             await SystemManager.Instance.Initialize();
-
-            Logs.Log("[LobbySandboxController] Lobby sandbox systems initialized.");
         }
 
         private void ResolveDependencies()
