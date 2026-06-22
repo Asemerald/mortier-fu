@@ -387,18 +387,6 @@ namespace MortierFu
         {
             _stateMachine.Update();
             
-#if UNITY_EDITOR
-            if (_dashAction != null && _dashAction.triggered)
-            {
-                Logs.Log(
-                    $"[PlayerCharacter] Dash input. " +
-                    $"CanDash={CanDash}, " +
-                    $"Charges={_dashState.AvailableCharges}, " +
-                    $"Direction={Controller.GetDashDirection()}"
-                );
-            }
-#endif
-
             Health.Update();
             Controller.Update();
             Aspect.Update();
@@ -419,7 +407,7 @@ namespace MortierFu
 
         private void OnCollisionEnter(Collision other)
         {
-            // C'est affreux mais asshoul
+            // C'est affreux
             if (_knockbackState.IsActive && other.impulse.magnitude > 5 &&
                 (_knockbackState.LastBumpSource is not PlayerCharacter character ||
                  !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar) || character != otherChar))

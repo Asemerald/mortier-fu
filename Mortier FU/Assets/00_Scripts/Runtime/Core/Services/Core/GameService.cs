@@ -1,40 +1,121 @@
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
-using UnityEngine.SceneManagement;
 
 namespace MortierFu
 {
     public class GameService : IGameService
     {
-        private IGameMode _currentGameMode;
-        private SceneService _sceneService;
-        
-        private MatchConfig? _pendingMatchConfig;
-        private MatchConfig _lastMatchConfig = MatchConfig.Default;
-        
         private const string k_lobbyScene = "Lobby";
         private const string k_gameplayScene = "Gameplay";
-        
+
+        private IGameMode _currentGameMode;
+        private SceneService _sceneService;
+
+        private MatchConfig? _pendingMatchConfig;
+        private MatchConfig _lastMatchConfig = MatchConfig.Default;
+
         private static IGameMode _currentGameModeInstance;
-        
+
         public static IGameMode CurrentGameMode
         {
             get
             {
-                // return the cached _currentGameModeInstance if not null, else get it from the GameService and cache it
-                //if (_currentGameModeInstance != null) return _currentGameModeInstance; old buggy logic, players can't move in race
                 var gameService = ServiceManager.Instance.Get<GameService>();
                 _currentGameModeInstance = gameService?._currentGameMode;
                 return _currentGameModeInstance;
             }
         }
-        
+
+        public bool IsInitialized { get; set; }
+
+        public UniTask OnInitialize()
+        {
+            _sceneService = ServiceManager.Instance.Get<SceneService>();
+
+            if (_sceneService == null)
+            {
+                Logs.LogError("[GameService] SceneService could not be found.");
+            }
+
+            return UniTask.CompletedTask;
+        }
+
         public void SetPendingMatchConfig(MatchConfig config)
         {
             _pendingMatchConfig = config;
         }
+
+        public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
+        {
+            MatchConfig matchConfig = ConsumeMatchConfig();
+
+            _currentGameMode = new T();
+            _currentGameMode.SetMatchConfig(matchConfig);
+
+            await _currentGameMode.Initialize();
+
+            Logs.Log($"[GameService] Game mode initialized with ScoreToWin={matchConfig.ScoreToWin}.");
+        }
+
+        public async UniTaskVoid ExecuteGameplayPipeline()
+        {
+            if (_currentGameMode == null)
+            {
+                Logs.LogError("[GameService] Cannot execute gameplay pipeline with a null game mode.");
+                return;
+            }
+
+            _sceneService.ShowLoadingScreen();
+
+            await CleanupSandboxRuntimeAsync();
+
+            RegisterGameplaySystems();
+
+            await LoadGameplaySceneAsync();
+
+            await InitializeGameplaySystemsAsync();
+
+            await StartCurrentGameModeAsync();
+
+            _sceneService.HideLoadingScreen();
+
+            Logs.Log("[GameService] Gameplay pipeline done.");
+        }
+
+        public void RestartGame()
+        {
+            RestartGameAsync().Forget();
+        }
+
+        private async UniTaskVoid RestartGameAsync()
+        {
+            Logs.Log("[GameService] Restarting game.");
+
+            _sceneService.ShowLoadingScreen();
+
+            await CleanupCurrentGameplayRuntimeAsync();
+
+            await InitializeGameMode<GM_FFA>();
+
+            RegisterGameplaySystems();
+
+            await LoadGameplaySceneAsync();
+
+            await InitializeGameplaySystemsAsync();
+
+            await StartCurrentGameModeAsync();
+
+            _sceneService.HideLoadingScreen();
+
+            Logs.Log("[GameService] Restart pipeline done.");
+        }
         
+        private async UniTask InitializeGameplaySystemsAsync()
+        {
+            await SystemManager.Instance.Initialize();
+        }
+
         private MatchConfig ConsumeMatchConfig()
         {
             if (_pendingMatchConfig.HasValue)
@@ -48,88 +129,35 @@ namespace MortierFu
 
             return _lastMatchConfig;
         }
-        
-        public UniTask OnInitialize()
+
+        private async UniTask CleanupSandboxRuntimeAsync()
         {
-            _sceneService = ServiceManager.Instance.Get<SceneService>();
-            return UniTask.CompletedTask;
-        }
-
-        public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
-        {
-            MatchConfig matchConfig = ConsumeMatchConfig();
-
-            _currentGameMode = new T();
-            _currentGameMode.SetMatchConfig(matchConfig);
-
-            await _currentGameMode.Initialize();
-        }
-
-        public async UniTaskVoid ExecuteGameplayPipeline()
-        {
-            if (_currentGameMode == null)
-            {
-                Logs.LogError("Cannot execute the gameplay pipeline with a null or invalid game mode !");
-                return;
-            }
-            
-            _sceneService.ShowLoadingScreen();
-            
             SystemManager.Instance.Dispose();
-            
-            // Unload main menu scene
+
             await _sceneService.UnloadScene(k_lobbyScene);
-            
-            // Load gameplay scene
-            await _sceneService.LoadScene(k_gameplayScene, true);
-            
-            // Register all game systems
-            SystemManager.Instance.CreateAndRegister<GamePauseSystem>();
-            SystemManager.Instance.CreateAndRegister<CameraSystem>();
-            SystemManager.Instance.CreateAndRegister<LevelSystem>();
-            SystemManager.Instance.CreateAndRegister<BombshellSystem>();
-            SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
-            SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
-            SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
-
-            await SystemManager.Instance.Initialize();
-            
-            // Start the game mode
-            await _currentGameMode.StartGame();
-
-            _sceneService.HideLoadingScreen();
-            
-            Logs.Log("Gameplay pipeline done !");
         }
 
-        public void RestartGame()
+        private async UniTask CleanupCurrentGameplayRuntimeAsync()
         {
-            RestartGameAsync().Forget();
-        }
-
-        private async UniTaskVoid RestartGameAsync()
-        {
-            Logs.Log("Restarting game...");
-            _sceneService.ShowLoadingScreen();
-
             _currentGameMode?.Dispose();
             _currentGameMode = null;
-            
-            SystemManager.Instance.Dispose();
-            await _sceneService.UnloadScene(k_gameplayScene);
-            
-            await InitializeGameMode<GM_FFA>();
+            _currentGameModeInstance = null;
 
-            if (_currentGameMode == null)
-            {
-                Logs.LogError("Cannot execute the gameplay pipeline with a null or invalid game mode !");
-                return;
-            }
-            
-            // Load gameplay scene
-            await _sceneService.LoadScene(k_gameplayScene, true);
-            
-            // Register all game systems
+            SystemManager.Instance.Dispose();
+
+            await _sceneService.UnloadScene(k_gameplayScene);
+        }
+
+        private async UniTask LoadGameplaySceneAsync()
+        {
+            await _sceneService.LoadScene(
+                k_gameplayScene,
+                setAsActiveScene: true
+            );
+        }
+
+        private void RegisterGameplaySystems()
+        {
             SystemManager.Instance.CreateAndRegister<GamePauseSystem>();
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
@@ -138,26 +166,28 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
             SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
 
-            await SystemManager.Instance.Initialize();
-            
-            // Start the game mode
-            await _currentGameMode.StartGame();
+            Logs.Log("[GameService] Gameplay systems registered.");
+        }
 
-            _sceneService.HideLoadingScreen();
-            
-            Logs.Log("Gameplay pipeline done !");
-        }
-        
-        private MatchConfig CreateDefaultMatchConfig()
+        private async UniTask StartCurrentGameModeAsync()
         {
-            return MatchConfig.Default;
+            if (_currentGameMode == null)
+            {
+                Logs.LogError("[GameService] Cannot start a null game mode.");
+                return;
+            }
+
+            await _currentGameMode.StartGame();
         }
-        
+
         public void Dispose()
         {
             _currentGameMode?.Dispose();
+            _currentGameMode = null;
+            _currentGameModeInstance = null;
+
+            _pendingMatchConfig = null;
+            _lastMatchConfig = MatchConfig.Default;
         }
-        
-        public bool IsInitialized { get; set; }
     }
 }

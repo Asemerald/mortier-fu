@@ -164,7 +164,7 @@ namespace MortierFu
                 PlayerInputBridge.Instance.CanJoin(false);
             }
 
-            await sceneService.LoadScene("Lobby", true);
+            await sceneService.LoadScene("Lobby", setAsActiveScene: true);
 
             await sceneService.UnloadScene("MainMenu");
         }

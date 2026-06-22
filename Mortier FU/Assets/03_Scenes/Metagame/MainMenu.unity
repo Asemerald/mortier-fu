@@ -119,37 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &8245566
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8245567}
-  m_Layer: 0
-  m_Name: LobbyPos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8245567
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8245566}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.0011878853, y: -0.003893686, z: 0.000014197358, w: -0.9999917}
-  m_LocalPosition: {x: 267.72, y: 2.23, z: 9.85}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2119430880}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &18436787
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8082,7 +8051,8 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9116452254958785861, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 7873566041131562276, guid: 7b2654600a2d03b4fb0816205732cdda, type: 3}
       insertIndex: 3
@@ -9284,7 +9254,6 @@ Transform:
   m_Children:
   - {fileID: 1877567206}
   - {fileID: 853463262}
-  - {fileID: 8245567}
   m_Father: {fileID: 6846201641333718830}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2142165816
@@ -9558,7 +9527,7 @@ MonoBehaviour:
   cameraPositions:
   - {fileID: 1877567206}
   - {fileID: 853463262}
-  - {fileID: 8245567}
+  - {fileID: 0}
   transitionDuration: 1.5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
