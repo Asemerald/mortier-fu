@@ -69,6 +69,7 @@ namespace MortierFu
         private CancellationTokenSource _animateCancellation;
 
         private EventSystem _eventSystem;
+        private GameService _gameService;
         private GamePauseSystem _gamePauseSystem;
         private GameModeBase _gm;
         private LobbyService _lobbyService;
@@ -115,6 +116,7 @@ namespace MortierFu
         {
             _eventSystem = EventSystem.current;
             _gm = GameService.CurrentGameMode as GameModeBase;
+            _gameService = ServiceManager.Instance.Get<GameService>();
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
@@ -145,11 +147,7 @@ namespace MortierFu
             _musicVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
             _sfxVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
 
-            if (_gm != null)
-            {
-                _confirmEndGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
-                _confirmEndGameButton.onClick.AddListener(_gm.ReturnToMainMenu);
-            }
+            _confirmEndGameButton.onClick.AddListener(OnConfirmEndGame);
 
             _cancelEndGameButton.onClick.AddListener(Return);
             _confirmQuitGameButton.onClick.AddListener(Application.Quit);
@@ -174,6 +172,17 @@ namespace MortierFu
             }
         }
 
+        private void OnConfirmEndGame()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+
+            if (_gamePauseSystem != null && _gamePauseSystem.IsPaused)
+            {
+                _gamePauseSystem.TogglePause();
+            }
+
+            _gameService?.ReturnToLobby();
+        }
 
         private void ScrollRawImageUV(RawImage image, float speed)
         {
@@ -231,7 +240,8 @@ namespace MortierFu
         private void OpenQuitPanel()
         {
             PlayPanelSelectionFeedback();
-            AnimateOpenPanel(_quitGameConfirmationPanel, _quitPanelCTS, _confirmQuitGameButton.gameObject, _panelScaleDuration,
+            AnimateOpenPanel(_quitGameConfirmationPanel, _quitPanelCTS, _confirmQuitGameButton.gameObject,
+                _panelScaleDuration,
                 _panelScaleEase).Forget();
         }
 

@@ -1,13 +1,17 @@
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using UnityEngine;
 
 namespace MortierFu
 {
     public class GameService : IGameService
     {
+        private const string k_mainMenuScene = "MainMenu";
         private const string k_lobbyScene = "Lobby";
         private const string k_gameplayScene = "Gameplay";
 
+        private bool _isSceneTransitionInProgress;
+        
         private IGameMode _currentGameMode;
         private SceneService _sceneService;
 
@@ -89,7 +93,11 @@ namespace MortierFu
 
         private async UniTaskVoid RestartGameAsync()
         {
+            _isSceneTransitionInProgress = true;
+
             Logs.Log("[GameService] Restarting game.");
+
+            RestoreRuntimeBeforeSceneTransition();
 
             _sceneService.ShowLoadingScreen();
 
@@ -107,7 +115,85 @@ namespace MortierFu
 
             _sceneService.HideLoadingScreen();
 
+            _isSceneTransitionInProgress = false;
+
             Logs.Log("[GameService] Restart pipeline done.");
+        }
+        
+        public void ReturnToLobby()
+        {
+            if (_isSceneTransitionInProgress)
+                return;
+
+            ReturnToLobbyAsync().Forget();
+        }
+
+        private async UniTaskVoid ReturnToLobbyAsync()
+        {
+            _isSceneTransitionInProgress = true;
+
+            Logs.Log("[GameService] Returning to lobby.");
+
+            RestoreRuntimeBeforeSceneTransition();
+
+            _sceneService.ShowLoadingScreen();
+
+            await CleanupCurrentGameplayRuntimeAsync();
+
+            await _sceneService.LoadScene(
+                k_lobbyScene,
+                setAsActiveScene: true
+            );
+
+            _sceneService.HideLoadingScreen();
+
+            _isSceneTransitionInProgress = false;
+
+            Logs.Log("[GameService] Returned to lobby.");
+        }
+        
+        public void ReturnToMainMenu()
+        {
+            if (_isSceneTransitionInProgress)
+                return;
+
+            ReturnToMainMenuAsync().Forget();
+        }
+
+        private async UniTaskVoid ReturnToMainMenuAsync()
+        {
+            _isSceneTransitionInProgress = true;
+
+            Logs.Log("[GameService] Returning to main menu.");
+
+            RestoreRuntimeBeforeSceneTransition();
+
+            _sceneService.ShowLoadingScreen();
+
+            await CleanupCurrentGameplayRuntimeAsync();
+
+            await _sceneService.LoadScene(
+                k_mainMenuScene,
+                setAsActiveScene: true
+            );
+
+            _sceneService.HideLoadingScreen();
+
+            _isSceneTransitionInProgress = false;
+
+            Logs.Log("[GameService] Returned to main menu.");
+        }
+        
+        private void RestoreRuntimeBeforeSceneTransition()
+        {
+            Time.timeScale = 1f;
+
+            var audioService = ServiceManager.Instance.Get<AudioService>();
+
+            if (audioService != null)
+            {
+                audioService.SetPause(0);
+            }
         }
         
         private async UniTask InitializeGameplaySystemsAsync()
@@ -142,9 +228,26 @@ namespace MortierFu
             _currentGameMode = null;
             _currentGameModeInstance = null;
 
+            await UnloadCurrentMapIfNeededAsync();
+
             SystemManager.Instance.Dispose();
 
             await _sceneService.UnloadScene(k_gameplayScene);
+        }
+        
+        private async UniTask UnloadCurrentMapIfNeededAsync()
+        {
+            var levelSystem = SystemManager.Instance?.Get<LevelSystem>();
+
+            if (levelSystem == null)
+            {
+                Logs.LogWarning("[GameService] No LevelSystem found while cleaning gameplay runtime.");
+                return;
+            }
+
+            await levelSystem.UnloadCurrentMap();
+
+            Logs.Log("[GameService] Current map unloaded.");
         }
 
         private async UniTask LoadGameplaySceneAsync()
@@ -179,6 +282,9 @@ namespace MortierFu
 
             _pendingMatchConfig = null;
             _lastMatchConfig = MatchConfig.Default;
+
+            _isSceneTransitionInProgress = false;
+            RestoreRuntimeBeforeSceneTransition();
         }
     }
 }

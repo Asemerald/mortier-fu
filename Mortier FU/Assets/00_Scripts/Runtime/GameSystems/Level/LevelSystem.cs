@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using MortierFu.Shared;
 using Cysharp.Threading.Tasks;
@@ -25,7 +24,6 @@ namespace MortierFu
         private List<IResourceLocation> _arenaMapLocations;
         private List<IResourceLocation> _raceMapLocations;
 
-        // Used to track and unload the current loaded map
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
         private const string k_arenaMapsLabel = "ArenaMaps";
@@ -156,10 +154,23 @@ namespace MortierFu
 
         public async UniTask UnloadCurrentMap()
         {
-            if (!_mapHandle.IsValid()) return;
+            if (!_mapHandle.IsValid())
+            {
+                _boundReporter = null;
+                CurrentCameraMapConfig = default;
+                return;
+            }
 
             await Addressables.UnloadSceneAsync(_mapHandle);
+
             _mapHandle = default;
+            _boundReporter = null;
+            CurrentCameraMapConfig = default;
+
+            if (Settings != null && Settings.EnableDebug)
+            {
+                Logs.Log("[LevelSystem]: Current map unloaded.");
+            }
         }
 
         public bool IsRaceMap()
@@ -191,7 +202,7 @@ namespace MortierFu
             if (BoundReporter == null)
                 return FallbackTransform;
 
-            if (index < 0) // || index >= BoundReporter.SpawnPoints.Length
+            if (index < 0)
             {
                 if (Settings.EnableDebug)
                     Logs.LogWarning(
@@ -240,7 +251,6 @@ namespace MortierFu
 
         private async UniTask FinishUnfinishedBusiness()
         {
-            // Finish unfinished business
             if (_mapHandle.IsValid() && !_mapHandle.IsDone)
             {
                 await _mapHandle;
@@ -327,7 +337,6 @@ namespace MortierFu
                 Logs.LogWarning("[LevelSystem]: No camera System found !");
             }
 
-            // Load the system settings
             _settingsHandle = await SystemManager.Config.LevelSettings.LazyLoadAssetRef();
 
             _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
@@ -336,9 +345,16 @@ namespace MortierFu
 
         public void Dispose()
         {
-            Addressables.Release(_settingsHandle);
+            if (_settingsHandle.IsValid())
+            {
+                Addressables.Release(_settingsHandle);
+            }
 
-            _arenaMapLocations.Clear();
+            _arenaMapLocations?.Clear();
+            _raceMapLocations?.Clear();
+
+            _boundReporter = null;
+            CurrentCameraMapConfig = default;
         }
 
         public bool IsInitialized { get; set; }

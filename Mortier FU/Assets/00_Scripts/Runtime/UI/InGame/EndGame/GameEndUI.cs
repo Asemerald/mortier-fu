@@ -28,12 +28,14 @@ namespace MortierFu
         [SerializeField] private Camera _renderCamera;
         
         private GameModeBase _gm;
+        private GameService _gameService;
         
         private EventSystem _eventSystem;
 
         private void Awake()
         {
             _gm = GameService.CurrentGameMode as GameModeBase;
+            _gameService = ServiceManager.Instance.Get<GameService>();
             _eventSystem = EventSystem.current;
             
             _renderCamera.gameObject.SetActive(false);
@@ -55,24 +57,25 @@ namespace MortierFu
 
         private void OnDisable()
         {
-            _gm.OnGameEnded -= SetWinner;
+            if (_gm != null)
+            {
+                _gm.OnGameEnded -= SetWinner;
+            }
         }
 
         private void OnClickContinueGame()
         {
-          //  int scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
-            
-         //   _gm.SetScoreToWin(scoreToWin * 2);
+            _gameService?.ReturnToLobby();
         }
 
         private void OnClickNewGame()
         {
-            ServiceManager.Instance.Get<GameService>().RestartGame();
+            _gameService?.RestartGame();
         }
-        
+
         private void OnClickMainMenu()
         {
-          _gm.ReturnToMainMenu();
+            _gameService?.ReturnToMainMenu();
         }
 
         private void SetWinner(int playerIndex)
