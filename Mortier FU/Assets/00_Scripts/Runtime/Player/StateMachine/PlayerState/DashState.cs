@@ -7,6 +7,8 @@ namespace MortierFu
 {
     public class DashState : BaseState
     {
+        private FXService _fxService;
+        
         private Collider[] _overlapBuffer = new Collider[100];
 
         private HashSet<GameObject> _processedRoots;
@@ -21,6 +23,8 @@ namespace MortierFu
 
         public DashState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
+            _fxService = ServiceManager.Instance.Get<FXService>();
+            
             _processedRoots = new HashSet<GameObject>();
             _hitCharacters = new HashSet<PlayerCharacter>();
 
@@ -74,7 +78,7 @@ namespace MortierFu
                 Character = character,
             });
 
-            TEMP_FXHandler.Instance.InstantiateDashFX(character.GetStrikePoint(),
+            _fxService.PlayDashFX(character.GetStrikePoint(),
                 character.Stats.GetStrikeRadius() * 0.5f);
             if (debug)
                 Logs.Log("Entering Dash State");

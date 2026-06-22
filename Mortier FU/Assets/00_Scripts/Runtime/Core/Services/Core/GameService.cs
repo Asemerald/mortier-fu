@@ -11,6 +11,7 @@ namespace MortierFu
         private SceneService _sceneService;
         
         private MatchConfig? _pendingMatchConfig;
+        private MatchConfig _lastMatchConfig = MatchConfig.Default;
         
         private const string k_lobbyScene = "Lobby";
         private const string k_gameplayScene = "Gameplay";
@@ -38,12 +39,14 @@ namespace MortierFu
         {
             if (_pendingMatchConfig.HasValue)
             {
-                var config = _pendingMatchConfig.Value;
+                _lastMatchConfig = _pendingMatchConfig.Value;
                 _pendingMatchConfig = null;
-                return config;
+                return _lastMatchConfig;
             }
 
-            return CreateMatchConfigFromMenu();
+            Logs.LogWarning("[GameService] No pending MatchConfig found. Reusing last MatchConfig.");
+
+            return _lastMatchConfig;
         }
         
         public UniTask OnInitialize()
@@ -145,21 +148,9 @@ namespace MortierFu
             Logs.Log("Gameplay pipeline done !");
         }
         
-        private MatchConfig CreateMatchConfigFromMenu()
+        private MatchConfig CreateDefaultMatchConfig()
         {
-            int scoreToWin = MatchConfig.Default.ScoreToWin;
-
-            if (MenuManager.Instance != null &&
-                MenuManager.Instance.LobbyPanel != null)
-            {
-                scoreToWin = MenuManager.Instance.LobbyPanel.SelectedMaxScore;
-            }
-            else
-            {
-                Logs.LogWarning("[GameService] MenuManager or LobbyPanel not found. Using default MatchConfig.");
-            }
-
-            return new MatchConfig(scoreToWin);
+            return MatchConfig.Default;
         }
         
         public void Dispose()

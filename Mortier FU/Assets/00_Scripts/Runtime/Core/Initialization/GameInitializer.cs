@@ -27,6 +27,7 @@ namespace MortierFu
         private ModLoaderService _loaderService;
         private AudioService _audioService;
         private DeviceService _deviceService;
+        private FXService _fxService;
         private ConfirmationService _confirmationService;
         private GameService _gameService;
         private LobbyService _lobbyService;
@@ -130,12 +131,14 @@ namespace MortierFu
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
             _saveService = new SaveService();
+            _fxService = new FXService();
             _shakeService = new ShakeService();
             
             // --- Register services
             _serviceManager.Register(_modService);
             _serviceManager.Register(_loaderService);
             _serviceManager.Register(_audioService);
+            _serviceManager.Register(_fxService);
             _serviceManager.Register(_deviceService);
             _serviceManager.Register(_gameService);
             _serviceManager.Register(_lobbyService);

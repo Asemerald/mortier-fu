@@ -1,20 +1,17 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MortierFu;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
     public class MenuManager : MonoBehaviour
     {
-        [field: Header("MainMenu References")]
+        [field: Header("Main Menu References")]
         [field: SerializeField]
         public MainMenuPanel MainMenuPanel { get; private set; }
 
@@ -22,12 +19,9 @@ namespace MortierFu
         [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button CreditsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
-
-        [Header("Lobby UI Selection")] [SerializeField]
-        private Button _player1ReadySelectedButton;
-
-        [SerializeField] private GameObject _playGameObject;
-        [SerializeField] private GameObject _gameMaxScoreObject;
+        
+        [SerializeField] private GameObject _animatedCharacter;
+        [SerializeField] private GameObject _animatedOutlineCharacter;
 
         [field: Header("Settings References")]
         [field: SerializeField]
@@ -37,24 +31,15 @@ namespace MortierFu
         [field: SerializeField]
         public CreditsPanel CreditsPanel { get; private set; }
 
-        [field: Header("Lobby References")]
-        [field: SerializeField]
-        public LobbyPanel LobbyPanel { get; private set; }
+        [Header("Utils")]
+        [SerializeField] private MainMenuCameraManager _cameraManager;
 
-        [field: SerializeField] private int minPlayers = 2;
-
-        [Header("Utils")] [field: SerializeField]
-        public MainMenuCameraManager cameraManager;
-        [SerializeField] private float delayBeforeMainMenuShow = 2f;
-
-        [Header("References")] public GameObject[] playerGO;
+        [SerializeField] private float _delayBeforeMainMenuShow = 2f;
 
         private EventSystem _eventSystem;
+        private bool _isLoadingLobby;
 
         public PlayerInput Player1InputAction { get; private set; }
-        private GameService _gameService;
-        private ShakeService _shakeService;
-        private LobbyService _lobbyService;
 
         public static MenuManager Instance { get; private set; }
 
@@ -62,290 +47,252 @@ namespace MortierFu
         {
             if (Instance != null && Instance != this)
             {
-                Logs.LogWarning("[MenuManager]: Multiple instances detected. Destroying duplicate.", this);
-                Destroy(this.gameObject);
+                Logs.LogWarning("[MenuManager] Multiple instances detected. Destroying duplicate.", this);
+                Destroy(gameObject);
                 return;
             }
 
             Instance = this;
 
-            _gameService = ServiceManager.Instance.Get<GameService>();
-            if (_gameService == null)
-            {
-                Logs.LogError("[MenuManager]: GameService could not be found in ServiceManager.", this);
-            }
-
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            if (_lobbyService == null)
-            {
-                Logs.LogError("[MenuManager]: LobbyService could not be found in ServiceManager.", this);
-            }
-
             CheckReferences();
             CheckActivePanels();
 
-            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
+            ServiceManager.Instance
+                .Get<AudioService>()
+                .StartMusic(AudioService.FMODEvents.MUS_MainMenu)
+                .Forget();
         }
 
         private void Start()
         {
             _eventSystem = EventSystem.current;
+
             if (_eventSystem == null)
             {
-                Logs.LogError("[MenuManager]: No EventSystem found in the scene.", this);
+                Logs.LogError("[MenuManager] No EventSystem found in the scene.", this);
+                return;
             }
 
-            _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[0].Enable();
-            _eventSystem.GetComponent<InputSystemUIInputModule>().actionsAsset.actionMaps[1].Enable();
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            
-            ShowMainMenuAfterDelay(delayBeforeMainMenuShow).Forget();
-            
-            PlayerInputBridge.Instance.CanJoin(true);
-            PlayButton.onClick.AddListener(LoadLobbyScene);
+            EnableUiInputModule();
+
+            if (PlayButton != null)
+            {
+                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+                PlayButton.onClick.AddListener(LoadLobbyScene);
+            }
+
+            ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
+
+            if (PlayerInputBridge.Instance != null)
+            {
+                PlayerInputBridge.Instance.CanJoin(true);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            if (PlayButton != null)
+            {
+                PlayButton.onClick.RemoveListener(LoadLobbyScene);
+            }
+
+            UnbindPlayer1Input();
+        }
+
+        private void EnableUiInputModule()
+        {
+            if (_eventSystem == null)
+                return;
+
+            var inputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
+
+            if (inputModule == null || inputModule.actionsAsset == null)
+            {
+                Logs.LogWarning("[MenuManager] InputSystemUIInputModule or actions asset is missing.", this);
+                return;
+            }
+
+            foreach (var actionMap in inputModule.actionsAsset.actionMaps)
+            {
+                actionMap.Enable();
+            }
+        }
+
+        private async UniTask ShowMainMenuAfterDelay(float delay)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+            if (MainMenuPanel != null)
+            {
+                MainMenuPanel.gameObject.SetActive(true);
+            }
+
+            if (_eventSystem != null && PlayButton != null)
+            {
+                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            }
         }
 
         private void LoadLobbyScene()
         {
+            if (_isLoadingLobby)
+                return;
+
             LoadLobbySceneAsync().Forget();
         }
 
         private async UniTaskVoid LoadLobbySceneAsync()
         {
+            _isLoadingLobby = true;
+
             var sceneService = ServiceManager.Instance.Get<SceneService>();
 
             if (sceneService == null)
             {
-                Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.");
+                Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.", this);
+                _isLoadingLobby = false;
                 return;
             }
 
-            await sceneService.LoadScene("Lobby", setAsActiveScene: true);
+            if (PlayerInputBridge.Instance != null)
+            {
+                PlayerInputBridge.Instance.CanJoin(false);
+            }
+
+            await sceneService.LoadScene("Lobby", true);
 
             await sceneService.UnloadScene("MainMenu");
-        }
-        
-        private async UniTask ShowMainMenuAfterDelay(float delay)
-        {
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            MainMenuPanel.gameObject.SetActive(true);
-            _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-        }
-
-        private void OnEnable()
-        {
-            _playGameObject.SetActive(false);
-            _gameMaxScoreObject.SetActive(false);
-        }
-
-        private void OnDisable()
-        {
-            if (Player1InputAction == null) return;
-            Player1InputAction.actions.FindAction("Cancel").performed -= OnCancel;
-            Player1InputAction.actions.FindAction("StartGame").performed -= OnStartGame; //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
-        }
-
-        public void HidePlayerGO(bool hide)
-        {
-            for (int i = 0; i < playerGO.Length; i++)
-            {
-                playerGO[i].SetActive(!hide);
-            }
         }
 
         public void SetPlayer1InputAction(PlayerInput playerInput)
         {
+            UnbindPlayer1Input();
+
             Player1InputAction = playerInput;
-            Player1InputAction.actions.FindAction("Cancel").performed += OnCancel;
-            
-            PlayerInputBridge.Instance.CanJoin(false);
-        }
 
-        public async UniTask StartGame()
-        {
-            Logs.Log("MenuManager: Starting Game...");
-
-            // When game mode is selected
-            await _gameService.InitializeGameMode<GM_FFA>();
-
-            // Should handle game mode teams
-
-            _gameService.ExecuteGameplayPipeline().Forget();
-
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-        }
-
-        //TODO: TEMP IMPLEMENTATION, TO BE REWORKED LATER
-        private void OnStartGame(InputAction.CallbackContext context)
-        {
-            if (!context.performed) return;
-            Logs.Log("[MenuManager]: OnStartGame triggered via TEMP implementation.");
-            if (LobbyPanel.IsVisible())
-            {
-                StartGame().Forget();
-            }
-        }
-
-        public void CheckAllPlayersReady()
-        {
-            if (_lobbyService.CurrentPlayerCount < minPlayers)
-            {
-                Logs.Log($"[MenuManager]: Not enough players ({_lobbyService.CurrentPlayerCount}/{minPlayers}).");
+            if (Player1InputAction == null)
                 return;
+
+            var cancelAction = Player1InputAction.actions.FindAction("Cancel", false);
+
+            if (cancelAction != null)
+            {
+                cancelAction.performed += OnCancel;
             }
 
-            bool allReady = true;
-            foreach (var player in _lobbyService.GetPlayers())
+            if (PlayerInputBridge.Instance != null)
             {
-                if (!player.IsReady)
-                {
-                    allReady = false;
-                    break;
-                }
+                PlayerInputBridge.Instance.CanJoin(false);
             }
 
-            if (allReady)
-            {
-                _gameMaxScoreObject.SetActive(true);
-                SelectPlayer1ReadyButton();
-                _playGameObject.SetActive(true);
-                Player1InputAction.actions.FindAction("StartGame").performed += OnStartGame;
-            }
+            Logs.Log("[MenuManager] Player 1 input assigned.");
         }
 
-        public bool AllPlayersReady()
+        private void UnbindPlayer1Input()
         {
-            foreach (var player in _lobbyService.GetPlayers())
+            if (Player1InputAction == null)
+                return;
+
+            var cancelAction = Player1InputAction.actions.FindAction("Cancel", false);
+
+            if (cancelAction != null)
             {
-                if (!player.IsReady)
-                {
-                    return false;
-                }
+                cancelAction.performed -= OnCancel;
             }
 
-            return true;
+            Player1InputAction = null;
         }
 
-        public void OnCancel(InputAction.CallbackContext context)
+        private void OnCancel(InputAction.CallbackContext context)
         {
-            Logs.Log("[MenuManager]: OnCancel triggered.");
-            if (!context.performed) return;
+            if (!context.performed)
+                return;
 
-            // Hide Current Panel and go back to Main Menu
-            if (SettingsPanel.IsVisible())
+            Logs.Log("[MenuManager] Cancel triggered.");
+
+            if (SettingsPanel != null && SettingsPanel.IsVisible())
             {
                 SettingsPanel.Hide();
                 MainMenuPanel.Show();
-                _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
-                HidePlayerGO(false);
+                _animatedCharacter.SetActive(true);
+                _animatedOutlineCharacter.SetActive(true);
+                
+                if (_eventSystem != null && SettingsButton != null)
+                {
+                    _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
+                }
+
+                return;
             }
-            else if (CreditsPanel.IsVisible())
+
+            if (CreditsPanel != null && CreditsPanel.IsVisible())
             {
                 CreditsPanel.Hide();
                 MainMenuPanel.Show();
-                _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
-                HidePlayerGO(false);
-            }
-            else if (LobbyPanel.IsVisible())
-            {
-                TransitionFromLobbyToMainMenu().Forget();
-            }
-        }
-        
-        private UniTask TransitionFromLobbyToMainMenu()
-        {
-            LobbyPanel.Hide();
-            MainMenuPanel.Show();
-            cameraManager.TeleportToPosition(1);
-            _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-            PlayerInputBridge.Instance.CanJoin(false);
-            
-            // Disconnect all players from lobby except Player 1
-            var lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            var players = new List<PlayerManager>(lobbyService.GetPlayers());
-            foreach (var player in players)
-            {
-                if (player.PlayerIndex != 0)
+                _animatedCharacter.SetActive(true);
+                _animatedOutlineCharacter.SetActive(true);
+                
+                if (_eventSystem != null && CreditsButton != null)
                 {
-                    lobbyService.RemovePlayer(player);
+                    _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
                 }
             }
-            
-            return UniTask.CompletedTask;
-        }
-
-        private void SelectPlayer1ReadyButton()
-        {
-            if (_eventSystem == null || _player1ReadySelectedButton == null)
-                return;
-
-            _eventSystem.SetSelectedGameObject(_player1ReadySelectedButton.gameObject);
         }
 
         private void CheckReferences()
         {
             if (MainMenuPanel == null)
             {
-                Logs.LogError("MenuManager: MainMenuPanel reference is missing.", this);
+                Logs.LogError("[MenuManager] MainMenuPanel reference is missing.", this);
+            }
+
+            if (PlayButton == null)
+            {
+                Logs.LogError("[MenuManager] PlayButton reference is missing.", this);
+            }
+
+            if (SettingsButton == null)
+            {
+                Logs.LogError("[MenuManager] SettingsButton reference is missing.", this);
+            }
+
+            if (CreditsButton == null)
+            {
+                Logs.LogError("[MenuManager] CreditsButton reference is missing.", this);
             }
 
             if (SettingsPanel == null)
             {
-                Logs.LogError("MenuManager: SettingsPanel reference is missing.", this);
+                Logs.LogError("[MenuManager] SettingsPanel reference is missing.", this);
             }
 
             if (CreditsPanel == null)
             {
-                Logs.LogError("MenuManager: CreditsPanel reference is missing.", this);
+                Logs.LogError("[MenuManager] CreditsPanel reference is missing.", this);
             }
 
-            if (LobbyPanel == null)
+            if (_cameraManager == null)
             {
-                Logs.LogError("MenuManager: LobbyPanel reference is missing.", this);
-            }
-
-            if (cameraManager == null)
-            {
-                Logs.LogError("MenuManager: MainMenuCameraManager reference is missing.", this);
+                Logs.LogWarning("[MenuManager] MainMenuCameraManager reference is missing.", this);
             }
         }
 
         private void CheckActivePanels()
         {
-            // off to disable tween
-            /*if (!MainMenuPanel.isActiveAndEnabled)
-            {
-                MainMenuPanel.gameObject.SetActive(true);
-            }*/
-
-            if (!SettingsPanel.isActiveAndEnabled)
+            if (SettingsPanel != null && !SettingsPanel.isActiveAndEnabled)
             {
                 SettingsPanel.gameObject.SetActive(true);
             }
 
-            if (!CreditsPanel.isActiveAndEnabled)
+            if (CreditsPanel != null && !CreditsPanel.isActiveAndEnabled)
             {
                 CreditsPanel.gameObject.SetActive(true);
             }
-
-            if (!LobbyPanel.isActiveAndEnabled)
-            {
-                LobbyPanel.gameObject.SetActive(true);
-            }
         }
-
-        public void ChangeSelectedButton(Button newSelected)
-        {
-            _eventSystem.SetSelectedGameObject(newSelected.gameObject);
-        }
-    }
-
-    public enum MenuPanelType
-    {
-        MainMenu,
-        Settings,
-        Credits,
-        Lobby
     }
 }

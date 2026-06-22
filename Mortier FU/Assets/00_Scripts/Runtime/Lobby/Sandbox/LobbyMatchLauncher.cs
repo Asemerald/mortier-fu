@@ -13,7 +13,7 @@ namespace MortierFu
         [SerializeField] private LobbyMatchSettingsData _settingsData;
         
         [Header("Rules")]
-        [SerializeField] private int _minimumPlayersToLaunch = 1;
+        [SerializeField] private int _minimumPlayersToLaunch = 2;
 
         private bool _isLaunching;
 

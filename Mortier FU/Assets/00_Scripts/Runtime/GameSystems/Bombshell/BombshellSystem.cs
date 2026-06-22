@@ -12,6 +12,7 @@ namespace MortierFu
     public class BombshellSystem : IGameSystem
     {
         private CameraSystem _cameraSystem;
+        private FXService _fxService;
 
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
@@ -100,10 +101,10 @@ namespace MortierFu
             }
 
             //GAMEFEEL CALLS
-            if (TEMP_FXHandler.Instance)
+            if (_fxService != null)
             {
                 var character = bombshell.Owner;
-                TEMP_FXHandler.Instance.InstantiateExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
+                _fxService.PlayBombshellExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
             else Logs.LogWarning("No FX Handler");
 
@@ -207,7 +208,9 @@ namespace MortierFu
             _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
             
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
-            if (_cameraSystem == null) return;
+            _fxService = ServiceManager.Instance.Get<FXService>();
+            
+            if (_cameraSystem == null || _fxService == null) return;
             
             _bombshellParent = new GameObject("Bombshells").transform;
 

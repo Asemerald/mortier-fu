@@ -37,6 +37,7 @@ namespace MortierFu
         private float _travelTime;
         
         private BombshellSystem _system;
+        private FXService _fxService;
         private Rigidbody _rb;
         private BombshellAspect _aspect;
         
@@ -74,6 +75,7 @@ namespace MortierFu
         public void Initialize(BombshellSystem system)
         {
             _system = system;
+            _fxService = ServiceManager.Instance.Get<FXService>();
             
             _rb = GetComponent<Rigidbody>();
             
@@ -169,7 +171,7 @@ namespace MortierFu
                         // TODO: Add water splash sound
                         AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, hit.point);
                        // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
-                        TEMP_FXHandler.Instance.InstantiateWaterExplosionFX(hit.point);
+                       _fxService.PlayWaterExplosionFX(hit.point);
                         ReturnToPool();
                         break;
                     }
@@ -273,8 +275,8 @@ namespace MortierFu
                     
                     await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
-                    if (TEMP_FXHandler.Instance) {
-                        TEMP_FXHandler.Instance.InstantiatePreview(previewPoint, previewTime - delay, _data.AoeRange);
+                    if (_fxService != null) {
+                        _fxService.PlayBombshellPreview(previewPoint, previewTime - delay, _data.AoeRange);
                     } else Logs.LogWarning("No FX Handler");
 
                     break;
