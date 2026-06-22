@@ -10,6 +10,8 @@ namespace MortierFu
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
 
+        [SerializeField] private LobbyMatchSettingsData _settingsData;
+        
         [Header("Rules")]
         [SerializeField] private int _minimumPlayersToLaunch = 1;
 
@@ -60,6 +62,11 @@ namespace MortierFu
                 Logs.LogError("[LobbyMatchLauncher] GameService is missing. Cannot launch match.");
                 _isLaunching = false;
                 return;
+            }
+            
+            if (_settingsData != null)
+            {
+                gameService.SetPendingMatchConfig(_settingsData.ToMatchConfig());
             }
 
             await gameService.InitializeGameMode<GM_FFA>();

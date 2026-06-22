@@ -10,6 +10,8 @@ namespace MortierFu
         private IGameMode _currentGameMode;
         private SceneService _sceneService;
         
+        private MatchConfig? _pendingMatchConfig;
+        
         private const string k_lobbyScene = "Lobby";
         private const string k_gameplayScene = "Gameplay";
         
@@ -27,6 +29,23 @@ namespace MortierFu
             }
         }
         
+        public void SetPendingMatchConfig(MatchConfig config)
+        {
+            _pendingMatchConfig = config;
+        }
+        
+        private MatchConfig ConsumeMatchConfig()
+        {
+            if (_pendingMatchConfig.HasValue)
+            {
+                var config = _pendingMatchConfig.Value;
+                _pendingMatchConfig = null;
+                return config;
+            }
+
+            return CreateMatchConfigFromMenu();
+        }
+        
         public UniTask OnInitialize()
         {
             _sceneService = ServiceManager.Instance.Get<SceneService>();
@@ -35,7 +54,7 @@ namespace MortierFu
 
         public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()
         {
-            MatchConfig matchConfig = CreateMatchConfigFromMenu();
+            MatchConfig matchConfig = ConsumeMatchConfig();
 
             _currentGameMode = new T();
             _currentGameMode.SetMatchConfig(matchConfig);
@@ -66,7 +85,6 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
-           // SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
             SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();
@@ -113,7 +131,6 @@ namespace MortierFu
             SystemManager.Instance.CreateAndRegister<CameraSystem>();
             SystemManager.Instance.CreateAndRegister<LevelSystem>();
             SystemManager.Instance.CreateAndRegister<BombshellSystem>();
-            // SystemManager.Instance.CreateAndRegister<PuddleSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentProviderSystem>();
             SystemManager.Instance.CreateAndRegister<AugmentSelectionSystem>();
             SystemManager.Instance.CreateAndRegister<AnalyticsSystem>();

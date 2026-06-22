@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
@@ -21,6 +22,11 @@ namespace MortierFu
 
         private bool _isInitialized;
         private int _lastKnownPlayerCount = -1;
+        
+        public bool IsGlobalLockActive { get; private set; }
+
+        public event Action OnGlobalLockStarted;
+        public event Action OnGlobalLockEnded;
 
         private void Start()
         {
@@ -190,6 +196,12 @@ namespace MortierFu
 
         public void LockAllPlayers()
         {
+            if (!IsGlobalLockActive)
+            {
+                IsGlobalLockActive = true;
+                OnGlobalLockStarted?.Invoke();
+            }
+
             foreach (var player in _spawnedPlayers)
             {
                 if (player == null)
@@ -201,6 +213,8 @@ namespace MortierFu
 
         public void UnlockAllPlayers()
         {
+            IsGlobalLockActive = false;
+
             foreach (var player in _spawnedPlayers)
             {
                 if (player == null)
@@ -208,6 +222,8 @@ namespace MortierFu
 
                 player.SetControlContext(PlayerControlContext.LobbySandbox);
             }
+
+            OnGlobalLockEnded?.Invoke();
         }
 
         public IReadOnlyList<PlayerManager> GetSpawnedPlayers()
