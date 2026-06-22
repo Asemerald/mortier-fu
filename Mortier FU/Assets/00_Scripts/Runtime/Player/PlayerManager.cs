@@ -13,18 +13,20 @@ namespace MortierFu
         public PlayerMetrics Metrics;
         private PlayerInput _playerInput;
         private GameObject _inGameCharacter;
-        private bool _isInGame = false;
 
         public PlayerInput PlayerInput => _playerInput;
-        public GameObject CharacterGO => _inGameCharacter;
-
-        private PlayerCharacter _playerCharacter;
+        
+        private PlayerRuntimeController _runtimeController;
 
         private GamePauseSystem _gamePauseSystem;
 
         private PlayerInputRouter _inputRouter;
         private readonly PlayerCustomizationData _customization = new();
-
+        
+        public GameObject CharacterGO => RuntimeController.CharacterGO;
+        public PlayerCharacter Character => RuntimeController.Character;
+        public bool IsInGame => RuntimeController.IsInGame;
+        
         private PlayerInputRouter InputRouter
         {
             get
@@ -38,21 +40,24 @@ namespace MortierFu
                 return _inputRouter;
             }
         }
-
-        public PlayerControlContext ControlContext => InputRouter.ControlContext;
-        public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
-
-        public PlayerCharacter Character
+        
+        private PlayerRuntimeController RuntimeController
         {
             get
             {
-                _playerCharacter ??= _inGameCharacter != null ? _inGameCharacter.GetComponent<PlayerCharacter>() : null;
-                return _playerCharacter;
+                _runtimeController ??= new PlayerRuntimeController(
+                    this,
+                    playerInGamePrefab
+                );
+
+                return _runtimeController;
             }
         }
+
+        public PlayerControlContext ControlContext => InputRouter.ControlContext;
+        public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
         
         public int PlayerIndex => _playerInput.playerIndex;
-        public bool IsInGame => _isInGame;
 
         public bool IsReady { get; private set; }
 
@@ -76,17 +81,6 @@ namespace MortierFu
 
             Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
             MenuManager.Instance.SetPlayer1InputAction(_playerInput);
-        }
-
-        private void OnDestroy()
-        {
-            OnPlayerDestroyed?.Invoke(this);
-
-            _inputRouter?.Dispose();
-            _inputRouter = null;
-            
-            OnPlayerInitialized = null;
-            OnPlayerDestroyed = null;
         }
 
         private bool TryResolveGamePauseSystem()
@@ -124,13 +118,6 @@ namespace MortierFu
             _gamePauseSystem.TogglePause();
         }
 
-        public void EnableGameplayInputMap(bool enable = true)
-        {
-            SetControlContext(enable
-                ? PlayerControlContext.RoundGameplay
-                : PlayerControlContext.Scoreboard);
-        }
-
         public void SetControlContext(PlayerControlContext context)
         {
             InputRouter.SetContext(context, Character);
@@ -140,7 +127,7 @@ namespace MortierFu
         {
             InputRouter.BindGameplayInputCallbacks();
         }
-
+        
         private void UnbindGameplayInputCallbacks()
         {
             _inputRouter?.UnbindGameplayInputCallbacks();
@@ -168,41 +155,15 @@ namespace MortierFu
         /// </summary>
         public void SpawnInGame(Vector3 spawnPosition, Quaternion spawnRotation)
         {
-            if (_inGameCharacter == null)
+            if (!RuntimeController.Spawn(spawnPosition, spawnRotation, out bool createdCharacter))
+                return;
+
+            InputRouter.ApplyCurrentContextTo(RuntimeController.Character);
+
+            if (createdCharacter)
             {
-                if (playerInGamePrefab == null)
-                {
-                    Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}.");
-                    return;
-                }
-
-                _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, spawnRotation);
-                _playerCharacter = _inGameCharacter.GetComponent<PlayerCharacter>();
-
-                if (_playerCharacter == null)
-                {
-                    Logs.LogError(
-                        $"[PlayerManager] In-game prefab for Player {PlayerIndex} does not contain a PlayerCharacter component.");
-                    Destroy(_inGameCharacter);
-                    _inGameCharacter = null;
-                    return;
-                }
-
-                _playerCharacter.Initialize(this);
-                InputRouter.ApplyCurrentContextTo(_playerCharacter);
-
                 OnPlayerInitialized?.Invoke(this);
             }
-
-            _inGameCharacter.transform.SetPositionAndRotation(
-                spawnPosition,
-                spawnRotation
-            );
-
-            _inGameCharacter.SetActive(true);
-            InputRouter.ApplyCurrentContextTo(_playerCharacter);
-
-            _isInGame = true;
 
             BindGameplayInputCallbacks();
         }
@@ -212,28 +173,24 @@ namespace MortierFu
         /// </summary>
         public void DespawnInGame()
         {
-            if (_inGameCharacter != null)
-            {
-                _inGameCharacter.SetActive(false);
-            }
-
-            _isInGame = false;
+            UnbindGameplayInputCallbacks();
+            RuntimeController.Despawn();
         }
 
         public void JoinTeam(PlayerTeam team) => Team = team;
-
-        public void LeaveTeam()
+        
+        private void OnDestroy()
         {
-            if (Team == null)
-            {
-                Logs.LogError("Trying to remove a player from his team although he is not part of any team !");
-                return;
-            }
+            OnPlayerDestroyed?.Invoke(this);
 
-            if (!Team.Members.Remove(this))
-                Logs.LogWarning("Trying to remove a player from a team where he isn't part of !");
+            _inputRouter?.Dispose();
+            _inputRouter = null;
 
-            Team = null;
+            _runtimeController?.DestroyRuntime();
+            _runtimeController = null;
+
+            OnPlayerInitialized = null;
+            OnPlayerDestroyed = null;
         }
 
         public void SelfDestroy()
