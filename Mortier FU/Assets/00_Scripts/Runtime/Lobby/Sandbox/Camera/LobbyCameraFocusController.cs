@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using MortierFu.Shared;
 using UnityEngine;
@@ -17,6 +18,11 @@ namespace MortierFu
         [SerializeField] private float _moveDuration = 0.5f;
 
         private Coroutine _moveRoutine;
+
+        private void Start()
+        {
+            MoveTo(_sandboxView);
+        }
 
         public void FocusSandbox()
         {
