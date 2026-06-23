@@ -65,9 +65,6 @@ namespace MortierFu
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
 
-        // private List<IEffect<PlayerCharacter>> _activeEffects = new();
-        //private List<Ability> PuddleAbilities; //TODO: Make it better
-
         private LocomotionState _locomotionState;
         private KnockbackState _knockbackState;
         private StunState _stunState;
@@ -85,6 +82,76 @@ namespace MortierFu
 
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
+
+        void Awake()
+        {
+            // Create character components
+            Health = new HealthCharacterComponent(this);
+            Controller = new ControllerCharacterComponent(this);
+            Aspect = new AspectCharacterComponent(this);
+            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
+
+            // Create a unique instance of CharacterData for this character
+            Stats = Instantiate(_characterStatsTemplate);
+
+            // Handle augments
+            _augments = new List<IAugment>();
+            Augments = _augments.AsReadOnly();
+
+            InitStateMachine();
+        }
+
+        void Start()
+        {
+            // Find and cache Input Actions
+            FindInputAction("Dash", out _dashAction);
+            FindInputAction("ToggleAim", out _toggleAimAction);
+            FindInputAction("Taunt", out _tauntAction);
+
+            // Initialize character components
+            Health.Initialize();
+            Controller.Initialize();
+            Aspect.Initialize(); // Require to be initialized before the mortar
+            Mortar.Initialize();
+
+            _toggleAimAction.started += Mortar.BeginAiming;
+            _toggleAimAction.canceled += Mortar.EndAiming;
+
+            _dashAction.started += PlayDashSFX;
+            _tauntAction.started += Taunt;
+
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
+            _dashState.Reset();
+            ExternalSpeedMultiplier = 1f;
+        }
+
+        private void OnDisable()
+        {
+            Mortar?.CancelAiming();
+        }
+
+        private void OnDestroy()
+        {
+            ClearAugments();
+
+            _stateMachine?.Dispose();
+
+            Health?.Dispose();
+            Controller?.Dispose();
+            Aspect?.Dispose();
+            Mortar?.Dispose();
+
+            if (_dashAction != null)
+                _dashAction.started -= PlayDashSFX;
+
+            if (_tauntAction != null)
+                _tauntAction.started -= Taunt;
+
+            if (_toggleAimAction == null || Mortar == null) return;
+            _toggleAimAction.started -= Mortar.BeginAiming;
+            _toggleAimAction.canceled -= Mortar.EndAiming;
+        }
 
         public void Initialize(PlayerManager owner)
         {
@@ -114,7 +181,7 @@ namespace MortierFu
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
         }
-        
+
         public void RefreshCustomizationFromOwner()
         {
             if (Owner == null)
@@ -140,54 +207,6 @@ namespace MortierFu
             }
         }
 
-        void Awake()
-        {
-            // Create character components
-            Health = new HealthCharacterComponent(this);
-            Controller = new ControllerCharacterComponent(this);
-            Aspect = new AspectCharacterComponent(this);
-            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
-
-            // Create a unique instance of CharacterData for this character
-            Stats = Instantiate(_characterStatsTemplate);
-
-            // Handle augments
-            _augments = new List<IAugment>();
-            Augments = _augments.AsReadOnly();
-
-            // _activeEffects = new List<IEffect<PlayerCharacter>>();
-            //   PuddleAbilities = new List<Ability>();
-
-            InitStateMachine();
-        }
-
-        void Start()
-        {
-            // Find and cache Input Actions
-            FindInputAction("Dash", out _dashAction);
-            FindInputAction("ToggleAim", out _toggleAimAction);
-            FindInputAction("Taunt", out _tauntAction);
-
-            // Initialize character components
-            Health.Initialize();
-            Controller.Initialize();
-            Aspect.Initialize(); // Require to be initialized before the mortar
-            Mortar.Initialize();
-            //TEMP Initialiser l'aimindicator
-            //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
-
-            _toggleAimAction.started += Mortar.BeginAiming;
-            _toggleAimAction.canceled += Mortar.EndAiming;
-
-            _dashAction.started += PlayDashSFX;
-            _tauntAction.started += Taunt;
-
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            
-            _dashState.Reset();
-            ExternalSpeedMultiplier = 1f;
-        }
-
         public void Reset()
         {
             // Reset the parent if it was held by an actor
@@ -201,44 +220,12 @@ namespace MortierFu
             Aspect.Reset();
             Mortar.Reset();
 
-            /* var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
-
-              foreach (var effect in effectsCopy)
-              {
-                  effect.OnCompleted -= RemoveEffect;
-                  effect.Cancel(this);
-              }
-
-            _activeEffects.Clear();*/
-
             _knockbackState.Reset();
             _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);
 
             ExternalSpeedMultiplier = 1f;
-        }
-
-        private void OnDestroy()
-        {
-            ClearAugments();
-
-            _stateMachine?.Dispose();
-
-            Health?.Dispose();
-            Controller?.Dispose();
-            Aspect?.Dispose();
-            Mortar?.Dispose();
-
-            if (_dashAction != null)
-                _dashAction.started -= PlayDashSFX;
-
-            if (_tauntAction != null)
-                _tauntAction.started -= Taunt;
-
-            if (_toggleAimAction == null || Mortar == null) return;
-            _toggleAimAction.started -= Mortar.BeginAiming;
-            _toggleAimAction.canceled -= Mortar.EndAiming;
         }
 
         private void InitStateMachine()
@@ -256,7 +243,6 @@ namespace MortierFu
 
             // Define transitions
 
-            // Retour vers locomotion après états temporaires
             At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive
             ));
 
@@ -327,7 +313,7 @@ namespace MortierFu
             _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
-        public void ReceiveStun(float duration)
+        private void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
         }
@@ -386,7 +372,7 @@ namespace MortierFu
         private void Update()
         {
             _stateMachine.Update();
-            
+
             Health.Update();
             Controller.Update();
             Aspect.Update();
@@ -471,22 +457,6 @@ namespace MortierFu
         {
             _animator.SetFloat(_speedHash, Controller.SpeedRatio);
         }
-
-        /*public void ApplyEffect(IEffect<PlayerCharacter> effect)
-        {
-            if (HasEffect(effect))
-                return;
-
-            _activeEffects.Add(effect);
-            effect.OnCompleted += RemoveEffect;
-            effect.Apply(this);
-        }
-
-        public void RemoveEffect(IEffect<PlayerCharacter> effect)
-        {
-            effect.OnCompleted -= RemoveEffect;
-            _activeEffects.Remove(effect);
-        }*/
 
         private void PlayDashSFX(InputAction.CallbackContext context)
         {

@@ -15,18 +15,18 @@ namespace MortierFu
         private GameObject _inGameCharacter;
 
         public PlayerInput PlayerInput => _playerInput;
-        
+
         private PlayerRuntimeController _runtimeController;
 
         private GamePauseSystem _gamePauseSystem;
 
         private PlayerInputRouter _inputRouter;
         private readonly PlayerCustomizationData _customization = new();
-        
+
         public GameObject CharacterGO => RuntimeController.CharacterGO;
         public PlayerCharacter Character => RuntimeController.Character;
         public bool IsInGame => RuntimeController.IsInGame;
-        
+
         private PlayerInputRouter InputRouter
         {
             get
@@ -40,7 +40,7 @@ namespace MortierFu
                 return _inputRouter;
             }
         }
-        
+
         private PlayerRuntimeController RuntimeController
         {
             get
@@ -56,7 +56,7 @@ namespace MortierFu
 
         public PlayerControlContext ControlContext => InputRouter.ControlContext;
         public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
-        
+
         public int PlayerIndex => _playerInput.playerIndex;
 
         public bool IsReady { get; private set; }
@@ -66,7 +66,7 @@ namespace MortierFu
         public int SkinIndex => _customization.SkinIndex;
         public int FaceColumn => _customization.FaceColumn;
         public int FaceRow => _customization.FaceRow;
-        
+
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
@@ -88,7 +88,8 @@ namespace MortierFu
             if (SystemManager.Instance == null)
             {
                 _gamePauseSystem = null;
-                Logs.LogWarning("[PlayerManager] Cannot resolve GamePauseSystem because SystemManager is not available.");
+                Logs.LogWarning(
+                    "[PlayerManager] Cannot resolve GamePauseSystem because SystemManager is not available.");
                 return false;
             }
 
@@ -102,7 +103,7 @@ namespace MortierFu
             }
 
             if (ReferenceEquals(_gamePauseSystem, currentPauseSystem)) return true;
-            
+
             _gamePauseSystem = currentPauseSystem;
             Logs.Log($"[PlayerManager] Refreshed GamePauseSystem reference for Player {PlayerIndex + 1}.");
 
@@ -133,7 +134,7 @@ namespace MortierFu
         {
             InputRouter.BindGameplayInputCallbacks();
         }
-        
+
         private void UnbindGameplayInputCallbacks()
         {
             _inputRouter?.UnbindGameplayInputCallbacks();
@@ -184,7 +185,7 @@ namespace MortierFu
         }
 
         public void JoinTeam(PlayerTeam team) => Team = team;
-        
+
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);

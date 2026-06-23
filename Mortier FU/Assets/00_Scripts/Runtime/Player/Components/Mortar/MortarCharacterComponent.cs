@@ -15,7 +15,6 @@ namespace MortierFu
 
         private BombshellSystem _bombshellSys;
         private MortarShootStrategy _shootStrategy;
-        //pardon antoine
         internal CountdownTimer _shootCooldownTimer;
         private CameraSystem _cameraSystem;
         private bool _isAiming;
@@ -44,13 +43,15 @@ namespace MortierFu
                 return;
             }
 
-            AimWidget = Object.Instantiate(aimWidgetPrefab); // TODO Load via Addressable?
+            AimWidget = Object.Instantiate(aimWidgetPrefab);
+            AimWidget.name = $"Runtime AimWidget - {character.name}";
+            AimWidget.Hide();
+
             _firePoint = firePoint;
         }
 
         public override void Initialize()
         {
-            // Find and cache Input Actions
             character.FindInputAction("Aim", out _aimAction);
             character.FindInputAction("Shoot", out _shootAction);
 
