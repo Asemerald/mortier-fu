@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using MortierFu.Shared;
@@ -14,7 +15,7 @@ namespace MortierFu
 {
     public class AudioService : IGameService
     {
-        private List<AssetReference> Banks = new List<AssetReference>();
+        private List<AssetReference> Banks = new ();
 
         public static FMODEventsSO FMODEvents;
 
@@ -36,19 +37,66 @@ namespace MortierFu
         {
             EventInstance instance = RuntimeManager.CreateInstance(eventRef);
             instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
-            instance.setParameterByName("Pan", panning);
+
+            TrySetParameterIfExists(instance, "Pan", panning);
+
             instance.start();
             instance.release();
 
             return instance;
         }
         
+        private static bool TrySetParameterIfExists(EventInstance instance, string parameterName, float value)
+        {
+            if (!instance.isValid())
+                return false;
+
+            FMOD.RESULT descriptionResult = instance.getDescription(out EventDescription eventDescription);
+
+            if (descriptionResult != FMOD.RESULT.OK)
+                return false;
+
+            FMOD.RESULT countResult = eventDescription.getParameterDescriptionCount(out int parameterCount);
+
+            if (countResult != FMOD.RESULT.OK)
+                return false;
+
+            for (int i = 0; i < parameterCount; i++)
+            {
+                FMOD.RESULT parameterResult = eventDescription.getParameterDescriptionByIndex(
+                    i,
+                    out PARAMETER_DESCRIPTION parameterDescription
+                );
+
+                if (parameterResult != FMOD.RESULT.OK)
+                    continue;
+
+                if (!string.Equals(parameterDescription.name, parameterName, StringComparison.Ordinal))
+                    continue;
+
+                FMOD.RESULT setResult = instance.setParameterByName(parameterName, value);
+
+                if (setResult != FMOD.RESULT.OK)
+                {
+                    Logs.LogWarning($"[AudioService] Failed to set FMOD parameter '{parameterName}'. Result: {setResult}");
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+        
         public static EventInstance PlayOneShot(EventReference eventRef, Vector3 position)
         {
             EventInstance instance = RuntimeManager.CreateInstance(eventRef);
-            instance.set3DAttributes(RuntimeUtils.To3DAttributes(Vector3.zero));
-            var panning = GetPanningFromWorldSpace(position);
-            instance.setParameterByName("Pan", panning);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(position));
+
+            float panning = GetPanningFromWorldSpace(position);
+
+            TrySetParameterIfExists(instance, "Pan", panning);
+
             instance.start();
             instance.release();
 
@@ -77,7 +125,6 @@ namespace MortierFu
 
         private static float GetPanningFromWorldSpace(Vector3 position)
         {
-            //AJOUTER LOGIQUE
             var screenPos = Camera.main.WorldToScreenPoint(position);
             float pan = (screenPos.x - (Screen.width/2)) / Screen.width * 2;
             
