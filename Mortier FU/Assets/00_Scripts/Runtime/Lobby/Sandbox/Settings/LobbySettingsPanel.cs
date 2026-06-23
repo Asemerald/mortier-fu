@@ -1,5 +1,6 @@
 using System;
 using MortierFu.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,7 +23,7 @@ namespace MortierFu
         [SerializeField] private string _cancelActionName = "Cancel";
 
         [Header("Optional Feedback")]
-        [SerializeField] private GameObject[] _scoreStepIndicators;
+        [SerializeField] private TextMeshProUGUI _scoreStepIndicator;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
@@ -157,6 +158,7 @@ namespace MortierFu
 
             _lastNavigateTime = Time.time;
             _previousNavigateInput = input;
+            RefreshFeedback(_scoreSteps[_currentScoreIndex]);
         }
 
         private void OnSubmit(InputAction.CallbackContext ctx)
@@ -183,6 +185,7 @@ namespace MortierFu
             Logs.Log($"[LobbySettingsPanel] Closed by Player {_activePlayer.PlayerIndex + 1}.");
 
             _onClosed?.Invoke(_activePlayer);
+            _root.SetActive(false);
         }
 
         private void SetScoreIndex(int index)
@@ -205,23 +208,17 @@ namespace MortierFu
             int score = _scoreSteps[_currentScoreIndex];
             _settingsData.SetScoreToWin(score);
 
-            RefreshFeedback();
+            RefreshFeedback(_scoreSteps[_currentScoreIndex]);
 
             Logs.Log($"[LobbySettingsPanel] ScoreToWin = {score}");
         }
 
-        private void RefreshFeedback()
+        private void RefreshFeedback(int currentScore)
         {
-            if (_scoreStepIndicators == null)
+            if (_scoreStepIndicator == null)
                 return;
 
-            for (int i = 0; i < _scoreStepIndicators.Length; i++)
-            {
-                if (_scoreStepIndicators[i] == null)
-                    continue;
-
-                _scoreStepIndicators[i].SetActive(i == _currentScoreIndex);
-            }
+            _scoreStepIndicator.text = currentScore.ToString();
         }
 
         private int FindClosestScoreIndex(int score)
