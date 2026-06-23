@@ -83,8 +83,25 @@ namespace MortierFu
         {
             InitReferences();
             InitUI();
+            BindPauseSystemEvents();
             InitMortars();
             Hide();
+        }
+        
+        private void OnDisable()
+        {
+            UnbindPauseSystemEvents();
+            StopAllActiveAnimations();
+        }
+        
+        private void OnDestroy()
+        {
+            UnbindPauseSystemEvents();
+            StopAllActiveAnimations();
+            
+            _mortarHandsInitialPositions = null;
+            _mortarHeadsInitialPositions = null;
+            _mortarInitialRotations = null;
         }
 
         private void Update()
@@ -93,24 +110,7 @@ namespace MortierFu
             ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
             ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
         }
-
-        private void OnDisable() => StopAllActiveAnimations();
-
-        private void OnDestroy()
-        {
-            if (_gamePauseSystem != null)
-            {
-                _gamePauseSystem.Paused -= Pause;
-                _gamePauseSystem.Resumed -= UnPause;
-                _gamePauseSystem.Canceled -= Return;
-            }
-
-            StopAllActiveAnimations();
-            _mortarHandsInitialPositions = null;
-            _mortarHeadsInitialPositions = null;
-            _mortarInitialRotations = null;
-        }
-
+        
         private void InitReferences()
         {
             _eventSystem = EventSystem.current;
@@ -128,11 +128,7 @@ namespace MortierFu
                 _fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
             _gamePauseSystem.BindUIEvents(
                 _fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
-
-            _gamePauseSystem.Paused += Pause;
-            _gamePauseSystem.Resumed += UnPause;
-            _gamePauseSystem.Canceled += Return;
-
+            
             _settingsButton.onClick.AddListener(OpenSettingPanel);
             _controlsButton.onClick.AddListener(OpenControlPanel);
             _endGameButton.onClick.AddListener(OpenEndGamePanel);
@@ -418,6 +414,30 @@ namespace MortierFu
             _quitGameConfirmationPanel.SetActive(false);
             _pausePanel.SetActive(true);
             _blackPanel.SetActive(true);
+        }
+        
+        private void BindPauseSystemEvents()
+        {
+            if (_gamePauseSystem == null)
+                return;
+
+            _gamePauseSystem.Paused -= Pause;
+            _gamePauseSystem.Resumed -= UnPause;
+            _gamePauseSystem.Canceled -= Return;
+
+            _gamePauseSystem.Paused += Pause;
+            _gamePauseSystem.Resumed += UnPause;
+            _gamePauseSystem.Canceled += Return;
+        }
+
+        private void UnbindPauseSystemEvents()
+        {
+            if (_gamePauseSystem == null)
+                return;
+
+            _gamePauseSystem.Paused -= Pause;
+            _gamePauseSystem.Resumed -= UnPause;
+            _gamePauseSystem.Canceled -= Return;
         }
 
         private void Shuffle(int[] array)

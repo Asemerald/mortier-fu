@@ -85,22 +85,28 @@ namespace MortierFu
 
         private bool TryResolveGamePauseSystem()
         {
-            if (_gamePauseSystem != null)
-                return true;
-
             if (SystemManager.Instance == null)
             {
+                _gamePauseSystem = null;
                 Logs.LogWarning("[PlayerManager] Cannot resolve GamePauseSystem because SystemManager is not available.");
                 return false;
             }
 
-            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+            var currentPauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
 
-            if (_gamePauseSystem != null)
-                return true;
+            if (currentPauseSystem == null)
+            {
+                _gamePauseSystem = null;
+                Logs.LogWarning("[PlayerManager] GamePauseSystem is not available.");
+                return false;
+            }
 
-            Logs.LogWarning("[PlayerManager] GamePauseSystem is not available.");
-            return false;
+            if (ReferenceEquals(_gamePauseSystem, currentPauseSystem)) return true;
+            
+            _gamePauseSystem = currentPauseSystem;
+            Logs.Log($"[PlayerManager] Refreshed GamePauseSystem reference for Player {PlayerIndex + 1}.");
+
+            return true;
         }
 
         // TODO: Faire un input manager plus tard
