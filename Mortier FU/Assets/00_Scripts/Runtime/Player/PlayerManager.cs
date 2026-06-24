@@ -78,12 +78,14 @@ namespace MortierFu
             _playerInput = GetComponent<PlayerInput>();
             DontDestroyOnLoad(gameObject);
 
-            _playerInput.SwitchCurrentActionMap("UI");
+            SetControlContext(PlayerControlContext.Menu);
+            InputRouter.BindInputCallbacks();
 
-            if (PlayerIndex != 0 || MenuManager.Instance == null) return;
+            if (PlayerIndex != 0 || !MenuManager.Instance)
+                return;
 
-            Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
-            MenuManager.Instance.SetPlayer1InputAction(_playerInput);
+            Logs.Log("[PlayerManager] Assigning Player 1 to MenuManager.");
+            MenuManager.Instance.SetPlayer1(this);
         }
 
         private bool TryResolveGamePauseSystem()
@@ -221,8 +223,6 @@ namespace MortierFu
             {
                 OnPlayerInitialized?.Invoke(this);
             }
-
-            BindInputCallbacks();
         }
 
         /// <summary>
@@ -230,7 +230,6 @@ namespace MortierFu
         /// </summary>
         public void DespawnInGame()
         {
-            UnbindInputCallbacks();
             RuntimeController.Despawn();
         }
 

@@ -82,25 +82,25 @@ namespace MortierFu
 
             _interactAction = _playerInput.actions.FindAction(PlayerInputActionNames.Interact, false);
 
-            if (_pauseAction != null)
+            if (_pauseAction is not null)
                 _pauseAction.performed += _onPause;
 
-            if (_unPauseAction != null)
+            if (_unPauseAction is not null)
                 _unPauseAction.performed += _onPause;
 
-            if (_navigateUIAction != null)
+            if (_navigateUIAction is not null)
             {
                 _navigateUIAction.performed += _onNavigateUI;
                 _navigateUIAction.canceled += _onNavigateUI;
             }
 
-            if (_submitUIAction != null)
+            if (_submitUIAction is not null)
                 _submitUIAction.performed += _onSubmitUI;
 
-            if (_cancelUIAction != null)
+            if (_cancelUIAction is not null)
                 _cancelUIAction.performed += _onCancelUI;
 
-            if (_interactAction != null)
+            if (_interactAction is not null)
                 _interactAction.performed += _onInteract;
 
             _callbacksBound = true;
@@ -111,25 +111,25 @@ namespace MortierFu
             if (!_callbacksBound)
                 return;
 
-            if (_pauseAction != null)
+            if (_pauseAction is not null)
                 _pauseAction.performed -= _onPause;
 
-            if (_unPauseAction != null)
+            if (_unPauseAction is not null)
                 _unPauseAction.performed -= _onPause;
 
-            if (_navigateUIAction != null)
+            if (_navigateUIAction is not null)
             {
                 _navigateUIAction.performed -= _onNavigateUI;
                 _navigateUIAction.canceled -= _onNavigateUI;
             }
 
-            if (_submitUIAction != null)
+            if (_submitUIAction is not null)
                 _submitUIAction.performed -= _onSubmitUI;
 
-            if (_cancelUIAction != null)
+            if (_cancelUIAction is not null)
                 _cancelUIAction.performed -= _onCancelUI;
 
-            if (_interactAction != null)
+            if (_interactAction is not null)
                 _interactAction.performed -= _onInteract;
 
             _pauseAction = null;

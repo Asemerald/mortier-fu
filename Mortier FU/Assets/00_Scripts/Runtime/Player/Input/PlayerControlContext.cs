@@ -4,7 +4,8 @@ namespace MortierFu
     {
         Lobby,
         Menu,
-        
+        PauseMenu,
+
         LobbySandbox,
         LobbyCustomization,
         LobbySettingsOwner,

@@ -13,7 +13,7 @@ namespace MortierFu
         public readonly bool CanNavigateUI;
         public readonly bool CanConfirmUI;
         public readonly bool CanCancelUI;
-        
+
         public PlayerActionPermissions(
             bool canMove,
             bool canAim,
@@ -38,6 +38,7 @@ namespace MortierFu
             CanConfirmUI = canConfirmUI;
             CanCancelUI = canCancelUI;
         }
+
         public static PlayerActionPermissions FromContext(PlayerControlContext context)
         {
             return context switch
@@ -54,7 +55,33 @@ namespace MortierFu
                     canConfirmUI: true,
                     canCancelUI: true
                 ),
-                
+
+                PlayerControlContext.Menu => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canInteract: false,
+                    canPause: false,
+                    canNavigateUI: true,
+                    canConfirmUI: true,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.PauseMenu => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: true,
+                    canConfirmUI: true,
+                    canCancelUI: true
+                ),
+
                 PlayerControlContext.LobbySandbox => new PlayerActionPermissions(
                     canMove: true,
                     canAim: true,
@@ -106,21 +133,8 @@ namespace MortierFu
                     canConfirmUI: false,
                     canCancelUI: false
                 ),
-                
-                PlayerControlContext.LobbyReturnConfirmationOwner => new PlayerActionPermissions(
-                    canMove: false,
-                    canAim: false,
-                    canShoot: false,
-                    canDash: false,
-                    canTaunt: false,
-                    canInteract: false,
-                    canPause: false,
-                    canNavigateUI: true,
-                    canConfirmUI: true,
-                    canCancelUI: true
-                ),
 
-                PlayerControlContext.Menu => new PlayerActionPermissions(
+                PlayerControlContext.LobbyReturnConfirmationOwner => new PlayerActionPermissions(
                     canMove: false,
                     canAim: false,
                     canShoot: false,
@@ -143,7 +157,7 @@ namespace MortierFu
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: true,
-                    canCancelUI: false
+                    canCancelUI: true
                 ),
 
                 PlayerControlContext.AugmentRace => new PlayerActionPermissions(

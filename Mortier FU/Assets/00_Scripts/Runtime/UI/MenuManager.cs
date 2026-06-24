@@ -3,49 +3,51 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace MortierFu
 {
-    public class MenuManager : MonoBehaviour
+    public sealed class MenuManager : MonoBehaviour, IPlayerUIInputHandler
     {
         [field: Header("Main Menu References")]
-        [field: SerializeField]
-        public MainMenuPanel MainMenuPanel { get; private set; }
+        [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
 
         [field: SerializeField] public Button PlayButton { get; private set; }
         [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button CreditsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
-        
+
         [SerializeField] private GameObject _animatedCharacter;
         [SerializeField] private GameObject _animatedOutlineCharacter;
 
         [field: Header("Settings References")]
-        [field: SerializeField]
-        public SettingsPanel SettingsPanel { get; private set; }
+        [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
 
         [field: Header("Credits References")]
-        [field: SerializeField]
-        public CreditsPanel CreditsPanel { get; private set; }
+        [field: SerializeField] public CreditsPanel CreditsPanel { get; private set; }
 
         [Header("Utils")]
         [SerializeField] private MainMenuCameraManager _cameraManager;
-
         [SerializeField] private float _delayBeforeMainMenuShow = 2f;
 
         private EventSystem _eventSystem;
-        private bool _isLoadingLobby;
+        private PlayerManager _player1;
 
-        public PlayerInput Player1InputAction { get; private set; }
+        private bool _isLoadingLobby;
 
         public static MenuManager Instance { get; private set; }
 
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
+
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance && Instance != this)
             {
                 Logs.LogWarning("[MenuManager] Multiple instances detected. Destroying duplicate.", this);
                 Destroy(gameObject);
@@ -57,33 +59,26 @@ namespace MortierFu
             CheckReferences();
             CheckActivePanels();
 
-            ServiceManager.Instance
-                .Get<AudioService>()
-                .StartMusic(AudioService.FMODEvents.MUS_MainMenu)
-                .Forget();
+            var audioService = ServiceManager.Instance?.Get<AudioService>();
+            audioService?.StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
         }
 
         private void Start()
         {
             _eventSystem = EventSystem.current;
 
-            if (_eventSystem == null)
+            if (!_eventSystem)
             {
                 Logs.LogError("[MenuManager] No EventSystem found in the scene.", this);
                 return;
             }
 
             EnableUiInputModule();
-
-            if (PlayButton != null)
-            {
-                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-                PlayButton.onClick.AddListener(LoadLobbyScene);
-            }
+            BindButtons();
 
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
 
-            if (PlayerInputBridge.Instance != null)
+            if (PlayerInputBridge.Instance)
             {
                 PlayerInputBridge.Instance.CanJoin(true);
             }
@@ -96,22 +91,48 @@ namespace MortierFu
                 Instance = null;
             }
 
-            if (PlayButton != null)
-            {
-                PlayButton.onClick.RemoveListener(LoadLobbyScene);
-            }
+            UnregisterPlayer1();
+            UnbindButtons();
+        }
 
-            UnbindPlayer1Input();
+        private void BindButtons()
+        {
+            if (PlayButton)
+                PlayButton.onClick.AddListener(LoadLobbyScene);
+
+            if (SettingsButton)
+                SettingsButton.onClick.AddListener(OpenSettingsPanel);
+
+            if (CreditsButton)
+                CreditsButton.onClick.AddListener(OpenCreditsPanel);
+
+            if (QuitButton)
+                QuitButton.onClick.AddListener(QuitGame);
+        }
+
+        private void UnbindButtons()
+        {
+            if (PlayButton)
+                PlayButton.onClick.RemoveListener(LoadLobbyScene);
+
+            if (SettingsButton)
+                SettingsButton.onClick.RemoveListener(OpenSettingsPanel);
+
+            if (CreditsButton)
+                CreditsButton.onClick.RemoveListener(OpenCreditsPanel);
+
+            if (QuitButton)
+                QuitButton.onClick.RemoveListener(QuitGame);
         }
 
         private void EnableUiInputModule()
         {
-            if (_eventSystem == null)
+            if (!_eventSystem)
                 return;
 
             var inputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
 
-            if (inputModule == null || inputModule.actionsAsset == null)
+            if (!inputModule || !inputModule.actionsAsset)
             {
                 Logs.LogWarning("[MenuManager] InputSystemUIInputModule or actions asset is missing.", this);
                 return;
@@ -127,15 +148,39 @@ namespace MortierFu
         {
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
-            if (MainMenuPanel != null)
-            {
-                MainMenuPanel.gameObject.SetActive(true);
-            }
+            if (MainMenuPanel)
+                MainMenuPanel.Show();
 
-            if (_eventSystem != null && PlayButton != null)
-            {
+            if (_eventSystem && PlayButton)
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-            }
+        }
+
+        public void SetPlayer1(PlayerManager player)
+        {
+            UnregisterPlayer1();
+
+            if (!player)
+                return;
+
+            _player1 = player;
+            _player1.SetControlContext(PlayerControlContext.Menu);
+
+            UIInputService?.Push(_player1, this);
+
+            if (PlayerInputBridge.Instance)
+                PlayerInputBridge.Instance.CanJoin(false);
+
+            Logs.Log("[MenuManager] Player 1 assigned.");
+        }
+
+        private void UnregisterPlayer1()
+        {
+            if (_player1)
+                UIInputService?.Remove(_player1, this);
+            else
+                UIInputService?.RemoveFromAll(this);
+
+            _player1 = null;
         }
 
         private void LoadLobbyScene()
@@ -152,147 +197,174 @@ namespace MortierFu
 
             var sceneService = ServiceManager.Instance.Get<SceneService>();
 
-            if (sceneService == null)
+            if (sceneService is null)
             {
                 Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.", this);
                 _isLoadingLobby = false;
                 return;
             }
 
-            if (PlayerInputBridge.Instance != null)
-            {
+            UIInputService?.RemoveFromAll(this);
+
+            if (PlayerInputBridge.Instance)
                 PlayerInputBridge.Instance.CanJoin(false);
-            }
 
             await sceneService.LoadScene("Lobby", setAsActiveScene: true);
-
             await sceneService.UnloadScene("MainMenu");
         }
 
-        public void SetPlayer1InputAction(PlayerInput playerInput)
+        public void OpenSettingsPanel()
         {
-            UnbindPlayer1Input();
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
-            Player1InputAction = playerInput;
+            if (MainMenuPanel)
+                MainMenuPanel.Hide();
 
-            if (Player1InputAction == null)
-                return;
+            if (SettingsPanel)
+                SettingsPanel.Show();
 
-            var cancelAction = Player1InputAction.actions.FindAction("Cancel", false);
-
-            if (cancelAction != null)
-            {
-                cancelAction.performed += OnCancel;
-            }
-
-            if (PlayerInputBridge.Instance != null)
-            {
-                PlayerInputBridge.Instance.CanJoin(false);
-            }
-
-            Logs.Log("[MenuManager] Player 1 input assigned.");
+            SetCharactersVisible(false);
         }
 
-        private void UnbindPlayer1Input()
+        private void CloseSettingsPanel()
         {
-            if (Player1InputAction == null)
-                return;
+            if (SettingsPanel)
+                SettingsPanel.Hide();
 
-            var cancelAction = Player1InputAction.actions.FindAction("Cancel", false);
+            if (MainMenuPanel)
+                MainMenuPanel.Show();
 
-            if (cancelAction != null)
-            {
-                cancelAction.performed -= OnCancel;
-            }
+            SetCharactersVisible(true);
 
-            Player1InputAction = null;
+            if (_eventSystem && SettingsButton)
+                _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
         }
 
-        private void OnCancel(InputAction.CallbackContext context)
+        public void OpenCreditsPanel()
         {
-            if (!context.performed)
-                return;
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
+            if (MainMenuPanel)
+                MainMenuPanel.Hide();
+
+            if (CreditsPanel)
+                CreditsPanel.Show();
+
+            SetCharactersVisible(false);
+        }
+
+        private void CloseCreditsPanel()
+        {
+            if (CreditsPanel)
+                CreditsPanel.Hide();
+
+            if (MainMenuPanel)
+                MainMenuPanel.Show();
+
+            SetCharactersVisible(true);
+
+            if (_eventSystem && CreditsButton)
+                _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
+        }
+
+        public void QuitGame()
+        {
+            Logs.Log("[MenuManager] Quitting game.");
+
+#if UNITY_EDITOR
+            EditorApplication.isPlaying = false;
+            return;
+#endif
+
+#pragma warning disable CS0162
+            Application.Quit();
+#pragma warning restore CS0162
+        }
+
+        private void SetCharactersVisible(bool visible)
+        {
+            if (_animatedCharacter)
+                _animatedCharacter.SetActive(visible);
+
+            if (_animatedOutlineCharacter)
+                _animatedOutlineCharacter.SetActive(visible);
+        }
+
+        private bool TryCancelCurrentPanel()
+        {
             Logs.Log("[MenuManager] Cancel triggered.");
 
-            if (SettingsPanel != null && SettingsPanel.IsVisible())
+            if (SettingsPanel && SettingsPanel.IsVisible())
             {
-                SettingsPanel.Hide();
-                MainMenuPanel.Show();
-                _animatedCharacter.SetActive(true);
-                _animatedOutlineCharacter.SetActive(true);
-                
-                if (_eventSystem != null && SettingsButton != null)
-                {
-                    _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
-                }
-
-                return;
+                CloseSettingsPanel();
+                return true;
             }
 
-            if (CreditsPanel != null && CreditsPanel.IsVisible())
+            if (CreditsPanel && CreditsPanel.IsVisible())
             {
-                CreditsPanel.Hide();
-                MainMenuPanel.Show();
-                _animatedCharacter.SetActive(true);
-                _animatedOutlineCharacter.SetActive(true);
-                
-                if (_eventSystem != null && CreditsButton != null)
-                {
-                    _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
-                }
+                CloseCreditsPanel();
+                return true;
             }
+
+            return false;
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _player1 &&
+                   ReferenceEquals(_player1, player) &&
+                   player.CurrentPermissions.CanCancelUI;
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            return false;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            return false;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            return TryCancelCurrentPanel();
         }
 
         private void CheckReferences()
         {
-            if (MainMenuPanel == null)
-            {
+            if (!MainMenuPanel)
                 Logs.LogError("[MenuManager] MainMenuPanel reference is missing.", this);
-            }
 
-            if (PlayButton == null)
-            {
+            if (!PlayButton)
                 Logs.LogError("[MenuManager] PlayButton reference is missing.", this);
-            }
 
-            if (SettingsButton == null)
-            {
+            if (!SettingsButton)
                 Logs.LogError("[MenuManager] SettingsButton reference is missing.", this);
-            }
 
-            if (CreditsButton == null)
-            {
+            if (!CreditsButton)
                 Logs.LogError("[MenuManager] CreditsButton reference is missing.", this);
-            }
 
-            if (SettingsPanel == null)
-            {
+            if (!QuitButton)
+                Logs.LogError("[MenuManager] QuitButton reference is missing.", this);
+
+            if (!SettingsPanel)
                 Logs.LogError("[MenuManager] SettingsPanel reference is missing.", this);
-            }
 
-            if (CreditsPanel == null)
-            {
+            if (!CreditsPanel)
                 Logs.LogError("[MenuManager] CreditsPanel reference is missing.", this);
-            }
 
-            if (_cameraManager == null)
-            {
+            if (!_cameraManager)
                 Logs.LogWarning("[MenuManager] MainMenuCameraManager reference is missing.", this);
-            }
         }
 
         private void CheckActivePanels()
         {
-            if (SettingsPanel != null && !SettingsPanel.isActiveAndEnabled)
-            {
+            if (SettingsPanel && !SettingsPanel.isActiveAndEnabled)
                 SettingsPanel.gameObject.SetActive(true);
-            }
 
-            if (CreditsPanel != null && !CreditsPanel.isActiveAndEnabled)
-            {
+            if (CreditsPanel && !CreditsPanel.isActiveAndEnabled)
                 CreditsPanel.gameObject.SetActive(true);
-            }
         }
     }
 }
