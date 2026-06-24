@@ -12,7 +12,9 @@ namespace MortierFu
 
         [Header("Views")]
         [SerializeField] private Transform _sandboxView;
+        [SerializeField] private float _sandboxFov;
         [SerializeField] private Transform _settingsView;
+        [SerializeField] private float _settingsboxFov;
 
         [Header("Movement")]
         [SerializeField] private float _moveDuration = 0.5f;
@@ -21,20 +23,20 @@ namespace MortierFu
 
         private void Start()
         {
-            MoveTo(_sandboxView);
+            MoveTo(_sandboxView, _sandboxFov);
         }
 
         public void FocusSandbox()
         {
-            MoveTo(_sandboxView);
+            MoveTo(_sandboxView,_sandboxFov);
         }
 
         public void FocusSettings()
         {
-            MoveTo(_settingsView);
+            MoveTo(_settingsView,_settingsboxFov);
         }
 
-        private void MoveTo(Transform target)
+        private void MoveTo(Transform target, float fovSize)
         {
             if (_cameraRig == null)
             {
@@ -53,16 +55,18 @@ namespace MortierFu
                 StopCoroutine(_moveRoutine);
             }
 
-            _moveRoutine = StartCoroutine(MoveRoutine(target));
+            _moveRoutine = StartCoroutine(MoveRoutine(target,fovSize));
         }
 
-        private IEnumerator MoveRoutine(Transform target)
+        private IEnumerator MoveRoutine(Transform target, float fovSize)
         {
             Vector3 startPosition = _cameraRig.position;
             Quaternion startRotation = _cameraRig.rotation;
-
+            float startSize = _cameraRig.gameObject.GetComponent<Camera>().orthographicSize;
+            
             Vector3 targetPosition = target.position;
             Quaternion targetRotation = target.rotation;
+            float targetSize = fovSize;
 
             if (_moveDuration <= 0f)
             {
@@ -82,6 +86,8 @@ namespace MortierFu
 
                 _cameraRig.position = Vector3.Lerp(startPosition, targetPosition, t);
                 _cameraRig.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+                _cameraRig.gameObject.GetComponent<Camera>().orthographicSize  = Mathf.Lerp(startSize, targetSize, t);
+                
 
                 yield return null;
             }
