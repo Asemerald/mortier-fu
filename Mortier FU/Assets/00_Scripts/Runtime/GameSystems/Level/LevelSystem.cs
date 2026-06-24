@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
@@ -80,50 +81,51 @@ namespace MortierFu
         {
             await FinishUnfinishedBusiness();
 
-            if (useTransition)
-            {
-                await StartTransitionAsync(color);
-            }
+            bool transitionStarted = false;
 
-            await UnloadCurrentMap();
-
-            SetCameraArenaMode(arenaMode);
-
-            bool editorOverrideLoaded = await TryLoadEditorOverrideMapAsync(
-                editorOverrideKey,
-                debugMapTypeName,
-                useTransition
-            );
-
-            if (editorOverrideLoaded)
-                return;
-
-            var mapLocation = GetRandomMapLocation(mapLocations, debugMapTypeName);
-
-            if (mapLocation == null)
+            try
             {
                 if (useTransition)
                 {
-                    EndTransition();
+                    await StartTransitionAsync(color);
+                    transitionStarted = true;
                 }
 
-                return;
+                await UnloadCurrentMap();
+
+                SetCameraArenaMode(arenaMode);
+
+                bool editorOverrideLoaded = await TryLoadEditorOverrideMapAsync(
+                    editorOverrideKey,
+                    debugMapTypeName,
+                    useTransition: false
+                );
+
+                if (editorOverrideLoaded)
+                    return;
+
+                var mapLocation = GetRandomMapLocation(mapLocations, debugMapTypeName);
+
+                if (mapLocation is null)
+                    return;
+
+                bool loaded = await LoadAddressableMapAsync(
+                    mapLocation,
+                    debugMapTypeName
+                );
+
+                if (!loaded)
+                    return;
+
+                ApplyLoadedMapData();
             }
-
-            bool loaded = await LoadAddressableMapAsync(
-                mapLocation,
-                debugMapTypeName
-            );
-
-            if (useTransition)
+            finally
             {
-                EndTransition();
+                if (transitionStarted)
+                {
+                    EndTransition();
+                }
             }
-
-            if (!loaded)
-                return;
-
-            ApplyLoadedMapData();
         }
 
         private async UniTask<bool> TryLoadEditorOverrideMapAsync(
@@ -137,6 +139,8 @@ namespace MortierFu
 
             if (string.IsNullOrEmpty(sceneKey))
                 return false;
+
+            IResourceLocation sceneLocation = null;
 
             var locationsHandle = Addressables.LoadResourceLocationsAsync(sceneKey);
 
@@ -155,6 +159,40 @@ namespace MortierFu
 
                     return false;
                 }
+
+                for (int i = 0; i < locationsHandle.Result.Count; i++)
+                {
+                    var location = locationsHandle.Result[i];
+
+                    if (IsSceneLocation(location))
+                    {
+                        sceneLocation = location;
+                        break;
+                    }
+                }
+
+                if (sceneLocation is null)
+                {
+                    Logs.LogError($"[LevelSystem] Debug {debugMapTypeName} key found, but no valid scene location was found for: {sceneKey}");
+                    return false;
+                }
+
+                bool loaded = await LoadAddressableMapAsync(
+                    sceneLocation,
+                    $"debug {debugMapTypeName}"
+                );
+
+                if (!loaded)
+                    return false;
+
+                ApplyLoadedMapData();
+
+                if (IsDebugEnabled)
+                {
+                    Logs.Log($"[LevelSystem] Enforced debug {debugMapTypeName} scene: {DescribeSceneKey(sceneLocation)}");
+                }
+
+                return true;
             }
             finally
             {
@@ -163,30 +201,8 @@ namespace MortierFu
                     Addressables.Release(locationsHandle);
                 }
             }
-
-            bool loaded = await LoadAddressableMapAsync(
-                sceneKey,
-                $"debug {debugMapTypeName}"
-            );
-
-            if (!loaded)
-                return false;
-
-            ApplyLoadedMapData();
-
-            if (useTransition)
-            {
-                EndTransition();
-            }
-
-            if (IsDebugEnabled)
-            {
-                Logs.Log($"[LevelSystem] Enforced debug {debugMapTypeName} scene: {sceneKey}");
-            }
-
-            return true;
 #else
-            return false;
+    return false;
 #endif
         }
 
@@ -195,17 +211,44 @@ namespace MortierFu
             string debugMapTypeName
         )
         {
-            _mapHandle = Addressables.LoadSceneAsync(
-                sceneKey,
-                LoadSceneMode.Additive,
-                SceneReleaseMode.ReleaseSceneWhenSceneUnloaded
-            );
+            if (sceneKey is null)
+            {
+                Logs.LogError($"[LevelSystem] Cannot load {debugMapTypeName} map: scene key is null.");
+                return false;
+            }
 
-            await _mapHandle;
+            object loadKey = sceneKey;
+
+            if (sceneKey is IResourceLocation location)
+            {
+                loadKey = location.PrimaryKey;
+
+                if (IsDebugEnabled)
+                {
+                    Logs.Log($"[LevelSystem] Loading {debugMapTypeName} map from location. {DescribeSceneKey(location)}. LoadKey='{loadKey}'");
+                }
+            }
+
+            try
+            {
+                _mapHandle = Addressables.LoadSceneAsync(
+                    loadKey,
+                    LoadSceneMode.Additive,
+                    SceneReleaseMode.ReleaseSceneWhenSceneUnloaded
+                );
+
+                await _mapHandle;
+            }
+            catch (System.Exception e)
+            {
+                Logs.LogError($"[LevelSystem] Exception while loading {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {e.Message}");
+                _mapHandle = default;
+                return false;
+            }
 
             if (_mapHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogError($"[LevelSystem] Failed to load {debugMapTypeName} map: {_mapHandle.OperationException?.Message}");
+                Logs.LogError($"[LevelSystem] Failed to load {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {_mapHandle.OperationException?.Message}");
                 _mapHandle = default;
                 return false;
             }
@@ -217,7 +260,7 @@ namespace MortierFu
 
             return true;
         }
-
+        
         public async UniTask UnloadCurrentMap()
         {
             await FinishUnfinishedBusiness();
@@ -413,11 +456,33 @@ namespace MortierFu
                     return new List<IResourceLocation>();
                 }
 
-                var locations = new List<IResourceLocation>(handle.Result);
+                var locations = new List<IResourceLocation>();
 
-                if (IsDebugEnabled)
+                for (int i = 0; i < handle.Result.Count; i++)
                 {
-                    Logs.Log($"[LevelSystem] Loaded {locations.Count} map locations for label '{label}'.");
+                    var location = handle.Result[i];
+
+                    if (!IsSceneLocation(location))
+                    {
+                        if (IsDebugEnabled)
+                        {
+                            Logs.LogWarning($"[LevelSystem] Ignored non-scene location for label '{label}': {DescribeSceneKey(location)}");
+                        }
+
+                        continue;
+                    }
+
+                    locations.Add(location);
+
+                    if (IsDebugEnabled)
+                    {
+                        Logs.Log($"[LevelSystem] Registered scene location for label '{label}': {DescribeSceneKey(location)}");
+                    }
+                }
+
+                if (locations.Count == 0)
+                {
+                    Logs.LogError($"[LevelSystem] No valid SceneInstance locations found for label '{label}'. Check Addressables setup.");
                 }
 
                 return locations;
@@ -530,6 +595,25 @@ namespace MortierFu
 
             _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
             _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
+        }
+        
+        private static bool IsSceneLocation(IResourceLocation location)
+        {
+            return location is not null &&
+                   location.ResourceType == typeof(SceneInstance);
+        }
+
+        private static string DescribeSceneKey(object sceneKey)
+        {
+            if (sceneKey is null)
+                return "<null>";
+
+            if (sceneKey is IResourceLocation location)
+            {
+                return $"PrimaryKey='{location.PrimaryKey}', InternalId='{location.InternalId}', ResourceType='{location.ResourceType}'";
+            }
+
+            return sceneKey.ToString();
         }
 
         public void Dispose()
