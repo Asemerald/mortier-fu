@@ -21,7 +21,6 @@ namespace MortierFu
         [SerializeField] private Button _defaultSelectedButton;
 
         [Header("Input")]
-        [SerializeField] private string _submitActionName = "Submit";
         [SerializeField] private string _cancelActionName = "Cancel";
 
         [Header("Options")]
@@ -30,7 +29,6 @@ namespace MortierFu
         [SerializeField] private bool _onlyPlayerOneCanUse = false;
 
         private PlayerManager _activePlayer;
-        private InputAction _submitAction;
         private InputAction _cancelAction;
 
         private bool _isConfirmationOpen;
@@ -171,11 +169,7 @@ namespace MortierFu
 
             var actions = player.PlayerInput.actions;
 
-            _submitAction = actions.FindAction(_submitActionName, false);
             _cancelAction = actions.FindAction(_cancelActionName, false);
-
-            if (_submitAction != null)
-                _submitAction.performed += OnSubmit;
 
             if (_cancelAction != null)
                 _cancelAction.performed += OnCancel;
@@ -183,22 +177,10 @@ namespace MortierFu
 
         private void UnbindInput()
         {
-            if (_submitAction != null)
-                _submitAction.performed -= OnSubmit;
-
             if (_cancelAction != null)
                 _cancelAction.performed -= OnCancel;
 
-            _submitAction = null;
             _cancelAction = null;
-        }
-
-        private void OnSubmit(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            ConfirmReturnToMainMenu();
         }
 
         private void OnCancel(InputAction.CallbackContext ctx)

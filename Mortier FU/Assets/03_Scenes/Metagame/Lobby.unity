@@ -2672,7 +2672,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!33 &143616321
 MeshFilter:
@@ -11885,7 +11885,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1 &253608823
 GameObject:
@@ -23813,7 +23813,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1 &624850280
 GameObject:
@@ -23846,7 +23846,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 814736325}
-  - {fileID: 1916381236}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 15, z: 0}
 --- !u!114 &624850282
@@ -29823,7 +29822,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1 &799093284
 GameObject:
@@ -36690,7 +36689,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1007511111
 GameObject:
@@ -45883,7 +45882,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1001 &1317816022
 PrefabInstance:
@@ -49379,7 +49378,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!33 &1498517507
 MeshFilter:
@@ -53731,7 +53730,6 @@ GameObject:
   - component: {fileID: 1547654678}
   - component: {fileID: 1547654680}
   - component: {fileID: 1547654681}
-  - component: {fileID: 1547654682}
   - component: {fileID: 1547654683}
   m_Layer: 0
   m_Name: LobbySandboxRoot
@@ -53892,30 +53890,6 @@ MonoBehaviour:
   - {fileID: 613077485}
   - {fileID: 797300884}
   _toggleCooldown: 0.3
---- !u!114 &1547654682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547654672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7edd97edaa492a046982d4528c4648cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyReturnToMainMenuController
-  _sandboxController: {fileID: 1547654674}
-  _stateController: {fileID: 0}
-  _readyController: {fileID: 1547654681}
-  _confirmPanel: {fileID: 475808031}
-  _confirmButton: {fileID: 1923102912}
-  _cancelButton: {fileID: 2019143194}
-  _defaultSelectedButton: {fileID: 1923102912}
-  _submitActionName: Submit
-  _cancelActionName: Cancel
-  _despawnLobbyCharacters: 1
-  _disableJoining: 1
-  _onlyPlayerOneCanUse: 0
 --- !u!114 &1547654683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53932,7 +53906,7 @@ MonoBehaviour:
   _addScoreButton: {fileID: 609050231}
   _removeScoreButton: {fileID: 921801842}
   _defaultSelectedButton: {fileID: 609050231}
-  _returnToMainMenuController: {fileID: 1547654682}
+  _returnToMainMenuController: {fileID: 0}
   _settingsData: {fileID: 1547654677}
   _scoreSteps: 64000000c80000002c010000e8030000b80b0000
   _cancelActionName: Cancel
@@ -57669,7 +57643,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!33 &1730726342
 MeshFilter:
@@ -61492,7 +61466,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -61568,9 +61542,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyReturnToMainMenuController
   _sandboxController: {fileID: 1547654674}
+  _stateController: {fileID: 1547654679}
   _readyController: {fileID: 1547654681}
+  _confirmPanel: {fileID: 475808031}
+  _confirmButton: {fileID: 1923102912}
+  _cancelButton: {fileID: 2019143194}
+  _defaultSelectedButton: {fileID: 1923102912}
+  _submitActionName: Submit
+  _cancelActionName: Cancel
   _despawnLobbyCharacters: 1
   _disableJoining: 1
+  _onlyPlayerOneCanUse: 0
 --- !u!1 &1798709324
 GameObject:
   m_ObjectHideFlags: 0
@@ -65411,7 +65393,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1916381236}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!33 &2013508661
 MeshFilter:
@@ -76069,3 +76051,12 @@ SceneRoots:
   - {fileID: 1019965829}
   - {fileID: 420274283}
   - {fileID: 475808035}
+  - {fileID: 143616320}
+  - {fileID: 248497803}
+  - {fileID: 613077491}
+  - {fileID: 797300890}
+  - {fileID: 1003085107}
+  - {fileID: 1317085104}
+  - {fileID: 1498517506}
+  - {fileID: 1730726341}
+  - {fileID: 2013508660}
