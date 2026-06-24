@@ -27,15 +27,15 @@ namespace MortierFu
 
         private void Awake()
         {
-            if (_sandboxController == null)
+            if (!_sandboxController)
             {
-                _sandboxController = FindFirstObjectByType<LobbySandboxController>();
+                _sandboxController = GetComponent<LobbySandboxController>();
             }
         }
 
         private void OnEnable()
         {
-            if (_sandboxController == null)
+            if (!_sandboxController)
             {
                 Logs.LogError("[LobbyRespawnController] Missing LobbySandboxController reference.");
                 return;
@@ -53,7 +53,7 @@ namespace MortierFu
 
         private void OnDisable()
         {
-            if (_sandboxController != null)
+            if (_sandboxController)
             {
                 _sandboxController.OnPlayerSpawned -= RegisterPlayer;
             }
@@ -67,12 +67,12 @@ namespace MortierFu
             if (!_enableRespawn)
                 return;
 
-            if (player == null)
+            if (!player)
                 return;
 
             PlayerCharacter character = player.Character;
 
-            if (character == null)
+            if (!character)
             {
                 Logs.LogWarning($"[LobbyRespawnController] Cannot register Player {player.PlayerIndex + 1}: character is null.");
                 return;
@@ -101,13 +101,13 @@ namespace MortierFu
 
         private void UnregisterPlayer(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return;
 
             if (!_bindings.TryGetValue(player, out RespawnBinding binding))
                 return;
 
-            if (binding.Character != null &&
+            if (binding.Character&&
                 binding.Character.Health != null &&
                 binding.DeathHandler != null)
             {
@@ -134,7 +134,7 @@ namespace MortierFu
             if (!_enableRespawn)
                 return;
 
-            if (player == null)
+            if (!player)
                 return;
 
             if (_respawnInProgress.Contains(player))
@@ -167,10 +167,10 @@ namespace MortierFu
 
         private void RespawnPlayer(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return;
 
-            if (_sandboxController == null)
+            if (!_sandboxController)
                 return;
 
             if (!_sandboxController.TryGetSpawnPoint(player.PlayerIndex, out Transform spawnPoint))
@@ -181,7 +181,7 @@ namespace MortierFu
 
             PlayerCharacter character = player.Character;
 
-            if (character == null)
+            if (!character)
             {
                 Logs.LogError($"[LobbyRespawnController] Cannot respawn Player {player.PlayerIndex + 1}: character is null.");
                 return;

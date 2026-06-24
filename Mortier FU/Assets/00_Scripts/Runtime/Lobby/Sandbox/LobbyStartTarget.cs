@@ -39,11 +39,11 @@ namespace MortierFu
             if (!IsTargetHit(evt.HitObject))
                 return;
 
-            var shooterCharacter = evt.Bombshell != null
+            var shooterCharacter = evt.Bombshell
                 ? evt.Bombshell.Owner
                 : null;
 
-            if (shooterCharacter == null || shooterCharacter.Owner == null)
+            if (!shooterCharacter || !shooterCharacter.Owner)
                 return;
 
             RegisterPlayerHit(shooterCharacter.Owner);
@@ -51,7 +51,7 @@ namespace MortierFu
 
         private bool IsTargetHit(GameObject hitObject)
         {
-            if (hitObject == null)
+            if (!hitObject)
                 return false;
 
             if (hitObject == gameObject)
@@ -62,10 +62,10 @@ namespace MortierFu
 
         private void RegisterPlayerHit(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return;
 
-            if (_stateController != null && !_stateController.CanUseStartTarget())
+            if (_stateController && !_stateController.CanUseStartTarget())
                 return;
             
             if (!IsPlayerInSandbox(player))
@@ -82,7 +82,7 @@ namespace MortierFu
             {
                 Logs.Log("[LobbyStartTarget] All sandbox players hit the start target.");
 
-                if (_matchLauncher == null)
+                if (!_matchLauncher)
                 {
                     Logs.LogError("[LobbyStartTarget] MatchLauncher reference is missing.");
                     return;
@@ -94,7 +94,7 @@ namespace MortierFu
 
         private bool IsPlayerInSandbox(PlayerManager player)
         {
-            if (_sandboxController == null)
+            if (!_sandboxController)
                 return false;
 
             var players = _sandboxController.GetSpawnedPlayers();
@@ -110,19 +110,19 @@ namespace MortierFu
 
         private bool AreAllSandboxPlayersReady()
         {
-            if (_sandboxController == null)
+            if (!_sandboxController)
                 return false;
 
             var players = _sandboxController.GetSpawnedPlayers();
 
-            if (_matchLauncher != null && !_matchLauncher.CanLaunch(players))
+            if (_matchLauncher && !_matchLauncher.CanLaunch(players))
                 return false;
 
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
 
-                if (player == null)
+                if (!player)
                     continue;
 
                 if (!_playersWhoHitTarget.Contains(player))
@@ -139,7 +139,7 @@ namespace MortierFu
 
             for (int i = 0; i < _playerReadyIndicators.Length; i++)
             {
-                if (_playerReadyIndicators[i] == null)
+                if (!_playerReadyIndicators[i])
                     continue;
 
                 bool ready = IsPlayerIndexReady(i);
@@ -151,7 +151,7 @@ namespace MortierFu
         {
             foreach (var player in _playersWhoHitTarget)
             {
-                if (player != null && player.PlayerIndex == playerIndex)
+                if (player && player.PlayerIndex == playerIndex)
                     return true;
             }
 

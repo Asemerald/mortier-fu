@@ -8,17 +8,14 @@ namespace MortierFu
 {
     public sealed class LobbySandboxController : MonoBehaviour
     {
-        [Header("Player Spawns")]
-        [SerializeField] private Transform[] _playerSpawnPoints = new Transform[4];
+        [Header("Player Spawns")] [SerializeField]
+        private Transform[] _playerSpawnPoints = new Transform[4];
 
-        [Header("State")]
-        [SerializeField] private LobbySandboxStateController _stateController;
+        [Header("State")] [SerializeField] private LobbySandboxStateController _stateController;
 
-        [Header("Startup")]
-        [SerializeField] private bool _spawnPlayersOnStart = true;
+        [Header("Startup")] [SerializeField] private bool _spawnPlayersOnStart = true;
 
-        [Header("Debug")]
-        [SerializeField] private bool _allowScenePlayerFallback = true;
+        [Header("Debug")] [SerializeField] private bool _allowScenePlayerFallback = true;
 
         private LobbyService _lobbyService;
         private readonly List<PlayerManager> _spawnedPlayers = new();
@@ -72,7 +69,8 @@ namespace MortierFu
         {
             if (SystemManager.Instance == null)
             {
-                Logs.LogError("[LobbySandboxController] SystemManager is missing. Cannot initialize lobby sandbox systems.");
+                Logs.LogError(
+                    "[LobbySandboxController] SystemManager is missing. Cannot initialize lobby sandbox systems.");
                 return;
             }
 
@@ -114,7 +112,7 @@ namespace MortierFu
             {
                 var player = players[i];
 
-                if (player == null)
+                if (!player)
                     continue;
 
                 if (_spawnedPlayers.Contains(player))
@@ -139,7 +137,7 @@ namespace MortierFu
             {
                 foreach (var player in servicePlayers)
                 {
-                    if (player == null)
+                    if (!player)
                         continue;
 
                     if (!result.Contains(player))
@@ -153,7 +151,7 @@ namespace MortierFu
 
                 foreach (var player in scenePlayers)
                 {
-                    if (player == null)
+                    if (!player)
                         continue;
 
                     if (!result.Contains(player))
@@ -166,12 +164,12 @@ namespace MortierFu
 
         private void SpawnPlayer(PlayerManager player, int playerIndex)
         {
-            if (player == null)
+            if (!player)
                 return;
 
             Transform spawnPoint = GetSpawnPoint(playerIndex);
 
-            if (spawnPoint == null)
+            if (!spawnPoint)
             {
                 Logs.LogError($"[LobbySandboxController] Missing spawn point for player index {playerIndex}.");
                 return;
@@ -188,7 +186,8 @@ namespace MortierFu
 
             OnPlayerSpawned?.Invoke(player);
 
-            Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
+            Logs.Log(
+                $"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
         }
 
         private void SetSandboxEnabled(bool enabled)
@@ -199,7 +198,7 @@ namespace MortierFu
 
             foreach (var player in _spawnedPlayers)
             {
-                if (player == null)
+                if (!player)
                     continue;
 
                 player.SetControlContext(context);
@@ -216,7 +215,7 @@ namespace MortierFu
 
             foreach (var player in _spawnedPlayers)
             {
-                if (player == null)
+                if (!player)
                     continue;
 
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
@@ -229,7 +228,7 @@ namespace MortierFu
 
             foreach (var player in _spawnedPlayers)
             {
-                if (player == null)
+                if (!player)
                     continue;
 
                 player.SetControlContext(PlayerControlContext.LobbySandbox);
@@ -246,19 +245,19 @@ namespace MortierFu
         public bool TryGetSpawnPoint(int playerIndex, out Transform spawnPoint)
         {
             spawnPoint = GetSpawnPoint(playerIndex);
-            return spawnPoint != null;
+            return spawnPoint;
         }
 
         public PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
         {
-            return _stateController != null
+            return _stateController
                 ? _stateController.GetContextForNewPlayer(player)
                 : PlayerControlContext.LobbySandbox;
         }
 
         public void ApplyCurrentContextToPlayer(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return;
 
             player.SetControlContext(GetCurrentContextForPlayer(player));

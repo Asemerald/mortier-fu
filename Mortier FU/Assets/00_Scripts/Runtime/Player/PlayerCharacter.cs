@@ -155,7 +155,7 @@ namespace MortierFu
 
         public void Initialize(PlayerManager owner)
         {
-            if (owner == null)
+            if (!owner)
             {
                 Logs.LogError("Cannot initialize player with null Owner !");
                 return;
@@ -184,7 +184,7 @@ namespace MortierFu
 
         public void RefreshCustomizationFromOwner()
         {
-            if (Owner == null)
+            if (!Owner)
                 return;
 
             ApplySkinFromLobby(Owner.SkinIndex);
@@ -227,7 +227,7 @@ namespace MortierFu
 
             ExternalSpeedMultiplier = 1f;
         }
-        
+
         public void RespawnAt(Vector3 position, Quaternion rotation)
         {
             Mortar?.CancelAiming();
@@ -439,7 +439,7 @@ namespace MortierFu
             Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
 
-            if (Owner != null)
+            if (Owner)
             {
                 Gizmos.color = Color.white;
                 UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
@@ -454,7 +454,7 @@ namespace MortierFu
             Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
 
-            if (Owner != null)
+            if (Owner)
             {
                 Gizmos.color = Color.white;
                 UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
@@ -526,7 +526,7 @@ namespace MortierFu
             // Désactiver tous les skins
             for (int i = 0; i < availableInGameSkins.Length; i++)
             {
-                if (availableInGameSkins[i] != null)
+                if (availableInGameSkins[i])
                 {
                     availableInGameSkins[i].SetActive(false);
                 }
@@ -535,7 +535,7 @@ namespace MortierFu
             // Désactiver toutes les outlines
             for (int i = 0; i < availableInGameSkinsOutline.Length; i++)
             {
-                if (availableInGameSkinsOutline[i] != null)
+                if (availableInGameSkinsOutline[i])
                 {
                     availableInGameSkinsOutline[i].SetActive(false);
                 }
@@ -544,7 +544,7 @@ namespace MortierFu
             // Activer le skin choisi
             if (skinIndex >= 0 && skinIndex < availableInGameSkins.Length)
             {
-                if (availableInGameSkins[skinIndex] != null)
+                if (availableInGameSkins[skinIndex])
                 {
                     availableInGameSkins[skinIndex].SetActive(true);
                     Logs.Log($"[PlayerCharacter]: Applied skin {skinIndex} for player {Owner.PlayerIndex}");
@@ -562,7 +562,7 @@ namespace MortierFu
             // Activer l'outline du skin choisi
             if (skinIndex >= 0 && skinIndex < availableInGameSkinsOutline.Length)
             {
-                if (availableInGameSkinsOutline[skinIndex] != null)
+                if (availableInGameSkinsOutline[skinIndex])
                 {
                     availableInGameSkinsOutline[skinIndex].SetActive(true);
                 }
@@ -579,7 +579,7 @@ namespace MortierFu
 
         private void ApplyFaceFromLobby(int column, int row)
         {
-            if (faceInGameMeshRenderer == null)
+            if (!faceInGameMeshRenderer)
             {
                 Logs.LogWarning("[PlayerCharacter]: No face mesh renderer assigned.");
                 return;
@@ -588,7 +588,7 @@ namespace MortierFu
             // Récupérer ou créer le material de la face
             _faceInGameMaterial = faceInGameMeshRenderer.material;
 
-            if (_faceInGameMaterial != null)
+            if (_faceInGameMaterial)
             {
                 _faceInGameMaterial.SetFloat(columnPropertyName, column);
                 _faceInGameMaterial.SetFloat(rowPropertyName, row);
