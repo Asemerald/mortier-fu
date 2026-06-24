@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -6,12 +7,12 @@ namespace MortierFu
 {
     public sealed class LobbyReturnToMainMenuController : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private LobbySandboxController _sandboxController;
+        [Header("References")] [SerializeField]
+        private LobbySandboxController _sandboxController;
+
         [SerializeField] private LobbyStartReadyController _readyController;
 
-        [Header("Options")]
-        [SerializeField] private bool _despawnLobbyCharacters = true;
+        [Header("Options")] [SerializeField] private bool _despawnLobbyCharacters = true;
         [SerializeField] private bool _disableJoining = true;
 
         private bool _isReturning;
@@ -25,7 +26,16 @@ namespace MortierFu
                 _readyController = GetComponent<LobbyStartReadyController>();
         }
 
-        public void ReturnToMainMenu()
+        private void OnCollisionEnter(Collision collision)
+        {
+            Debug.LogError("OUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
+            
+            if (!collision.body.TryGetComponent(out PlayerCharacter player)) return;
+            Debug.LogError("WTF");
+            ReturnToMainMenu();
+        }
+
+        private void ReturnToMainMenu()
         {
             if (_isReturning)
                 return;

@@ -14,7 +14,6 @@ namespace MortierFu
         [SerializeField] private GameObject _root;
 
         [Header("References")]
-        [SerializeField] private Button _returnToMainMenuButton;
         [SerializeField] private Button _addScoreButton;
         [SerializeField] private Button _removeScoreButton;
         [SerializeField] private Button _defaultSelectedButton;
@@ -46,11 +45,6 @@ namespace MortierFu
                 _root.SetActive(false);
             }
 
-            if (_returnToMainMenuButton)
-            {
-                _returnToMainMenuButton.onClick.AddListener(OnClickReturnToMainMenu);
-            }
-
             if (_addScoreButton)
             {
                 _addScoreButton.onClick.AddListener(AddScore);
@@ -70,11 +64,6 @@ namespace MortierFu
         private void OnDestroy()
         {
             UnbindInput();
-
-            if (_returnToMainMenuButton)
-            {
-                _returnToMainMenuButton.onClick.RemoveListener(OnClickReturnToMainMenu);
-            }
 
             if (_addScoreButton)
             {
@@ -171,17 +160,6 @@ namespace MortierFu
 
             _onClosed?.Invoke(_activePlayer);
             Close();
-        }
-
-        private void OnClickReturnToMainMenu()
-        {
-            if (!_returnToMainMenuController)
-            {
-                Logs.LogError("[LobbySettingsPanel] ReturnToMainMenuController reference is missing.");
-                return;
-            }
-
-            _returnToMainMenuController.ReturnToMainMenu();
         }
 
         private void AddScore()
