@@ -25,16 +25,16 @@ namespace MortierFu
         private void Awake()
         {
             if (!_startTarget)
-                _startTarget = FindFirstObjectByType<LobbyStartTarget>();
+                _startTarget = GetComponent<LobbyStartTarget>();
 
             if (!_sandboxController)
-                _sandboxController = FindFirstObjectByType<LobbySandboxController>();
+                _sandboxController = GetComponent<LobbySandboxController>();
 
             if (!_stateController)
-                _stateController = FindFirstObjectByType<LobbySandboxStateController>();
+                _stateController = GetComponent<LobbySandboxStateController>();
 
             if (!_matchLauncher)
-                _matchLauncher = FindFirstObjectByType<LobbyMatchLauncher>();
+                _matchLauncher = GetComponent<LobbyMatchLauncher>();
         }
 
         private void OnEnable()

@@ -99,6 +99,18 @@ namespace MortierFu
                     canConfirmUI: false,
                     canCancelUI: false
                 ),
+                
+                PlayerControlContext.LobbyReturnConfirmationOwner => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canPause: false,
+                    canNavigateUI: true,
+                    canConfirmUI: true,
+                    canCancelUI: true
+                ),
 
                 PlayerControlContext.Menu => new PlayerActionPermissions(
                     canMove: false,
