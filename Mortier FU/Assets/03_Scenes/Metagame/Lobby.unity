@@ -725,14 +725,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 88333287}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.5417652, z: -0, w: 0.84052986}
+  m_LocalRotation: {x: 0, y: 0.8870109, z: 0, w: 0.46174863}
   m_LocalPosition: {x: -37.665718, y: -0.9, z: -8.639985}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1233748165}
   m_Father: {fileID: 1547654673}
-  m_LocalEulerAnglesHint: {x: 0, y: -65.608, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 125, z: 0}
 --- !u!1 &91635305
 GameObject:
   m_ObjectHideFlags: 0
@@ -869,14 +869,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 106655476}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.85388654, z: -0, w: -0.5204593}
+  m_LocalRotation: {x: 0, y: 0.9998157, z: -0, w: -0.019197363}
   m_LocalPosition: {x: -21.581757, y: -0.9, z: -12.30884}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2001307741}
   m_Father: {fileID: 1547654673}
-  m_LocalEulerAnglesHint: {x: 0, y: 242.726, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 182.2, z: 0}
 --- !u!1 &114002266
 GameObject:
   m_ObjectHideFlags: 0
@@ -7868,14 +7868,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 744615115}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.35997334, z: -0, w: 0.93296254}
-  m_LocalPosition: {x: -29.250008, y: -0.9, z: -29.250011}
+  m_LocalRotation: {x: -0, y: 0.47998396, z: -0, w: 0.87727726}
+  m_LocalPosition: {x: -29.25001, y: -0.9, z: -29.250013}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 396885290}
   m_Father: {fileID: 1547654673}
-  m_LocalEulerAnglesHint: {x: 0, y: 42.197, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 57.369, z: 0}
 --- !u!1 &760409279
 GameObject:
   m_ObjectHideFlags: 0
@@ -13917,6 +13917,7 @@ GameObject:
   - component: {fileID: 1547654677}
   - component: {fileID: 1547654676}
   - component: {fileID: 1547654678}
+  - component: {fileID: 1547654680}
   m_Layer: 0
   m_Name: LobbySandboxRoot
   m_TagString: Untagged
@@ -14037,6 +14038,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbySandboxStateController
   _sandboxController: {fileID: 1547654674}
   _settingsOwnerPlayerIndex: 0
+--- !u!114 &1547654680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547654672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02884b786f5b3204992d6da2f2b83202, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyRespawnController
+  _sandboxController: {fileID: 1547654674}
+  _enableRespawn: 1
+  _respawnDelay: 1
 --- !u!1 &1550262467
 GameObject:
   m_ObjectHideFlags: 0

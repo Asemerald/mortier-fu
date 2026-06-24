@@ -227,6 +227,19 @@ namespace MortierFu
 
             ExternalSpeedMultiplier = 1f;
         }
+        
+        public void RespawnAt(Vector3 position, Quaternion rotation)
+        {
+            Mortar?.CancelAiming();
+
+            Reset();
+
+            transform.SetPositionAndRotation(position, rotation);
+
+            Controller?.ResetVelocity();
+
+            Logs.Log($"[PlayerCharacter] Respawned {name} at {position}.");
+        }
 
         private void InitStateMachine()
         {

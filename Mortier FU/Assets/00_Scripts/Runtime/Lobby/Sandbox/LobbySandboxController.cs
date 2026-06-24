@@ -10,7 +10,7 @@ namespace MortierFu
     {
         [Header("Player Spawns")]
         [SerializeField] private Transform[] _playerSpawnPoints = new Transform[4];
-        
+
         [Header("State")]
         [SerializeField] private LobbySandboxStateController _stateController;
 
@@ -25,15 +25,25 @@ namespace MortierFu
 
         private bool _isInitialized;
         private int _lastKnownPlayerCount = -1;
-        
+
         public bool IsGlobalLockActive { get; private set; }
 
+        public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
         public event Action OnGlobalLockEnded;
 
         private void Start()
         {
             InitializeAsync().Forget();
+        }
+
+        private void OnDestroy()
+        {
+            OnPlayerSpawned = null;
+            OnGlobalLockStarted = null;
+            OnGlobalLockEnded = null;
+
+            _spawnedPlayers.Clear();
         }
 
         private void Update()
@@ -169,18 +179,16 @@ namespace MortierFu
 
             player.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
 
-            var context = _stateController != null
-                ? _stateController.GetContextForNewPlayer(player)
-                : PlayerControlContext.LobbySandbox;
-
-            player.SetControlContext(context);
+            ApplyCurrentContextToPlayer(player);
 
             if (!_spawnedPlayers.Contains(player))
             {
                 _spawnedPlayers.Add(player);
             }
 
-            Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {context}.");
+            OnPlayerSpawned?.Invoke(player);
+
+            Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
         }
 
         private void SetSandboxEnabled(bool enabled)
@@ -233,6 +241,27 @@ namespace MortierFu
         public IReadOnlyList<PlayerManager> GetSpawnedPlayers()
         {
             return _spawnedPlayers;
+        }
+
+        public bool TryGetSpawnPoint(int playerIndex, out Transform spawnPoint)
+        {
+            spawnPoint = GetSpawnPoint(playerIndex);
+            return spawnPoint != null;
+        }
+
+        public PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
+        {
+            return _stateController != null
+                ? _stateController.GetContextForNewPlayer(player)
+                : PlayerControlContext.LobbySandbox;
+        }
+
+        public void ApplyCurrentContextToPlayer(PlayerManager player)
+        {
+            if (player == null)
+                return;
+
+            player.SetControlContext(GetCurrentContextForPlayer(player));
         }
 
         private Transform GetSpawnPoint(int playerIndex)
