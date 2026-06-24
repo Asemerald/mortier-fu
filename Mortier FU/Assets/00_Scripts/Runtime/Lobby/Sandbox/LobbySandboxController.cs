@@ -133,7 +133,7 @@ namespace MortierFu
 
             var servicePlayers = _lobbyService?.GetPlayers();
 
-            if (servicePlayers != null)
+            if (servicePlayers is not null)
             {
                 foreach (var player in servicePlayers)
                 {

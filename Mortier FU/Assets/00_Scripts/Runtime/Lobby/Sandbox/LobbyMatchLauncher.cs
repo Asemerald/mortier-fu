@@ -22,10 +22,18 @@ namespace MortierFu
             if (_isLaunching)
                 return false;
 
-            if (players == null)
+            if (players is null)
                 return false;
 
-            return players.Count >= _minimumPlayersToLaunch;
+            var validPlayerCount = 0;
+
+            for (var i = 0; i < players.Count; i++)
+            {
+                if (players[i])
+                    validPlayerCount++;
+            }
+
+            return validPlayerCount >= _minimumPlayersToLaunch;
         }
 
         public void LaunchMatch()

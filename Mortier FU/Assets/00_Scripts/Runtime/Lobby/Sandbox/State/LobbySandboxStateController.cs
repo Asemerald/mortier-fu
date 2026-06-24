@@ -30,7 +30,7 @@ namespace MortierFu
 
         public bool TryEnterCustomization(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (CurrentState is LobbySandboxState.GlobalSettings or LobbySandboxState.LaunchingGame)
@@ -55,7 +55,7 @@ namespace MortierFu
 
         public bool TryExitCustomization(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (!_customizationPlayers.Contains(player))
@@ -76,7 +76,7 @@ namespace MortierFu
 
         public bool TryEnterSettings(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (player.PlayerIndex != _settingsOwnerPlayerIndex)
@@ -108,7 +108,7 @@ namespace MortierFu
 
         public bool TryExitSettings(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (CurrentState != LobbySandboxState.GlobalSettings)
@@ -154,7 +154,7 @@ namespace MortierFu
 
         public bool CanUseCustomizationStation(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (_customizationPlayers.Contains(player))
@@ -165,7 +165,7 @@ namespace MortierFu
 
         public bool CanUseSettingsStation(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return false;
 
             if (player.PlayerIndex != _settingsOwnerPlayerIndex)
@@ -176,7 +176,7 @@ namespace MortierFu
         
         public PlayerControlContext GetContextForNewPlayer(PlayerManager player)
         {
-            if (player == null)
+            if (!player)
                 return PlayerControlContext.LobbyLocked;
 
             return CurrentState switch
@@ -204,7 +204,7 @@ namespace MortierFu
 
             foreach (var player in interruptedPlayers)
             {
-                if (player == null)
+                if (!player)
                     continue;
 
                 Logs.Log($"[LobbySandboxStateController] Interrupting customization for Player {player.PlayerIndex + 1}.");

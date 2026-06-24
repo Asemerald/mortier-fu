@@ -7137,14 +7137,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 448e5c76c63c00f48ac5c2306e270b8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyStartTarget
-  _sandboxController: {fileID: 1547654674}
-  _stateController: {fileID: 1547654679}
-  _matchLauncher: {fileID: 1547654676}
-  _playerReadyIndicators:
-  - {fileID: 163507123}
-  - {fileID: 913195747}
-  - {fileID: 1208052222}
-  - {fileID: 883826891}
 --- !u!1001 &626022892
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13918,6 +13910,7 @@ GameObject:
   - component: {fileID: 1547654676}
   - component: {fileID: 1547654678}
   - component: {fileID: 1547654680}
+  - component: {fileID: 1547654681}
   m_Layer: 0
   m_Name: LobbySandboxRoot
   m_TagString: Untagged
@@ -14053,6 +14046,28 @@ MonoBehaviour:
   _sandboxController: {fileID: 1547654674}
   _enableRespawn: 1
   _respawnDelay: 1
+--- !u!114 &1547654681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547654672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9562f40fd1b4ff48b40d1f07030b350, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyStartReadyController
+  _startTarget: {fileID: 624850282}
+  _sandboxController: {fileID: 1547654674}
+  _stateController: {fileID: 1547654679}
+  _matchLauncher: {fileID: 1547654676}
+  _playerReadyIndicators:
+  - {fileID: 163507123}
+  - {fileID: 913195747}
+  - {fileID: 1208052222}
+  - {fileID: 883826891}
+  _toggleCooldown: 0.3
 --- !u!1 &1550262467
 GameObject:
   m_ObjectHideFlags: 0
