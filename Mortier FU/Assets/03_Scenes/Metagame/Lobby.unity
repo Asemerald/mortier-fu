@@ -14386,9 +14386,8 @@ MonoBehaviour:
   _skinCount: 4
   _faceColumnCount: 4
   _faceRowCount: 4
-  _navigateActionName: Navigate
-  _submitActionName: Submit
-  _cancelActionName: Cancel
+  _navigationThreshold: 0.7
+  _navigationCooldown: 0.25
 --- !u!114 &332170311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17393,9 +17392,8 @@ MonoBehaviour:
   _skinCount: 4
   _faceColumnCount: 4
   _faceRowCount: 4
-  _navigateActionName: Navigate
-  _submitActionName: Submit
-  _cancelActionName: Cancel
+  _navigationThreshold: 0.7
+  _navigationCooldown: 0.25
 --- !u!1 &465994416
 GameObject:
   m_ObjectHideFlags: 0
@@ -24981,9 +24979,8 @@ MonoBehaviour:
   _skinCount: 4
   _faceColumnCount: 4
   _faceRowCount: 4
-  _navigateActionName: Navigate
-  _submitActionName: Submit
-  _cancelActionName: Cancel
+  _navigationThreshold: 0.7
+  _navigationCooldown: 0.25
 --- !u!114 &690150350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33697,7 +33694,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 387fe2ad0bc11b045b68cceba1852675, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationStation
-  _interactActionName: Interact
+  _sandboxController: {fileID: 1547654674}
   _stateController: {fileID: 1547654679}
   _playerPanels:
   - {fileID: 462400111}
@@ -37235,9 +37232,8 @@ MonoBehaviour:
   _skinCount: 4
   _faceColumnCount: 4
   _faceRowCount: 4
-  _navigateActionName: Navigate
-  _submitActionName: Submit
-  _cancelActionName: Cancel
+  _navigationThreshold: 0.7
+  _navigationCooldown: 0.25
 --- !u!114 &1016708551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53785,7 +53781,6 @@ MonoBehaviour:
   - {fileID: 744615116}
   _stateController: {fileID: 1547654679}
   _spawnPlayersOnStart: 1
-  _allowScenePlayerFallback: 1
 --- !u!114 &1547654675
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53915,10 +53910,8 @@ MonoBehaviour:
   _addScoreButton: {fileID: 609050231}
   _removeScoreButton: {fileID: 921801842}
   _defaultSelectedButton: {fileID: 609050231}
-  _returnToMainMenuController: {fileID: 0}
   _settingsData: {fileID: 1547654677}
   _scoreSteps: 64000000c80000002c010000e8030000b80b0000
-  _cancelActionName: Cancel
   _scoreStepIndicator: {fileID: 400413752}
 --- !u!1 &1550262467
 GameObject:
@@ -56426,9 +56419,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06eabe3b5e257674bae6596f5b7bbec2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbySettingsStation
-  _interactActionName: Interact
   _stateController: {fileID: 1547654679}
-  _settingsPanel: {fileID: 0}
+  _settingsPanel: {fileID: 1547654683}
   _cameraFocusController: {fileID: 1547654678}
 --- !u!1 &1662491806
 GameObject:
@@ -61557,7 +61549,6 @@ MonoBehaviour:
   _confirmButton: {fileID: 1923102912}
   _cancelButton: {fileID: 2019143194}
   _defaultSelectedButton: {fileID: 1923102912}
-  _cancelActionName: Cancel
   _despawnLobbyCharacters: 1
   _disableJoining: 1
   _onlyPlayerOneCanUse: 0

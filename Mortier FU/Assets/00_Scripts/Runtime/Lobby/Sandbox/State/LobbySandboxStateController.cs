@@ -114,14 +114,14 @@ namespace MortierFu
             if (CurrentState != LobbySandboxState.GlobalSettings)
                 return false;
 
-            if (ActiveSettingsPlayer != player)
+            if (!ReferenceEquals(ActiveSettingsPlayer, player))
                 return false;
 
             ActiveSettingsPlayer = null;
 
-            _sandboxController?.UnlockAllPlayers();
-
             ChangeState(LobbySandboxState.Sandbox);
+
+            _sandboxController?.UnlockAllPlayers();
 
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited settings state.");
 

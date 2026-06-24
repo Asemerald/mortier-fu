@@ -3,12 +3,11 @@ using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public sealed class LobbySettingsPanel : MonoBehaviour
+    public sealed class LobbySettingsPanel : MonoBehaviour, IPlayerUIInputHandler
     {
         [Header("Root")]
         [SerializeField] private GameObject _root;
@@ -17,7 +16,6 @@ namespace MortierFu
         [SerializeField] private Button _addScoreButton;
         [SerializeField] private Button _removeScoreButton;
         [SerializeField] private Button _defaultSelectedButton;
-        [SerializeField] private LobbyReturnToMainMenuController _returnToMainMenuController;
 
         [Header("Data")]
         [SerializeField] private LobbyMatchSettingsData _settingsData;
@@ -25,55 +23,44 @@ namespace MortierFu
         [Header("Score Steps")]
         [SerializeField] private int[] _scoreSteps = { 500, 1000, 1500, 2000, 3000 };
 
-        [Header("Input")]
-        [SerializeField] private string _cancelActionName = "Cancel";
-
         [Header("Optional Feedback")]
         [SerializeField] private TextMeshProUGUI _scoreStepIndicator;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
 
-        private InputAction _cancelAction;
-
         private int _currentScoreIndex;
+        private bool _isOpen;
+
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
 
         private void Awake()
         {
             if (_root)
-            {
                 _root.SetActive(false);
-            }
 
             if (_addScoreButton)
-            {
                 _addScoreButton.onClick.AddListener(AddScore);
-            }
 
             if (_removeScoreButton)
-            {
                 _removeScoreButton.onClick.AddListener(RemoveScore);
-            }
         }
 
         private void OnDisable()
         {
-            UnbindInput();
+            RemoveFromUIInputService();
         }
 
         private void OnDestroy()
         {
-            UnbindInput();
+            RemoveFromUIInputService();
 
             if (_addScoreButton)
-            {
                 _addScoreButton.onClick.RemoveListener(AddScore);
-            }
 
             if (_removeScoreButton)
-            {
                 _removeScoreButton.onClick.RemoveListener(RemoveScore);
-            }
         }
 
         public void Open(PlayerManager player, Action<PlayerManager> onClosed)
@@ -89,16 +76,15 @@ namespace MortierFu
 
             _activePlayer = player;
             _onClosed = onClosed;
+            _isOpen = true;
 
             _currentScoreIndex = FindClosestScoreIndex(_settingsData.ScoreToWin);
 
             if (_root)
-            {
                 _root.SetActive(true);
-            }
 
-            BindInput();
             ApplyCurrentScore();
+            RegisterToUIInputService();
             SelectDefaultButton();
 
             Logs.Log($"[LobbySettingsPanel] Opened for Player {player.PlayerIndex + 1}.");
@@ -106,49 +92,17 @@ namespace MortierFu
 
         public void Close()
         {
-            UnbindInput();
+            if (!_isOpen)
+                return;
+
+            RemoveFromUIInputService();
 
             if (_root)
-            {
                 _root.SetActive(false);
-            }
 
             _activePlayer = null;
             _onClosed = null;
-        }
-
-        private void BindInput()
-        {
-            if (!_activePlayer || !_activePlayer.PlayerInput)
-                return;
-
-            var actions = _activePlayer.PlayerInput.actions;
-
-            _cancelAction = actions.FindAction(_cancelActionName, false);
-
-            if (_cancelAction != null)
-            {
-                _cancelAction.performed -= OnCancel;
-                _cancelAction.performed += OnCancel;
-            }
-        }
-
-        private void UnbindInput()
-        {
-            if (_cancelAction != null)
-            {
-                _cancelAction.performed -= OnCancel;
-            }
-
-            _cancelAction = null;
-        }
-
-        private void OnCancel(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            ConfirmAndClose();
+            _isOpen = false;
         }
 
         private void ConfirmAndClose()
@@ -156,10 +110,46 @@ namespace MortierFu
             if (!_activePlayer)
                 return;
 
-            Logs.Log($"[LobbySettingsPanel] Closed by Player {_activePlayer.PlayerIndex + 1}.");
+            var player = _activePlayer;
+            var onClosed = _onClosed;
 
-            _onClosed?.Invoke(_activePlayer);
+            Logs.Log($"[LobbySettingsPanel] Confirmed and closed by Player {player.PlayerIndex + 1}.");
+
             Close();
+
+            onClosed?.Invoke(player);
+        }
+
+        private void RegisterToUIInputService()
+        {
+            if (!_activePlayer)
+                return;
+
+            UIInputService?.Push(_activePlayer, this);
+        }
+
+        private void RemoveFromUIInputService()
+        {
+            if (_activePlayer)
+                UIInputService?.Remove(_activePlayer, this);
+            else
+                UIInputService?.RemoveFromAll(this);
+        }
+
+        private void SelectDefaultButton()
+        {
+            var buttonToSelect = _defaultSelectedButton;
+
+            if (!buttonToSelect)
+                buttonToSelect = _addScoreButton;
+
+            if (!buttonToSelect)
+                buttonToSelect = _removeScoreButton;
+
+            if (!buttonToSelect)
+                return;
+
+            EventSystem.current?.SetSelectedGameObject(buttonToSelect.gameObject);
         }
 
         private void AddScore()
@@ -189,7 +179,7 @@ namespace MortierFu
             if (_scoreSteps is null || _scoreSteps.Length == 0)
                 return;
 
-            var score = _scoreSteps[_currentScoreIndex];
+            int score = _scoreSteps[_currentScoreIndex];
             _settingsData.SetScoreToWin(score);
 
             RefreshFeedback(score);
@@ -203,21 +193,6 @@ namespace MortierFu
                 return;
 
             _scoreStepIndicator.text = currentScore.ToString();
-        }
-
-        private void SelectDefaultButton()
-        {
-            var buttonToSelect = _defaultSelectedButton;
-
-            if (!buttonToSelect)
-            {
-                buttonToSelect = _addScoreButton;
-            }
-
-            if (!buttonToSelect)
-                return;
-
-            EventSystem.current?.SetSelectedGameObject(buttonToSelect.gameObject);
         }
 
         private int FindClosestScoreIndex(int score)
@@ -253,6 +228,29 @@ namespace MortierFu
                 value += count;
 
             return value;
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _isOpen &&
+                   _activePlayer &&
+                   ReferenceEquals(_activePlayer, player);
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            return false;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            return false;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            ConfirmAndClose();
+            return true;
         }
     }
 }

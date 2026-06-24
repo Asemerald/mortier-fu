@@ -2,12 +2,11 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public sealed class LobbyReturnToMainMenuController : MonoBehaviour
+    public sealed class LobbyReturnToMainMenuController : MonoBehaviour, IPlayerUIInputHandler
     {
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
@@ -20,23 +19,23 @@ namespace MortierFu
         [SerializeField] private Button _cancelButton;
         [SerializeField] private Button _defaultSelectedButton;
 
-        [Header("Input")]
-        [SerializeField] private string _cancelActionName = "Cancel";
-
         [Header("Options")]
         [SerializeField] private bool _despawnLobbyCharacters = true;
         [SerializeField] private bool _disableJoining = true;
-        [SerializeField] private bool _onlyPlayerOneCanUse = false;
+        [SerializeField] private bool _onlyPlayerOneCanUse = true;
 
         private PlayerManager _activePlayer;
-        private InputAction _cancelAction;
+        private PlayerControlContext _previousActivePlayerContext;
 
         private bool _isConfirmationOpen;
         private bool _isReturning;
 
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
+
         private void Awake()
         {
-            ResolveReferences();
+            ValidateReferences();
 
             if (_confirmPanel)
                 _confirmPanel.SetActive(false);
@@ -50,25 +49,36 @@ namespace MortierFu
 
         private void OnDestroy()
         {
-            UnbindInput();
+            UIInputService?.RemoveFromAll(this);
 
             if (_confirmButton)
                 _confirmButton.onClick.RemoveListener(ConfirmReturnToMainMenu);
 
             if (_cancelButton)
                 _cancelButton.onClick.RemoveListener(CancelReturnToMainMenu);
+
+            ResumeLobby();
         }
 
-        private void ResolveReferences()
+        private void ValidateReferences()
         {
             if (!_sandboxController)
-                _sandboxController = GetComponent<LobbySandboxController>();
+                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxController reference is missing.");
 
             if (!_stateController)
-                _stateController = GetComponent<LobbySandboxStateController>();
+                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxStateController reference is missing.");
 
             if (!_readyController)
-                _readyController = GetComponent<LobbyStartReadyController>();
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ReadyController reference is missing.");
+
+            if (!_confirmPanel)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmPanel reference is missing.");
+
+            if (!_confirmButton)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmButton reference is missing.");
+
+            if (!_cancelButton)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] CancelButton reference is missing.");
         }
 
         private void OnTriggerEnter(Collider other)
@@ -76,7 +86,7 @@ namespace MortierFu
             if (_isConfirmationOpen || _isReturning)
                 return;
 
-            PlayerCharacter character = ResolvePlayerCharacter(other);
+            var character = ResolvePlayerCharacter(other);
 
             if (!character || !character.Owner)
                 return;
@@ -111,7 +121,7 @@ namespace MortierFu
             if (_onlyPlayerOneCanUse && player.PlayerIndex != 0)
                 return;
 
-            if (_stateController && _stateController.CurrentState != LobbySandboxState.Sandbox)
+            if (_stateController && !_stateController.CanUseStartTarget())
                 return;
 
             if (!IsPlayerInSandbox(player))
@@ -142,6 +152,7 @@ namespace MortierFu
         private void OpenConfirmation(PlayerManager player)
         {
             _activePlayer = player;
+            _previousActivePlayerContext = player.ControlContext;
             _isConfirmationOpen = true;
 
             PauseLobby();
@@ -151,44 +162,14 @@ namespace MortierFu
 
             player.SetControlContext(PlayerControlContext.LobbyReturnConfirmationOwner);
 
+            UIInputService?.Push(player, this);
+
             if (_confirmPanel)
                 _confirmPanel.SetActive(true);
 
-            BindInput(player);
             SelectDefaultButton();
 
             Logs.Log($"[LobbyReturnToMainMenuController] Confirmation opened by Player {player.PlayerIndex + 1}.");
-        }
-
-        private void BindInput(PlayerManager player)
-        {
-            UnbindInput();
-
-            if (!player || !player.PlayerInput)
-                return;
-
-            var actions = player.PlayerInput.actions;
-
-            _cancelAction = actions.FindAction(_cancelActionName, false);
-
-            if (_cancelAction != null)
-                _cancelAction.performed += OnCancel;
-        }
-
-        private void UnbindInput()
-        {
-            if (_cancelAction != null)
-                _cancelAction.performed -= OnCancel;
-
-            _cancelAction = null;
-        }
-
-        private void OnCancel(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            CancelReturnToMainMenu();
         }
 
         private void SelectDefaultButton()
@@ -203,7 +184,7 @@ namespace MortierFu
 
             EventSystem.current?.SetSelectedGameObject(buttonToSelect.gameObject);
         }
-
+        
         private void ConfirmReturnToMainMenu()
         {
             if (_isReturning)
@@ -214,7 +195,7 @@ namespace MortierFu
 
         private void CancelReturnToMainMenu()
         {
-            if (!_isConfirmationOpen)
+            if (!_isConfirmationOpen || _isReturning)
                 return;
 
             Logs.Log("[LobbyReturnToMainMenuController] Return to main menu canceled.");
@@ -225,7 +206,10 @@ namespace MortierFu
 
         private void CloseConfirmation()
         {
-            UnbindInput();
+            if (_activePlayer)
+                UIInputService?.Remove(_activePlayer, this);
+            else
+                UIInputService?.RemoveFromAll(this);
 
             if (_confirmPanel)
                 _confirmPanel.SetActive(false);
@@ -233,11 +217,24 @@ namespace MortierFu
             if (_sandboxController)
                 _sandboxController.UnlockAllPlayers();
 
-            if (_activePlayer)
-                _sandboxController?.ApplyCurrentContextToPlayer(_activePlayer);
+            RestoreActivePlayerContext();
 
             _activePlayer = null;
             _isConfirmationOpen = false;
+        }
+
+        private void RestoreActivePlayerContext()
+        {
+            if (!_activePlayer)
+                return;
+
+            if (_sandboxController)
+            {
+                _sandboxController.ApplyCurrentContextToPlayer(_activePlayer);
+                return;
+            }
+
+            _activePlayer.SetControlContext(_previousActivePlayerContext);
         }
 
         private async UniTaskVoid ReturnToMainMenuAsync()
@@ -246,7 +243,10 @@ namespace MortierFu
 
             Logs.Log("[LobbyReturnToMainMenuController] Returning to main menu from lobby.");
 
-            UnbindInput();
+            if (_activePlayer)
+                UIInputService?.Remove(_activePlayer, this);
+            else
+                UIInputService?.RemoveFromAll(this);
 
             if (_confirmPanel)
                 _confirmPanel.SetActive(false);
@@ -277,7 +277,7 @@ namespace MortierFu
 
             var audioService = ServiceManager.Instance.Get<AudioService>();
 
-            if (audioService != null)
+            if (audioService is not null)
                 audioService.SetPause(1);
         }
 
@@ -287,7 +287,7 @@ namespace MortierFu
 
             var audioService = ServiceManager.Instance.Get<AudioService>();
 
-            if (audioService != null)
+            if (audioService is not null)
                 audioService.SetPause(0);
         }
 
@@ -337,6 +337,29 @@ namespace MortierFu
                 if (_despawnLobbyCharacters)
                     player.DespawnInGame();
             }
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _isConfirmationOpen &&
+                   _activePlayer &&
+                   ReferenceEquals(_activePlayer, player);
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            return false;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            return false;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            CancelReturnToMainMenu();
+            return true;
         }
     }
 }

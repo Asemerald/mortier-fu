@@ -6,14 +6,23 @@ namespace MortierFu
     public sealed class PlayerInputRouter : IDisposable
     {
         private readonly PlayerInput _playerInput;
+
         private readonly Action<InputAction.CallbackContext> _onPause;
+        private readonly Action<InputAction.CallbackContext> _onNavigateUI;
+        private readonly Action<InputAction.CallbackContext> _onSubmitUI;
         private readonly Action<InputAction.CallbackContext> _onCancelUI;
+        private readonly Action<InputAction.CallbackContext> _onInteract;
 
         private InputAction _pauseAction;
         private InputAction _unPauseAction;
+
+        private InputAction _navigateUIAction;
+        private InputAction _submitUIAction;
         private InputAction _cancelUIAction;
 
-        private bool _globalGameplayCallbacksBound;
+        private InputAction _interactAction;
+
+        private bool _callbacksBound;
 
         public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
 
@@ -23,11 +32,18 @@ namespace MortierFu
         public PlayerInputRouter(
             PlayerInput playerInput,
             Action<InputAction.CallbackContext> onPause,
-            Action<InputAction.CallbackContext> onCancelUI)
+            Action<InputAction.CallbackContext> onNavigateUI,
+            Action<InputAction.CallbackContext> onSubmitUI,
+            Action<InputAction.CallbackContext> onCancelUI,
+            Action<InputAction.CallbackContext> onInteract)
         {
             _playerInput = playerInput ?? throw new ArgumentNullException(nameof(playerInput));
+
             _onPause = onPause ?? throw new ArgumentNullException(nameof(onPause));
+            _onNavigateUI = onNavigateUI ?? throw new ArgumentNullException(nameof(onNavigateUI));
+            _onSubmitUI = onSubmitUI ?? throw new ArgumentNullException(nameof(onSubmitUI));
             _onCancelUI = onCancelUI ?? throw new ArgumentNullException(nameof(onCancelUI));
+            _onInteract = onInteract ?? throw new ArgumentNullException(nameof(onInteract));
         }
 
         public void SetContext(PlayerControlContext context, PlayerCharacter character = null)
@@ -36,12 +52,12 @@ namespace MortierFu
             CurrentPermissions = PlayerActionPermissions.FromContext(context);
 
             string targetMap = UsesGameplayActionMap(context)
-                ? "Gameplay"
-                : "UI";
+                ? PlayerInputActionNames.GameplayMap
+                : PlayerInputActionNames.UIMap;
 
             _playerInput.SwitchCurrentActionMap(targetMap);
 
-            var globalMap = _playerInput.actions.FindActionMap("Global", false);
+            var globalMap = _playerInput.actions.FindActionMap(PlayerInputActionNames.GlobalMap, false);
             globalMap?.Enable();
 
             character?.SetControlContext(context);
@@ -52,14 +68,19 @@ namespace MortierFu
             character?.SetControlContext(ControlContext);
         }
 
-        public void BindGameplayInputCallbacks()
+        public void BindInputCallbacks()
         {
-            if (_globalGameplayCallbacksBound)
+            if (_callbacksBound)
                 return;
 
-            _pauseAction = _playerInput.actions.FindAction("Pause", false);
-            _unPauseAction = _playerInput.actions.FindAction("UnPause", false);
-            _cancelUIAction = _playerInput.actions.FindAction("Cancel", false);
+            _pauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.Pause, false);
+            _unPauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.UnPause, false);
+
+            _navigateUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Navigate, false);
+            _submitUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Submit, false);
+            _cancelUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Cancel, false);
+
+            _interactAction = _playerInput.actions.FindAction(PlayerInputActionNames.Interact, false);
 
             if (_pauseAction != null)
                 _pauseAction.performed += _onPause;
@@ -67,15 +88,27 @@ namespace MortierFu
             if (_unPauseAction != null)
                 _unPauseAction.performed += _onPause;
 
+            if (_navigateUIAction != null)
+            {
+                _navigateUIAction.performed += _onNavigateUI;
+                _navigateUIAction.canceled += _onNavigateUI;
+            }
+
+            if (_submitUIAction != null)
+                _submitUIAction.performed += _onSubmitUI;
+
             if (_cancelUIAction != null)
                 _cancelUIAction.performed += _onCancelUI;
 
-            _globalGameplayCallbacksBound = true;
+            if (_interactAction != null)
+                _interactAction.performed += _onInteract;
+
+            _callbacksBound = true;
         }
 
-        public void UnbindGameplayInputCallbacks()
+        public void UnbindInputCallbacks()
         {
-            if (!_globalGameplayCallbacksBound)
+            if (!_callbacksBound)
                 return;
 
             if (_pauseAction != null)
@@ -84,19 +117,36 @@ namespace MortierFu
             if (_unPauseAction != null)
                 _unPauseAction.performed -= _onPause;
 
+            if (_navigateUIAction != null)
+            {
+                _navigateUIAction.performed -= _onNavigateUI;
+                _navigateUIAction.canceled -= _onNavigateUI;
+            }
+
+            if (_submitUIAction != null)
+                _submitUIAction.performed -= _onSubmitUI;
+
             if (_cancelUIAction != null)
                 _cancelUIAction.performed -= _onCancelUI;
 
+            if (_interactAction != null)
+                _interactAction.performed -= _onInteract;
+
             _pauseAction = null;
             _unPauseAction = null;
+
+            _navigateUIAction = null;
+            _submitUIAction = null;
             _cancelUIAction = null;
 
-            _globalGameplayCallbacksBound = false;
+            _interactAction = null;
+
+            _callbacksBound = false;
         }
 
         public void Dispose()
         {
-            UnbindGameplayInputCallbacks();
+            UnbindInputCallbacks();
         }
 
         private static bool UsesGameplayActionMap(PlayerControlContext context)

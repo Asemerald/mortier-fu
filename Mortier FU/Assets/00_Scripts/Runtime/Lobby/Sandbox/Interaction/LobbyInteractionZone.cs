@@ -1,20 +1,15 @@
-using System;
 using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    public abstract class LobbyInteractionZone : MonoBehaviour
+    public abstract class LobbyInteractionZone : MonoBehaviour, IPlayerInteractionHandler
     {
-        [Header("Input")]
-        [SerializeField] private string _interactActionName = "Interact";
-
         protected readonly HashSet<PlayerManager> PlayersInside = new();
 
-        private readonly Dictionary<PlayerManager, InputAction> _boundActions = new();
-        private readonly Dictionary<PlayerManager, Action<InputAction.CallbackContext>> _boundHandlers = new();
+        private PlayerInteractionService InteractionService =>
+            ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void OnTriggerEnter(Collider other)
         {
@@ -24,7 +19,8 @@ namespace MortierFu
             if (!PlayersInside.Add(player))
                 return;
 
-            BindPlayer(player);
+            InteractionService?.Register(player, this);
+
             OnPlayerEntered(player);
         }
 
@@ -36,13 +32,14 @@ namespace MortierFu
             if (!PlayersInside.Remove(player))
                 return;
 
-            UnbindPlayer(player);
+            InteractionService?.Unregister(player, this);
+
             OnPlayerExited(player);
         }
 
         protected virtual void OnDisable()
         {
-            UnbindAllPlayers();
+            UnregisterAllPlayers();
             PlayersInside.Clear();
         }
 
@@ -56,74 +53,39 @@ namespace MortierFu
 
         protected virtual bool CanInteract(PlayerManager player)
         {
-            return player != null && player.ControlContext == PlayerControlContext.LobbySandbox;
+            return player &&
+                   player.ControlContext == PlayerControlContext.LobbySandbox &&
+                   player.CurrentPermissions.CanInteract;
         }
 
         protected abstract void Interact(PlayerManager player);
 
-        private void BindPlayer(PlayerManager player)
+        public bool CanHandleInteraction(PlayerManager player)
         {
-            if (player == null || player.PlayerInput == null)
-                return;
-
-            if (_boundActions.ContainsKey(player))
-                return;
-
-            var action = player.PlayerInput.actions.FindAction(_interactActionName, false);
-
-            if (action == null)
-            {
-                Logs.LogWarning($"[LobbyInteractionZone] Action '{_interactActionName}' not found for Player {player.PlayerIndex + 1}.");
-                return;
-            }
-
-            Action<InputAction.CallbackContext> handler = ctx =>
-            {
-                if (!ctx.performed)
-                    return;
-
-                if (!PlayersInside.Contains(player))
-                    return;
-
-                if (!CanInteract(player))
-                    return;
-
-                Interact(player);
-            };
-
-            action.performed += handler;
-
-            if (!action.enabled)
-                action.Enable();
-
-            _boundActions[player] = action;
-            _boundHandlers[player] = handler;
+            return player &&
+                   PlayersInside.Contains(player) &&
+                   CanInteract(player);
         }
 
-        private void UnbindPlayer(PlayerManager player)
+        public bool HandleInteract(PlayerManager player)
         {
-            if (player == null)
-                return;
+            if (!CanHandleInteraction(player))
+                return false;
 
-            if (!_boundActions.TryGetValue(player, out var action))
-                return;
-
-            if (_boundHandlers.TryGetValue(player, out var handler))
-            {
-                action.performed -= handler;
-            }
-
-            _boundActions.Remove(player);
-            _boundHandlers.Remove(player);
+            Interact(player);
+            return true;
         }
 
-        private void UnbindAllPlayers()
+        private void UnregisterAllPlayers()
         {
-            var players = new List<PlayerManager>(_boundActions.Keys);
+            if (PlayersInside.Count == 0)
+                return;
 
-            foreach (var player in players)
+            var players = new List<PlayerManager>(PlayersInside);
+
+            for (int i = 0; i < players.Count; i++)
             {
-                UnbindPlayer(player);
+                InteractionService?.Unregister(players[i], this);
             }
         }
 
@@ -131,12 +93,12 @@ namespace MortierFu
         {
             player = null;
 
-            if (other == null)
+            if (!other)
                 return false;
 
             var character = other.GetComponentInParent<PlayerCharacter>();
 
-            if (character == null || character.Owner == null)
+            if (!character || !character.Owner)
                 return false;
 
             player = character.Owner;

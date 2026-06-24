@@ -34,7 +34,10 @@ namespace MortierFu
                 _inputRouter ??= new PlayerInputRouter(
                     PlayerInput,
                     TogglePause,
-                    CancelUI
+                    NavigateUI,
+                    SubmitUI,
+                    CancelUI,
+                    Interact
                 );
 
                 return _inputRouter;
@@ -113,6 +116,9 @@ namespace MortierFu
         // TODO: Faire un input manager plus tard
         private void TogglePause(InputAction.CallbackContext ctx)
         {
+            if (!ctx.performed)
+                return;
+
             if (PlayerIndex != 0)
                 return;
 
@@ -130,22 +136,66 @@ namespace MortierFu
             InputRouter.SetContext(context, Character);
         }
 
-        private void BindGameplayInputCallbacks()
+        private void BindInputCallbacks()
         {
-            InputRouter.BindGameplayInputCallbacks();
+            InputRouter.BindInputCallbacks();
         }
 
-        private void UnbindGameplayInputCallbacks()
+        private void UnbindInputCallbacks()
         {
-            _inputRouter?.UnbindGameplayInputCallbacks();
+            _inputRouter?.UnbindInputCallbacks();
         }
 
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
+        
+        private PlayerInteractionService InteractionService =>
+            ServiceManager.Instance?.Get<PlayerInteractionService>();
+        
+        private void Interact(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed)
+                return;
+
+            if (!CurrentPermissions.CanInteract)
+                return;
+
+            InteractionService?.TryInteract(this);
+        }
+
+        private void NavigateUI(InputAction.CallbackContext ctx)
+        {
+            if (!CurrentPermissions.CanNavigateUI)
+                return;
+
+            Vector2 direction = ctx.ReadValue<Vector2>();
+
+            UIInputService?.TryNavigate(this, direction);
+        }
+
+        private void SubmitUI(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed)
+                return;
+
+            if (!CurrentPermissions.CanConfirmUI)
+                return;
+
+            UIInputService?.TrySubmit(this);
+        }
+        
         private void CancelUI(InputAction.CallbackContext ctx)
         {
-            if (PlayerIndex != 0)
+            if (!ctx.performed)
                 return;
 
             if (!CurrentPermissions.CanCancelUI)
+                return;
+
+            if (UIInputService != null && UIInputService.TryCancel(this))
+                return;
+
+            if (PlayerIndex != 0)
                 return;
 
             if (!TryResolveGamePauseSystem())
@@ -172,7 +222,7 @@ namespace MortierFu
                 OnPlayerInitialized?.Invoke(this);
             }
 
-            BindGameplayInputCallbacks();
+            BindInputCallbacks();
         }
 
         /// <summary>
@@ -180,7 +230,7 @@ namespace MortierFu
         /// </summary>
         public void DespawnInGame()
         {
-            UnbindGameplayInputCallbacks();
+            UnbindInputCallbacks();
             RuntimeController.Despawn();
         }
 

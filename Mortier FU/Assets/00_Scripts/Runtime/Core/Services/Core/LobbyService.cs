@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
