@@ -168,6 +168,15 @@ namespace MortierFu
 
         public List<PlayerInput> GetAllPlayerInputs() => new (_playerInputs.Values);
         
+        public void ClearPlayers()
+        {
+            _playerDevices.Clear();
+            _deviceToPlayer.Clear();
+            _playerInputs.Clear();
+
+            Logs.Log("[DeviceService] Cleared all registered players and devices.");
+        }
+        
         #endregion
     }
 }

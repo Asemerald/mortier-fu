@@ -41,11 +41,6 @@ namespace MortierFu
             {
                 _bridge.DebugLogInputState();
             }
-
-            if (_autoJoinConnectedGamepads)
-            {
-                _bridge.JoinAllUnpairedGamepads();
-            }
         }
 
         private async UniTask<PlayerInputBridge> WaitForPlayerInputBridgeAsync()

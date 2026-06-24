@@ -172,6 +172,8 @@ namespace MortierFu
 
             await CleanupCurrentGameplayRuntimeAsync();
 
+            await ResetPlayerSessionForMainMenuAsync();
+
             await _sceneService.LoadScene(
                 k_mainMenuScene,
                 setAsActiveScene: true
@@ -205,7 +207,7 @@ namespace MortierFu
 
             _sceneService.ShowLoadingScreen();
 
-            await CleanupSandboxRuntimeAsync();
+            await CleanupLobbyRuntimeForMainMenuAsync();
 
             await _sceneService.LoadScene(
                 k_mainMenuScene,
@@ -217,6 +219,30 @@ namespace MortierFu
             _isSceneTransitionInProgress = false;
 
             Logs.Log("[GameService] Returned to main menu from lobby.");
+        }
+        
+        private async UniTask CleanupLobbyRuntimeForMainMenuAsync()
+        {
+            await ResetPlayerSessionForMainMenuAsync();
+
+            SystemManager.Instance.Dispose();
+
+            await _sceneService.UnloadScene(k_lobbyScene);
+        }
+
+        private async UniTask ResetPlayerSessionForMainMenuAsync()
+        {
+            PlayerInputBridge.Instance?.CanJoin(false);
+
+            var lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            lobbyService?.ClearPlayers(destroyPlayerObjects: true);
+
+            var deviceService = ServiceManager.Instance.Get<DeviceService>();
+            deviceService?.ClearPlayers();
+
+            await UniTask.Yield();
+
+            Logs.Log("[GameService] Player session reset for main menu.");
         }
         
         private void RestoreRuntimeBeforeSceneTransition()

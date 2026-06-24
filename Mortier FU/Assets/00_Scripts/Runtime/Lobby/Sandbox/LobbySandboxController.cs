@@ -15,7 +15,7 @@ namespace MortierFu
         [SerializeField] private LobbySandboxStateController _stateController;
 
         [Header("Startup")]
-        [SerializeField] private bool _spawnPlayersOnStart = true;
+        [SerializeField] private bool _spawnPlayersOnStart;
 
         private LobbyService _lobbyService;
         private readonly List<PlayerManager> _spawnedPlayers = new();
@@ -45,10 +45,10 @@ namespace MortierFu
 
         private void Update()
         {
-            if (!_isInitialized)
-                return;
+          //  if (!_isInitialized)
+          //      return;
 
-            SyncLobbyPlayers();
+         //   SyncLobbyPlayers();
         }
 
         private async UniTaskVoid InitializeAsync()
@@ -63,6 +63,17 @@ namespace MortierFu
             {
                 SyncLobbyPlayers();
             }
+        }
+        
+        public void SpawnJoinedPlayer(PlayerManager player)
+        {
+            if (!player)
+                return;
+
+            if (_spawnedPlayers.Contains(player))
+                return;
+
+            SpawnPlayer(player, player.PlayerIndex);
         }
 
         private async UniTask EnsureLobbySandboxSystemsAsync()
