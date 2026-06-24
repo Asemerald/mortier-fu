@@ -2,7 +2,9 @@ using System;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -11,6 +13,13 @@ namespace MortierFu
         [Header("Root")]
         [SerializeField] private GameObject _root;
 
+        [Header("References")]
+        [SerializeField] private Button _returnToMainMenuButton;
+        [SerializeField] private Button _addScoreButton;
+        [SerializeField] private Button _removeScoreButton;
+        [SerializeField] private Button _defaultSelectedButton;
+        [SerializeField] private LobbyReturnToMainMenuController _returnToMainMenuController;
+
         [Header("Data")]
         [SerializeField] private LobbyMatchSettingsData _settingsData;
 
@@ -18,8 +27,6 @@ namespace MortierFu
         [SerializeField] private int[] _scoreSteps = { 500, 1000, 1500, 2000, 3000 };
 
         [Header("Input")]
-        [SerializeField] private string _navigateActionName = "Navigate";
-        [SerializeField] private string _submitActionName = "Submit";
         [SerializeField] private string _cancelActionName = "Cancel";
 
         [Header("Optional Feedback")]
@@ -28,23 +35,30 @@ namespace MortierFu
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
 
-        private InputAction _navigateAction;
-        private InputAction _submitAction;
         private InputAction _cancelAction;
 
         private int _currentScoreIndex;
 
-        private Vector2 _previousNavigateInput = Vector2.zero;
-        private float _lastNavigateTime;
-
-        private const float Threshold = 0.7f;
-        private const float NavigateCooldown = 0.25f;
-
         private void Awake()
         {
-            if (_root != null)
+            if (_root)
             {
                 _root.SetActive(false);
+            }
+
+            if (_returnToMainMenuButton)
+            {
+                _returnToMainMenuButton.onClick.AddListener(OnClickReturnToMainMenu);
+            }
+
+            if (_addScoreButton)
+            {
+                _addScoreButton.onClick.AddListener(AddScore);
+            }
+
+            if (_removeScoreButton)
+            {
+                _removeScoreButton.onClick.AddListener(RemoveScore);
             }
         }
 
@@ -53,12 +67,32 @@ namespace MortierFu
             UnbindInput();
         }
 
+        private void OnDestroy()
+        {
+            UnbindInput();
+
+            if (_returnToMainMenuButton)
+            {
+                _returnToMainMenuButton.onClick.RemoveListener(OnClickReturnToMainMenu);
+            }
+
+            if (_addScoreButton)
+            {
+                _addScoreButton.onClick.RemoveListener(AddScore);
+            }
+
+            if (_removeScoreButton)
+            {
+                _removeScoreButton.onClick.RemoveListener(RemoveScore);
+            }
+        }
+
         public void Open(PlayerManager player, Action<PlayerManager> onClosed)
         {
-            if (player == null)
+            if (!player)
                 return;
 
-            if (_settingsData == null)
+            if (!_settingsData)
             {
                 Logs.LogError("[LobbySettingsPanel] Settings data reference is missing.");
                 return;
@@ -69,13 +103,14 @@ namespace MortierFu
 
             _currentScoreIndex = FindClosestScoreIndex(_settingsData.ScoreToWin);
 
-            if (_root != null)
+            if (_root)
             {
                 _root.SetActive(true);
             }
 
             BindInput();
             ApplyCurrentScore();
+            SelectDefaultButton();
 
             Logs.Log($"[LobbySettingsPanel] Opened for Player {player.PlayerIndex + 1}.");
         }
@@ -84,89 +119,39 @@ namespace MortierFu
         {
             UnbindInput();
 
-            if (_root != null)
+            if (_root)
             {
                 _root.SetActive(false);
             }
 
             _activePlayer = null;
             _onClosed = null;
-            _previousNavigateInput = Vector2.zero;
         }
 
         private void BindInput()
         {
-            if (_activePlayer == null || _activePlayer.PlayerInput == null)
+            if (!_activePlayer || !_activePlayer.PlayerInput)
                 return;
 
             var actions = _activePlayer.PlayerInput.actions;
 
-            _navigateAction = actions.FindAction(_navigateActionName, false);
-            _submitAction = actions.FindAction(_submitActionName, false);
             _cancelAction = actions.FindAction(_cancelActionName, false);
 
-            if (_navigateAction != null)
-                _navigateAction.performed += OnNavigate;
-
-            if (_submitAction != null)
-                _submitAction.performed += OnSubmit;
-
             if (_cancelAction != null)
+            {
+                _cancelAction.performed -= OnCancel;
                 _cancelAction.performed += OnCancel;
+            }
         }
 
         private void UnbindInput()
         {
-            if (_navigateAction != null)
-                _navigateAction.performed -= OnNavigate;
-
-            if (_submitAction != null)
-                _submitAction.performed -= OnSubmit;
-
             if (_cancelAction != null)
-                _cancelAction.performed -= OnCancel;
-
-            _navigateAction = null;
-            _submitAction = null;
-            _cancelAction = null;
-        }
-
-        private void OnNavigate(InputAction.CallbackContext ctx)
-        {
-            if (_activePlayer == null)
-                return;
-
-            Vector2 input = ctx.ReadValue<Vector2>();
-
-            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < Threshold;
-            bool isPushedNowX = Mathf.Abs(input.x) >= Threshold;
-            bool cooldownExpired = Time.time - _lastNavigateTime >= NavigateCooldown;
-
-            bool shouldTrigger =
-                (wasNotPushedX && isPushedNowX)
-                || (isPushedNowX && cooldownExpired);
-
-            if (!shouldTrigger)
             {
-                _previousNavigateInput = input;
-                return;
+                _cancelAction.performed -= OnCancel;
             }
 
-            int direction = input.x > 0f ? 1 : -1;
-
-            SetScoreIndex(_currentScoreIndex + direction);
-
-            _lastNavigateTime = Time.time;
-            _previousNavigateInput = input;
-            RefreshFeedback(_scoreSteps[_currentScoreIndex]);
-        }
-
-        private void OnSubmit(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            ConfirmAndClose();
+            _cancelAction = null;
         }
 
         private void OnCancel(InputAction.CallbackContext ctx)
@@ -179,18 +164,39 @@ namespace MortierFu
 
         private void ConfirmAndClose()
         {
-            if (_activePlayer == null)
+            if (!_activePlayer)
                 return;
 
             Logs.Log($"[LobbySettingsPanel] Closed by Player {_activePlayer.PlayerIndex + 1}.");
 
             _onClosed?.Invoke(_activePlayer);
-            _root.SetActive(false);
+            Close();
+        }
+
+        private void OnClickReturnToMainMenu()
+        {
+            if (!_returnToMainMenuController)
+            {
+                Logs.LogError("[LobbySettingsPanel] ReturnToMainMenuController reference is missing.");
+                return;
+            }
+
+            _returnToMainMenuController.ReturnToMainMenu();
+        }
+
+        private void AddScore()
+        {
+            SetScoreIndex(_currentScoreIndex + 1);
+        }
+
+        private void RemoveScore()
+        {
+            SetScoreIndex(_currentScoreIndex - 1);
         }
 
         private void SetScoreIndex(int index)
         {
-            if (_scoreSteps == null || _scoreSteps.Length == 0)
+            if (_scoreSteps is null || _scoreSteps.Length == 0)
                 return;
 
             _currentScoreIndex = WrapIndex(index, _scoreSteps.Length);
@@ -199,31 +205,46 @@ namespace MortierFu
 
         private void ApplyCurrentScore()
         {
-            if (_settingsData == null)
+            if (!_settingsData)
                 return;
 
-            if (_scoreSteps == null || _scoreSteps.Length == 0)
+            if (_scoreSteps is null || _scoreSteps.Length == 0)
                 return;
 
-            int score = _scoreSteps[_currentScoreIndex];
+            var score = _scoreSteps[_currentScoreIndex];
             _settingsData.SetScoreToWin(score);
 
-            RefreshFeedback(_scoreSteps[_currentScoreIndex]);
+            RefreshFeedback(score);
 
             Logs.Log($"[LobbySettingsPanel] ScoreToWin = {score}");
         }
 
         private void RefreshFeedback(int currentScore)
         {
-            if (_scoreStepIndicator == null)
+            if (!_scoreStepIndicator)
                 return;
 
             _scoreStepIndicator.text = currentScore.ToString();
         }
 
+        private void SelectDefaultButton()
+        {
+            var buttonToSelect = _defaultSelectedButton;
+
+            if (!buttonToSelect)
+            {
+                buttonToSelect = _addScoreButton;
+            }
+
+            if (!buttonToSelect)
+                return;
+
+            EventSystem.current?.SetSelectedGameObject(buttonToSelect.gameObject);
+        }
+
         private int FindClosestScoreIndex(int score)
         {
-            if (_scoreSteps == null || _scoreSteps.Length == 0)
+            if (_scoreSteps is null || _scoreSteps.Length == 0)
                 return 0;
 
             int closestIndex = 0;

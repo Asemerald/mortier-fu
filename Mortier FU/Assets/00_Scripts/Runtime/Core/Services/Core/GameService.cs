@@ -160,7 +160,7 @@ namespace MortierFu
             ReturnToMainMenuAsync().Forget();
         }
 
-        private async UniTaskVoid ReturnToMainMenuAsync()
+        public async UniTask ReturnToMainMenuAsync()
         {
             _isSceneTransitionInProgress = true;
 
@@ -182,6 +182,41 @@ namespace MortierFu
             _isSceneTransitionInProgress = false;
 
             Logs.Log("[GameService] Returned to main menu.");
+        }
+        
+        public void ReturnLobbyToMainMenu()
+        {
+            if (_isSceneTransitionInProgress)
+                return;
+
+            ReturnLobbyToMainMenuAsync().Forget();
+        }
+
+        public async UniTask ReturnLobbyToMainMenuAsync()
+        {
+            if (_isSceneTransitionInProgress)
+                return;
+
+            _isSceneTransitionInProgress = true;
+
+            Logs.Log("[GameService] Returning to main menu from lobby.");
+
+            RestoreRuntimeBeforeSceneTransition();
+
+            _sceneService.ShowLoadingScreen();
+
+            await CleanupSandboxRuntimeAsync();
+
+            await _sceneService.LoadScene(
+                k_mainMenuScene,
+                setAsActiveScene: true
+            );
+
+            _sceneService.HideLoadingScreen();
+
+            _isSceneTransitionInProgress = false;
+
+            Logs.Log("[GameService] Returned to main menu from lobby.");
         }
         
         private void RestoreRuntimeBeforeSceneTransition()
