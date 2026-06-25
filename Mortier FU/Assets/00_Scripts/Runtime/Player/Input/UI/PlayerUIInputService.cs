@@ -148,10 +148,15 @@ namespace MortierFu
                 }
             }
         }
+        
+        public void ClearAllHandlers()
+        {
+            _handlersByPlayer.Clear();
+        }
 
         public void Dispose()
         {
-            _handlersByPlayer.Clear();
+            ClearAllHandlers();
         }
     }
 }

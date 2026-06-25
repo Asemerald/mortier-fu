@@ -44,8 +44,6 @@ namespace MortierFu
         private bool _isInitialized;
         private bool _eventsSubscribed;
 
-        public int CurrentPromptCount => CalculateVisiblePromptCount();
-
         public event Action<PlayerManager> OnPlayerAccepted;
         public event Action OnPromptStateChanged;
 
@@ -72,6 +70,8 @@ namespace MortierFu
         private void OnDestroy()
         {
             CancelInitialization();
+            UnsubscribeEvents();
+            ClearRuntimeState();
 
             OnPlayerAccepted = null;
             OnPromptStateChanged = null;
@@ -134,7 +134,7 @@ namespace MortierFu
 
         private async UniTask<bool> WaitForDependenciesAsync(CancellationToken cancellationToken)
         {
-            const int maxFramesToWait = 10;
+            const int maxFramesToWait = 120;
 
             for (int i = 0; i < maxFramesToWait; i++)
             {
@@ -246,19 +246,20 @@ namespace MortierFu
             if (!_knownPlayers.Add(player))
                 return;
 
-            bool shouldWaitForSubmit = isExistingPlayer && _existingPlayersMustPressSubmit;
-            bool shouldAutoAccept = !isExistingPlayer && _autoAcceptNewPlayersCreatedInLobby;
-
-            if (shouldAutoAccept)
+            if (isExistingPlayer)
             {
-                AcceptPlayer(player);
+                if (_existingPlayersMustPressSubmit)
+                    RegisterPendingPlayer(player);
+                else
+                    AcceptPlayer(player);
+
                 return;
             }
 
-            if (shouldWaitForSubmit || !shouldAutoAccept)
-                RegisterPendingPlayer(player);
-            else
+            if (_autoAcceptNewPlayersCreatedInLobby)
                 AcceptPlayer(player);
+            else
+                RegisterPendingPlayer(player);
         }
 
         private void RegisterPendingPlayer(PlayerManager player)
@@ -396,19 +397,6 @@ namespace MortierFu
             return false;
         }
 
-        private int CalculateVisiblePromptCount()
-        {
-            int count = 0;
-
-            for (int i = 0; i < _maxPlayers; i++)
-            {
-                if (ShouldShowPromptForSlot(i))
-                    count++;
-            }
-
-            return count;
-        }
-
         private int GetConnectedGamepadCount()
         {
             int count = 0;
@@ -494,16 +482,6 @@ namespace MortierFu
                 return;
 
             Logs.Log(message, this);
-        }
-
-        public bool IsPlayerAccepted(PlayerManager player)
-        {
-            return player && _acceptedPlayers.Contains(player);
-        }
-
-        public IReadOnlyCollection<PlayerManager> GetAcceptedPlayers()
-        {
-            return _acceptedPlayers;
         }
 
         public bool CanHandleUIInput(PlayerManager player)

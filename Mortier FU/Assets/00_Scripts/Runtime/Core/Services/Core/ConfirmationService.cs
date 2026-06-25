@@ -35,23 +35,28 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public async Task WaitUntilHostConfirmed()
+        public async Task<bool> WaitUntilHostConfirmed()
         {
             var host = GetPlayerByIndex(0);
 
             if (!host)
             {
                 Logs.LogError("[ConfirmationService] No PlayerManager found for host Player 1.");
-                return;
+                return false;
             }
 
             BeginConfirmation(new[] { host });
 
-            await WaitForCompletion();
+            bool confirmed = await WaitForCompletion();
+
+            if (!confirmed)
+                return false;
 
             OnAllPlayersConfirmed?.Invoke();
 
             Logs.Log("[ConfirmationService] Host confirmed.");
+
+            return true;
         }
 
         public void ShowConfirmation(int activePlayers)
@@ -60,32 +65,41 @@ namespace MortierFu
             Logs.Log("[ConfirmationService] Confirmation started.");
         }
 
-        public async Task WaitUntilAllConfirmed()
+        public async Task<bool> WaitUntilAllConfirmed()
         {
             var players = GetAvailablePlayers();
 
             if (players.Count == 0)
             {
                 Logs.LogWarning("[ConfirmationService] No players available for confirmation.");
-                OnAllPlayersConfirmed?.Invoke();
-                return;
+                return false;
             }
 
             BeginConfirmation(players);
 
-            await WaitForCompletion();
+            bool confirmed = await WaitForCompletion();
+
+            if (!confirmed)
+                return false;
 
             OnAllPlayersConfirmed?.Invoke();
 
             Logs.Log("[ConfirmationService] All players confirmed.");
+
+            return true;
+        }
+
+        public void ResetRuntimeState()
+        {
+            ClearConfirmation(confirmationResult: false);
         }
 
         private void BeginConfirmation(IEnumerable<PlayerManager> players)
         {
             if (_isWaitingForConfirmation)
             {
-                Logs.LogWarning("[ConfirmationService] A confirmation was already active. It has been cleared.");
-                ClearConfirmation(completeCurrentWait: true);
+                Logs.LogWarning("[ConfirmationService] A confirmation was already active. It has been canceled.");
+                ClearConfirmation(confirmationResult: false);
             }
 
             if (_uiInputService is null)
@@ -120,12 +134,12 @@ namespace MortierFu
             Logs.Log($"[ConfirmationService] Waiting for {_confirmationCount} player confirmation(s).");
         }
 
-        private async Task WaitForCompletion()
+        private async Task<bool> WaitForCompletion()
         {
             if (_completionSource is null)
-                return;
+                return false;
 
-            await _completionSource.Task;
+            return await _completionSource.Task;
         }
 
         private void ConfirmPlayer(PlayerManager player)
@@ -172,18 +186,14 @@ namespace MortierFu
             _completionSource = null;
         }
 
-        private void ClearConfirmation(bool completeCurrentWait)
+        private void ClearConfirmation(bool confirmationResult)
         {
             _isWaitingForConfirmation = false;
             _confirmationCount = 0;
 
             ClearPendingPlayerHandlers();
 
-            if (completeCurrentWait)
-            {
-                _completionSource?.TrySetResult(true);
-            }
-
+            _completionSource?.TrySetResult(confirmationResult);
             _completionSource = null;
         }
 
@@ -279,7 +289,7 @@ namespace MortierFu
 
         public void Dispose()
         {
-            ClearConfirmation(completeCurrentWait: true);
+            ClearConfirmation(confirmationResult: false);
 
             OnPlayerConfirmed = null;
             OnAllPlayersConfirmed = null;
