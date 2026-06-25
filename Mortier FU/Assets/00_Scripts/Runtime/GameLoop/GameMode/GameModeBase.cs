@@ -55,13 +55,15 @@ namespace MortierFu
         protected CountdownTimer timer;
 
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
+        private AsyncOperationHandle<SO_GameFlowSettings> _flowSettingsHandle;
         private CancellationTokenSource _gameplayCancellation;
         
         public SO_GameModeData Data => _dataHandle.Result;
+        public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
-
+        
         public MatchConfig MatchConfig { get; private set; } = MatchConfig.Default;
 
         public int ScoreToWin => MatchConfig.ScoreToWin;
@@ -105,6 +107,7 @@ namespace MortierFu
             }
 
             _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
+            _flowSettingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GameFlowSettings>("DA_GameFlowSettings");
 
             timer = new CountdownTimer(0f);
 
@@ -250,7 +253,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
 
             await _augmentRaceController.HandleSelectionAsync(
-                Data.AugmentSelectionDuration,
+                FlowSettings.AugmentRaceDuration,
                 cancellationToken
             );
 
@@ -601,6 +604,10 @@ namespace MortierFu
             if (_dataHandle.IsValid())
             {
                 Addressables.Release(_dataHandle);
+            }
+            if (_flowSettingsHandle.IsValid())
+            {
+                Addressables.Release(_flowSettingsHandle);
             }
             if (_roundController != null)
             {

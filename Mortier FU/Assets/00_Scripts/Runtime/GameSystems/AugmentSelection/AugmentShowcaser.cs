@@ -21,8 +21,9 @@ namespace MortierFu
         private readonly ReadOnlyCollection<AugmentPickup> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
         private readonly ShakeService _shakeService;
+        private readonly SO_GameFlowSettings _flowSettings;
         private CancellationTokenSource _cts;
-
+        
         private Transform[] _augmentPoints;
 
         public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
@@ -38,6 +39,7 @@ namespace MortierFu
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _cam = _cameraSystem.Controller.Camera;
+            _flowSettings = (GameService.CurrentGameMode as GameModeBase)?.FlowSettings;
         }
 
         public void Dispose()
@@ -91,10 +93,25 @@ namespace MortierFu
             }
 
             ct.ThrowIfCancellationRequested();
-            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration), cancellationToken: ct);
 
-            _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
-            await _confirmationService.WaitUntilAllConfirmed();
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(_system.Settings.CardPopInDuration),
+                cancellationToken: ct
+            );
+
+            await WaitBeforePlayerConfirmationAsync(ct);
+
+            if (ShouldWaitForPlayerConfirmation())
+            {
+                _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
+
+                bool confirmed = await _confirmationService.WaitUntilAllConfirmed();
+
+                ct.ThrowIfCancellationRequested();
+
+                if (!confirmed)
+                    return;
+            }
 
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
@@ -236,6 +253,28 @@ namespace MortierFu
                 duration * 0.5f,
                 Ease.OutQuad
             ).ToUniTask(cancellationToken: ct);
+        }
+        
+        private async UniTask WaitBeforePlayerConfirmationAsync(CancellationToken ct)
+        {
+            if (!_flowSettings)
+                return;
+
+            float delay = Mathf.Max(0f, _flowSettings.AugmentShowcasePreConfirmationDelay);
+
+            if (delay <= 0f)
+                return;
+
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(delay),
+                cancellationToken: ct
+            );
+        }
+
+        private bool ShouldWaitForPlayerConfirmation()
+        {
+            return !_flowSettings ||
+                   _flowSettings.RequireAllPlayersConfirmationBeforeAugmentReveal;
         }
 
         public void StopShowcase()
