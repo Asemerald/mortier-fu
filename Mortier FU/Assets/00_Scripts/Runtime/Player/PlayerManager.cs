@@ -114,14 +114,16 @@ namespace MortierFu
 
             DontDestroyOnLoad(gameObject);
 
-            SetControlContext(PlayerControlContext.Menu);
-            InputRouter?.BindInputCallbacks();
+            bool inputRouterAlreadyCreated = _inputRouter is not null;
 
-            if (PlayerIndex != 0 || !MenuManager.Instance)
-                return;
+            var inputRouter = InputRouter;
 
-            Logs.Log("[PlayerManager] Assigning Player 1 to MenuManager.");
-            MenuManager.Instance.SetPlayer1(this);
+            if (!inputRouterAlreadyCreated)
+            {
+                inputRouter.SetContext(PlayerControlContext.Lobby, Character);
+            }
+
+            inputRouter.BindInputCallbacks();
         }
 
         private void OnDestroy()

@@ -198,7 +198,7 @@ namespace MortierFu
             DebugLogInputState();
         }
 
-        public bool IsDeviceAlreadyPaired(InputDevice device)
+        private bool IsDeviceAlreadyPaired(InputDevice device)
         {
             if (device is null)
                 return true;
@@ -218,6 +218,26 @@ namespace MortierFu
             }
 
             return false;
+        }
+        
+        public void ValidateMaxPlayers(int expectedMaxPlayers)
+        {
+            if (!PlayerInputManager)
+            {
+                Logs.LogError("[PlayerInputBridge] Cannot validate max players because PlayerInputManager is missing.", this);
+                return;
+            }
+
+            expectedMaxPlayers = Mathf.Max(1, expectedMaxPlayers);
+
+            if (PlayerInputManager.maxPlayerCount == expectedMaxPlayers)
+                return;
+
+            Logs.LogWarning(
+                $"[PlayerInputBridge] PlayerInputManager Max Player Count is {PlayerInputManager.maxPlayerCount}, " +
+                $"but lobby expects {expectedMaxPlayers}. Please fix it in the Inspector.",
+                this
+            );
         }
 
         public void DebugLogInputState()

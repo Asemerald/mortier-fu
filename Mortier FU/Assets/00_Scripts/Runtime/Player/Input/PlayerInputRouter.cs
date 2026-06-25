@@ -56,6 +56,11 @@ namespace MortierFu
                 : PlayerInputActionNames.UIMap;
 
             _playerInput.SwitchCurrentActionMap(targetMap);
+            
+            UnityEngine.Debug.Log(
+                $"[PlayerInputRouter] Player {_playerInput.playerIndex + 1} context={context}, " +
+                $"targetMap={targetMap}, currentMap={_playerInput.currentActionMap?.name}"
+            );
 
             var globalMap = _playerInput.actions.FindActionMap(PlayerInputActionNames.GlobalMap, false);
             globalMap?.Enable();
@@ -106,7 +111,7 @@ namespace MortierFu
             _callbacksBound = true;
         }
 
-        public void UnbindInputCallbacks()
+        private void UnbindInputCallbacks()
         {
             if (!_callbacksBound)
                 return;

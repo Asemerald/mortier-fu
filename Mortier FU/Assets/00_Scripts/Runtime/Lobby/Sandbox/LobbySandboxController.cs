@@ -239,9 +239,7 @@ namespace MortierFu
 
         public PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
         {
-            return _stateController
-                ? _stateController.GetContextForNewPlayer(player)
-                : PlayerControlContext.LobbySandbox;
+            return PlayerControlContext.LobbySandbox;
         }
 
         public void ApplyCurrentContextToPlayer(PlayerManager player)

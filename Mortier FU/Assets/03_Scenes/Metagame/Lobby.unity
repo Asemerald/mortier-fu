@@ -54904,7 +54904,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1547654673}
   - component: {fileID: 1547654674}
-  - component: {fileID: 1547654675}
   - component: {fileID: 1547654679}
   - component: {fileID: 1547654677}
   - component: {fileID: 1547654676}
@@ -54958,21 +54957,6 @@ MonoBehaviour:
   - {fileID: 744615116}
   _stateController: {fileID: 1547654679}
   _spawnPlayersOnStart: 0
---- !u!114 &1547654675
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547654672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8dc21d6676e0cd4f86e7ab4c4d2b9ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyPlayerJoinController
-  _enableJoiningOnStart: 1
-  _autoJoinConnectedGamepads: 0
-  _debugInputState: 1
 --- !u!114 &1547654676
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55104,8 +55088,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyJoinController
   _sandboxController: {fileID: 1547654674}
   _maxPlayers: 4
-  _existingPlayersMustPressSubmit: 1
+  _enableJoiningOnLobbyEnter: 1
+  _existingPlayersMustPressSubmit: 0
   _autoAcceptNewPlayersCreatedInLobby: 1
+  _autoJoinConnectedGamepads: 0
+  _showDebugLogs: 1
+  _debugInputState: 0
 --- !u!1 &1550262467
 GameObject:
   m_ObjectHideFlags: 0
