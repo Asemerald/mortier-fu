@@ -60,10 +60,10 @@ MonoBehaviour:
     BombshellImpactRadiusMod:
       Value: 0.7
       ModType: 100
-  BouncyPrototypeParams:
+  BouncyParams:
     BombShellDamageMod:
       Value: 0
-      ModType: 100
+      ModType: 0
     ExtraBombshellBounces: 1
   BouncyBoomerangParams:
     OnBounceUpMinAngle: 33
@@ -86,13 +86,6 @@ MonoBehaviour:
     FireRateMod:
       Value: 2.85
       ModType: 100
-  FreezePuddleParams:
-    Ability:
-      PersistAfterExit: 0
-      Effects:
-      - rid: 8527789206929670255
-    Scale: {x: 3, y: 1, z: 3}
-    LifeTime: 5
   GunslingerParams:
     FireRateMod:
       Value: 3.25
@@ -115,13 +108,6 @@ MonoBehaviour:
       Value: 0.4
       ModType: 100
     MaxStacksOver: 10
-  PoisonPuddleParams:
-    Ability:
-      PersistAfterExit: 1
-      Effects:
-      - rid: 8527789206929670256
-    Scale: {x: 3, y: 1, z: 3}
-    LifeTime: 5
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 25
@@ -156,24 +142,11 @@ MonoBehaviour:
       ModType: 200
   DoubleDashParams:
     ExtraDashes: 1
-  FastStrikeParams:
+  FastDashParams:
     DashCooldownMod:
       Value: 0.25
-      ModType: 200
+      ModType: 0
   PerfectPushParams:
     OnSuccessfulPushMaxHealthMod:
       Value: 6
       ModType: 100
-  references:
-    version: 2
-    RefIds:
-    - rid: 8527789206929670255
-      type: {class: FreezeEffect, ns: MortierFu, asm: Mortierfu.Runtime}
-      data:
-        FreezeFactor: 0.5
-    - rid: 8527789206929670256
-      type: {class: PoisonEffect, ns: MortierFu, asm: Mortierfu.Runtime}
-      data:
-        Duration: 5
-        TickInterval: 1
-        DamagePerTick: 1
