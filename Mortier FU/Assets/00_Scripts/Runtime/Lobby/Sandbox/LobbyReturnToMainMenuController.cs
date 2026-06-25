@@ -3,6 +3,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.InputSystem.UI;
 
 namespace MortierFu
 {
@@ -22,13 +23,22 @@ namespace MortierFu
         [Header("Options")]
         [SerializeField] private bool _despawnLobbyCharacters = true;
         [SerializeField] private bool _disableJoining = true;
-        [SerializeField] private bool _onlyPlayerOneCanUse = true;
+
+        [Header("Navigation")]
+        [SerializeField] private float _navigationDeadZone = 0.5f;
 
         private PlayerManager _activePlayer;
         private PlayerControlContext _previousActivePlayerContext;
 
+        private Selectable _currentSelectable;
+
         private bool _isConfirmationOpen;
         private bool _isReturning;
+        private bool _navigationWasPressed;
+        
+        private InputSystemUIInputModule _uiInputModule;
+        private bool _hasStoredUiInputModuleState;
+        private bool _previousUiInputModuleEnabled;
 
         private PlayerUIInputService UIInputService =>
             ServiceManager.Instance?.Get<PlayerUIInputService>();
@@ -36,49 +46,20 @@ namespace MortierFu
         private void Awake()
         {
             ValidateReferences();
-
-            if (_confirmPanel)
-                _confirmPanel.SetActive(false);
-
-            if (_confirmButton)
-                _confirmButton.onClick.AddListener(ConfirmReturnToMainMenu);
-
-            if (_cancelButton)
-                _cancelButton.onClick.AddListener(CancelReturnToMainMenu);
+            HideConfirmationPanel();
+            BindButtons();
         }
 
         private void OnDestroy()
         {
             UIInputService?.RemoveFromAll(this);
-
-            if (_confirmButton)
-                _confirmButton.onClick.RemoveListener(ConfirmReturnToMainMenu);
-
-            if (_cancelButton)
-                _cancelButton.onClick.RemoveListener(CancelReturnToMainMenu);
-
+            
+            RestoreGlobalUIInputModule();
+            UnbindButtons();
             ResumeLobby();
-        }
 
-        private void ValidateReferences()
-        {
-            if (!_sandboxController)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxController reference is missing.");
-
-            if (!_stateController)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxStateController reference is missing.");
-
-            if (!_readyController)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] ReadyController reference is missing.");
-
-            if (!_confirmPanel)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmPanel reference is missing.");
-
-            if (!_confirmButton)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmButton reference is missing.");
-
-            if (!_cancelButton)
-                Logs.LogWarning("[LobbyReturnToMainMenuController] CancelButton reference is missing.");
+            _activePlayer = null;
+            _currentSelectable = null;
         }
 
         private void OnTriggerEnter(Collider other)
@@ -92,6 +73,78 @@ namespace MortierFu
                 return;
 
             TryOpenConfirmation(character.Owner);
+        }
+
+        private void ValidateReferences()
+        {
+            if (!_sandboxController)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxController reference is missing.", this);
+
+            if (!_stateController)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] SandboxStateController reference is missing.", this);
+
+            if (!_readyController)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ReadyController reference is missing.", this);
+
+            if (!_confirmPanel)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmPanel reference is missing.", this);
+
+            if (!_confirmButton)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] ConfirmButton reference is missing.", this);
+
+            if (!_cancelButton)
+                Logs.LogWarning("[LobbyReturnToMainMenuController] CancelButton reference is missing.", this);
+        }
+
+        private void BindButtons()
+        {
+            if (_confirmButton)
+                _confirmButton.onClick.AddListener(ConfirmReturnToMainMenu);
+
+            if (_cancelButton)
+                _cancelButton.onClick.AddListener(CancelReturnToMainMenu);
+        }
+
+        private void UnbindButtons()
+        {
+            if (_confirmButton)
+                _confirmButton.onClick.RemoveListener(ConfirmReturnToMainMenu);
+
+            if (_cancelButton)
+                _cancelButton.onClick.RemoveListener(CancelReturnToMainMenu);
+        }
+        
+        private void DisableGlobalUIInputModule()
+        {
+            var eventSystem = EventSystem.current;
+
+            if (!eventSystem)
+                return;
+
+            if (!_uiInputModule)
+                _uiInputModule = eventSystem.GetComponent<InputSystemUIInputModule>();
+
+            if (!_uiInputModule)
+                return;
+
+            if (!_hasStoredUiInputModuleState)
+            {
+                _previousUiInputModuleEnabled = _uiInputModule.enabled;
+                _hasStoredUiInputModuleState = true;
+            }
+
+            _uiInputModule.enabled = false;
+        }
+
+        private void RestoreGlobalUIInputModule()
+        {
+            if (!_hasStoredUiInputModuleState)
+                return;
+
+            if (_uiInputModule)
+                _uiInputModule.enabled = _previousUiInputModuleEnabled;
+
+            _hasStoredUiInputModuleState = false;
         }
 
         private PlayerCharacter ResolvePlayerCharacter(Collider other)
@@ -118,9 +171,6 @@ namespace MortierFu
             if (!player)
                 return;
 
-            if (_onlyPlayerOneCanUse && player.PlayerIndex != 0)
-                return;
-
             if (_stateController && !_stateController.CanUseStartTarget())
                 return;
 
@@ -132,10 +182,7 @@ namespace MortierFu
 
         private bool IsPlayerInSandbox(PlayerManager player)
         {
-            if (!player)
-                return false;
-
-            if (!_sandboxController)
+            if (!player || !_sandboxController)
                 return false;
 
             var players = _sandboxController.GetSpawnedPlayers();
@@ -154,8 +201,10 @@ namespace MortierFu
             _activePlayer = player;
             _previousActivePlayerContext = player.ControlContext;
             _isConfirmationOpen = true;
+            _navigationWasPressed = false;
 
             PauseLobby();
+            DisableGlobalUIInputModule();
 
             if (_sandboxController)
                 _sandboxController.LockAllPlayers();
@@ -164,27 +213,47 @@ namespace MortierFu
 
             UIInputService?.Push(player, this);
 
-            if (_confirmPanel)
-                _confirmPanel.SetActive(true);
-
+            ShowConfirmationPanel();
             SelectDefaultButton();
 
             Logs.Log($"[LobbyReturnToMainMenuController] Confirmation opened by Player {player.PlayerIndex + 1}.");
         }
 
+        private void ShowConfirmationPanel()
+        {
+            if (_confirmPanel)
+                _confirmPanel.SetActive(true);
+        }
+
+        private void HideConfirmationPanel()
+        {
+            if (_confirmPanel)
+                _confirmPanel.SetActive(false);
+        }
+
         private void SelectDefaultButton()
         {
-            var buttonToSelect = _defaultSelectedButton;
+            Selectable selectable = _defaultSelectedButton;
 
-            if (!buttonToSelect)
-                buttonToSelect = _confirmButton;
+            if (!selectable)
+                selectable = _confirmButton;
 
-            if (!buttonToSelect)
+            if (!selectable)
+                selectable = _cancelButton;
+
+            Select(selectable);
+        }
+
+        private void Select(Selectable selectable)
+        {
+            if (!selectable)
                 return;
 
-            EventSystem.current?.SetSelectedGameObject(buttonToSelect.gameObject);
+            _currentSelectable = selectable;
+
+            EventSystem.current?.SetSelectedGameObject(selectable.gameObject);
         }
-        
+
         private void ConfirmReturnToMainMenu()
         {
             if (_isReturning)
@@ -211,8 +280,8 @@ namespace MortierFu
             else
                 UIInputService?.RemoveFromAll(this);
 
-            if (_confirmPanel)
-                _confirmPanel.SetActive(false);
+            HideConfirmationPanel();
+            RestoreGlobalUIInputModule();
 
             if (_sandboxController)
                 _sandboxController.UnlockAllPlayers();
@@ -220,7 +289,9 @@ namespace MortierFu
             RestoreActivePlayerContext();
 
             _activePlayer = null;
+            _currentSelectable = null;
             _isConfirmationOpen = false;
+            _navigationWasPressed = false;
         }
 
         private void RestoreActivePlayerContext()
@@ -248,9 +319,8 @@ namespace MortierFu
             else
                 UIInputService?.RemoveFromAll(this);
 
-            if (_confirmPanel)
-                _confirmPanel.SetActive(false);
-
+            HideConfirmationPanel();
+            RestoreGlobalUIInputModule();
             ResumeLobby();
 
             LockLobby();
@@ -263,7 +333,7 @@ namespace MortierFu
 
             if (gameService is null)
             {
-                Logs.LogError("[LobbyReturnToMainMenuController] GameService is missing. Cannot return to main menu.");
+                Logs.LogError("[LobbyReturnToMainMenuController] GameService is missing. Cannot return to main menu.", this);
                 _isReturning = false;
                 return;
             }
@@ -342,24 +412,105 @@ namespace MortierFu
         public bool CanHandleUIInput(PlayerManager player)
         {
             return _isConfirmationOpen &&
+                   !_isReturning &&
                    _activePlayer &&
-                   ReferenceEquals(_activePlayer, player);
+                   ReferenceEquals(_activePlayer, player) &&
+                   player.CurrentPermissions.CanNavigateUI &&
+                   player.CurrentPermissions.CanConfirmUI &&
+                   player.CurrentPermissions.CanCancelUI;
         }
 
         public bool HandleNavigate(PlayerManager player, Vector2 direction)
         {
-            return false;
+            if (!CanHandleUIInput(player))
+                return false;
+
+            if (direction.sqrMagnitude < _navigationDeadZone * _navigationDeadZone)
+            {
+                _navigationWasPressed = false;
+                return true;
+            }
+
+            if (_navigationWasPressed)
+                return true;
+
+            _navigationWasPressed = true;
+
+            Navigate(direction);
+            return true;
         }
 
         public bool HandleSubmit(PlayerManager player)
         {
-            return false;
+            if (!CanHandleUIInput(player))
+                return false;
+
+            SubmitCurrentSelection();
+            return true;
         }
 
         public bool HandleCancel(PlayerManager player)
         {
+            if (!CanHandleUIInput(player))
+                return false;
+
             CancelReturnToMainMenu();
             return true;
+        }
+
+        private void Navigate(Vector2 direction)
+        {
+            if (!_currentSelectable)
+                SelectDefaultButton();
+
+            if (!_currentSelectable)
+                return;
+
+            Selectable nextSelectable = null;
+
+            if (Mathf.Abs(direction.x) >= Mathf.Abs(direction.y))
+            {
+                nextSelectable = direction.x > 0f
+                    ? _currentSelectable.FindSelectableOnRight()
+                    : _currentSelectable.FindSelectableOnLeft();
+            }
+            else
+            {
+                nextSelectable = direction.y > 0f
+                    ? _currentSelectable.FindSelectableOnUp()
+                    : _currentSelectable.FindSelectableOnDown();
+            }
+
+            if (!nextSelectable)
+                nextSelectable = GetFallbackSelectable();
+
+            Select(nextSelectable);
+        }
+
+        private Selectable GetFallbackSelectable()
+        {
+            if (_currentSelectable == _confirmButton && _cancelButton)
+                return _cancelButton;
+
+            return _confirmButton ? _confirmButton : _cancelButton;
+        }
+
+        private void SubmitCurrentSelection()
+        {
+            if (!_currentSelectable)
+                SelectDefaultButton();
+
+            if (!_currentSelectable)
+                return;
+
+            if (_currentSelectable is Button button)
+            {
+                button.onClick.Invoke();
+                return;
+            }
+
+            if (_confirmButton)
+                _confirmButton.onClick.Invoke();
         }
     }
 }

@@ -54913,7 +54913,6 @@ GameObject:
   - component: {fileID: 1547654681}
   - component: {fileID: 1547654683}
   - component: {fileID: 1547654684}
-  - component: {fileID: 1547654685}
   m_Layer: 0
   m_Name: LobbySandboxRoot
   m_TagString: Untagged
@@ -55107,21 +55106,6 @@ MonoBehaviour:
   _maxPlayers: 4
   _existingPlayersMustPressSubmit: 1
   _autoAcceptNewPlayersCreatedInLobby: 1
---- !u!114 &1547654685
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547654672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8dc21d6676e0cd4f86e7ab4c4d2b9ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyPlayerJoinController
-  _enableJoiningOnStart: 1
-  _autoJoinConnectedGamepads: 0
-  _debugInputState: 0
 --- !u!1 &1550262467
 GameObject:
   m_ObjectHideFlags: 0
@@ -62911,7 +62895,7 @@ MonoBehaviour:
   _defaultSelectedButton: {fileID: 1923102912}
   _despawnLobbyCharacters: 1
   _disableJoining: 1
-  _onlyPlayerOneCanUse: 0
+  _navigationDeadZone: 0.5
 --- !u!1 &1798709324
 GameObject:
   m_ObjectHideFlags: 0
@@ -64587,9 +64571,9 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnUp: {fileID: 1923102912}
+    m_SelectOnDown: {fileID: 1923102912}
+    m_SelectOnLeft: {fileID: 1923102912}
     m_SelectOnRight: {fileID: 2019143194}
   m_Transition: 1
   m_Colors:
@@ -70531,10 +70515,10 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
+    m_SelectOnUp: {fileID: 2019143194}
+    m_SelectOnDown: {fileID: 2019143194}
     m_SelectOnLeft: {fileID: 1923102912}
-    m_SelectOnRight: {fileID: 0}
+    m_SelectOnRight: {fileID: 2019143194}
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}

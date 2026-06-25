@@ -77,10 +77,10 @@ namespace MortierFu
             BindButtons();
 
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
-
+            
             if (PlayerInputBridge.Instance)
             {
-                PlayerInputBridge.Instance.CanJoin(true);
+                PlayerInputBridge.Instance.CanJoin(false);
             }
         }
 

@@ -65,7 +65,10 @@ namespace MortierFu
         public void RegisterPlayer(PlayerManager player)
         {
             if (!player)
+            {
+                Logs.LogError("[LobbyService] Cannot register player because PlayerManager is missing.");
                 return;
+            }
 
             if (Players.Contains(player))
                 return;
@@ -78,6 +81,12 @@ namespace MortierFu
 
             Players.Add(player);
 
+            player.OnPlayerInitialized -= HandlePlayerInitialized;
+            player.OnPlayerDestroyed -= HandlePlayerDestroyed;
+
+            player.OnPlayerInitialized += HandlePlayerInitialized;
+            player.OnPlayerDestroyed += HandlePlayerDestroyed;
+
 #if !UNITY_EDITOR
             var shakeService = ServiceManager.Instance?.Get<ShakeService>();
             shakeService?.ShakeController(player, ShakeService.ShakeType.MID);
@@ -85,13 +94,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
 #endif
 
-            player.OnPlayerInitialized -= HandlePlayerInitialized;
-            player.OnPlayerDestroyed -= HandlePlayerDestroyed;
-
-            player.OnPlayerInitialized += HandlePlayerInitialized;
-            player.OnPlayerDestroyed += HandlePlayerDestroyed;
-
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex + 1} registered.");
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} registered.");
 
             OnPlayerJoined?.Invoke(player);
         }
@@ -108,7 +111,7 @@ namespace MortierFu
 
             Players.Remove(player);
 
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex + 1} left the lobby.");
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} left the lobby.");
 
             OnPlayerLeft?.Invoke(player);
         }
@@ -127,7 +130,7 @@ namespace MortierFu
 
             player.SelfDestroy();
 
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex + 1} removed from the lobby.");
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} removed from the lobby.");
         }
 
         public void ClearPlayers(bool destroyPlayerObjects = true)
@@ -168,6 +171,19 @@ namespace MortierFu
 
             player.OnPlayerInitialized -= HandlePlayerInitialized;
             player.OnPlayerDestroyed -= HandlePlayerDestroyed;
+        }
+
+        private static string GetSafeDisplayIndex(PlayerManager player)
+        {
+            if (!player)
+                return "?";
+
+            int playerIndex = player.PlayerIndex;
+
+            if (playerIndex < 0)
+                return "?";
+
+            return (playerIndex + 1).ToString();
         }
 
         private void HandlePlayerInitialized(PlayerManager player)
