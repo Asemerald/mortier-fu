@@ -73,7 +73,7 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Stun duration caused when colliding into an obstacle during knockback.")]
         public float KnockbackStunDuration { get; private set; } = 0.5f;
         
-        [field: Header("Fomrula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
+        [field: Header("Formula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
         public float MaxHealthToAvatarSizeFactor { get; private set; } = 0.6f;
         
         [field: SerializeField, Tooltip("Influence of strike push force towards the strike radius.")]
