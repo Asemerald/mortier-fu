@@ -160,10 +160,7 @@ namespace MortierFu
         {
             _playerSpawnController = new PlayerSpawnController(teams, levelSystem);
 
-            _roundWinnerPresentationController = new RoundWinnerPresentationController(
-                _playerSpawnController,
-                cameraSystem
-            );
+            _roundWinnerPresentationController = new RoundWinnerPresentationController();
 
             _scorePhaseController = new ScorePhaseController(
                 teams,
@@ -218,7 +215,7 @@ namespace MortierFu
             gameVictor = null;
 
             _gameplayCancellation = new CancellationTokenSource();
-            GameplayCoroutine(_gameplayCancellation.Token).Forget();
+            GameplayLoop(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
         }
@@ -254,10 +251,10 @@ namespace MortierFu
 
             StartRace();
 
-            await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
+            cameraSystem.Controller.ApplyRaceCameraMapConfigInstant();
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _augmentRaceController.PrepareSelectionAsync(cancellationToken);
+            await _augmentRaceController.PrepareSelectionAsync(cancellationToken, FlowSettings.AugmentStartShowcaseDelay);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -385,7 +382,7 @@ namespace MortierFu
             }
         }
 
-        protected async UniTaskVoid GameplayCoroutine(CancellationToken cancellationToken)
+        protected async UniTaskVoid GameplayLoop(CancellationToken cancellationToken)
         {
             try
             {
@@ -827,15 +824,6 @@ namespace MortierFu
 
             if (!FlowSettings || !FlowSettings.UseScoreboardAsRaceMapLoadCover)
                 return;
-
-            float delay = Mathf.Max(0f, FlowSettings.RoundWinnerFocusDuration);
-
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(delay),
-                cancellationToken: cancellationToken
-            );
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             await levelSystem.LoadRaceMap(
                 useTransition: false,

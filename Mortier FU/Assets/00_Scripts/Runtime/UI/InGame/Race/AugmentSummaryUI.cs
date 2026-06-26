@@ -49,10 +49,6 @@ namespace MortierFu
 
         #endregion
 
-        #region Timing
-
-        #endregion
-
         #region Runtime State
 
         private List<Tween> _activeTweens = new();
