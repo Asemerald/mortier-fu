@@ -31,9 +31,6 @@ namespace MortierFu
         [Tooltip("Nombre affiché au départ du countdown. 3 = 3 / 2 / 1 / GO.")]
         public int RoundCountdownSeconds = 3;
 
-        [Tooltip("Durée totale des chiffres du countdown avant le GO. Exemple : 3 secondes avec RoundCountdownSeconds = 3 donne 1 seconde par chiffre.")]
-        public float RoundCountdownTotalDuration = 3f;
-
         [Header("Round End")]
         [Tooltip("Durée du zoom / focus sur le gagnant du round avant le scoreboard.")]
         public float RoundWinnerFocusDuration = 3f;
