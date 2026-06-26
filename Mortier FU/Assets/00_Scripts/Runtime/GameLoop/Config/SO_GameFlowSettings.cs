@@ -18,6 +18,10 @@ namespace MortierFu
         [Header("Augment Race")]
         [Tooltip("Durée maximale pendant laquelle les joueurs peuvent courir pour récupérer un augment.")]
         public float AugmentRaceDuration = 20f;
+        
+        [Header("Augment Race Start")]
+        [Tooltip("Délai après la disparition de la confirmation avant d'afficher le RACE.")]
+        public float AugmentRaceStartDelayAfterConfirmation = 1.6f;
 
         [Header("Augment Summary")]
         [Tooltip("Durée minimale du résumé des augments après la race, avant de passer au round.")]
@@ -27,8 +31,8 @@ namespace MortierFu
         [Tooltip("Nombre affiché au départ du countdown. 3 = 3 / 2 / 1 / GO.")]
         public int RoundCountdownSeconds = 3;
 
-        [Tooltip("Durée globale souhaitée de l'affichage 3 / 2 / 1 / GO.")]
-        public float RoundCountdownTotalDuration = 4f;
+        [Tooltip("Durée totale des chiffres du countdown avant le GO. Exemple : 3 secondes avec RoundCountdownSeconds = 3 donne 1 seconde par chiffre.")]
+        public float RoundCountdownTotalDuration = 3f;
 
         [Header("Round End")]
         [Tooltip("Durée du zoom / focus sur le gagnant du round avant le scoreboard.")]
