@@ -4,16 +4,7 @@ namespace MortierFu
 {
     public sealed class RoundWinnerPresentationController
     {
-        private readonly PlayerSpawnController _playerSpawnController;
-        private readonly CameraSystem _cameraSystem;
-
-        public RoundWinnerPresentationController(
-            PlayerSpawnController playerSpawnController,
-            CameraSystem cameraSystem)
-        {
-            _playerSpawnController = playerSpawnController ?? throw new ArgumentNullException(nameof(playerSpawnController));
-            _cameraSystem = cameraSystem ?? throw new ArgumentNullException(nameof(cameraSystem));
-        }
+        public RoundWinnerPresentationController() {}
 
         public void PresentWinner(PlayerTeam winningTeam)
         {
@@ -30,15 +21,15 @@ namespace MortierFu
 
             winner.Character.Reset();
 
-            _playerSpawnController.SpawnWinnerTeam(winningTeam);
+           // _playerSpawnController.SpawnWinnerTeam(winningTeam);
 
             if (winner.Character == null)
                 return;
 
-            _cameraSystem.Controller.EndFightCameraMovement(
+            /*_cameraSystem.Controller.EndFightCameraMovement(
                 winner.Character.transform,
                 2f
-            );
+            );*/
 
             winner.Character.WinRoundDance();
         }

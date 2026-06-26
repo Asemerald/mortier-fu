@@ -222,6 +222,43 @@ namespace MortierFu
                 }
             }
         }
+        
+        public void ApplyRaceCameraMapConfigInstant()
+        {
+            if (!_cinemachineCamera || !_virtualTarget || _levelSystem == null)
+                return;
+
+            _isStaticRaceCamera = true;
+
+            ClearTargetGroupMember();
+
+            _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
+            _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
+
+            ApplyLens();
+
+            Vector3 cameraPosition = GetCameraPositionForVirtualTarget();
+            Quaternion cameraRotation = _cinemachineCamera.transform.rotation;
+
+            _cinemachineCamera.transform.SetPositionAndRotation(cameraPosition, cameraRotation);
+            _cinemachineCamera.ForceCameraPosition(cameraPosition, cameraRotation);
+
+            if (_camera)
+                _camera.transform.SetPositionAndRotation(cameraPosition, cameraRotation);
+
+            if (_renderOnTopCamera)
+                _renderOnTopCamera.transform.SetPositionAndRotation(cameraPosition, cameraRotation);
+        }
+
+        private Vector3 GetCameraPositionForVirtualTarget()
+        {
+            var follow = _cinemachineCamera.GetComponent<CinemachineFollow>();
+
+            if (!follow)
+                return _virtualTarget.position;
+
+            return _virtualTarget.position + follow.FollowOffset;
+        }
 
         private void ResetCameraInstant()
         {
