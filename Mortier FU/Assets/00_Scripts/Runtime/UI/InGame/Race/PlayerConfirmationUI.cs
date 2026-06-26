@@ -10,35 +10,15 @@ namespace MortierFu
 {
     public class PlayerConfirmationUI : MonoBehaviour
     {
-        #region Variables
-
-        #region Player Slots
-
         [Header("Player Slots (Blue, Red, Green, Yellow)")] [SerializeField]
         private List<PlayerSlot> _playerSlots;
 
-        #endregion
-
-        #region UI References
-
-        [Header("UI References")] [SerializeField]
-        private Image _countdownImage;
-
+        [Header("UI References")]
         [SerializeField] private GameObject _raceGameObject;
 
         [SerializeField] private CanvasGroup _countdownCanvasGroup;
 
         [SerializeField] private CanvasGroup _raceCanvasGroup;
-
-        #endregion
-
-        #region Assets
-
-        [Header("Assets")] [SerializeField] private List<Sprite> _countdownSprites;
-
-        #endregion
-
-        #region General Animation Settings
 
         [Header("General Animation Settings")] [SerializeField]
         private float _pulseScale = 1.15f;
@@ -46,27 +26,6 @@ namespace MortierFu
         [SerializeField] private float _pulseDuration = 0.45f;
         [SerializeField] private float _hideDuration = 0.6f;
         [SerializeField] private float _defaultScaleDuration = 0.5f;
-
-        #endregion
-
-        #region Race Animation Settings
-
-        [Header("Countdown Animation Settings")] [SerializeField]
-        private float _countdownSlideOffset = 150f;
-
-        [SerializeField] private float _showCountdownDelay = 0.3f;
-        [SerializeField] private float _countdownInDuration = 0.35f;
-        [SerializeField] private float _countdownOutDuration = 0.3f;
-        [SerializeField] private float _countdownStartingScale = 1.3f;
-
-        private const float COUNTDOWN_TOTAL_DURATION = 1f;
-
-        private float CountdownHoldDuration =>
-            COUNTDOWN_TOTAL_DURATION - _countdownInDuration - _countdownOutDuration;
-
-        #endregion
-
-        #region Ease Settings
 
         [Header("Ease Settings")] [SerializeField]
         private Ease _actionButtonEaseOut = Ease.OutBack;
@@ -83,27 +42,16 @@ namespace MortierFu
         [SerializeField] private float _readyScaleUp = 1.7f;
         [SerializeField] private float _readyFadeOutDuration = 0.3f;
 
-        #endregion
-
-        #region Runtime State
-
-        private Vector3 _initialCountdownScale;
         private ShakeService _shakeService;
+        private GameModeBase _gm;
 
-        private Sequence _countdownSequence;
+        private UniTaskCompletionSource<bool> _confirmationHideCompletion;
 
         private CancellationTokenSource _cts;
 
-        #endregion
-
-        #endregion
-
         private void Awake()
         {
-            _initialCountdownScale = _countdownImage.transform.localScale;
-
             _raceGameObject.SetActive(false);
-            _countdownImage.gameObject.SetActive(false);
         }
 
         private void Start()
@@ -116,11 +64,19 @@ namespace MortierFu
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
+
+            SubscribeGameMode();
         }
 
         private void OnDisable()
         {
+            UnsubscribeGameMode();
+
             CleanupTweens();
+
+            _confirmationHideCompletion?.TrySetResult(true);
+            _confirmationHideCompletion = null;
+
             _cts?.Cancel();
         }
 
@@ -132,11 +88,29 @@ namespace MortierFu
             _cts = null;
         }
 
+        private void SubscribeGameMode()
+        {
+            UnsubscribeGameMode();
+
+            _gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gm == null)
+                return;
+
+            _gm.OnAugmentRaceStartPresentationAsync += PlayAugmentRaceStartPresentationAsync;
+        }
+
+        private void UnsubscribeGameMode()
+        {
+            if (_gm == null)
+                return;
+
+            _gm.OnAugmentRaceStartPresentationAsync -= PlayAugmentRaceStartPresentationAsync;
+            _gm = null;
+        }
+
         private void CleanupTweens()
         {
-            if (_countdownSequence.isAlive)
-                _countdownSequence.Stop();
-
             foreach (var slot in _playerSlots)
             {
                 slot.ATween.Stop();
@@ -144,60 +118,12 @@ namespace MortierFu
             }
         }
 
-        private async UniTask AnimateCountdown()
+        private async UniTask PlayCountdown(GameModeBase gm, CancellationToken ct, int seconds = 0)
         {
-            if (_countdownSequence.isAlive)
-                _countdownSequence.Stop();
-
-            var t = _countdownImage.transform;
-
-            Vector3 centerPos = t.position;
-            Vector3 startPos = centerPos + Vector3.up * _countdownSlideOffset;
-
-            t.position = startPos;
-            t.localScale = Vector3.one * _countdownStartingScale;
-            _countdownCanvasGroup.alpha = 0f;
-
-            _countdownSequence = Sequence.Create()
-                .Group(Tween.Position(
-                    t,
-                    startPos,
-                    centerPos,
-                    _countdownInDuration,
-                    Ease.OutCubic
-                ))
-                .Group(Tween.Alpha(
-                    _countdownCanvasGroup,
-                    0f,
-                    1f,
-                    _countdownInDuration,
-                    Ease.OutQuad
-                )).ChainDelay(CountdownHoldDuration).Chain(Tween.Alpha(
-                    _countdownCanvasGroup,
-                    1f,
-                    0f,
-                    _countdownOutDuration,
-                    Ease.InQuad
-                ));
-
-            await _countdownSequence;
-        }
-
-        private async UniTask PlayCountdown(int seconds = 0)
-        {
-            var gm = GameService.CurrentGameMode as GameModeBase;
-
             foreach (var character in gm.AlivePlayers)
             {
                 character.gameObject.SetActive(false);
             }
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_showCountdownDelay));
-
-            ShowCountdownImage();
-            _countdownImage.sprite = _countdownSprites[0];
-
-            var countdownTask = RunCountdown(seconds);
 
             foreach (var character in gm.AlivePlayers)
             {
@@ -205,15 +131,11 @@ namespace MortierFu
                     c => c.gameObject.SetActive(true));
             }
 
-            await countdownTask;
-
-            _countdownImage.gameObject.SetActive(false);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_readyShowDelay));
-            await ShowReady(gm);
+            await UniTask.Delay(TimeSpan.FromSeconds(_readyShowDelay), cancellationToken: ct);
+            await ShowReady(gm, ct);
         }
 
-        private async UniTask ShowReady(GameModeBase gm)
+        private async UniTask ShowReady(GameModeBase gm, CancellationToken ct)
         {
             var t = _raceGameObject.transform;
 
@@ -228,8 +150,8 @@ namespace MortierFu
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
             _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-            
-            gm?.SetPlayerControlContext(PlayerControlContext.AugmentRace);
+
+            ct.ThrowIfCancellationRequested();
 
             await Sequence.Create()
                 .Group(Tween.Position(
@@ -253,7 +175,8 @@ namespace MortierFu
                     0.2f,
                     Ease.OutBack
                 ));
-            
+
+            ct.ThrowIfCancellationRequested();
 
             await Tween.Alpha(
                 _raceCanvasGroup,
@@ -263,41 +186,14 @@ namespace MortierFu
                 Ease.InQuad
             );
 
+            ct.ThrowIfCancellationRequested();
+
             _raceGameObject.SetActive(false);
             gameObject.SetActive(false);
-
-            // TODO: Désolé c'est horrible
-        }
-
-
-        private async UniTask RunCountdown(int seconds)
-        {
-            for (int t = seconds; t > 0; t--)
-            {
-                SetCountdownVisual(t);
-                // TODO: Add sound effect here or maybe in AnimateCountdown
-                await AnimateCountdown();
-            }
-        }
-
-        private void ShowCountdownImage()
-        {
-            _countdownImage.transform.localScale = _initialCountdownScale;
-            _countdownImage.transform.localRotation = Quaternion.identity;
-            _countdownImage.gameObject.SetActive(true);
-        }
-
-        private void SetCountdownVisual(int number)
-        {
-            int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
-            _countdownImage.sprite = _countdownSprites[index];
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownNumber);
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
         }
 
         public void ShowConfirmation(int activePlayerCount)
         {
-            _countdownImage.gameObject.SetActive(false);
             _raceGameObject.SetActive(false);
 
             foreach (var slot in _playerSlots)
@@ -311,29 +207,88 @@ namespace MortierFu
             StartButtonsAnimation(activePlayerCount);
         }
 
-        public void OnConfirmation() => HideConfirmation(_cts.Token).Forget();
-
-        private async UniTask HideConfirmation(CancellationToken ct)
+        public void OnConfirmation()
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(0.25f), cancellationToken: ct);
+            _confirmationHideCompletion = new UniTaskCompletionSource<bool>();
+            HideConfirmation(_cts.Token, _confirmationHideCompletion).Forget();
+        }
 
-            foreach (var slot in _playerSlots)
+        private async UniTask HideConfirmation(
+            CancellationToken ct,
+            UniTaskCompletionSource<bool> completion
+        )
+        {
+            try
             {
-                if (!slot.IsActive) continue;
+                await UniTask.Delay(TimeSpan.FromSeconds(0.25f), cancellationToken: ct);
 
-                slot.ATween.Stop();
-                slot.ScaleTween.Stop();
+                foreach (var slot in _playerSlots)
+                {
+                    if (!slot.IsActive)
+                        continue;
 
-                slot.ScaleTween = Tween.Scale(slot.AnimatorTransform, Vector3.one, Vector3.zero, _hideDuration,
-                        _slotEaseIn)
-                    .OnComplete(() => slot.Animator.enabled = false);
+                    slot.ATween.Stop();
+                    slot.ScaleTween.Stop();
+
+                    slot.ScaleTween = Tween.Scale(
+                            slot.AnimatorTransform,
+                            Vector3.one,
+                            Vector3.zero,
+                            _hideDuration,
+                            _slotEaseIn
+                        )
+                        .OnComplete(() => slot.Animator.enabled = false);
+                }
+
+                await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                completion?.TrySetResult(true);
+            }
+        }
+
+        private async UniTask WaitForConfirmationHideAsync(CancellationToken ct)
+        {
+            var completion = _confirmationHideCompletion;
+
+            if (completion == null)
+                return;
+
+            await completion.Task;
+
+            ct.ThrowIfCancellationRequested();
+        }
+
+        public async UniTask PlayAugmentRaceStartPresentationAsync(CancellationToken ct)
+        {
+            var gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (gm == null)
+                return;
+
+            await WaitForConfirmationHideAsync(ct);
+
+            float delayAfterConfirmation = gm.FlowSettings.AugmentRaceStartDelayAfterConfirmation;
+
+            if (delayAfterConfirmation > 0f)
+            {
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(delayAfterConfirmation),
+                    cancellationToken: ct
+                );
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_hideDuration), cancellationToken: ct);
+            ct.ThrowIfCancellationRequested();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1.6), cancellationToken: ct);
+            var presentationTask = PlayCountdown(gm, ct);
 
-            await PlayCountdown();
+            await presentationTask;
+
+            ct.ThrowIfCancellationRequested();
         }
 
         private void StartButtonsAnimation(int playerCount)

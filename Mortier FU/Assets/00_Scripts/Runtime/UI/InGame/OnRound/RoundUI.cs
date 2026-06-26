@@ -37,7 +37,6 @@ namespace MortierFu
         private void HandleRoundStarted(RoundInfo currentRound)
         {
             _roundAnnouncementUI.gameObject.SetActive(true);
-            _roundAnnouncementUI.OnRoundStarted(_gm);
         }
     }
 }

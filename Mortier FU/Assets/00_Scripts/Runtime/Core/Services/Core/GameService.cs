@@ -101,7 +101,7 @@ namespace MortierFu
 
             _sceneService.ShowLoadingScreen();
 
-            await CleanupCurrentGameplayRuntimeAsync();
+            await CleanupGameplaySessionAsync();
 
             await InitializeGameMode<GM_FFA>();
 
@@ -282,21 +282,16 @@ namespace MortierFu
 
             await _sceneService.UnloadScene(k_lobbyScene);
         }
-
-        private UniTask CleanupCurrentGameplayRuntimeAsync()
-        {
-            return CleanupGameplaySessionAsync();
-        }
         
         private async UniTask CleanupGameplaySessionAsync()
         {
             RestoreRuntimeBeforeSceneTransition();
 
-            ResetPersistentGameplayServices();
-
             _currentGameMode?.Dispose();
             _currentGameMode = null;
             _currentGameModeInstance = null;
+
+            ResetPersistentGameplayServices();
 
             await UnloadCurrentMapIfNeededAsync();
 

@@ -34,6 +34,7 @@ namespace MortierFu
         private int _playerCount;
         private int _augmentCount;
         private bool _showcaseInProgress;
+        private bool _raceInProgress;
 
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
@@ -45,8 +46,19 @@ namespace MortierFu
 
         public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
 
-        public bool IsSelectionOver => !_showcaseInProgress &&
-                                       (_pickers.Count <= 0 || (_augmentTimer != null && _augmentTimer.IsFinished));
+        public bool IsSelectionOver
+        {
+            get
+            {
+                if (!_raceInProgress)
+                    return false;
+
+                if (_pickers is null || _pickers.Count <= 0)
+                    return true;
+
+                return _augmentTimer != null && _augmentTimer.IsFinished;
+            }
+        }
 
         public async UniTask OnInitialize()
         {
@@ -109,7 +121,10 @@ namespace MortierFu
             _augmentTimer?.Dispose();
         }
 
-        public async UniTask HandleAugmentSelection(List<PlayerManager> pickers, float duration)
+        public async UniTask PrepareAugmentSelection(
+            List<PlayerManager> pickers,
+            CancellationToken cancellationToken
+        )
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -117,15 +132,26 @@ namespace MortierFu
                 return;
             }
 
+            _raceInProgress = false;
             _pickers = pickers;
+
+            _augmentTimer?.Dispose();
+            _augmentTimer = null;
+
+            _pressureTokenSource?.Cancel();
+            _pressureTokenSource?.Dispose();
+            _pressureTokenSource = null;
 
             _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments);
             _augmentBag.Clear();
 
             for (var i = 0; i < _selectedAugments.Length; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var augment = _selectedAugments[i];
-                _augmentBag.Add(new AugmentState()
+
+                _augmentBag.Add(new AugmentState
                 {
                     Augment = augment,
                     IsPicked = false
@@ -140,32 +166,73 @@ namespace MortierFu
             _levelSystem.PopulateAugmentPoints(augmentPoints);
 
             _showcaseInProgress = true;
-            await _augmentShowcaser.Showcase(augmentPivot, augmentPoints, _augmentCount);
-            _showcaseInProgress = false;
+
+            try
+            {
+                await _augmentShowcaser.Showcase(
+                    augmentPivot,
+                    augmentPoints,
+                    _augmentCount
+                );
+            }
+            finally
+            {
+                _showcaseInProgress = false;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             OnStopShowcase?.Invoke();
+        }
 
+        public void StartRaceTimer(float duration)
+        {
+            duration = Mathf.Max(0.1f, duration);
+
+            _augmentTimer?.Dispose();
             _augmentTimer = new CountdownTimer(duration);
             _augmentTimer.Start();
 
+            _raceInProgress = true;
+
+            _pressureTokenSource?.Cancel();
+            _pressureTokenSource?.Dispose();
             _pressureTokenSource = new CancellationTokenSource();
-            HandlePressure(duration).Forget();
+
+            HandlePressure(duration, _pressureTokenSource.Token).Forget();
+
+            Logs.Log($"[AugmentSelectionSystem] Augment race started for {duration:0.##} seconds.");
         }
 
-        private async UniTaskVoid HandlePressure(float duration)
+        private async UniTaskVoid HandlePressure(float duration, CancellationToken cancellationToken)
         {
-            float pressureStartTime = 5f;
-            float delay = Mathf.Max(0, duration - pressureStartTime);
+            try
+            {
+                float pressureStartTime = 5f;
+                float delay = Mathf.Max(0f, duration - pressureStartTime);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: _pressureTokenSource.Token);
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(delay),
+                    cancellationToken: cancellationToken
+                );
 
-            _pressureTokenSource = null;
-            OnPressureStart?.Invoke(pressureStartTime);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                OnPressureStart?.Invoke(pressureStartTime);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         public void EndRace()
         {
+            _raceInProgress = false;
+            
             _pressureTokenSource?.Cancel();
+            _pressureTokenSource?.Dispose();
+            _pressureTokenSource = null;
+
             OnPressureStop?.Invoke();
 
             var remainingAugments = _augmentBag.FindAll(a => !a.IsPicked);
@@ -193,10 +260,11 @@ namespace MortierFu
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
                     picker.Character.transform.position);
                 _shakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
-                
+
                 var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)randomAugment.Augment.Rarity];
-                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
-                
+                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f),
+                    Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
+
                 remainingAugments.Remove(randomAugment);
 
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
@@ -212,6 +280,7 @@ namespace MortierFu
             _augmentShowcaser.StopShowcase();
 
             _augmentBag.Clear();
+            _augmentTimer?.Dispose();
             _augmentTimer = null;
         }
 
@@ -229,6 +298,9 @@ namespace MortierFu
 
         public bool NotifyPlayerInteraction(PlayerCharacter character, int augmentIndex)
         {
+            if (!_raceInProgress)
+                return false;
+            
             if (character == null || augmentIndex < 0 || augmentIndex >= _augmentBag.Count)
                 return false;
 
@@ -244,8 +316,9 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), character.transform);
-            
+            Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+                character.transform);
+
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
             _pickedAugments[character].Add(augment.Augment);
