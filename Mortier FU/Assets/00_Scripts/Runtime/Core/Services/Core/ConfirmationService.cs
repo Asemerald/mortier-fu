@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine.InputSystem;
+using UnityEngine;
 
 namespace MortierFu
 {
-    public class ConfirmationService : IGameService
+    public sealed class ConfirmationService : IGameService, IPlayerUIInputHandler
     {
-        private DeviceService _deviceService;
+        private readonly HashSet<PlayerManager> _pendingPlayers = new();
 
-        private readonly Dictionary<PlayerInput, Action<InputAction.CallbackContext>> _callbacks =
-            new();
+        private LobbyService _lobbyService;
+        private PlayerUIInputService _uiInputService;
+        private ShakeService _shakeService;
 
+        private TaskCompletionSource<bool> _completionSource;
+
+        private bool _isWaitingForConfirmation;
         private int _confirmationCount;
-        private const string k_confirmAction = "Confirm";
 
         public bool IsInitialized { get; set; }
 
@@ -25,91 +28,272 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
-            _deviceService = ServiceManager.Instance.Get<DeviceService>();
+            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
+            _uiInputService = ServiceManager.Instance.Get<PlayerUIInputService>();
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
             return UniTask.CompletedTask;
         }
 
-        public async Task WaitUntilHostConfirmed()
+        public async Task<bool> WaitUntilHostConfirmed()
         {
-            if (!_deviceService.TryGetPlayerInput(0, out var playerInput))
+            var host = GetPlayerByIndex(0);
+
+            if (!host)
             {
-                Logs.LogError("[ConfirmationService]: No input found for host (player 0).");
-                return;
+                Logs.LogError("[ConfirmationService] No PlayerManager found for host Player 1.");
+                return false;
             }
 
-            _confirmationCount = 1;
-            RequestConfirmation(playerInput);
+            BeginConfirmation(new[] { host });
 
-            while (_confirmationCount > 0)
-                await Task.Yield();
-            
+            bool confirmed = await WaitForCompletion();
+
+            if (!confirmed)
+                return false;
+
             OnAllPlayersConfirmed?.Invoke();
+
             Logs.Log("[ConfirmationService] Host confirmed.");
+
+            return true;
         }
-        
+
         public void ShowConfirmation(int activePlayers)
         {
             OnStartConfirmation?.Invoke(activePlayers);
             Logs.Log("[ConfirmationService] Confirmation started.");
         }
 
-        public async Task WaitUntilAllConfirmed()
+        public async Task<bool> WaitUntilAllConfirmed()
         {
-            var players = _deviceService.GetAllPlayerInputs();
-            _confirmationCount = players.Count;
+            var players = GetAvailablePlayers();
 
-            foreach (var playerInput in players)
-                RequestConfirmation(playerInput);
+            if (players.Count == 0)
+            {
+                Logs.LogWarning("[ConfirmationService] No players available for confirmation.");
+                return false;
+            }
 
-            while (_confirmationCount > 0)
-                await Task.Yield();
+            BeginConfirmation(players);
+
+            bool confirmed = await WaitForCompletion();
+
+            if (!confirmed)
+                return false;
 
             OnAllPlayersConfirmed?.Invoke();
+
             Logs.Log("[ConfirmationService] All players confirmed.");
+
+            return true;
         }
 
-        private void RequestConfirmation(PlayerInput playerInput)
+        public void ResetRuntimeState()
         {
-            var action = playerInput.actions.FindAction(k_confirmAction);
-            if (action == null)
+            ClearConfirmation(confirmationResult: false);
+        }
+
+        private void BeginConfirmation(IEnumerable<PlayerManager> players)
+        {
+            if (_isWaitingForConfirmation)
             {
-                Logs.LogError($"[ConfirmationService] Confirm action not found for player {playerInput.playerIndex}");
-                _confirmationCount--;
+                Logs.LogWarning("[ConfirmationService] A confirmation was already active. It has been canceled.");
+                ClearConfirmation(confirmationResult: false);
+            }
+
+            if (_uiInputService is null)
+            {
+                Logs.LogError("[ConfirmationService] PlayerUIInputService is missing. Cannot request confirmation.");
                 return;
             }
 
-            Action<InputAction.CallbackContext> callback =
-                ctx => OnConfirmed(playerInput.playerIndex, playerInput, action);
+            _completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _pendingPlayers.Clear();
 
-            _callbacks[playerInput] = callback;
-            action.performed += callback;
+            foreach (var player in players)
+            {
+                if (!player)
+                    continue;
+
+                if (!_pendingPlayers.Add(player))
+                    continue;
+
+                _uiInputService.Push(player, this);
+            }
+
+            _confirmationCount = _pendingPlayers.Count;
+            _isWaitingForConfirmation = _confirmationCount > 0;
+
+            if (!_isWaitingForConfirmation)
+            {
+                CompleteConfirmation();
+                return;
+            }
+
+            Logs.Log($"[ConfirmationService] Waiting for {_confirmationCount} player confirmation(s).");
         }
 
-        private void OnConfirmed(int playerIndex, PlayerInput playerInput, InputAction action)
+        private async Task<bool> WaitForCompletion()
         {
-            _confirmationCount--;
+            if (_completionSource is null)
+                return false;
 
-            OnPlayerConfirmed?.Invoke(playerIndex);
-            _deviceService.TryGetDevice(playerIndex, out InputDevice device);
-            ServiceManager.Instance.Get<ShakeService>().ShakeController(device, ShakeService.ShakeType.MID);
+            return await _completionSource.Task;
+        }
 
-            if (_callbacks.TryGetValue(playerInput, out var callback))
+        private void ConfirmPlayer(PlayerManager player)
+        {
+            if (!_isWaitingForConfirmation)
+                return;
+
+            if (!player)
+                return;
+
+            if (!_pendingPlayers.Remove(player))
+                return;
+
+            _uiInputService?.Remove(player, this);
+
+            _confirmationCount = _pendingPlayers.Count;
+
+            OnPlayerConfirmed?.Invoke(player.PlayerIndex);
+
+            if (_shakeService is not null)
             {
-                action.performed -= callback;
-                _callbacks.Remove(playerInput);
+                _shakeService.ShakeController(player, ShakeService.ShakeType.MID);
             }
+
+            Logs.Log($"[ConfirmationService] Player {player.PlayerIndex + 1} confirmed. Remaining: {_confirmationCount}.");
+
+            if (_confirmationCount <= 0)
+            {
+                CompleteConfirmation();
+            }
+        }
+
+        private void CompleteConfirmation()
+        {
+            if (!_isWaitingForConfirmation && _completionSource is null)
+                return;
+
+            _isWaitingForConfirmation = false;
+            _confirmationCount = 0;
+
+            ClearPendingPlayerHandlers();
+
+            _completionSource?.TrySetResult(true);
+            _completionSource = null;
+        }
+
+        private void ClearConfirmation(bool confirmationResult)
+        {
+            _isWaitingForConfirmation = false;
+            _confirmationCount = 0;
+
+            ClearPendingPlayerHandlers();
+
+            _completionSource?.TrySetResult(confirmationResult);
+            _completionSource = null;
+        }
+
+        private void ClearPendingPlayerHandlers()
+        {
+            if (_pendingPlayers.Count == 0)
+                return;
+
+            var players = new List<PlayerManager>(_pendingPlayers);
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+
+                if (!player)
+                    continue;
+
+                _uiInputService?.Remove(player, this);
+            }
+
+            _pendingPlayers.Clear();
+        }
+
+        private List<PlayerManager> GetAvailablePlayers()
+        {
+            var result = new List<PlayerManager>();
+
+            if (_lobbyService is null)
+                return result;
+
+            var players = _lobbyService.GetPlayers();
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+
+                if (!player)
+                    continue;
+
+                if (!result.Contains(player))
+                    result.Add(player);
+            }
+
+            return result;
+        }
+
+        private PlayerManager GetPlayerByIndex(int playerIndex)
+        {
+            if (_lobbyService is null)
+                return null;
+
+            var players = _lobbyService.GetPlayers();
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+
+                if (!player)
+                    continue;
+
+                if (player.PlayerIndex == playerIndex)
+                    return player;
+            }
+
+            return null;
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _isWaitingForConfirmation &&
+                   player &&
+                   _pendingPlayers.Contains(player);
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            return false;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            ConfirmPlayer(player);
+            return true;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            return false;
         }
 
         public void Dispose()
         {
-            foreach (var pair in _callbacks)
-            {
-                var action = pair.Key.actions.FindAction(k_confirmAction);
-                if (action != null)
-                    action.performed -= pair.Value;
-            }
+            ClearConfirmation(confirmationResult: false);
 
-            _callbacks.Clear();
+            OnPlayerConfirmed = null;
+            OnAllPlayersConfirmed = null;
+            OnStartConfirmation = null;
         }
     }
 }

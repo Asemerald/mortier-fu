@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Random = UnityEngine.Random;
@@ -54,7 +56,14 @@ namespace MortierFu
         protected CountdownTimer timer;
 
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
+        private AsyncOperationHandle<SO_GameFlowSettings> _flowSettingsHandle;
+        private CancellationTokenSource _gameplayCancellation;
+
+        private bool _isRaceMapLoaded;
+        private bool _isArenaMapLoaded;
+        
         public SO_GameModeData Data => _dataHandle.Result;
+        public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
@@ -76,9 +85,7 @@ namespace MortierFu
             }
         }
 
-        public GameState CurrentState => currentState;
         public int CurrentRoundCount => _currentRound.RoundIndex;
-        public float CountdownRemainingTime => timer?.CurrentTime ?? 0f;
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
@@ -87,10 +94,12 @@ namespace MortierFu
 
         public event Action OnGameStarted;
         public event Action<RoundInfo> OnRoundStarted;
+        public event Func<CancellationToken, UniTask> OnRoundStartPresentationAsync;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-        public event Func<RoundInfo, UniTask> OnRoundEndedAsync;
+        public event Func<RoundInfo, CancellationToken, UniTask> OnRoundEndedAsync;
         public event Action OnRaceStart;
+        public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
         public event Func<UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
@@ -104,6 +113,7 @@ namespace MortierFu
             }
 
             _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
+            _flowSettingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GameFlowSettings>("DA_GameFlowSettings");
 
             timer = new CountdownTimer(0f);
 
@@ -207,7 +217,8 @@ namespace MortierFu
             _currentRound = new RoundInfo();
             gameVictor = null;
 
-            GameplayCoroutine().Forget();
+            _gameplayCancellation = new CancellationTokenSource();
+            GameplayCoroutine(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
         }
@@ -226,11 +237,16 @@ namespace MortierFu
             };
         }
 
-        protected virtual async UniTask RunAugmentRacePhaseAsync(TransitionColor transitionColor)
+        protected virtual async UniTask RunAugmentRacePhaseAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             EnablePlayerGravity(false);
 
-            await levelSystem.LoadRaceMap(true, transitionColor);
+            await EnsureRaceMapLoadedAsync(transitionColor, cancellationToken);
 
             audioService.SetPhase(1);
 
@@ -239,14 +255,24 @@ namespace MortierFu
             StartRace();
 
             await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            await _augmentRaceController.HandleSelectionAsync(Data.AugmentSelectionDuration);
+            await _augmentRaceController.PrepareSelectionAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             audioService.SetPhase(0);
 
-            UpdateGameState(GameState.AugmentRace);
+            await RunAugmentRaceStartPresentationAsync(cancellationToken);
 
-            await _augmentRaceController.WaitUntilSelectionOverAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            UpdateGameState(GameState.AugmentRace);
+            SetPlayerControlContext(PlayerControlContext.AugmentRace);
+
+            _augmentRaceController.StartRaceTimer(FlowSettings.AugmentRaceDuration);
+
+            await _augmentRaceController.WaitUntilSelectionOverAsync(cancellationToken);
 
             _augmentRaceController.EndSelection();
 
@@ -254,33 +280,37 @@ namespace MortierFu
 
             EnablePlayerGravity(false);
 
-            if (OnRaceEndedUI != null)
-            {
-                foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
-                {
-                    var handler = (Func<UniTask>)@delegate;
-                    await handler.Invoke();
-                }
-            }
+            await RunAugmentSummaryAndOptionalArenaPreloadAsync(
+                transitionColor,
+                cancellationToken
+            );
         }
 
-        protected virtual async UniTask WaitUntilRoundOverAsync()
+        protected virtual async UniTask WaitUntilRoundOverAsync(CancellationToken cancellationToken)
         {
             while (_roundController != null && !_roundController.OneTeamStanding)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 await UniTask.Yield();
+
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
-        protected virtual async UniTask RunRoundEndPresentationAsync()
+        protected virtual async UniTask RunRoundEndPresentationAsync(CancellationToken cancellationToken)
         {
             if (OnRoundEndedAsync == null)
                 return;
 
             foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
             {
-                var handler = (Func<RoundInfo, UniTask>)@delegate;
-                await handler.Invoke(_currentRound);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<RoundInfo, CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(_currentRound, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -293,35 +323,59 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor)
+        protected virtual async UniTask RunRoundPhaseAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
         {
-            await levelSystem.LoadArenaMap(true, transitionColor);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await EnsureArenaMapLoadedAsync(transitionColor, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             StartRound();
 
-            await WaitUntilRoundOverAsync();
+            await RunRoundStartPresentationAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SetPlayerControlContext(PlayerControlContext.RoundGameplay);
+
+            await WaitUntilRoundOverAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             UpdateGameState(GameState.EndRound);
 
             EndRound();
 
-            await RunRoundEndPresentationAsync();
+            bool matchWillEnd = IsGameOver(out gameVictor);
+            TransitionColor nextRaceTransitionColor = GetTransitionColor();
+
+            await RunRoundEndPresentationAndOptionalRacePreloadAsync(
+                nextRaceTransitionColor,
+                shouldPreloadNextRace: !matchWillEnd,
+                cancellationToken
+            );
 
             await RunScorePhaseAsync();
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
-        protected virtual async UniTask RunMatchLoopAsync()
+        protected virtual async UniTask RunMatchLoopAsync(CancellationToken cancellationToken)
         {
             while (currentState != GameState.EndGame)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var transitionColor = GetTransitionColor();
 
-                await RunAugmentRacePhaseAsync(transitionColor);
+                await RunAugmentRacePhaseAsync(transitionColor, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (currentState == GameState.EndGame)
                     break;
 
-                await RunRoundPhaseAsync(transitionColor);
+                await RunRoundPhaseAsync(transitionColor, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsGameOver(out gameVictor))
                 {
@@ -331,18 +385,29 @@ namespace MortierFu
             }
         }
 
-        protected async UniTaskVoid GameplayCoroutine()
+        protected async UniTaskVoid GameplayCoroutine(CancellationToken cancellationToken)
         {
-            UpdateGameState(GameState.StartGame);
-            OnGameStarted?.Invoke();
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            audioService
-                .StartMusic(AudioService.FMODEvents.MUS_Gameplay)
-                .Forget();
+                UpdateGameState(GameState.StartGame);
+                OnGameStarted?.Invoke();
 
-            await RunMatchLoopAsync();
+                audioService
+                    .StartMusic(AudioService.FMODEvents.MUS_Gameplay)
+                    .Forget();
 
-            EndGame();
+                await RunMatchLoopAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                EndGame();
+            }
+            catch (OperationCanceledException)
+            {
+                Logs.Log("[GameModeBase] Gameplay coroutine canceled.");
+            }
         }
 
         public bool IsGameOver(out PlayerTeam victor)
@@ -501,30 +566,35 @@ namespace MortierFu
             Logs.Log("Game has ended.");
         }
 
-        public void ReturnToMainMenu()
+        protected virtual async UniTask RunAugmentRaceStartPresentationAsync(CancellationToken cancellationToken)
         {
-            ReturnToMainMenuAfterDelay().Forget();
+            if (OnAugmentRaceStartPresentationAsync == null)
+                return;
+
+            foreach (var @delegate in OnAugmentRaceStartPresentationAsync.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
 
-        private async UniTaskVoid ReturnToMainMenuAfterDelay()
+        protected virtual async UniTask RunRoundStartPresentationAsync(CancellationToken cancellationToken)
         {
-            var cachedLobbyService = lobbyService;
-            var cachedSceneService = sceneService;
-            var cachedLevelSystem = levelSystem;
+            if (OnRoundStartPresentationAsync == null)
+                return;
 
-            if (cachedLevelSystem != null)
+            foreach (var @delegate in OnRoundStartPresentationAsync.GetInvocationList())
             {
-                await cachedLevelSystem.UnloadCurrentMap();
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            cachedLobbyService?.ClearPlayers();
+                var handler = (Func<CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(cancellationToken);
 
-            SystemManager.Instance.Dispose();
-
-            if (cachedSceneService != null)
-            {
-                await cachedSceneService.UnloadScene("Gameplay");
-                await cachedSceneService.LoadScene("MainMenu", true);
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -552,9 +622,18 @@ namespace MortierFu
 
         public virtual void Dispose()
         {
+            _gameplayCancellation?.Cancel();
+            _gameplayCancellation?.Dispose();
+            _gameplayCancellation = null;
+
             if (_dataHandle.IsValid())
             {
                 Addressables.Release(_dataHandle);
+            }
+
+            if (_flowSettingsHandle.IsValid())
+            {
+                Addressables.Release(_flowSettingsHandle);
             }
 
             if (_roundController != null)
@@ -596,6 +675,200 @@ namespace MortierFu
         private void HandleRoundPlayerKilled(PlayerManager killer, PlayerManager victim)
         {
             OnPlayerKilled?.Invoke(killer, victim);
+        }
+
+        private bool ShouldUseVideoTransitions()
+        {
+            return FlowSettings && FlowSettings.UseVideoTransitions;
+        }
+
+        private async UniTask EnsureRaceMapLoadedAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (_isRaceMapLoaded && levelSystem.IsRaceMap())
+                return;
+
+            await levelSystem.LoadRaceMap(
+                ShouldUseVideoTransitions(),
+                transitionColor
+            );
+
+            _isRaceMapLoaded = true;
+            _isArenaMapLoaded = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        
+        private async UniTask EnsureArenaMapLoadedAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (_isArenaMapLoaded)
+                return;
+
+            await levelSystem.LoadArenaMap(
+                ShouldUseVideoTransitions(),
+                transitionColor
+            );
+
+            _isArenaMapLoaded = true;
+            _isRaceMapLoaded = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        
+        private float GetAugmentSummaryMinimumDuration()
+        {
+            if (FlowSettings)
+                return Mathf.Max(0f, FlowSettings.AugmentSummaryDuration);
+
+            return 4f;
+        }
+
+        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            if (!FlowSettings || !FlowSettings.UseAugmentSummaryAsArenaMapLoadCover)
+                return;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await levelSystem.LoadArenaMap(
+                useTransition: false,
+                color: transitionColor
+            );
+
+            _isArenaMapLoaded = true;
+            _isRaceMapLoaded = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        protected virtual async UniTask RunAugmentSummaryPresentationAsync(
+            CancellationToken cancellationToken
+        )
+        {
+            if (OnRaceEndedUI == null)
+                return;
+
+            foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<UniTask>)@delegate;
+                await handler.Invoke();
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        private async UniTask RunAugmentSummaryAndOptionalArenaPreloadAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var summaryTask = RunAugmentSummaryPresentationAsync(cancellationToken);
+
+            var minimumDurationTask = UniTask.Delay(
+                TimeSpan.FromSeconds(GetAugmentSummaryMinimumDuration()),
+                cancellationToken: cancellationToken
+            );
+
+            var loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(
+                transitionColor,
+                cancellationToken
+            );
+
+            await UniTask.WhenAll(
+                summaryTask,
+                minimumDurationTask,
+                loadArenaTask
+            );
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask LoadArenaMapForRoundAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await levelSystem.LoadArenaMap(
+                ShouldUseVideoTransitions(),
+                transitionColor
+            );
+
+            _isRaceMapLoaded = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask PreloadRaceMapAfterWinnerFocusAsync(
+            TransitionColor transitionColor,
+            bool shouldPreload,
+            CancellationToken cancellationToken
+        )
+        {
+            if (!shouldPreload)
+                return;
+
+            if (!FlowSettings || !FlowSettings.UseScoreboardAsRaceMapLoadCover)
+                return;
+
+            float delay = Mathf.Max(0f, FlowSettings.RoundWinnerFocusDuration);
+
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(delay),
+                cancellationToken: cancellationToken
+            );
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await levelSystem.LoadRaceMap(
+                useTransition: false,
+                color: transitionColor
+            );
+
+            _isRaceMapLoaded = true;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(
+            TransitionColor nextRaceTransitionColor,
+            bool shouldPreloadNextRace,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var presentationTask = RunRoundEndPresentationAsync(cancellationToken);
+
+            var preloadTask = PreloadRaceMapAfterWinnerFocusAsync(
+                nextRaceTransitionColor,
+                shouldPreloadNextRace,
+                cancellationToken
+            );
+
+            await UniTask.WhenAll(
+                presentationTask,
+                preloadTask
+            );
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 }

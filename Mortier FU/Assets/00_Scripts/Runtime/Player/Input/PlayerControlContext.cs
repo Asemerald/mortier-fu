@@ -4,11 +4,13 @@ namespace MortierFu
     {
         Lobby,
         Menu,
+        PauseMenu,
 
         LobbySandbox,
         LobbyCustomization,
         LobbySettingsOwner,
         LobbyLocked,
+        LobbyReturnConfirmationOwner,
 
         AugmentShowcase,
         AugmentRace,

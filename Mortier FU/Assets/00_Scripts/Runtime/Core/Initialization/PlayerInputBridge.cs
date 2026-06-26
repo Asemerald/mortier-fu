@@ -11,110 +11,165 @@ namespace MortierFu
     [RequireComponent(typeof(PlayerInputManager))]
     public class PlayerInputBridge : MonoBehaviour
     {
+        [Header("Debug"), SerializeField] private bool _enableDebug = true;
+        
         public static PlayerInputBridge Instance { get; private set; }
-        public PlayerInputManager PlayerInputManager { get; private set; }
 
+        public PlayerInputManager PlayerInputManager { get; private set; }
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance && Instance != this)
             {
                 Logs.LogError("[PlayerInputBridge] Multiple instances detected! Destroying duplicate.", this);
-                Destroy(this.gameObject);
+                Destroy(gameObject);
                 return;
             }
 
             Instance = this;
 
             PlayerInputManager = GetComponent<PlayerInputManager>();
-            PlayerInputManager.onPlayerJoined += OnPlayerJoined;
-            PlayerInputManager.onPlayerLeft += OnPlayerLeft;
+
+            PlayerInputManager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
+
+            PlayerInputManager.onPlayerJoined -= HandlePlayerJoined;
+            PlayerInputManager.onPlayerLeft -= HandlePlayerLeft;
+
+            PlayerInputManager.onPlayerJoined += HandlePlayerJoined;
+            PlayerInputManager.onPlayerLeft += HandlePlayerLeft;
         }
 
 #if UNITY_EDITOR
         private void Start()
         {
-            if (EditorPrefs.GetBool("SkipMenuEnabled", false))
+            if (!EditorPrefs.GetBool("SkipMenuEnabled", false))
+                return;
+
+            var gamepads = Gamepad.all;
+
+            for (var i = 0; i < gamepads.Count; i++)
             {
-                // Join a Player for each gamepad connected (for testing in editor)
-                var gamepads = Gamepad.all;
-                foreach (var gamepad in gamepads)
-                {
-                    PlayerInputManager.JoinPlayer(-1, -1, null, gamepad);
-                }
+                PlayerInputManager.JoinPlayer(-1, -1, null, gamepads[i]);
             }
         }
 #endif
 
         private void OnDestroy()
         {
-            PlayerInputManager.onPlayerJoined -= OnPlayerJoined;
-            PlayerInputManager.onPlayerLeft -= OnPlayerLeft;
+            if (PlayerInputManager)
+            {
+                PlayerInputManager.onPlayerJoined -= HandlePlayerJoined;
+                PlayerInputManager.onPlayerLeft -= HandlePlayerLeft;
+            }
+
+            if (Instance == this)
+                Instance = null;
         }
 
-        private void OnPlayerJoined(PlayerInput playerInput)
+        private void HandlePlayerJoined(PlayerInput playerInput)
         {
-            Logs.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
+            if (!playerInput && _enableDebug)
+            {
+                Logs.LogError("[PlayerInputBridge] Player joined event received with null PlayerInput.", this);
+                return;
+            }
 
-            var deviceService = ServiceManager.Instance.Get<DeviceService>();
-            deviceService?.RegisterPlayerInput(playerInput);
-
-            Debug.Log($"[PlayerInputBridge] Found PlayerInput component: {playerInput != null}");
+            if(_enableDebug) 
+                Logs.Log($"[PlayerInputBridge] Player joined: {playerInput.playerIndex}");
 
             var playerManager = playerInput.GetComponent<PlayerManager>();
-            Debug.Log($"[PlayerInputBridge] Found PlayerManager component: {playerManager != null}");
 
-            ServiceManager.Instance.Get<LobbyService>()?.RegisterPlayer(playerManager);
+            if (!playerManager && _enableDebug)
+            {
+                Logs.LogError($"[PlayerInputBridge] PlayerInput {playerInput.playerIndex} has no PlayerManager on the same GameObject.", playerInput);
+                return;
+            }
+
+            if (ServiceManager.Instance is null && _enableDebug)
+            {
+                Logs.LogError("[PlayerInputBridge] ServiceManager is missing. Cannot register joined player.", this);
+                return;
+            }
+
+            var deviceService = ServiceManager.Instance?.Get<DeviceService>();
+            deviceService?.RegisterPlayerInput(playerInput);
+
+            var lobbyService = ServiceManager.Instance?.Get<LobbyService>();
+
+            if (lobbyService is null && _enableDebug)
+            {
+                Logs.LogError("[PlayerInputBridge] LobbyService is missing. Cannot register joined player.", this);
+                return;
+            }
+
+            lobbyService?.RegisterPlayer(playerManager);
         }
 
-        private void OnPlayerLeft(PlayerInput playerInput)
+        private void HandlePlayerLeft(PlayerInput playerInput)
         {
-            Logs.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
+            if (!playerInput)
+                return;
+
+            if(_enableDebug) 
+                Logs.Log($"[PlayerInputBridge] Player left: {playerInput.playerIndex}");
+
+            if (ServiceManager.Instance is null)
+                return;
 
             var deviceService = ServiceManager.Instance.Get<DeviceService>();
             deviceService?.UnregisterPlayerInput(playerInput);
 
             var playerManager = playerInput.GetComponent<PlayerManager>();
+
+            if (!playerManager)
+                return;
+
             ServiceManager.Instance.Get<LobbyService>()?.UnregisterPlayer(playerManager);
         }
 
         public void CanJoin(bool canJoin)
         {
-            switch (canJoin)
+            if (!PlayerInputManager && _enableDebug)
             {
-                case true:
-                    PlayerInputManager.EnableJoining();
-                    Logs.Log("[PlayerInputBridge] Players can now join.");
-                    break;
-
-                case false:
-                    PlayerInputManager.DisableJoining();
-                    Logs.Log("[PlayerInputBridge] Players can no longer join.");
-                    break;
+                Logs.LogError("[PlayerInputBridge] Cannot change join state because PlayerInputManager is missing.", this);
+                return;
             }
+
+            if (canJoin && _enableDebug)
+            {
+                PlayerInputManager.EnableJoining();
+                Logs.Log($"[PlayerInputBridge] Players can now join. Current PlayerInputs={PlayerInput.all.Count}, Max={PlayerInputManager.maxPlayerCount}");
+                return;
+            }
+
+            PlayerInputManager.DisableJoining();
+            if(_enableDebug) 
+                Logs.Log($"[PlayerInputBridge] Players can no longer join. Current PlayerInputs={PlayerInput.all.Count}, Max={PlayerInputManager.maxPlayerCount}");
         }
 
         public void JoinAllUnpairedGamepads()
         {
-            if (PlayerInputManager == null)
+            if (!PlayerInputManager && _enableDebug)
             {
-                Logs.LogError("[PlayerInputBridge] Cannot auto-join because PlayerInputManager is null.");
+                Logs.LogError("[PlayerInputBridge] Cannot auto-join because PlayerInputManager is null.", this);
                 return;
             }
 
             DebugLogInputState();
 
-            Logs.Log("[PlayerInputBridge] Trying to auto-join all unpaired gamepads...");
+            if(_enableDebug) 
+                Logs.Log("[PlayerInputBridge] Trying to auto-join all unpaired gamepads...");
 
             foreach (var gamepad in Gamepad.all)
             {
-                if (IsDeviceAlreadyPaired(gamepad))
+                if (IsDeviceAlreadyPaired(gamepad) && _enableDebug)
                 {
                     Logs.Log($"[PlayerInputBridge] Skipping already paired gamepad: {gamepad.displayName}");
                     continue;
                 }
 
-                Logs.Log($"[PlayerInputBridge] Auto-joining gamepad: {gamepad.displayName}");
+                if(_enableDebug) 
+                    Logs.Log($"[PlayerInputBridge] Auto-joining gamepad: {gamepad.displayName}");
 
                 try
                 {
@@ -125,11 +180,11 @@ namespace MortierFu
                         pairWithDevice: gamepad
                     );
 
-                    if (playerInput == null)
+                    if (!playerInput && _enableDebug)
                     {
                         Logs.LogWarning($"[PlayerInputBridge] JoinPlayer returned null for {gamepad.displayName}.");
                     }
-                    else
+                    else if(_enableDebug)
                     {
                         Logs.Log($"[PlayerInputBridge] JoinPlayer created PlayerInput index {playerInput.playerIndex}.");
                     }
@@ -145,24 +200,19 @@ namespace MortierFu
 
         private bool IsDeviceAlreadyPaired(InputDevice device)
         {
-            if (device == null)
+            if (device is null)
                 return true;
 
-            var lobbyService = ServiceManager.Instance.Get<LobbyService>();
-
-            if (lobbyService == null)
-                return false;
-
-            var players = lobbyService.GetPlayers();
-
-            foreach (var player in players)
+            foreach (var playerInput in PlayerInput.all)
             {
-                if (player == null || player.PlayerInput == null)
+                if (!playerInput)
                     continue;
 
-                foreach (var pairedDevice in player.PlayerInput.devices)
+                var devices = playerInput.devices;
+
+                for (var i = 0; i < devices.Count; i++)
                 {
-                    if (pairedDevice == device)
+                    if (devices[i] == device)
                         return true;
                 }
             }
@@ -170,32 +220,57 @@ namespace MortierFu
             return false;
         }
         
+        public void ValidateMaxPlayers(int expectedMaxPlayers)
+        {
+            if (!PlayerInputManager)
+            {
+                Logs.LogError("[PlayerInputBridge] Cannot validate max players because PlayerInputManager is missing.", this);
+                return;
+            }
+
+            expectedMaxPlayers = Mathf.Max(1, expectedMaxPlayers);
+
+            if (PlayerInputManager.maxPlayerCount == expectedMaxPlayers)
+                return;
+
+            Logs.LogWarning(
+                $"[PlayerInputBridge] PlayerInputManager Max Player Count is {PlayerInputManager.maxPlayerCount}, " +
+                $"but lobby expects {expectedMaxPlayers}. Please fix it in the Inspector.",
+                this
+            );
+        }
+
         public void DebugLogInputState()
         {
-            Logs.Log($"[PlayerInputBridge] Gamepads detected: {Gamepad.all.Count}");
-            Logs.Log($"[PlayerInputBridge] PlayerInputs detected: {PlayerInput.all.Count}");
+            if (_enableDebug)
+            {
+                Logs.Log($"[PlayerInputBridge] Gamepads detected: {Gamepad.all.Count}");
+                Logs.Log($"[PlayerInputBridge] PlayerInputs detected: {PlayerInput.all.Count}");   
+            }
 
-            for (int i = 0; i < Gamepad.all.Count; i++)
+            for (var i = 0; i < Gamepad.all.Count; i++)
             {
                 var gamepad = Gamepad.all[i];
-                Logs.Log($"[PlayerInputBridge] Gamepad {i}: {gamepad.displayName} / {gamepad.deviceId}");
+                
+                if(_enableDebug) 
+                    Logs.Log($"[PlayerInputBridge] Gamepad {i}: {gamepad.displayName} / {gamepad.deviceId} / added={gamepad.added}");
             }
 
             foreach (var playerInput in PlayerInput.all)
             {
-                if (playerInput == null)
+                if (!playerInput)
                     continue;
 
-                string devices = "";
+                var devices = "";
 
                 foreach (var device in playerInput.devices)
                 {
                     devices += $"{device.displayName}({device.deviceId}) ";
                 }
 
-                Logs.Log(
-                    $"[PlayerInputBridge] PlayerInput index={playerInput.playerIndex}, " +
-                    $"scheme={playerInput.currentControlScheme}, devices=[{devices}]"
+                if (_enableDebug) 
+                    Logs.Log($"[PlayerInputBridge] PlayerInput index={playerInput.playerIndex}, " +
+                                           $"scheme={playerInput.currentControlScheme}, devices=[{devices}]"
                 );
             }
         }

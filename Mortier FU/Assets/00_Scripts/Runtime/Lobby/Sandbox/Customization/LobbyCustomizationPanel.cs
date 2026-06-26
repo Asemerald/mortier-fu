@@ -1,11 +1,10 @@
 using System;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
-    public sealed class LobbyCustomizationPanel : MonoBehaviour
+    public sealed class LobbyCustomizationPanel : MonoBehaviour, IPlayerUIInputHandler
     {
         [Header("Root")]
         [SerializeField] private GameObject _root;
@@ -15,17 +14,12 @@ namespace MortierFu
         [SerializeField] private int _faceColumnCount = 4;
         [SerializeField] private int _faceRowCount = 4;
 
-        [Header("Input")]
-        [SerializeField] private string _navigateActionName = "Navigate";
-        [SerializeField] private string _submitActionName = "Submit";
-        [SerializeField] private string _cancelActionName = "Cancel";
+        [Header("Navigation")]
+        [SerializeField] private float _navigationThreshold = 0.7f;
+        [SerializeField] private float _navigationCooldown = 0.25f;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onConfirmed;
-
-        private InputAction _navigateAction;
-        private InputAction _submitAction;
-        private InputAction _cancelAction;
 
         private int _currentSkinIndex;
         private int _currentFaceColumn;
@@ -34,58 +28,67 @@ namespace MortierFu
         private Vector2 _previousNavigateInput = Vector2.zero;
         private float _lastNavigateTime;
 
-        private const float Threshold = 0.7f;
-        private const float NavigateCooldown = 0.25f;
+        private bool _isOpen;
+
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
 
         private void Awake()
         {
-            if (_root != null)
-            {
+            if (_root)
                 _root.SetActive(false);
-            }
         }
 
         private void OnDisable()
         {
-            UnbindInput();
+            RemoveFromUIInputService();
+        }
+
+        private void OnDestroy()
+        {
+            RemoveFromUIInputService();
         }
 
         public void Open(PlayerManager player, Action<PlayerManager> onConfirmed)
         {
-            if (player == null)
+            if (!player)
                 return;
 
             _activePlayer = player;
             _onConfirmed = onConfirmed;
+            _isOpen = true;
 
             _currentSkinIndex = player.SkinIndex;
             _currentFaceColumn = player.FaceColumn;
             _currentFaceRow = player.FaceRow;
 
-            if (_root != null)
-            {
-                _root.SetActive(true);
-            }
+            _previousNavigateInput = Vector2.zero;
+            _lastNavigateTime = 0f;
 
-            BindInput();
+            if (_root)
+                _root.SetActive(true);
 
             ApplyCurrentCustomization();
+            RegisterToUIInputService();
 
             Logs.Log($"[LobbyCustomizationPanel] Opened for Player {player.PlayerIndex + 1}.");
         }
 
         public void Close()
         {
-            UnbindInput();
+            if (!_isOpen)
+                return;
 
-            if (_root != null)
-            {
+            RemoveFromUIInputService();
+
+            if (_root)
                 _root.SetActive(false);
-            }
 
             _activePlayer = null;
             _onConfirmed = null;
             _previousNavigateInput = Vector2.zero;
+            _lastNavigateTime = 0f;
+            _isOpen = false;
         }
 
         public void NextSkin()
@@ -120,65 +123,42 @@ namespace MortierFu
 
         public void Confirm()
         {
-            if (_activePlayer == null)
+            if (!_activePlayer)
                 return;
 
-            Logs.Log($"[LobbyCustomizationPanel] Confirmed customization for Player {_activePlayer.PlayerIndex + 1}.");
+            var player = _activePlayer;
+            var onConfirmed = _onConfirmed;
 
-            _onConfirmed?.Invoke(_activePlayer);
+            Logs.Log($"[LobbyCustomizationPanel] Confirmed customization for Player {player.PlayerIndex + 1}.");
+
+            onConfirmed?.Invoke(player);
         }
 
-        private void BindInput()
+        private void RegisterToUIInputService()
         {
-            if (_activePlayer == null || _activePlayer.PlayerInput == null)
+            if (!_activePlayer)
                 return;
 
-            var actions = _activePlayer.PlayerInput.actions;
-
-            _navigateAction = actions.FindAction(_navigateActionName, false);
-            _submitAction = actions.FindAction(_submitActionName, false);
-            _cancelAction = actions.FindAction(_cancelActionName, false);
-
-            if (_navigateAction != null)
-                _navigateAction.performed += OnNavigate;
-
-            if (_submitAction != null)
-                _submitAction.performed += OnSubmit;
-
-            if (_cancelAction != null)
-                _cancelAction.performed += OnCancel;
+            UIInputService?.Push(_activePlayer, this);
         }
 
-        private void UnbindInput()
+        private void RemoveFromUIInputService()
         {
-            if (_navigateAction != null)
-                _navigateAction.performed -= OnNavigate;
-
-            if (_submitAction != null)
-                _submitAction.performed -= OnSubmit;
-
-            if (_cancelAction != null)
-                _cancelAction.performed -= OnCancel;
-
-            _navigateAction = null;
-            _submitAction = null;
-            _cancelAction = null;
+            if (_activePlayer)
+                UIInputService?.Remove(_activePlayer, this);
+            else
+                UIInputService?.RemoveFromAll(this);
         }
 
-        private void OnNavigate(InputAction.CallbackContext ctx)
+        private bool TryProcessNavigation(Vector2 input)
         {
-            if (_activePlayer == null)
-                return;
+            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _navigationThreshold;
+            bool isPushedNowX = Mathf.Abs(input.x) >= _navigationThreshold;
 
-            Vector2 input = ctx.ReadValue<Vector2>();
+            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _navigationThreshold;
+            bool isPushedNowY = Mathf.Abs(input.y) >= _navigationThreshold;
 
-            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < Threshold;
-            bool isPushedNowX = Mathf.Abs(input.x) >= Threshold;
-
-            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < Threshold;
-            bool isPushedNowY = Mathf.Abs(input.y) >= Threshold;
-
-            bool cooldownExpired = Time.time - _lastNavigateTime >= NavigateCooldown;
+            bool cooldownExpired = Time.unscaledTime - _lastNavigateTime >= _navigationCooldown;
 
             bool shouldTrigger =
                 ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY))
@@ -187,7 +167,7 @@ namespace MortierFu
             if (!shouldTrigger)
             {
                 _previousNavigateInput = input;
-                return;
+                return false;
             }
 
             if (isPushedNowX)
@@ -202,24 +182,10 @@ namespace MortierFu
                 SetFaceRow(_currentFaceRow + direction);
             }
 
-            _lastNavigateTime = Time.time;
+            _lastNavigateTime = Time.unscaledTime;
             _previousNavigateInput = input;
-        }
 
-        private void OnSubmit(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            Confirm();
-        }
-
-        private void OnCancel(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            Confirm();
+            return true;
         }
 
         private void SetSkin(int skinIndex)
@@ -242,7 +208,7 @@ namespace MortierFu
 
         private void ApplyCurrentCustomization()
         {
-            if (_activePlayer == null)
+            if (!_activePlayer)
                 return;
 
             _activePlayer.Customization.SetCustomization(
@@ -270,6 +236,40 @@ namespace MortierFu
                 value += count;
 
             return value;
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _isOpen &&
+                   _activePlayer &&
+                   ReferenceEquals(_activePlayer, player);
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            TryProcessNavigation(direction);
+            return true;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            Confirm();
+            return true;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            Confirm();
+            return true;
         }
     }
 }

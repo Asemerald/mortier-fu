@@ -36,7 +36,7 @@ namespace MortierFu
         {
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-
+ 
             _playerManager = _lobbyService.GetPlayerByIndex(0);
 
             _submitAction = _lobbyService.Players[0].PlayerInput.actions.FindAction("Submit");

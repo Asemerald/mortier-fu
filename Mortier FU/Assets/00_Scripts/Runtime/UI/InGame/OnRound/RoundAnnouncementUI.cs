@@ -2,31 +2,21 @@ using Cysharp.Threading.Tasks;
 using PrimeTween;
 using UnityEngine;
 using System;
-using System.Collections.Generic;
-using UnityEngine.UI;
-using Quaternion = UnityEngine.Quaternion;
+using System.Threading;
 using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
     public class RoundAnnouncementUI : MonoBehaviour
     {
-        #region Assets
-
-        [Header("Countdown Sprites")] [SerializeField]
-        private List<Sprite> _countdownSprites;
-
         private ShakeService _shakeService;
 
-        #endregion
+        private GameModeBase _gameMode;
+        private CancellationTokenSource _lifetimeCancellation;
 
         private void Awake()
         {
-            _initialCountdownScale = _countdownImage.transform.localScale;
-
-            _playGameObject.SetActive(false);
-            _goldenBombshellGameObject.SetActive(false);
-            _countdownImage.gameObject.SetActive(false);
+            HidePresentationObjects();
         }
 
         private void Start()
@@ -34,137 +24,143 @@ namespace MortierFu
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
         }
 
-        private void OnDisable()
+        private void OnEnable()
         {
-            if (_countdownSequence.isAlive)
-                _countdownSequence.Stop();
+            _lifetimeCancellation?.Cancel();
+            _lifetimeCancellation?.Dispose();
+            _lifetimeCancellation = new CancellationTokenSource();
+
+            SubscribeGameMode();
         }
 
-        public void OnRoundStarted(GameModeBase gm)
+        private void OnDisable()
         {
-            UpdateMatchPointIndicator(gm);
-            PlayCountdown(gm).Forget();
+            UnsubscribeGameMode();
+
+            _lifetimeCancellation?.Cancel();
+
+            HidePresentationObjects();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeGameMode();
+
+            _lifetimeCancellation?.Cancel();
+            _lifetimeCancellation?.Dispose();
+            _lifetimeCancellation = null;
+        }
+
+        private void SubscribeGameMode()
+        {
+            UnsubscribeGameMode();
+
+            _gameMode = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gameMode == null)
+                return;
+
+            _gameMode.OnRoundStartPresentationAsync += PlayRoundStartPresentationAsync;
+        }
+
+        private void UnsubscribeGameMode()
+        {
+            if (_gameMode == null)
+                return;
+
+            _gameMode.OnRoundStartPresentationAsync -= PlayRoundStartPresentationAsync;
+            _gameMode = null;
+        }
+
+        private void HidePresentationObjects()
+        {
+            if (_playGameObject)
+                _playGameObject.SetActive(false);
+
+            if (_goldenBombshellGameObject)
+                _goldenBombshellGameObject.SetActive(false);
+        }
+
+        private async UniTask PlayRoundStartPresentationAsync(CancellationToken cancellationToken)
+        {
+            var gameMode = _gameMode ?? GameService.CurrentGameMode as GameModeBase;
+
+            if (gameMode == null)
+                return;
+
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                _lifetimeCancellation.Token
+            );
+
+            var ct = linkedCancellation.Token;
+
+            UpdateMatchPointIndicator(gameMode);
+
+            await PlayCountdown(gameMode, ct);
         }
 
         private void UpdateMatchPointIndicator(GameModeBase gm)
         {
-            if (gm == null || _goldenBombshellGameObject.activeSelf) return;
+            if (gm == null || !_goldenBombshellGameObject)
+                return;
 
-            bool isMatchPoint = false;
-            for (int i = 0; i < gm.Teams.Count; i++)
+            if (_goldenBombshellGameObject.activeSelf)
+                return;
+
+            var isMatchPoint = false;
+
+            for (var i = 0; i < gm.Teams.Count; i++)
             {
-                if (gm.Teams[i].Score >= gm.ScoreToWin)
-                {
-                    isMatchPoint = true;
-                    break;
-                }
+                if (gm.Teams[i].Score < gm.ScoreToWin) continue;
+                
+                isMatchPoint = true;
+                break;
             }
 
             _goldenBombshellGameObject.SetActive(isMatchPoint);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_MatchPoint);
+
+            if (isMatchPoint)
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_MatchPoint);
         }
 
-        private async UniTask AnimateCountdown()
+        private async UniTask PlayCountdown(
+            GameModeBase gm,
+            CancellationToken ct
+        )
         {
-            if (_countdownSequence.isAlive)
-                _countdownSequence.Stop();
-
-            var t = _countdownImage.transform;
-
-            Vector3 centerPos = t.position;
-            Vector3 startPos = centerPos + Vector3.up * _countdownSlideOffset;
-
-            t.position = startPos;
-            t.localScale = Vector3.one * _countdownStartingScale;
-            _countdownCanvasGroup.alpha = 0f;
-
-            _countdownSequence = Sequence.Create()
-                .Group(Tween.Position(
-                    t,
-                    startPos,
-                    centerPos,
-                    _countdownInDuration,
-                    Ease.OutCubic
-                ))
-                .Group(Tween.Alpha(
-                    _countdownCanvasGroup,
-                    0f,
-                    1f,
-                    _countdownInDuration,
-                    Ease.OutQuad
-                )).ChainDelay(CountdownHoldDuration).Chain(Tween.Alpha(
-                    _countdownCanvasGroup,
-                    1f,
-                    0f,
-                    _countdownOutDuration,
-                    Ease.InQuad
-                ));
-
-            await _countdownSequence;
-        }
-
-
-        private async UniTask PlayCountdown(GameModeBase gm, int seconds = 3)
-        {
-            foreach (var character in gm.AlivePlayers)
-            {
-                character.gameObject.SetActive(false);
-            }
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_showCountdownDelay));
-
-            ShowCountdownImage();
-            _countdownImage.sprite = _countdownSprites[0];
-
-            var countdownTask = RunCountdown(seconds);
+            ct.ThrowIfCancellationRequested();
 
             foreach (var character in gm.AlivePlayers)
             {
-                await character.Aspect.PlayVFXSequential(new[] { character },
-                    c => c.gameObject.SetActive(true));
+                if (character)
+                    character.gameObject.SetActive(false);
             }
 
-            await countdownTask;
-
-            _countdownImage.gameObject.SetActive(false);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_playShowDelay));
-            await ShowPlay(gm);
-        }
-
-        private async UniTask RunCountdown(int seconds)
-        {
-            for (int t = seconds; t > 0; t--)
+            foreach (var character in gm.AlivePlayers)
             {
-                SetCountdownVisual(t);
-                // TODO: Add sound effect here or maybe in AnimateCountdown
-                if (t > 0)
-                {
-                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownNumber);
-                }
-                await AnimateCountdown();
-                if (t <= 1)
-                {
-                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
-                }
+                ct.ThrowIfCancellationRequested();
+
+                if (!character)
+                    continue;
+
+                await character.Aspect.PlayVFXSequential(
+                    new[] { character },
+                    c => c.gameObject.SetActive(true)
+                );
+
+                ct.ThrowIfCancellationRequested();
             }
+
+            await UniTask.Delay(
+                TimeSpan.FromSeconds(_playShowDelay),
+                cancellationToken: ct
+            );
+
+            await ShowPlay(ct);
         }
 
-        private void ShowCountdownImage()
-        {
-            _countdownImage.transform.localScale = _initialCountdownScale;
-            _countdownImage.transform.localRotation = Quaternion.identity;
-            _countdownImage.gameObject.SetActive(true);
-        }
-
-        private void SetCountdownVisual(int number)
-        {
-            int index = Mathf.Clamp(_countdownSprites.Count - number, 0, _countdownSprites.Count - 1);
-            _countdownImage.sprite = _countdownSprites[index];
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-        }
-
-        private async UniTask ShowPlay(GameModeBase gm)
+        private async UniTask ShowPlay(CancellationToken ct)
         {
             var t = _playGameObject.transform;
 
@@ -177,8 +173,11 @@ namespace MortierFu
 
             _playGameObject.SetActive(true);
 
-            _shakeService.ShakeControllers(ShakeService.ShakeType.MID);
-            
+            _shakeService?.ShakeControllers(ShakeService.ShakeType.MID);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
+
+            ct.ThrowIfCancellationRequested();
+
             await Sequence.Create()
                 .Group(Tween.Position(
                     t,
@@ -195,6 +194,8 @@ namespace MortierFu
                     Ease.OutQuad
                 ));
 
+            ct.ThrowIfCancellationRequested();
+
             await Tween.Scale(
                 t,
                 Vector3.one * _playStartingScale,
@@ -202,6 +203,8 @@ namespace MortierFu
                 0.2f,
                 Ease.OutBack
             );
+
+            ct.ThrowIfCancellationRequested();
 
             await Tween.Alpha(
                 _playCanvasGroup,
@@ -211,11 +214,9 @@ namespace MortierFu
                 Ease.InQuad
             );
 
+            ct.ThrowIfCancellationRequested();
+
             _playGameObject.SetActive(false);
-            gameObject.SetActive(false);
-            
-            // TODO: Désolé c'est horrible
-            gm?.SetPlayerControlContext(PlayerControlContext.RoundGameplay);
         }
 
         #region References
@@ -224,32 +225,11 @@ namespace MortierFu
         private GameObject _goldenBombshellGameObject;
 
         [SerializeField] private GameObject _playGameObject;
-        [SerializeField] private Image _countdownImage;
 
         [Header("Canvas Groups")] [SerializeField]
         private CanvasGroup _countdownCanvasGroup;
 
         [SerializeField] private CanvasGroup _playCanvasGroup;
-
-        #endregion
-
-        #region Countdown Animation
-
-        [Header("Countdown Animation Settings")] [SerializeField]
-        private float _countdownSlideOffset = 150f;
-
-        [SerializeField] private float _showCountdownDelay = 0.3f;
-        [SerializeField] private float _countdownInDuration = 0.35f;
-        [SerializeField] private float _countdownOutDuration = 0.3f;
-        [SerializeField] private float _countdownStartingScale = 1.3f;
-
-        private const float COUNTDOWN_TOTAL_DURATION = 1f;
-
-        private float CountdownHoldDuration =>
-            COUNTDOWN_TOTAL_DURATION - _countdownInDuration - _countdownOutDuration;
-
-        private Sequence _countdownSequence;
-        private Vector3 _initialCountdownScale;
 
         #endregion
 
