@@ -186,8 +186,6 @@ namespace MortierFu
             _goldenBombshellCts = null;
         }
 
-        #region Animate Sliders / Placement / Kills
-
         private async UniTask ShowGoldenBombshellIndicator(CancellationToken cancellationToken)
         {
             if (_gm == null) return;
@@ -633,10 +631,6 @@ namespace MortierFu
             slider.value = end;
         }
 
-        #endregion
-
-        #region Leaderboard / Helpers
-
         private async UniTask AnimateRoundEndSequence(
             RoundInfo round,
             CancellationToken cancellationToken
@@ -836,7 +830,5 @@ namespace MortierFu
                 img.gameObject.SetActive(false);
             }
         }
-
-        #endregion
     }
 }

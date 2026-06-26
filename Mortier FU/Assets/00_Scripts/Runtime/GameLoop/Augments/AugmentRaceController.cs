@@ -41,14 +41,6 @@ namespace MortierFu
             Logs.Log("[AugmentRaceController] Starting augment race.");
         }
 
-        public async UniTask WaitUntilSelectionOverAsync()
-        {
-            while (!_augmentSelectionSystem.IsSelectionOver)
-            {
-                await UniTask.Yield();
-            }
-        }
-
         public void EndSelection()
         {
             _augmentSelectionSystem.EndRace();
