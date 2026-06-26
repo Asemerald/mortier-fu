@@ -94,6 +94,7 @@ namespace MortierFu
         public event Action<RoundInfo> OnRoundEnded;
         public event Func<RoundInfo, UniTask> OnRoundEndedAsync;
         public event Action OnRaceStart;
+        public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
         public event Func<UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
@@ -252,19 +253,22 @@ namespace MortierFu
             await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _augmentRaceController.HandleSelectionAsync(
-                FlowSettings.AugmentRaceDuration,
-                cancellationToken
-            );
+            await _augmentRaceController.PrepareSelectionAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             audioService.SetPhase(0);
 
+            await RunAugmentRaceStartPresentationAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             UpdateGameState(GameState.AugmentRace);
+            SetPlayerControlContext(PlayerControlContext.AugmentRace);
+
+            _augmentRaceController.StartRaceTimer(FlowSettings.AugmentRaceDuration);
 
             await _augmentRaceController.WaitUntilSelectionOverAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             _augmentRaceController.EndSelection();
 
@@ -550,26 +554,20 @@ namespace MortierFu
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
         }
-
-        private async UniTaskVoid ReturnToMainMenuAfterDelay()
+        
+        protected virtual async UniTask RunAugmentRaceStartPresentationAsync(CancellationToken cancellationToken)
         {
-            var cachedLobbyService = lobbyService;
-            var cachedSceneService = sceneService;
-            var cachedLevelSystem = levelSystem;
+            if (OnAugmentRaceStartPresentationAsync == null)
+                return;
 
-            if (cachedLevelSystem != null)
+            foreach (var @delegate in OnAugmentRaceStartPresentationAsync.GetInvocationList())
             {
-                await cachedLevelSystem.UnloadCurrentMap();
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            cachedLobbyService?.ClearPlayers();
+                var handler = (Func<CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(cancellationToken);
 
-            SystemManager.Instance.Dispose();
-
-            if (cachedSceneService != null)
-            {
-                await cachedSceneService.UnloadScene("Gameplay");
-                await cachedSceneService.LoadScene("MainMenu", true);
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -591,9 +589,7 @@ namespace MortierFu
             SetMatchConfig(new MatchConfig(score));
         }
 
-        public virtual void Update()
-        {
-        }
+        public virtual void Update(){}
 
         public virtual void Dispose()
         {
