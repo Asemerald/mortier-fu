@@ -11,10 +11,6 @@ namespace MortierFu
 {
     public class AugmentSummaryUI : MonoBehaviour
     {
-        #region Variables
-
-        #region References
-
         [SerializeField] private GameObject _background;
 
         [Header("Player Image References")] [SerializeField]
@@ -23,20 +19,12 @@ namespace MortierFu
         [Header("Factory Reference")] [SerializeField, Required]
         private SO_RaritySpritesFactory _soRaritySpritesFactory;
 
-        #endregion
-
-        #region Player Animation Settings
-
         [Header("Player Animation Settings")] [SerializeField]
         private float _playerScaleDuration = 0.4f;
 
         [SerializeField] private float _playerTargetScale = 0.65f;
         [SerializeField] private float _playerAnimDelay = 0.3f;
         [SerializeField] private Ease _playerScaleEase = Ease.OutBack;
-
-        #endregion
-
-        #region Child / Augment Icon Animation
 
         [Header("Child / Augment Icon Animation")] [SerializeField]
         private float _augmentIconRadius = 225f;
@@ -47,21 +35,9 @@ namespace MortierFu
         [SerializeField] private Ease _augmentIconMoveEase = Ease.OutCubic;
         [SerializeField] private float _childAnimationExponentFactor = 1.2f;
 
-        #endregion
-
-        #region Timing
-
-        #endregion
-
-        #region Runtime State
-
         private List<Tween> _activeTweens = new();
         private CancellationTokenSource _cts;
         private SO_GameFlowSettings _flowSettings;
-
-        #endregion
-
-        #endregion
 
         private void OnEnable()
         {
@@ -99,10 +75,17 @@ namespace MortierFu
             _cts?.Cancel();
         }
 
-        public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments)
+        public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments, UniTask canHideTask, CancellationToken externalCancellationToken)
         {
-            if (_cts == null) _cts = new CancellationTokenSource();
-            var ct = _cts.Token;
+            if (_cts == null)
+                _cts = new CancellationTokenSource();
+
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                _cts.Token,
+                externalCancellationToken
+            );
+
+            var ct = linkedCancellation.Token;
 
             _background.SetActive(true);
 
@@ -112,8 +95,11 @@ namespace MortierFu
             {
                 bool active = i < playerCount;
                 var playerImage = _playerImages[i];
+
                 playerImage.gameObject.SetActive(active);
-                if (!active) continue;
+
+                if (!active)
+                    continue;
 
                 var playerTransform = playerImage.transform;
                 playerTransform.localScale = Vector3.zero;
@@ -124,10 +110,11 @@ namespace MortierFu
                 for (int c = 0; c < childCount; c++)
                 {
                     var child = playerTransform.GetChild(c);
+
                     child.localScale = Vector3.zero;
                     child.localPosition = Vector3.zero;
 
-                    if (child.gameObject.gameObject.TryGetComponent(out LastAugmentBreathingAnimation breathingAnim))
+                    if (child.gameObject.TryGetComponent(out LastAugmentBreathingAnimation breathingAnim))
                     {
                         breathingAnim.enabled = false;
                     }
@@ -139,7 +126,9 @@ namespace MortierFu
                     }
 
                     var augment = augments[augments.Count - 1 - c];
+
                     var rarityImage = child.GetComponent<Image>();
+
                     if (rarityImage != null)
                     {
                         var rarity = augment.Rarity;
@@ -149,6 +138,7 @@ namespace MortierFu
                     if (child.childCount > 0)
                     {
                         var logoImage = child.GetChild(0).GetComponent<Image>();
+
                         if (logoImage != null)
                             logoImage.sprite = augment.SmallSprite;
                     }
@@ -162,8 +152,14 @@ namespace MortierFu
                 ct.ThrowIfCancellationRequested();
 
                 var playerTransform = _playerImages[i].transform;
-                var playerTween = Tween.Scale(playerTransform, Vector3.zero, Vector3.one * _playerTargetScale,
-                    _playerScaleDuration, _playerScaleEase);
+
+                var playerTween = Tween.Scale(
+                    playerTransform,
+                    Vector3.zero,
+                    Vector3.one * _playerTargetScale,
+                    _playerScaleDuration,
+                    _playerScaleEase
+                );
 
                 _activeTweens.Add(playerTween);
 
@@ -171,18 +167,24 @@ namespace MortierFu
 
                 AnimateChildren(playerTransform, ct).Forget();
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_playerAnimDelay), cancellationToken: ct);
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(_playerAnimDelay),
+                    cancellationToken: ct
+                );
             }
 
             var tweensSnapshot = _activeTweens.ToArray();
 
             foreach (var tween in tweensSnapshot)
             {
+                ct.ThrowIfCancellationRequested();
+
                 if (tween.isAlive)
                     await tween.ToUniTask(cancellationToken: ct);
             }
 
             var runningBreathingAnimations = new List<LastAugmentBreathingAnimation>();
+
             for (int i = 0; i < playerCount; i++)
             {
                 var playerIcon = _playerImages[i].transform;
@@ -196,14 +198,18 @@ namespace MortierFu
                 }
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(GetFinalPauseDuration()), cancellationToken: ct);
+            await canHideTask;
+
+            ct.ThrowIfCancellationRequested();
 
             foreach (var breathingAnim in runningBreathingAnimations)
             {
-                breathingAnim.enabled = false;
+                if (breathingAnim)
+                    breathingAnim.enabled = false;
             }
 
             runningBreathingAnimations.Clear();
+
             _background.SetActive(false);
         }
 

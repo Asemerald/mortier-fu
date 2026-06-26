@@ -148,14 +148,6 @@ namespace MortierFu
             }
         }
 
-        private float GetRoundWinnerFocusDuration()
-        {
-            if (_gm != null && _gm.FlowSettings)
-                return Mathf.Max(0f, _gm.FlowSettings.RoundWinnerFocusDuration);
-
-            return _gm != null ? Mathf.Max(0f, _gm.Data.ShowRoundWinnerDelay) : 3f;
-        }
-
         private float GetScoreboardMinimumDuration()
         {
             if (_gm != null && _gm.FlowSettings)
@@ -193,8 +185,6 @@ namespace MortierFu
             _goldenBombshellCts?.Dispose();
             _goldenBombshellCts = null;
         }
-
-        #region Animate Sliders / Placement / Kills
 
         private async UniTask ShowGoldenBombshellIndicator(CancellationToken cancellationToken)
         {
@@ -641,10 +631,6 @@ namespace MortierFu
             slider.value = end;
         }
 
-        #endregion
-
-        #region Leaderboard / Helpers
-
         private async UniTask AnimateRoundEndSequence(
             RoundInfo round,
             CancellationToken cancellationToken
@@ -658,13 +644,6 @@ namespace MortierFu
             var ct = linkedCancellation.Token;
 
             ResetUI();
-
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(GetRoundWinnerFocusDuration()),
-                cancellationToken: ct
-            );
-
-            ct.ThrowIfCancellationRequested();
 
             InitializePlayerPanels(_leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
@@ -851,7 +830,5 @@ namespace MortierFu
                 img.gameObject.SetActive(false);
             }
         }
-
-        #endregion
     }
 }

@@ -1,6 +1,7 @@
-using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -14,125 +15,236 @@ namespace MortierFu
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
         private LobbyService _lobbyService;
-        
+
         private GameModeBase _gm;
-        
+        private bool _isSubscribedToAugmentSelectionSystem;
+
         private void Awake()
         {
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            
-            _playerConfirmationUI.gameObject.SetActive(false);
-            _racePressureUI.gameObject.SetActive(false);
-            _augmentSummaryUI.gameObject.SetActive(false);
+
+            HideRuntimeUI();
         }
 
         private void OnEnable()
         {
-            _gm = GameService.CurrentGameMode as GameModeBase;
-            
-            if (_gm != null)
-                _gm.OnRaceEndedUI += PlayAugmentSummary;
-            
-            if (_confirmationService != null)
-            {
-                _confirmationService.OnStartConfirmation += HandleStartConfirmation;
-                _confirmationService.OnPlayerConfirmed += HandlePlayerConfirmed;
-                _confirmationService.OnAllPlayersConfirmed += HandleAllPlayersConfirmed;
-            }
-            else
-            {
-                Debug.LogError($"OnRaceUI] No ConfirmationService found for {gameObject.name}");
-            }
+            SubscribeGameMode();
+            SubscribeConfirmationService();
+            TrySubscribeAugmentSelectionSystem(logIfMissing: false);
         }
 
         private void Start()
         {
-            _augmentSelectionSystem = SystemManager.Instance.Get<AugmentSelectionSystem>();
+            TrySubscribeAugmentSelectionSystem(logIfMissing: true);
+        }
 
-            if (_augmentSelectionSystem == null)
+        private void OnDisable()
+        {
+            UnsubscribeGameMode();
+            UnsubscribeConfirmationService();
+            UnsubscribeAugmentSelectionSystem();
+
+            HideRuntimeUI();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeGameMode();
+            UnsubscribeConfirmationService();
+            UnsubscribeAugmentSelectionSystem();
+        }
+
+        private void SubscribeGameMode()
+        {
+            UnsubscribeGameMode();
+
+            _gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gm is null)
+                return;
+
+            _gm.OnRaceEndedUI += PlayAugmentSummary;
+        }
+
+        private void UnsubscribeGameMode()
+        {
+            if (_gm is null)
+                return;
+
+            _gm.OnRaceEndedUI -= PlayAugmentSummary;
+            _gm = null;
+        }
+
+        private void SubscribeConfirmationService()
+        {
+            if (_confirmationService is null)
             {
-                Debug.LogError($"[RacePressureUI] No AugmentSelectionSystem found for {gameObject.name}");
+                Logs.LogError($"[RaceUI] No ConfirmationService found for {gameObject.name}.", this);
+                return;
+            }
+
+            _confirmationService.OnStartConfirmation += HandleStartConfirmation;
+            _confirmationService.OnPlayerConfirmed += HandlePlayerConfirmed;
+            _confirmationService.OnAllPlayersConfirmed += HandleAllPlayersConfirmed;
+        }
+
+        private void UnsubscribeConfirmationService()
+        {
+            if (_confirmationService is null)
+                return;
+
+            _confirmationService.OnStartConfirmation -= HandleStartConfirmation;
+            _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirmed;
+            _confirmationService.OnAllPlayersConfirmed -= HandleAllPlayersConfirmed;
+        }
+
+        private void TrySubscribeAugmentSelectionSystem(bool logIfMissing)
+        {
+            if (_isSubscribedToAugmentSelectionSystem)
+                return;
+
+            _augmentSelectionSystem ??= SystemManager.Instance.Get<AugmentSelectionSystem>();
+
+            if (_augmentSelectionSystem is null)
+            {
+                if (logIfMissing)
+                    Logs.LogError($"[RaceUI] No AugmentSelectionSystem found for {gameObject.name}.", this);
+
                 return;
             }
 
             _augmentSelectionSystem.OnPressureStart += HandlePressureStart;
             _augmentSelectionSystem.OnPressureStop += HandlePressureStop;
-        }
-        
-        private void OnDisable()
-        {
-            if (_gm != null)
-                _gm.OnRaceEndedUI -= PlayAugmentSummary;
-            
-            if (_confirmationService == null) return;
 
-            _confirmationService.OnStartConfirmation -= HandleStartConfirmation;
-            _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirmed;
-            _confirmationService.OnAllPlayersConfirmed -=HandleAllPlayersConfirmed;
+            _isSubscribedToAugmentSelectionSystem = true;
         }
 
-        void OnDestroy()
+        private void UnsubscribeAugmentSelectionSystem()
         {
-            if (_augmentSelectionSystem == null)
-            {
-                Debug.LogWarning(
-                    "[OnRaceUI] No AugmentSelectionSystem found: Potential memory leak.");
+            if (!_isSubscribedToAugmentSelectionSystem)
                 return;
+
+            if (_augmentSelectionSystem is not null)
+            {
+                _augmentSelectionSystem.OnPressureStart -= HandlePressureStart;
+                _augmentSelectionSystem.OnPressureStop -= HandlePressureStop;
             }
 
-            _augmentSelectionSystem.OnPressureStart -= HandlePressureStart;
-            _augmentSelectionSystem.OnPressureStop -= HandlePressureStop;
+            _isSubscribedToAugmentSelectionSystem = false;
+        }
+
+        private void HideRuntimeUI()
+        {
+            if (_playerConfirmationUI)
+                _playerConfirmationUI.gameObject.SetActive(false);
+
+            if (_racePressureUI)
+                _racePressureUI.gameObject.SetActive(false);
+
+            if (_augmentSummaryUI)
+                _augmentSummaryUI.gameObject.SetActive(false);
         }
 
         private void HandleStartConfirmation(int activePlayerCount)
         {
+            if (!_playerConfirmationUI)
+                return;
+
             _playerConfirmationUI.gameObject.SetActive(true);
             _playerConfirmationUI.ShowConfirmation(activePlayerCount);
         }
-        
+
         private void HandlePlayerConfirmed(int playerIndex)
         {
+            if (!_playerConfirmationUI)
+                return;
+
             _playerConfirmationUI.NotifyPlayerConfirmed(playerIndex);
         }
 
         private void HandleAllPlayersConfirmed()
         {
+            if (!_playerConfirmationUI)
+                return;
+
             _playerConfirmationUI.OnConfirmation();
         }
 
         private void HandlePressureStart(float duration)
         {
+            if (!_racePressureUI)
+                return;
+
             _racePressureUI.gameObject.SetActive(true);
             _racePressureUI.StartVignettePressure(duration);
         }
-        
+
         private void HandlePressureStop()
         {
+            if (!_racePressureUI)
+                return;
+
             _racePressureUI.StopVignettePressure();
             _racePressureUI.gameObject.SetActive(false);
         }
 
-        private async UniTask PlayAugmentSummary()
+        private async UniTask PlayAugmentSummary(
+            UniTask canHideTask,
+            CancellationToken cancellationToken
+        )
         {
-            _augmentSummaryUI.gameObject.SetActive(true);
+            if (!_augmentSummaryUI)
+                return;
 
-            var players = _lobbyService.GetPlayers();
-
-            List<List<SO_Augment>> playerAugments = new();
-            foreach (var player in players)
+            if (_lobbyService is null)
             {
-                if (_augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
-                    playerAugments.Add(augments);
-                else
-                    playerAugments.Add(new List<SO_Augment>());
+                Logs.LogError("[RaceUI] Cannot play augment summary because LobbyService is missing.", this);
+                return;
             }
 
-            await _augmentSummaryUI.AnimatePlayerImagesWithAugments(playerAugments);
+            TrySubscribeAugmentSelectionSystem(logIfMissing: true);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-            _augmentSummaryUI.gameObject.SetActive(false);
+            if (_augmentSelectionSystem is null)
+                return;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _augmentSummaryUI.gameObject.SetActive(true);
+
+            try
+            {
+                var players = _lobbyService.GetPlayers();
+
+                List<List<SO_Augment>> playerAugments = new();
+
+                foreach (var player in players)
+                {
+                    if (player &&
+                        player.Character &&
+                        _augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
+                    {
+                        playerAugments.Add(augments);
+                    }
+                    else
+                    {
+                        playerAugments.Add(new List<SO_Augment>());
+                    }
+                }
+
+                await _augmentSummaryUI.AnimatePlayerImagesWithAugments(
+                    playerAugments,
+                    canHideTask,
+                    cancellationToken
+                );
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            finally
+            {
+                if (_augmentSummaryUI)
+                    _augmentSummaryUI.gameObject.SetActive(false);
+            }
         }
-
     }
 }

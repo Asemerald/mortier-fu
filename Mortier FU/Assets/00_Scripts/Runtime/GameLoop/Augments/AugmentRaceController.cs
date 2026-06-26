@@ -41,14 +41,6 @@ namespace MortierFu
             Logs.Log("[AugmentRaceController] Starting augment race.");
         }
 
-        public async UniTask WaitUntilSelectionOverAsync()
-        {
-            while (!_augmentSelectionSystem.IsSelectionOver)
-            {
-                await UniTask.Yield();
-            }
-        }
-
         public void EndSelection()
         {
             _augmentSelectionSystem.EndRace();
@@ -85,11 +77,13 @@ namespace MortierFu
             return pickers;
         }
         
-        public async UniTask PrepareSelectionAsync(CancellationToken cancellationToken)
+        public async UniTask PrepareSelectionAsync(CancellationToken cancellationToken, float startShowcaseDelay)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var pickers = GetAugmentPickers();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(startShowcaseDelay), cancellationToken: cancellationToken);
 
             await _augmentSelectionSystem.PrepareAugmentSelection(
                 pickers,
