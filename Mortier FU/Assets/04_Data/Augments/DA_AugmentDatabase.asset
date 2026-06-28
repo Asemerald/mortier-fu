@@ -73,7 +73,7 @@ MonoBehaviour:
     BombshellImpactRadius:
       Value: -0.18
       ModType: 200
-    OnBounceImpactRadiusScalar: 0.12
+    ImpactRadiusScale: 0.12
     ExtraBombshellBounces: 1
   ConfidenceParams:
     BombshellDamageMod:
@@ -93,7 +93,7 @@ MonoBehaviour:
     ShotRangeMod:
       Value: 4
       ModType: 100
-    HealthLooseMod:
+    MaxHealthMod:
       Value: -20
       ModType: 100
   MaximumVelocityParams:
@@ -147,6 +147,6 @@ MonoBehaviour:
       Value: 0.25
       ModType: 100
   PerfectPushParams:
-    OnSuccessfulPushMaxHealthMod:
+    MaxHealthMod:
       Value: 6
       ModType: 100

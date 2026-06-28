@@ -5,6 +5,7 @@ namespace MortierFu
     [CreateAssetMenu(fileName = "DA_Augment", menuName = "Mortier Fu/Augments/New", order = 1)]
     public class SO_Augment : ScriptableObject
     {
+        public int ID;
         public string Name;
         [TextArea] public string Description;
         public E_AugmentRarity Rarity;

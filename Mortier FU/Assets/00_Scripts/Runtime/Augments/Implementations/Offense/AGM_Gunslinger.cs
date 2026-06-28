@@ -7,7 +7,7 @@ namespace MortierFu
         {
             public AugmentStatMod FireRateMod;
             public AugmentStatMod ShotRangeMod;
-            public AugmentStatMod HealthLooseMod;
+            public AugmentStatMod MaxHealthMod; // OLD [HealthLoose] Modifié pour simplifié
         }
         
         public AGM_Gunslinger(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
@@ -16,7 +16,7 @@ namespace MortierFu
         public override void Initialize()
         {
             stats.FireRate.AddModifier(db.GunslingerParams.FireRateMod.ToMod(this));
-            stats.MaxHealth.AddModifier(db.GunslingerParams.HealthLooseMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.GunslingerParams.MaxHealthMod.ToMod(this));
             stats.ShotRange.AddModifier(db.GunslingerParams.ShotRangeMod.ToMod(this));
         }
         
