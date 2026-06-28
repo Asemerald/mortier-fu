@@ -6,7 +6,7 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod OnSuccessfulPushMaxHealthMod;
+            public AugmentStatMod MaxHealthMod; // OLD [OnSuccesfulMaxHealthMod) raccourcit pour équilibrage plus simple 
         }
         
         private EventBinding<TriggerSuccessfulPush> _successfulPushBinding;
@@ -35,7 +35,7 @@ namespace MortierFu
          
             Debug.Log("AGM_PerfectPush: OnSuccessfulPush triggered: " + evt.Character.Owner.PlayerIndex + " was pushed by + " + sourceCharacter.Owner.PlayerIndex);
             
-            stats.MaxHealth.AddModifier(db.PerfectPushParams.OnSuccessfulPushMaxHealthMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.PerfectPushParams.MaxHealthMod.ToMod(this));
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
 
