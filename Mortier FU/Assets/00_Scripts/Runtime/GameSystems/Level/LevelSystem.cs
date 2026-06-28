@@ -32,6 +32,9 @@ namespace MortierFu
         private List<IResourceLocation> _arenaMapLocations;
         private List<IResourceLocation> _raceMapLocations;
 
+        private readonly Dictionary<string, int> _arenaMapCooldowns = new();
+        private readonly Dictionary<string, int> _raceMapCooldowns = new();
+
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
         private CameraSystem _cameraSystem;
@@ -40,13 +43,11 @@ namespace MortierFu
 
         public bool IsInitialized { get; set; }
 
-        public UniTask LoadRaceMap(
-            bool useTransition = false,
-            TransitionColor color = TransitionColor.Blue
-        )
+        public UniTask LoadRaceMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             return LoadMapAsync(
                 _raceMapLocations,
+                _raceMapCooldowns,
                 arenaMode: false,
                 editorOverrideKey: k_editorOverrideRaceMapAddress,
                 debugMapTypeName: "race",
@@ -55,13 +56,11 @@ namespace MortierFu
             );
         }
 
-        public UniTask LoadArenaMap(
-            bool useTransition = false,
-            TransitionColor color = TransitionColor.Blue
-        )
+        public UniTask LoadArenaMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
         {
             return LoadMapAsync(
                 _arenaMapLocations,
+                _arenaMapCooldowns,
                 arenaMode: true,
                 editorOverrideKey: k_editorOverrideArenaMapAddress,
                 debugMapTypeName: "arena",
@@ -70,14 +69,9 @@ namespace MortierFu
             );
         }
 
-        private async UniTask LoadMapAsync(
-            List<IResourceLocation> mapLocations,
-            bool arenaMode,
-            string editorOverrideKey,
-            string debugMapTypeName,
-            bool useTransition,
-            TransitionColor color
-        )
+        private async UniTask LoadMapAsync(List<IResourceLocation> mapLocations, Dictionary<string, int> mapCooldowns,
+            bool arenaMode, string editorOverrideKey, string debugMapTypeName, bool useTransition,
+            TransitionColor color)
         {
             await FinishUnfinishedBusiness();
 
@@ -97,14 +91,17 @@ namespace MortierFu
 
                 bool editorOverrideLoaded = await TryLoadEditorOverrideMapAsync(
                     editorOverrideKey,
-                    debugMapTypeName,
-                    useTransition: false
+                    debugMapTypeName
                 );
 
                 if (editorOverrideLoaded)
                     return;
 
-                var mapLocation = GetRandomMapLocation(mapLocations, debugMapTypeName);
+                IResourceLocation mapLocation = GetRandomMapLocation(
+                    mapLocations,
+                    mapCooldowns,
+                    debugMapTypeName
+                );
 
                 if (mapLocation is null)
                     return;
@@ -128,11 +125,7 @@ namespace MortierFu
             }
         }
 
-        private async UniTask<bool> TryLoadEditorOverrideMapAsync(
-            string editorOverrideKey,
-            string debugMapTypeName,
-            bool useTransition
-        )
+        private async UniTask<bool> TryLoadEditorOverrideMapAsync(string editorOverrideKey, string debugMapTypeName)
         {
 #if UNITY_EDITOR
             string sceneKey = EditorPrefs.GetString(editorOverrideKey, "");
@@ -154,7 +147,8 @@ namespace MortierFu
                 {
                     if (IsDebugEnabled)
                     {
-                        Logs.LogWarning($"[LevelSystem] Debug {debugMapTypeName} scene key not found in Addressables: {sceneKey}");
+                        Logs.LogWarning(
+                            $"[LevelSystem] Debug {debugMapTypeName} scene key not found in Addressables: {sceneKey}");
                     }
 
                     return false;
@@ -162,18 +156,17 @@ namespace MortierFu
 
                 for (int i = 0; i < locationsHandle.Result.Count; i++)
                 {
-                    var location = locationsHandle.Result[i];
+                    IResourceLocation location = locationsHandle.Result[i];
 
-                    if (IsSceneLocation(location))
-                    {
-                        sceneLocation = location;
-                        break;
-                    }
+                    if (!IsSceneLocation(location)) continue;
+                    sceneLocation = location;
+                    break;
                 }
 
                 if (sceneLocation is null)
                 {
-                    Logs.LogError($"[LevelSystem] Debug {debugMapTypeName} key found, but no valid scene location was found for: {sceneKey}");
+                    Logs.LogError(
+                        $"[LevelSystem] Debug {debugMapTypeName} key found, but no valid scene location was found for: {sceneKey}");
                     return false;
                 }
 
@@ -189,7 +182,8 @@ namespace MortierFu
 
                 if (IsDebugEnabled)
                 {
-                    Logs.Log($"[LevelSystem] Enforced debug {debugMapTypeName} scene: {DescribeSceneKey(sceneLocation)}");
+                    Logs.Log(
+                        $"[LevelSystem] Enforced debug {debugMapTypeName} scene: {DescribeSceneKey(sceneLocation)}");
                 }
 
                 return true;
@@ -206,10 +200,7 @@ namespace MortierFu
 #endif
         }
 
-        private async UniTask<bool> LoadAddressableMapAsync(
-            object sceneKey,
-            string debugMapTypeName
-        )
+        private async UniTask<bool> LoadAddressableMapAsync(object sceneKey, string debugMapTypeName)
         {
             if (sceneKey is null)
             {
@@ -225,7 +216,8 @@ namespace MortierFu
 
                 if (IsDebugEnabled)
                 {
-                    Logs.Log($"[LevelSystem] Loading {debugMapTypeName} map from location. {DescribeSceneKey(location)}. LoadKey='{loadKey}'");
+                    Logs.Log(
+                        $"[LevelSystem] Loading {debugMapTypeName} map from location. {DescribeSceneKey(location)}. LoadKey='{loadKey}'");
                 }
             }
 
@@ -239,16 +231,18 @@ namespace MortierFu
 
                 await _mapHandle;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Logs.LogError($"[LevelSystem] Exception while loading {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {e.Message}");
+                Logs.LogError(
+                    $"[LevelSystem] Exception while loading {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {e.Message}");
                 _mapHandle = default;
                 return false;
             }
 
             if (_mapHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogError($"[LevelSystem] Failed to load {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {_mapHandle.OperationException?.Message}");
+                Logs.LogError(
+                    $"[LevelSystem] Failed to load {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {_mapHandle.OperationException?.Message}");
                 _mapHandle = default;
                 return false;
             }
@@ -260,7 +254,7 @@ namespace MortierFu
 
             return true;
         }
-        
+
         public async UniTask UnloadCurrentMap()
         {
             await FinishUnfinishedBusiness();
@@ -288,18 +282,6 @@ namespace MortierFu
             {
                 Logs.Log("[LevelSystem] Current map unloaded.");
             }
-        }
-
-        public bool GetCurrentLevelScene(out Scene scene)
-        {
-            if (_mapHandle.IsValid() && _mapHandle.IsDone)
-            {
-                scene = _mapHandle.Result.Scene;
-                return scene.IsValid();
-            }
-
-            scene = default;
-            return false;
         }
 
         public bool IsRaceMap()
@@ -412,10 +394,8 @@ namespace MortierFu
             CurrentCameraMapConfig = default;
         }
 
-        private IResourceLocation GetRandomMapLocation(
-            List<IResourceLocation> mapLocations,
-            string debugMapTypeName
-        )
+        private IResourceLocation GetRandomMapLocation(List<IResourceLocation> mapLocations,
+            Dictionary<string, int> mapCooldowns, string debugMapTypeName)
         {
             if (mapLocations == null || mapLocations.Count == 0)
             {
@@ -423,7 +403,154 @@ namespace MortierFu
                 return null;
             }
 
-            return mapLocations.RandomElement();
+            int unavailabilityRounds = GetMapUnavailabilityRounds();
+
+            if (unavailabilityRounds <= 0)
+                return mapLocations.RandomElement();
+
+            SynchronizeMapCooldowns(mapLocations, mapCooldowns);
+
+            var availableMaps = new List<IResourceLocation>();
+
+            for (int i = 0; i < mapLocations.Count; i++)
+            {
+                var location = mapLocations[i];
+                string key = GetMapCooldownKey(location);
+
+                bool isUnavailable =
+                    mapCooldowns.TryGetValue(key, out int remainingRounds) &&
+                    remainingRounds > 0;
+
+                if (!isUnavailable)
+                    availableMaps.Add(location);
+            }
+
+            if (availableMaps.Count == 0)
+            {
+                Logs.LogWarning(
+                    $"[LevelSystem] All {debugMapTypeName} maps are currently unavailable. " +
+                    "Selecting the map with the lowest remaining cooldown."
+                );
+
+                availableMaps = GetMapsWithLowestCooldown(mapLocations, mapCooldowns);
+            }
+
+            var selectedMap = availableMaps.RandomElement();
+            string selectedKey = GetMapCooldownKey(selectedMap);
+
+            TickMapCooldowns(mapCooldowns, selectedKey);
+
+            mapCooldowns[selectedKey] = unavailabilityRounds;
+
+            if (IsDebugEnabled)
+            {
+                Logs.Log(
+                    $"[LevelSystem] Selected {debugMapTypeName} map: {DescribeSceneKey(selectedMap)}. " +
+                    $"Unavailable for next {unavailabilityRounds} {debugMapTypeName} selections."
+                );
+            }
+
+            return selectedMap;
+        }
+
+        private int GetMapUnavailabilityRounds()
+        {
+            if (!_settingsHandle.IsValid() ||
+                _settingsHandle.Status != AsyncOperationStatus.Succeeded ||
+                _settingsHandle.Result == null)
+            {
+                return 0;
+            }
+
+            return Mathf.Max(0, Settings.NbOfUnavailabilityRounds);
+        }
+
+        private static string GetMapCooldownKey(IResourceLocation location)
+        {
+            if (location is null)
+                return string.Empty;
+
+            if (!string.IsNullOrEmpty(location.PrimaryKey))
+                return location.PrimaryKey;
+
+            if (!string.IsNullOrEmpty(location.InternalId))
+                return location.InternalId;
+
+            return location.ToString();
+        }
+
+        private static void TickMapCooldowns(Dictionary<string, int> mapCooldowns, string selectedKey)
+        {
+            if (mapCooldowns == null || mapCooldowns.Count == 0)
+                return;
+
+            var keys = new List<string>(mapCooldowns.Keys);
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                string key = keys[i];
+
+                if (key == selectedKey)
+                    continue;
+
+                mapCooldowns[key]--;
+
+                if (mapCooldowns[key] <= 0)
+                    mapCooldowns.Remove(key);
+            }
+        }
+
+        private static void SynchronizeMapCooldowns(List<IResourceLocation> mapLocations, Dictionary<string, int> mapCooldowns)
+        {
+            if (mapCooldowns == null || mapCooldowns.Count == 0)
+                return;
+
+            var validKeys = new HashSet<string>();
+
+            for (int i = 0; i < mapLocations.Count; i++)
+            {
+                validKeys.Add(GetMapCooldownKey(mapLocations[i]));
+            }
+
+            var cooldownKeys = new List<string>(mapCooldowns.Keys);
+
+            for (int i = 0; i < cooldownKeys.Count; i++)
+            {
+                string key = cooldownKeys[i];
+
+                if (!validKeys.Contains(key))
+                    mapCooldowns.Remove(key);
+            }
+        }
+
+        private static List<IResourceLocation> GetMapsWithLowestCooldown(List<IResourceLocation> mapLocations, Dictionary<string, int> mapCooldowns)
+        {
+            var result = new List<IResourceLocation>();
+
+            int lowestCooldown = int.MaxValue;
+
+            for (int i = 0; i < mapLocations.Count; i++)
+            {
+                var location = mapLocations[i];
+                string key = GetMapCooldownKey(location);
+
+                int cooldown = mapCooldowns.TryGetValue(key, out int remainingRounds)
+                    ? remainingRounds
+                    : 0;
+
+                if (cooldown < lowestCooldown)
+                {
+                    lowestCooldown = cooldown;
+                    result.Clear();
+                    result.Add(location);
+                }
+                else if (cooldown == lowestCooldown)
+                {
+                    result.Add(location);
+                }
+            }
+
+            return result;
         }
 
         private async UniTask FinishUnfinishedBusiness()
@@ -452,7 +579,8 @@ namespace MortierFu
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Logs.LogError($"[LevelSystem] Failed to load map locations for label '{label}': {handle.OperationException?.Message}");
+                    Logs.LogError(
+                        $"[LevelSystem] Failed to load map locations for label '{label}': {handle.OperationException?.Message}");
                     return new List<IResourceLocation>();
                 }
 
@@ -466,7 +594,8 @@ namespace MortierFu
                     {
                         if (IsDebugEnabled)
                         {
-                            Logs.LogWarning($"[LevelSystem] Ignored non-scene location for label '{label}': {DescribeSceneKey(location)}");
+                            Logs.LogWarning(
+                                $"[LevelSystem] Ignored non-scene location for label '{label}': {DescribeSceneKey(location)}");
                         }
 
                         continue;
@@ -476,13 +605,15 @@ namespace MortierFu
 
                     if (IsDebugEnabled)
                     {
-                        Logs.Log($"[LevelSystem] Registered scene location for label '{label}': {DescribeSceneKey(location)}");
+                        Logs.Log(
+                            $"[LevelSystem] Registered scene location for label '{label}': {DescribeSceneKey(location)}");
                     }
                 }
 
                 if (locations.Count == 0)
                 {
-                    Logs.LogError($"[LevelSystem] No valid SceneInstance locations found for label '{label}'. Check Addressables setup.");
+                    Logs.LogError(
+                        $"[LevelSystem] No valid SceneInstance locations found for label '{label}'. Check Addressables setup.");
                 }
 
                 return locations;
@@ -596,7 +727,7 @@ namespace MortierFu
             _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
             _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
         }
-        
+
         private static bool IsSceneLocation(IResourceLocation location)
         {
             return location is not null &&
@@ -610,7 +741,8 @@ namespace MortierFu
 
             if (sceneKey is IResourceLocation location)
             {
-                return $"PrimaryKey='{location.PrimaryKey}', InternalId='{location.InternalId}', ResourceType='{location.ResourceType}'";
+                return
+                    $"PrimaryKey='{location.PrimaryKey}', InternalId='{location.InternalId}', ResourceType='{location.ResourceType}'";
             }
 
             return sceneKey.ToString();
@@ -626,13 +758,14 @@ namespace MortierFu
             _arenaMapLocations?.Clear();
             _raceMapLocations?.Clear();
 
+            _arenaMapCooldowns.Clear();
+            _raceMapCooldowns.Clear();
+
             ClearCurrentMapData();
 
-            if (_fallbackTransform != null)
-            {
-                Object.Destroy(_fallbackTransform.gameObject);
-                _fallbackTransform = null;
-            }
+            if (_fallbackTransform == null) return;
+            Object.Destroy(_fallbackTransform.gameObject);
+            _fallbackTransform = null;
         }
     }
 }

@@ -312,10 +312,7 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        protected virtual async UniTask RunRoundPhaseAsync(
-            TransitionColor transitionColor,
-            CancellationToken cancellationToken
-        )
+        protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -691,8 +688,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask EnsureArenaMapLoadedAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask EnsureArenaMapLoadedAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -716,8 +712,7 @@ namespace MortierFu
             return FlowSettings ? Mathf.Max(0f, FlowSettings.AugmentSummaryDuration) : 4f;
         }
 
-        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
         {
             if (!FlowSettings || !FlowSettings.UseAugmentSummaryAsArenaMapLoadCover)
                 return;
@@ -736,8 +731,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask,
-            CancellationToken cancellationToken)
+        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask, CancellationToken cancellationToken)
         {
             if (OnRaceEndedUI == null)
                 return;
