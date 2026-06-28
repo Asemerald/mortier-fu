@@ -13,7 +13,7 @@ namespace MortierFu.Editor
         const string CsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRC-m-ejBnE1EFgk3lWkqC3SiQJ4JCBJtJ4CP873pM1Tpi2KXDDUFVMtWvbcdDFAtUlG4XS57NVdiFz/pub?gid=964454951&single=true&output=csv";
         const string DatabasePath = "Assets/04_Data/Augments/DA_AugmentDatabase.asset";
 
-        [MenuItem("Mortier Fu/Import Augments From Sheet")]
+        [MenuItem("Balancing/Import from GSheet")]
         public static void Import()
         {
             string csv;
