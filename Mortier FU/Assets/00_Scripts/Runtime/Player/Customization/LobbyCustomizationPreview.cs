@@ -13,14 +13,14 @@ namespace MortierFu
         [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
         [Header("Animations")]
-        [Tooltip("Optionnel. Si vide, cela lance l'animation de base de l'animator.")]
+        [Tooltip("(Optionnel) Si vide, cela lance l'animation de base de l'animator.")]
         [SerializeField] private string _enterStateName = "";
 
         [Tooltip("Nom de l'animation de sortie.")]
         [SerializeField] private string _exitStateName = "A_Player_Lobby_ReadyToSitting";
 
         [SerializeField] private float _enterDuration = 0.4f;
-        [SerializeField] private float _exitDuration = 0.35f;
+        [SerializeField] private float _exitDuration = 0.5f;
 
         private void Awake()
         {

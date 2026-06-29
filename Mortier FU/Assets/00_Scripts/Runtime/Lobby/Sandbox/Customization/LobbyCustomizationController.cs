@@ -52,8 +52,8 @@ namespace MortierFu
         [SerializeField] private int _faceRowCount = 3;
 
         [Header("Navigation")]
-        [SerializeField] private float _navigationThreshold = 0.7f;
-        [SerializeField] private float _navigationCooldown = 0.25f;
+        [SerializeField] private float _navigationThreshold = 0.3f;
+        [SerializeField] private float _navigationCooldown = 0.2f;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onConfirmed;
@@ -82,7 +82,8 @@ namespace MortierFu
         {
             if (_root)
                 _root.SetActive(false);
-            
+
+            EnableArrows(false);
             UpdateArrowHighlights();
         }
 
@@ -104,6 +105,7 @@ namespace MortierFu
                 return;
 
             CancelPanelTasks();
+            EnableArrows(true);
 
             _panelCancellation = new CancellationTokenSource();
 
@@ -138,39 +140,6 @@ namespace MortierFu
             Logs.Log($"[LobbyCustomizationPanel] Opened for Player {player.PlayerIndex + 1}.");
         }
 
-        public void Close()
-        {
-            if (!_isOpen)
-                return;
-
-            RemoveFromUIInputService();
-
-            var preview = _preview;
-            var root = _root;
-            int version = ++_visualVersion;
-
-            _panelCancellation?.Cancel();
-            _panelCancellation?.Dispose();
-            _panelCancellation = new CancellationTokenSource();
-
-            var closeToken = _panelCancellation.Token;
-
-            _activePlayer = null;
-            _onConfirmed = null;
-            _previousAxis = NavigationAxis.None;
-            _previousDirection = 0;
-            _lastNavigateTime = 0f;
-            _isOpen = false;
-            _canNavigate = false;
-
-            CloseVisualsAsync(
-                preview,
-                root,
-                version,
-                closeToken
-            ).Forget();
-        }
-
         private async UniTaskVoid OpenVisualsAsync(int version, CancellationToken ct)
         {
             try
@@ -192,14 +161,38 @@ namespace MortierFu
             {
             }
         }
-
-        private async UniTaskVoid CloseVisualsAsync(
-            LobbyCustomizationPreview preview,
-            GameObject root,
-            int version,
-            CancellationToken ct
-        )
+        
+        public void Close()
         {
+            CloseAsync(CancellationToken.None).Forget();
+        }
+        
+        public async UniTask CloseAsync(CancellationToken cancellationToken)
+        {
+            if (!_isOpen)
+                return;
+
+            RemoveFromUIInputService();
+            EnableArrows(false);
+
+            _canNavigate = false;
+
+            LobbyCustomizationPreview preview = _preview;
+            GameObject root = _root;
+
+            _panelCancellation?.Cancel();
+            _panelCancellation?.Dispose();
+            _panelCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            CancellationToken ct = _panelCancellation.Token;
+
+            _activePlayer = null;
+            _onConfirmed = null;
+            _previousAxis = NavigationAxis.None;
+            _previousDirection = 0;
+            _lastNavigateTime = 0f;
+            _isOpen = false;
+
             try
             {
                 if (preview)
@@ -208,9 +201,6 @@ namespace MortierFu
             catch (OperationCanceledException)
             {
             }
-
-            if (version != _visualVersion)
-                return;
 
             if (root)
                 root.SetActive(false);
@@ -221,7 +211,7 @@ namespace MortierFu
             if (!_activePlayer)
                 return;
 
-            var player = _activePlayer;
+            PlayerManager player = _activePlayer;
             var onConfirmed = _onConfirmed;
 
             Logs.Log($"[LobbyCustomizationPanel] Confirmed customization for Player {player.PlayerIndex + 1}.");
@@ -283,11 +273,7 @@ namespace MortierFu
             return true;
         }
 
-        private bool TryGetNavigation(
-            Vector2 input,
-            out NavigationAxis axis,
-            out int direction
-        )
+        private bool TryGetNavigation(Vector2 input, out NavigationAxis axis, out int direction)
         {
             axis = NavigationAxis.None;
             direction = 0;
@@ -375,6 +361,14 @@ namespace MortierFu
 
             if (_preview)
                 _preview.Apply(_activePlayer.Customization);
+        }
+
+        private void EnableArrows(bool enable)
+        {
+            _faceLeftArrow.enabled = enable;
+            _faceRightArrow.enabled = enable;
+            _hatLeftArrow.enabled = enable;
+            _hatRightArrow.enabled = enable;
         }
 
         private void UpdateArrowHighlights()
