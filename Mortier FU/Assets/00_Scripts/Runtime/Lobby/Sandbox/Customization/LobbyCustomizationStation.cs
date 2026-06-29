@@ -9,9 +9,9 @@ namespace MortierFu
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
         [SerializeField] private LobbySandboxStateController _stateController;
-        [SerializeField] private LobbyCustomizationPanel[] _playerPanels = new LobbyCustomizationPanel[4];
+        [SerializeField] private LobbyCustomizationController[] _playerPanels = new LobbyCustomizationController[4];
 
-        private readonly Dictionary<PlayerManager, LobbyCustomizationPanel> _activePanels = new();
+        private readonly Dictionary<PlayerManager, LobbyCustomizationController> _activePanels = new();
 
         private void OnEnable()
         {
@@ -148,7 +148,7 @@ namespace MortierFu
             player.SetControlContext(PlayerControlContext.LobbySandbox);
         }
 
-        private LobbyCustomizationPanel GetPanelForPlayer(PlayerManager player)
+        private LobbyCustomizationController GetPanelForPlayer(PlayerManager player)
         {
             if (!player)
                 return null;
