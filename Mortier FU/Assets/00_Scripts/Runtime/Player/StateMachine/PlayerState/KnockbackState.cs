@@ -67,7 +67,9 @@ namespace MortierFu
             //character.Controller.ResetVelocity();
             
             //Apply Knockback
-            character.Controller.ApplyKnockback(_currentBumpForce);
+            //character.Controller.ApplyKnockback(_currentBumpForce);
+            
+            character.Controller.rigidbody.AddForce(bumpForce * 1f, ForceMode.Impulse);
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Knockback, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
@@ -82,7 +84,6 @@ namespace MortierFu
         {
             if(debug)
                 Logs.Log("Entering Knockback State");
-            character.Controller.rigidbody.linearVelocity = Vector3.zero;
         }
 
         public override void OnExit()
