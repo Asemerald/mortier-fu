@@ -143,7 +143,6 @@ namespace HierarchyDesigner
         private static bool enableTooltipOnComponentIconHovered;
         private static bool enableActiveStateEffectForComponentIcons;
         private static bool disableComponentIconsForInactiveGameObjects;
-        private static bool useHierarchyTreeColorForInactiveGameObjects;
         private static bool includeBackgroundImageForGradientBackground;
         private static float componentIconsSize;
         private static int componentIconsOffset;
@@ -187,13 +186,9 @@ namespace HierarchyDesigner
         #endregion
 
         #region GameObject Data
-        private static readonly List<Component> mainIconSignatureComponents = new();
-
         internal struct GameObjectData
         {
             public Texture2D MainIcon { get; set; }
-            public int MainIconComponentSignature { get; set; }
-            public bool HasMainIconCache { get; set; }
             public List<(Component component, Texture2D icon)> ComponentIcons { get; set; }
             public Texture2D HierarchyTreeIcon { get; set; }
             public string Tag { get; set; }
@@ -220,13 +215,8 @@ namespace HierarchyDesigner
 
         private static void SubscribeToEvents()
         {
-#if UNITY_6000_4_OR_NEWER
-            EditorApplication.hierarchyWindowItemByEntityIdOnGUI -= OnHierarchyWindowItemGUI;
-            EditorApplication.hierarchyWindowItemByEntityIdOnGUI += OnHierarchyWindowItemGUI;
-#else
             EditorApplication.hierarchyWindowItemOnGUI -= OnHierarchyWindowItemGUI;
             EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyWindowItemGUI;
-#endif
             EditorApplication.hierarchyChanged -= OnHierarchyChanged;
             EditorApplication.hierarchyChanged += OnHierarchyChanged;
             Editor.finishedDefaultHeaderGUI -= OnPostHeaderGUI;
@@ -235,27 +225,17 @@ namespace HierarchyDesigner
         #endregion
 
         #region Events
-#if UNITY_6000_4_OR_NEWER
-        private static void OnHierarchyWindowItemGUI(EntityId instanceID, Rect selectionRect)
-#else
         private static void OnHierarchyWindowItemGUI(int instanceID, Rect selectionRect)
-#endif
         {
             #region Header
             if (HD_Editor.IsPlaying && disableEditorDesignerMajorOperationsDuringPlayMode) { return; }
-            #if UNITY_6000_3_OR_NEWER
-            GameObject gameObject = EditorUtility.EntityIdToObject(instanceID) as GameObject;
-            #else
-            GameObject gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
-            #endif
-
+            GameObject gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;        
+            
             if (gameObject == null) 
             {
                 if (enableHeaderUtilities) HD_Header.DrawHeader(selectionRect); 
                 return;
             }
-
-            int gameObjectCacheID = GetGameObjectCacheID(gameObject);
             #endregion
 
             #region Events
@@ -264,18 +244,7 @@ namespace HierarchyDesigner
             if (currentEvent.type != EventType.Repaint && !(gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix)))
             {
                 if (enableHierarchyButtons) { ProcessHierarchyButtons(gameObject, selectionRect); }
-                #if UNITY_6000_5_OR_NEWER
-                if (enableGameObjectComponentIcons) { ProcessComponentIconsClick(gameObject, selectionRect, gameObjectCacheID, currentEvent); }
-                #elif UNITY_6000_4_OR_NEWER
-                if (enableGameObjectComponentIcons)
-                {
-                #pragma warning disable CS0618
-                    ProcessComponentIconsClick(gameObject, selectionRect, instanceID, currentEvent);
-                #pragma warning restore CS0618
-                }
-                #else
                 if (enableGameObjectComponentIcons) { ProcessComponentIconsClick(gameObject, selectionRect, instanceID, currentEvent); }
-                #endif
 
                 if (enableMajorShortcuts)
                 {
@@ -303,18 +272,7 @@ namespace HierarchyDesigner
                             if (selectionRect.Contains(currentEvent.mousePosition)) { ProcessToggleGameObjectLockStateMajorShortcut(new GameObject[] { gameObject }); }
                         }
                     }
-                    #if UNITY_6000_5_OR_NEWER
-                    if (IsShortcutPressed(changeTagLayerKeyCode)) { ProcessTagLayerMajorShortcut(gameObject, selectionRect, gameObjectCacheID); }
-                    #elif UNITY_6000_4_OR_NEWER
-                    if (IsShortcutPressed(changeTagLayerKeyCode))
-                    {
-                    #pragma warning disable CS0618
-                        ProcessTagLayerMajorShortcut(gameObject, selectionRect, instanceID);
-                    #pragma warning restore CS0618
-                    }
-                    #else
-                    if (IsShortcutPressed(changeTagLayerKeyCode)) { ProcessTagLayerMajorShortcut(gameObject, selectionRect, instanceID); }
-                    #endif
+                    if (IsShortcutPressed(changeTagLayerKeyCode)) { ProcessTagLayerMajorShortcut(gameObject, selectionRect, instanceID); };
                     if (IsShortcutPressed(renameSelectedGameObjectsKeyCode)) { ProcessRenameMajorShortcut(); }
                     if (IsShortcutPressed(openIconPickerKeyCode)) { ProcessOpenIconPickerMajorShortcut(gameObject, selectionRect, currentEvent); }
 
@@ -324,25 +282,19 @@ namespace HierarchyDesigner
             #endregion
 
             #region Features
-#if UNITY_6000_4_OR_NEWER
-#pragma warning disable CS0618
-#endif
-            if (separatorCache.TryGetValue(gameObjectCacheID, out _) || (gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix))) { DrawSeparator(gameObject, selectionRect, gameObjectCacheID); return; }
+            if (separatorCache.TryGetValue(gameObject.GetInstanceID(), out _) || (gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix))) { DrawSeparator(gameObject, selectionRect, instanceID); return; }
             if (enableHierarchyRows) { DrawHierarchyRows(selectionRect); }
-            if (enableGameObjectMainIcon) { DrawGameObjectMainIcon(gameObject, selectionRect, gameObjectCacheID); }
-            bool isFolder = folderCache.TryGetValue(gameObjectCacheID, out _) || gameObject.GetComponent<HierarchyDesignerFolder>();
-            if (isFolder) { DrawFolder(gameObject, selectionRect, gameObjectCacheID); }
+            if (enableGameObjectMainIcon) { DrawGameObjectMainIcon(gameObject, selectionRect, instanceID); }
+            bool isFolder = folderCache.TryGetValue(instanceID, out _) || gameObject.GetComponent<HierarchyDesignerFolder>();
+            if (isFolder) { DrawFolder(gameObject, selectionRect, instanceID); }
             if (enableHierarchyButtons) { DrawHierarchyButtons(gameObject, selectionRect); }
             if (enableHierarchyLines) { DrawHierarchyLines(gameObject, selectionRect); }
-            if (enableHierarchyTree) { DrawHierarchyTree(gameObject, selectionRect, gameObjectCacheID); }
+            if (enableHierarchyTree) { DrawHierarchyTree(gameObject, selectionRect, instanceID); }
             if ((gameObject.hideFlags & HideFlags.NotEditable) == HideFlags.NotEditable) { DrawGameObjectLock(gameObject, selectionRect); return; }
             if (isFolder && excludeFolderProperties) return;
-            if (enableGameObjectComponentIcons) { DrawGameObjectComponentIcons(gameObject, selectionRect, gameObjectCacheID); }
-            if (enableGameObjectTag) { DrawGameObjectTag(gameObject, selectionRect, gameObjectCacheID); }
-            if (enableGameObjectLayer) { DrawGameObjectLayer(gameObject, selectionRect, gameObjectCacheID); }
-#if UNITY_6000_4_OR_NEWER
-#pragma warning restore CS0618
-#endif
+            if (enableGameObjectComponentIcons) { DrawGameObjectComponentIcons(gameObject, selectionRect, instanceID); }
+            if (enableGameObjectTag) { DrawGameObjectTag(gameObject, selectionRect, instanceID); }
+            if (enableGameObjectLayer) { DrawGameObjectLayer(gameObject, selectionRect, instanceID); }
             #endregion
         }
 
@@ -363,17 +315,7 @@ namespace HierarchyDesigner
                     List<int> keysToRemove = new();
                     foreach (int key in gameObjectDataCache.Keys)
                     {
-#if UNITY_6000_4_OR_NEWER
-#pragma warning disable CS0618
-#endif
-#if UNITY_6000_3_OR_NEWER
-    if (EditorUtility.EntityIdToObject(key) == null)
-#else
                         if (EditorUtility.InstanceIDToObject(key) == null)
-#endif
-#if UNITY_6000_4_OR_NEWER
-#pragma warning restore CS0618
-#endif
                         {
                             keysToRemove.Add(key);
                         }
@@ -382,8 +324,6 @@ namespace HierarchyDesigner
                     {
                         gameObjectDataCache.Remove(key);
                     }
-
-                    HD_Icon.ClearGlobalObjectIdCache();
                     #endregion
                 }
             }
@@ -398,9 +338,7 @@ namespace HierarchyDesigner
 
             #region Features
             if ((gameObject.hideFlags & HideFlags.NotEditable) != HideFlags.NotEditable) return;
-            int gameObjectCacheID = GetGameObjectCacheID(gameObject);
-
-            if (separatorCache.TryGetValue(gameObjectCacheID, out _) || (gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix))) { EditorGUILayout.HelpBox(separatorMessage, MessageType.Info, true); }
+            if (separatorCache.TryGetValue(gameObject.GetInstanceID(), out _) || (gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix))) { EditorGUILayout.HelpBox(separatorMessage, MessageType.Info, true); }
             else { EditorGUILayout.HelpBox(lockedGameObjectMessage, MessageType.Info, true); }
             #endregion
         }
@@ -411,25 +349,17 @@ namespace HierarchyDesigner
         private static void DrawGameObjectMainIcon(GameObject gameObject, Rect selectionRect, int instanceID)
         {
             DrawBackground(selectionRect, instanceID);
-
             GUI.color = gameObject.activeInHierarchy ? activeColor : inactiveColor;
-
-            Rect iconRect = new(selectionRect.x, selectionRect.y, selectionRect.height, defaultIconSelectionHeight);
-
-            if (HD_Icon.HasOverrides && HD_Icon.TryGetTexture(gameObject, instanceID, out Texture2D custom))
+            string id = GlobalObjectId.GetGlobalObjectIdSlow(gameObject).ToString();
+            if (HD_Icon.TryGetTexture(id, out Texture2D custom))
             {
-                GUI.DrawTexture(iconRect, custom, ScaleMode.ScaleToFit, true);
+                GUI.DrawTexture(new(selectionRect.x, selectionRect.y, selectionRect.height, defaultIconSelectionHeight), custom, ScaleMode.ScaleToFit, true);
             }
             else
             {
-                GUI.DrawTexture(iconRect, DecideGameObjectMainIcon(gameObject, instanceID));
+                GUI.DrawTexture(new(selectionRect.x, selectionRect.y, selectionRect.height, defaultIconSelectionHeight), DecideGameObjectMainIcon(gameObject, instanceID));
             }
-
-            if (gameObject.transform.parent != null && PrefabUtility.IsPartOfPrefabInstance(gameObject.transform.parent.gameObject) && PrefabUtility.GetPrefabInstanceStatus(gameObject) == PrefabInstanceStatus.NotAPrefab)
-            {
-                GUI.DrawTexture(iconRect, prefabOverlayIcon);
-            }
-
+            if (gameObject.transform.parent != null && PrefabUtility.IsPartOfPrefabInstance(gameObject.transform.parent.gameObject) && PrefabUtility.GetPrefabInstanceStatus(gameObject) == PrefabInstanceStatus.NotAPrefab) { GUI.DrawTexture(new(selectionRect.x, selectionRect.y, selectionRect.height, defaultIconSelectionHeight), prefabOverlayIcon); }
             GUI.color = activeColor;
         }
 
@@ -450,17 +380,7 @@ namespace HierarchyDesigner
                 }
 
                 bool isHovering = finalSelectionRect.Contains(Event.current.mousePosition);
-#if UNITY_6000_4_OR_NEWER
-#pragma warning disable CS0618
-#endif
-#if UNITY_6000_3_OR_NEWER
-bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
-#else
                 bool isSelected = Array.IndexOf(Selection.instanceIDs, instanceID) >= 0;
-#endif
-#if UNITY_6000_4_OR_NEWER
-#pragma warning restore CS0618
-#endif
                 bool isHierarchyFocused = EditorWindow.focusedWindow != null && EditorWindow.focusedWindow.titleContent.text == HD_Constants.HierarchyWindow;
 
                 if (isSelected && !isHierarchyFocused)
@@ -484,66 +404,24 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
         {
             if (gameObjectDataCache.TryGetValue(instanceID, out GameObjectData data))
             {
-                if (mainIconUpdateMode == HD_Settings.UpdateMode.Smart)
+                if(mainIconUpdateMode == HD_Settings.UpdateMode.Smart)
                 {
-                    if (!data.HasMainIconCache)
-                    {
-                        int componentSignature = GetMainIconComponentSignature(gameObject);
-                        UpdateMainIconCache(gameObject, instanceID, ref data, componentSignature);
-                    }
-
                     return data.MainIcon;
                 }
-
-                int currentComponentSignature = GetMainIconComponentSignature(gameObject);
-                if (!data.HasMainIconCache || data.MainIconComponentSignature != currentComponentSignature)
+                else
                 {
-                    UpdateMainIconCache(gameObject, instanceID, ref data, currentComponentSignature);
+                    data.MainIcon = GetGameObjectMainIcon(gameObject);
+                    gameObjectDataCache[instanceID] = data;
+                    return data.MainIcon;
                 }
-
-                return data.MainIcon;
             }
-
-            GameObjectData newData = new();
-            int newComponentSignature = GetMainIconComponentSignature(gameObject);
-            UpdateMainIconCache(gameObject, instanceID, ref newData, newComponentSignature);
-
-            return newData.MainIcon;
-        }
-
-        private static int GetMainIconComponentSignature(GameObject gameObject)
-        {
-            mainIconSignatureComponents.Clear();
-            gameObject.GetComponents(mainIconSignatureComponents);
-
-            unchecked
+            else
             {
-                int hash = 17;
-                hash = hash * 31 + mainIconSignatureComponents.Count;
-
-                for (int i = 0; i < mainIconSignatureComponents.Count; i++)
-                {
-                    Component component = mainIconSignatureComponents[i];
-
-                    if (component == null)
-                    {
-                        hash = hash * 31 - 1;
-                        continue;
-                    }
-
-                    hash = hash * 31 + component.GetType().GetHashCode();
-                }
-
-                return hash;
+                Texture2D icon = GetGameObjectMainIcon(gameObject);
+                data.MainIcon = icon;
+                gameObjectDataCache[instanceID] = data;
+                return icon;
             }
-        }
-
-        private static void UpdateMainIconCache(GameObject gameObject, int instanceID, ref GameObjectData data, int componentSignature)
-        {
-            data.MainIcon = GetGameObjectMainIcon(gameObject);
-            data.MainIconComponentSignature = componentSignature;
-            data.HasMainIconCache = true;
-            gameObjectDataCache[instanceID] = data;
         }
 
         internal static Texture2D GetGameObjectMainIcon(GameObject gameObject)
@@ -606,9 +484,7 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
         {
             if (!enableGameObjectMainIcon) return;
             if ((gameObject.hideFlags & HideFlags.NotEditable) == HideFlags.NotEditable) return;
-            int gameObjectCacheID = GetGameObjectCacheID(gameObject);
-
-            if (folderCache.TryGetValue(gameObjectCacheID, out _) || gameObject.GetComponent<HierarchyDesignerFolder>()) return;
+            if (folderCache.TryGetValue(gameObject.GetInstanceID(), out _) || gameObject.GetComponent<HierarchyDesignerFolder>()) return;
 
             Rect iconRect = GetMainIconRect(selectionRect);
             if (!iconRect.Contains(Event.current.mousePosition)) return;
@@ -898,29 +774,13 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
         private static void DrawHierarchyTree(GameObject gameObject, Rect selectionRect, int instanceID)
         {
             if (gameObject.transform.parent == null) return;
-
             Transform transform = gameObject.transform;
             float selectionRectX = selectionRect.x - hierarchyTreeOffset;
 
-            GUI.color = GetHierarchyTreeColor(gameObject.activeInHierarchy);
+            GUI.color = gameObject.activeInHierarchy ? hierarchyTreeColor : inactiveColor;
             GUI.DrawTexture(new(selectionRectX, selectionRect.y, selectionRect.height, selectionRect.height), DecideHierarchyTreeIcon(transform, instanceID), ScaleMode.ScaleToFit);
             DrawParentTreeFillLines(transform, selectionRectX, hierarchyTreeFillLinesOffset, selectionRect.height, selectionRect.y);
             GUI.color = activeColor;
-        }
-
-        private static Color GetHierarchyTreeColor(bool isActive)
-        {
-            if (isActive)
-            {
-                return hierarchyTreeColor;
-            }
-
-            if (!useHierarchyTreeColorForInactiveGameObjects)
-            {
-                return inactiveColor;
-            }
-
-            return HD_Color.GetDarkenedInactiveColor(hierarchyTreeColor, alphaValueForInactiveGameObjects);
         }
 
         private static Texture2D DecideHierarchyTreeIcon(Transform transform, int instanceID)
@@ -1253,10 +1113,7 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
                 case HD_Settings.HierarchyLayoutMode.Consecutive:
                     float offsetX = selectionRect.x + 8f;
                     float nameWidth = CalcWidthFast(GUI.skin.label, gameObject.name);
-
-                    int gameObjectCacheID = GetGameObjectCacheID(gameObject);
-
-                    if (folderCache.TryGetValue(gameObjectCacheID, out (Color textColor, int fontSize, FontStyle fontStyle, Color folderColor, HD_Folders.FolderImageType folderImageType) folderInfo))
+                    if (folderCache.TryGetValue(gameObject.GetInstanceID(), out (Color textColor, int fontSize, FontStyle fontStyle, Color folderColor, HD_Folders.FolderImageType folderImageType) folderInfo))
                     {
                         GUIStyle folderLabelStyle = FolderStyle;
                         folderLabelStyle.fontSize = folderInfo.fontSize;
@@ -1271,10 +1128,9 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
                         return offsetX + layoutBaseOffset + lockLabelWidth + defaultXOffset;
                     }
 
-                    if ((folderCache.TryGetValue(gameObjectCacheID, out _) || gameObject.GetComponent<HierarchyDesignerFolder>()) && excludeFolderProperties) return offsetX += layoutBaseOffset;
+                    if ((folderCache.TryGetValue(gameObject.GetInstanceID(), out _) || gameObject.GetComponent<HierarchyDesignerFolder>()) && excludeFolderProperties) return offsetX += layoutBaseOffset;
 
-                    int id = GetGameObjectCacheID(gameObject);
-
+                    int id = gameObject.GetInstanceID();
                     bool hasData = gameObjectDataCache.TryGetValue(id, out GameObjectData data);
 
                     if (enableGameObjectComponentIcons)
@@ -1469,9 +1325,7 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
                 default:
                     GUIContent nameContent = new(gameObject.name);
                     float nameWidth = CalcWidthFast(GUI.skin.label, gameObject.name);
-                    int gameObjectCacheID = GetGameObjectCacheID(gameObject);
-
-                    if (folderCache.TryGetValue(gameObjectCacheID, out (Color textColor, int fontSize, FontStyle fontStyle, Color folderColor, HD_Folders.FolderImageType folderImageType) folderInfo))
+                    if (folderCache.TryGetValue(gameObject.GetInstanceID(), out (Color textColor, int fontSize, FontStyle fontStyle, Color folderColor, HD_Folders.FolderImageType folderImageType) folderInfo))
                     {
                         GUIStyle folderLabelStyle = FolderStyle;
                         folderLabelStyle.fontSize = folderInfo.fontSize;
@@ -1655,24 +1509,12 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
         public static void ClearGameObjectDataCache()
         {
             gameObjectDataCache.Clear();
-            HD_Icon.ClearGlobalObjectIdCache();
         }
 
         private static Color ConvertColorToInactive(Color color, float alphaFactor)
         {
             alphaFactor = Mathf.Clamp01(alphaFactor);
             return new(color.r, color.g, color.b, color.a * alphaFactor);
-        }
-
-        private static int GetGameObjectCacheID(GameObject gameObject)
-        {
-#if UNITY_6000_5_OR_NEWER
-            return gameObject.GetEntityId().GetHashCode();
-#else
-#pragma warning disable CS0618 // Type or member is obsolete
-            return gameObject.GetInstanceID();
-#pragma warning restore CS0618 // Type or member is obsolete
-#endif
         }
         #endregion
 
@@ -1906,14 +1748,6 @@ bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
             set
             {
                 disableComponentIconsForInactiveGameObjects = value;
-            }
-        }
-
-        public static bool UseHierarchyTreeColorForInactiveGameObjectsCache
-        {
-            set
-            {
-                useHierarchyTreeColorForInactiveGameObjects = value;
             }
         }
 

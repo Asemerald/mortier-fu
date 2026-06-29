@@ -198,14 +198,6 @@ namespace HierarchyDesigner
             }
         }
 
-        public static Color GetDarkenedInactiveColor(Color color, float alphaFactor)
-        {
-            float luminance = color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f;
-            Color inactiveColor = luminance > 0.25f ? Color.Lerp(color, Color.black, 0.45f) : color;
-            inactiveColor.a = color.a * Mathf.Clamp01(alphaFactor);
-            return inactiveColor;
-        }
-
         public static Gradient CreateGradient(GradientMode mode, params (string hexColor, int alpha, float locationPercentage)[] colorAlphaPairs)
         {
             int length = colorAlphaPairs.Length;

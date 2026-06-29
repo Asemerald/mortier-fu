@@ -122,12 +122,10 @@ namespace HierarchyDesigner
             public UpdateMode LayerUpdateMode = UpdateMode.Dynamic;
             public bool EnableDynamicBackgroundForGameObjectMainIcon = true;
             public bool EnablePreciseRectForDynamicBackgroundForGameObjectMainIcon = true;
-            public bool EnableProjectTexturesInMainIconOverrideWindow = false;
             public bool EnableCustomizationForGameObjectComponentIcons = true;
             public bool EnableTooltipOnComponentIconHovered = true;
             public bool EnableActiveStateEffectForComponentIcons = true;
             public bool DisableComponentIconsForInactiveGameObjects = true;
-            public bool UseHierarchyTreeColorForInactiveGameObjects = false;
             public bool EnableCustomInspectorUI = true;
             public bool EnableEditorUtilities = true;
             public bool IncludeBackgroundImageForGradientBackground = true;
@@ -225,7 +223,6 @@ namespace HierarchyDesigner
             HD_Manager.EnableDynamicBackgroundForGameObjectMainIconCache = EnableDynamicBackgroundForGameObjectMainIcon;
             HD_Manager.EnablePreciseRectForDynamicBackgroundForGameObjectMainIconCache = EnablePreciseRectForDynamicBackgroundForGameObjectMainIcon;
             HD_Manager.DisableComponentIconsForInactiveGameObjectsCache = DisableComponentIconsForInactiveGameObjects;
-            HD_Manager.UseHierarchyTreeColorForInactiveGameObjectsCache = UseHierarchyTreeColorForInactiveGameObjects;
             HD_Manager.EnableCustomizationForGameObjectComponentIconsCache = EnableCustomizationForGameObjectComponentIcons;
             HD_Manager.EnableTooltipOnComponentIconHoveredCache = EnableTooltipOnComponentIconHovered;
             HD_Manager.EnableActiveStateEffectForComponentIconsCache = EnableActiveStateEffectForComponentIcons;
@@ -1404,18 +1401,6 @@ namespace HierarchyDesigner
             }
         }
 
-        public static bool EnableProjectTexturesInMainIconOverrideWindow
-        {
-            get => advancedSettings.EnableProjectTexturesInMainIconOverrideWindow;
-            set
-            {
-                if (advancedSettings.EnableProjectTexturesInMainIconOverrideWindow != value)
-                {
-                    advancedSettings.EnableProjectTexturesInMainIconOverrideWindow = value;
-                }
-            }
-        }
-
         public static bool EnableCustomizationForGameObjectComponentIcons
         {
             get => advancedSettings.EnableCustomizationForGameObjectComponentIcons;
@@ -1464,19 +1449,6 @@ namespace HierarchyDesigner
                 {
                     advancedSettings.DisableComponentIconsForInactiveGameObjects = value;
                     HD_Manager.DisableComponentIconsForInactiveGameObjectsCache = value;
-                }
-            }
-        }
-
-        public static bool UseHierarchyTreeColorForInactiveGameObjects
-        {
-            get => advancedSettings.UseHierarchyTreeColorForInactiveGameObjects;
-            set
-            {
-                if (advancedSettings.UseHierarchyTreeColorForInactiveGameObjects != value)
-                {
-                    advancedSettings.UseHierarchyTreeColorForInactiveGameObjects = value;
-                    HD_Manager.UseHierarchyTreeColorForInactiveGameObjectsCache = value;
                 }
             }
         }
@@ -1762,12 +1734,10 @@ namespace HierarchyDesigner
                 LayerUpdateMode = UpdateMode.Dynamic,
                 EnableDynamicBackgroundForGameObjectMainIcon = true,
                 EnablePreciseRectForDynamicBackgroundForGameObjectMainIcon = true,
-                EnableProjectTexturesInMainIconOverrideWindow = false,
                 EnableCustomizationForGameObjectComponentIcons = true,
                 EnableTooltipOnComponentIconHovered = true,
                 EnableActiveStateEffectForComponentIcons = true,
                 DisableComponentIconsForInactiveGameObjects = true,
-                UseHierarchyTreeColorForInactiveGameObjects = false,
                 EnableCustomInspectorUI = true,
                 EnableEditorUtilities = true,
                 IncludeBackgroundImageForGradientBackground = true,
