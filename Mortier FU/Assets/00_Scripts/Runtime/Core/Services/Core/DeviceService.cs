@@ -129,7 +129,7 @@ namespace MortierFu
                 playerInput.DeactivateInput();
             
 #if UNITY_EDITOR
-            PlayerInputSwapper.Instance.UpdateActivePlayer();
+            // TODO PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
 
