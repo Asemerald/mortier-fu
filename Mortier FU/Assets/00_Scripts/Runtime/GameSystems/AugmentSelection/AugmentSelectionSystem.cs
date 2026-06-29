@@ -169,6 +169,8 @@ namespace MortierFu
 
             try
             {
+                if (!_showcaseInProgress) return; // pourquoi
+                
                 await _augmentShowcaser.Showcase(
                     augmentPivot,
                     augmentPoints,

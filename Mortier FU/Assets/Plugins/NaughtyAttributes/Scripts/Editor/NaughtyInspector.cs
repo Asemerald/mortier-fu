@@ -117,7 +117,9 @@ namespace NaughtyAttributes.Editor
 
                 if (!_foldouts.ContainsKey(group.Key))
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     _foldouts[group.Key] = new SavedBool($"{target.GetInstanceID()}.{group.Key}", false);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 _foldouts[group.Key].Value = EditorGUILayout.Foldout(_foldouts[group.Key].Value, group.Key, true);

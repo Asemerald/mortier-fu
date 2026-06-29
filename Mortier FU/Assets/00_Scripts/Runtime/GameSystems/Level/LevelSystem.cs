@@ -672,7 +672,7 @@ namespace MortierFu
                     Logs.LogWarning("[LevelSystem] No LevelReporter bound to the LevelSystem.");
                 }
 
-                var reporter = Object.FindFirstObjectByType<LevelReporter>();
+                var reporter = Object.FindAnyObjectByType<LevelReporter>();
 
                 if (reporter != null)
                 {
