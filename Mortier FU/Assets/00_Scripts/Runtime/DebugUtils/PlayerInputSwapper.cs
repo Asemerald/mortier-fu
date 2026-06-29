@@ -36,7 +36,7 @@ namespace MortierFu
         private void Start()
         {
             // Active uniquement le premier player au démarrage
-            var firstPlayer = FindFirstObjectByType<PlayerInput>(FindObjectsInactive.Exclude);
+            var firstPlayer = FindAnyObjectByType<PlayerInput>(FindObjectsInactive.Exclude);
             if (firstPlayer != null)
             {
                 activePlayer = firstPlayer;
@@ -90,7 +90,7 @@ namespace MortierFu
 
         void CycleControl()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+            var allPlayers = FindObjectsByType<PlayerInput>();
 
             if (allPlayers.Length <= 1)
                 return;
@@ -113,7 +113,7 @@ namespace MortierFu
 
         public void UpdateActivePlayer()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+            var allPlayers = FindObjectsByType<PlayerInput>();
 
             // Désactive TOUS les players
             foreach (var player in allPlayers)

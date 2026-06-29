@@ -53,6 +53,8 @@ namespace MortierFu
 
         private async UniTaskVoid InitializeAsync()
         {
+            if (_isInitialized) return; 
+            
             await EnsureLobbySandboxSystemsAsync();
 
             ResolveDependencies();
