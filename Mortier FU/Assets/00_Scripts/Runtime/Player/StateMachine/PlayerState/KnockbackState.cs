@@ -82,6 +82,7 @@ namespace MortierFu
         {
             if(debug)
                 Logs.Log("Entering Knockback State");
+            character.Controller.rigidbody.linearVelocity = Vector3.zero;
         }
 
         public override void OnExit()
