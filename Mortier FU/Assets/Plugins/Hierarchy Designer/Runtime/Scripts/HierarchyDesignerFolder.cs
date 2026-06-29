@@ -1,6 +1,5 @@
 namespace HierarchyDesigner
 {
-    using System.Collections.Generic;
     using UnityEngine;
     using UnityEngine.Events;
 
@@ -11,24 +10,16 @@ namespace HierarchyDesigner
         [SerializeField] private bool flattenFolder = true;
         public bool ShouldFlatten => flattenFolder;
 
-        [Tooltip("If enabled, children are moved to the Hierarchy root when flattening. If disabled, children are moved to the folder's parent (same layer where the folder existed).")]
-        [SerializeField] private bool moveChildrenToHierarchyRoot = true;
-        public bool MoveChildrenToHierarchyRoot => moveChildrenToHierarchyRoot;
-
         public enum FlattenEvent { Awake, Start }
         [Tooltip("FlattenEvent.Awake = The Flatten Folder Operation will occur in the Awake method.\nFlattenEvent.Start = The Flatten Folder Operation will occur in the Start method.\n\n*Use FlattenEvent.Awake if you have gameObjects with Singleton patterns with DontDestroyOnLoad in the Start Method or similar.*")]
         [SerializeField] private FlattenEvent flattenEvent = FlattenEvent.Start;
 
-        [Tooltip("Event(s) called just before the flatten event occurs.")]
-        [SerializeField] private UnityEvent OnFlattenEvent;
+        [Tooltip("Event(s) called just before the flatten event occurs.")] [SerializeField] private UnityEvent OnFlattenEvent;
+        [Tooltip("Event(s) called just before the folder is destroyed.")] [SerializeField] private UnityEvent OnFolderDestroy;
 
-        [Tooltip("Event(s) called just before the folder is destroyed.")]
-        [SerializeField] private UnityEvent OnFolderDestroy;
-
-#if UNITY_EDITOR
-        [HideInInspector]
-        [SerializeField] private string notes;
-#endif
+        #if UNITY_EDITOR
+        [HideInInspector] [SerializeField] private string notes;
+        #endif
 
         private Transform cachedTransform;
         #endregion
@@ -49,13 +40,11 @@ namespace HierarchyDesigner
         #region Operations
         private void HandleFlattenEvent(FlattenEvent eventToCheck)
         {
-            if (!flattenFolder || flattenEvent != eventToCheck)
+            if (flattenFolder && flattenEvent == eventToCheck)
             {
-                return;
+                OnFlattenEvent?.Invoke();
+                FlattenFolderIfRequired();
             }
-
-            OnFlattenEvent?.Invoke();
-            FlattenFolderIfRequired();
         }
 
         private void FlattenFolderIfRequired()
@@ -67,7 +56,8 @@ namespace HierarchyDesigner
 
         private void RecursivelyFlatten(Transform folderTransform)
         {
-            HashSet<Transform> foldersToDestroy = new HashSet<Transform>();
+            Transform[] childrenToDestroy = new Transform[folderTransform.childCount];
+            int destroyIndex = 0;
 
             for (int i = folderTransform.childCount - 1; i >= 0; i--)
             {
@@ -77,47 +67,17 @@ namespace HierarchyDesigner
                 if (childFolder != null && childFolder.ShouldFlatten)
                 {
                     childFolder.RecursivelyFlatten(childTransform);
-                    foldersToDestroy.Add(childTransform);
+                    childrenToDestroy[destroyIndex++] = childTransform;
                 }
-            }
-
-            Transform destinationParent = moveChildrenToHierarchyRoot ? null : folderTransform.parent;
-
-            int nextSiblingIndex = -1;
-            if (!moveChildrenToHierarchyRoot)
-            {
-                nextSiblingIndex = folderTransform.GetSiblingIndex();
-            }
-
-            int childCount = folderTransform.childCount;
-            Transform[] children = new Transform[childCount];
-
-            for (int i = 0; i < childCount; i++)
-            {
-                children[i] = folderTransform.GetChild(i);
-            }
-
-            for (int i = 0; i < children.Length; i++)
-            {
-                Transform childTransform = children[i];
-
-                if (foldersToDestroy.Contains(childTransform))
+                else
                 {
-                    continue;
-                }
-
-                childTransform.SetParent(destinationParent, true);
-
-                if (nextSiblingIndex >= 0)
-                {
-                    childTransform.SetSiblingIndex(nextSiblingIndex);
-                    nextSiblingIndex++;
+                    childTransform.SetParent(null);
                 }
             }
 
-            foreach (Transform folderToDestroy in foldersToDestroy)
+            for (int i = 0; i < destroyIndex; i++)
             {
-                Destroy(folderToDestroy.gameObject);
+                Destroy(childrenToDestroy[i].gameObject);
             }
         }
         #endregion

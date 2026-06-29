@@ -430,7 +430,7 @@ namespace MortierFu
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("DummyDebugToolEnabled", true))
             {
-                PlayerInputSwapper.Instance.UpdateActivePlayer();
+                //TODO PlayerInputSwapper.Instance.UpdateActivePlayer();
             }
 #endif
         }

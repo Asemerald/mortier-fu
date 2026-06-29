@@ -26,9 +26,7 @@ namespace NaughtyAttributes.Editor
 
         private string GetPropertyKeyName(SerializedProperty property)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
             return property.serializedObject.targetObject.GetInstanceID() + "." + property.name;
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         protected override float GetPropertyHeight_Internal(SerializedProperty property)

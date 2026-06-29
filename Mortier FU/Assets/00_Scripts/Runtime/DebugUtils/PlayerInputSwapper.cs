@@ -1,4 +1,6 @@
-using System.Linq;
+// Rewrite using new input system
+
+/*using System.Linq;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,7 +38,7 @@ namespace MortierFu
         private void Start()
         {
             // Active uniquement le premier player au démarrage
-            var firstPlayer = FindAnyObjectByType<PlayerInput>(FindObjectsInactive.Exclude);
+            var firstPlayer = FindFirstObjectByType<PlayerInput>(FindObjectsInactive.Exclude);
             if (firstPlayer != null)
             {
                 activePlayer = firstPlayer;
@@ -90,7 +92,7 @@ namespace MortierFu
 
         void CycleControl()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>();
+            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
 
             if (allPlayers.Length <= 1)
                 return;
@@ -113,7 +115,7 @@ namespace MortierFu
 
         public void UpdateActivePlayer()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>();
+            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
 
             // Désactive TOUS les players
             foreach (var player in allPlayers)
@@ -128,4 +130,4 @@ namespace MortierFu
             }
         }
     }
-}
+}*/

@@ -40,10 +40,6 @@ namespace HierarchyDesigner
         private const float RightPadForContext = 5f;
         private static readonly GUIContent CollapseExpandGC = new("↕", "Collapse/Expand All");
         #endregion
-
-        #region Remove Missing Scripts
-        private static readonly GUIContent RemoveMissingGC = new("X", "Remove Missing Scripts");
-        #endregion
         #endregion
 
         #region Initialization
@@ -115,22 +111,11 @@ namespace HierarchyDesigner
             }
 
             Rect collapseRect = ComputeCollapseExpandRect(selectionRect);
-            Rect removeMissingRect = ComputeRemoveMissingRect(selectionRect);
 
             prev = GUI.color;
             GUI.color = GUI.skin.label.normal.textColor;
-            GUI.Label(removeMissingRect, RemoveMissingGC);
             GUI.Label(collapseRect, CollapseExpandGC);
             GUI.color = prev;
-
-            if (GUI.Button(removeMissingRect, GUIContent.none, GUIStyle.none))
-            {
-                RemoveMissingScripts(sceneIndex, evt.shift);
-
-                evt.Use();
-                EditorApplication.RepaintHierarchyWindow();
-                GUIUtility.ExitGUI();
-            }
 
             if (GUI.Button(collapseRect, GUIContent.none, GUIStyle.none))
             {
@@ -160,7 +145,7 @@ namespace HierarchyDesigner
             float measuredNameW = labelStyle.CalcSize(gc).x;
             if (isDirty) measuredNameW += DirtyStarPad + DirtyStarW;
 
-            float reservedRight = RightPadForContext + ToggleSize + Gap + ToggleSize + 2f;
+            float reservedRight = RightPadForContext + ToggleSize + 2f;
             float maxArrowX = Mathf.Round(row.xMax - reservedRight - Gap - ArrowSize);
 
             float availableNameW = Mathf.Max(0f, maxArrowX - (nameStartX + Gap));
@@ -173,89 +158,11 @@ namespace HierarchyDesigner
             return new Rect(arrowX, arrowY, ArrowSize, ArrowSize);
         }
 
-        private static Rect ComputeRemoveMissingRect(Rect row)
-        {
-            float x = Mathf.Round(row.xMax - RightPadForContext - ToggleSize - Gap - ToggleSize);
-            float y = Mathf.Round(row.y + (row.height - ToggleSize) * 0.5f);
-            return new Rect(x, y, ToggleSize, ToggleSize);
-        }
-
         private static Rect ComputeCollapseExpandRect(Rect row)
         {
             float x = Mathf.Round(row.xMax - RightPadForContext - ToggleSize);
             float y = Mathf.Round(row.y + (row.height - ToggleSize) * 0.5f);
             return new Rect(x, y, ToggleSize, ToggleSize);
-        }
-
-        private static void RemoveMissingScripts(int sceneIndex, bool wholeScene)
-        {
-            Scene scene = (sceneIndex >= 0 && sceneIndex < SceneManager.sceneCount) ? SceneManager.GetSceneAt(sceneIndex) : SceneManager.GetActiveScene();
-
-            int removed = 0;
-
-            if (wholeScene)
-            {
-                GameObject[] roots = scene.GetRootGameObjects();
-                for (int i = 0; i < roots.Length; i++)
-                    removed += RemoveMissingScriptsInHierarchy(roots[i]);
-            }
-            else
-            {
-                GameObject[] selection = Selection.gameObjects;
-                if (selection == null || selection.Length == 0)
-                {
-                    GameObject[] roots = scene.GetRootGameObjects();
-                    for (int i = 0; i < roots.Length; i++)
-                        removed += RemoveMissingScriptsInHierarchy(roots[i]);
-                }
-                else
-                {
-                    HashSet<GameObject> unique = new HashSet<GameObject>();
-                    for (int i = 0; i < selection.Length; i++)
-                    {
-                        GameObject go = selection[i];
-                        if (go == null) continue;
-                        if (go.scene != scene) continue;
-                        unique.Add(go);
-                    }
-
-                    if (unique.Count == 0)
-                    {
-                        GameObject[] roots = scene.GetRootGameObjects();
-                        for (int i = 0; i < roots.Length; i++)
-                            removed += RemoveMissingScriptsInHierarchy(roots[i]);
-                    }
-                    else
-                    {
-                        foreach (GameObject go in unique)
-                            removed += RemoveMissingScriptsInHierarchy(go);
-                    }
-                }
-            }
-
-            if (removed > 0)
-            {
-                EditorSceneManager.MarkSceneDirty(scene);
-                Debug.Log("Hierarchy Designer: Removed " + removed + " missing scripts.");
-            }
-            else
-            {
-                Debug.Log("Hierarchy Designer: No missing scripts found.");
-            }
-        }
-
-        private static int RemoveMissingScriptsInHierarchy(GameObject root)
-        {
-            if (root == null) return 0;
-
-            Undo.RegisterFullObjectHierarchyUndo(root, "Remove Missing Scripts");
-
-            int removed = 0;
-            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < transforms.Length; i++)
-                removed += GameObjectUtility.RemoveMonoBehavioursWithMissingScript(transforms[i].gameObject);
-
-            return removed;
         }
         #endregion
 
