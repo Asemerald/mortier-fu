@@ -14,6 +14,20 @@ namespace HierarchyDesigner
 {
     internal static class HD_Operations
     {
+        #region Properties
+        #if UNITY_6000_5_OR_NEWER
+        private static Action<UnityEngine.EntityId, bool> setExpandedEntityIdDelegate;
+        private static Action<UnityEngine.EntityId, bool> setExpandedRecursiveEntityIdDelegate;
+        private static EditorWindow cachedHierarchyWindow;
+        private static bool isReflectionInitialized;
+        #elif UNITY_6000_4_OR_NEWER
+        private static Action<int, bool> setExpandedDelegate;
+        private static Action<int, bool> setExpandedRecursiveDelegate;
+        private static EditorWindow cachedHierarchyWindow;
+        private static bool isReflectionInitialized;
+        #endif
+        #endregion
+
         #region Folder
         public static void CreateFolder(string folderName, bool shouldRename)
         {
@@ -33,11 +47,13 @@ namespace HierarchyDesigner
 
         public static bool FolderExists(string folderName)
         {
-            #if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            Transform[] allTransforms = GameObject.FindObjectsByType<Transform>();
+#elif UNITY_6000_0_OR_NEWER
             Transform[] allTransforms = GameObject.FindObjectsByType<Transform>(FindObjectsSortMode.None);
-            #else
+#else
             Transform[] allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>(true);
-            #endif
+#endif
             foreach (Transform t in allTransforms)
             {
                 if (t.gameObject.GetComponent<HierarchyDesignerFolder>() && t.gameObject.name.Equals(folderName))
@@ -45,6 +61,7 @@ namespace HierarchyDesigner
                     return true;
                 }
             }
+
             return false;
         }
         #endregion
@@ -78,11 +95,13 @@ namespace HierarchyDesigner
         {
             string fullSeparatorName = HD_Constants.SeparatorPrefix + separatorName;
 
-            #if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            Transform[] allTransforms = GameObject.FindObjectsByType<Transform>(FindObjectsInactive.Include);
+#elif UNITY_6000_0_OR_NEWER
             Transform[] allTransforms = GameObject.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            #else
+#else
             Transform[] allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>(true);
-            #endif
+#endif
             foreach (Transform t in allTransforms)
             {
                 if (t.gameObject.CompareTag(HD_Constants.SeparatorTag) && t.gameObject.name.Equals(fullSeparatorName))
@@ -90,6 +109,7 @@ namespace HierarchyDesigner
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -259,6 +279,25 @@ namespace HierarchyDesigner
         private static bool IsGameObjectSeparator(GameObject gameObject)
         {
             return gameObject.CompareTag(HD_Constants.SeparatorTag) && gameObject.name.StartsWith(HD_Constants.SeparatorPrefix);
+        }
+
+        private static bool HasMissingScript(GameObject gameObject)
+        {
+            if (gameObject == null)
+            {
+                return false;
+            }
+
+            Component[] components = gameObject.GetComponents<Component>();
+            foreach (Component component in components)
+            {
+                if (component == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool ShouldIncludeFolderAndSeparator(GameObject gameObject, bool addFolderToCount, bool addSeparatorToCount)
@@ -953,6 +992,11 @@ namespace HierarchyDesigner
             SelectGameObjects("Separators", IsGameObjectSeparator, includeSeparators: true);
         }
 
+        public static void Select_AllGameObjectsWithMissingScripts()
+        {
+            SelectGameObjects("GameObjects with Missing Scripts", HasMissingScript);
+        }
+
         public static void Select_AllComponentOfType<T>() where T : Component
         {
             SelectGameObjects(typeof(T).Name, gameObject => gameObject.GetComponent<T>() != null);
@@ -1197,11 +1241,13 @@ namespace HierarchyDesigner
                 return;
             }
 
-            #if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            GameObject[] allGameObjects = UnityEngine.Object.FindObjectsByType<GameObject>();
+#elif UNITY_6000_0_OR_NEWER
             GameObject[] allGameObjects = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-            #else
+#else
             GameObject[] allGameObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
-            #endif
+#endif
 
             foreach (GameObject gameObject in allGameObjects)
             {
@@ -1234,7 +1280,7 @@ namespace HierarchyDesigner
             {
                 foreach (GameObject selectedGameObject in selectedGameObjects)
                 {
-                    int instanceID = selectedGameObject.GetInstanceID();
+                    int instanceID = GetGameObjectCacheID(selectedGameObject);
                     if (HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
                     {
                         data.MainIcon = HD_Manager.GetGameObjectMainIcon(selectedGameObject);
@@ -1257,7 +1303,7 @@ namespace HierarchyDesigner
             {
                 foreach (GameObject selectedGameObject in selectedGameObjects)
                 {
-                    int instanceID = selectedGameObject.GetInstanceID();
+                    int instanceID = GetGameObjectCacheID(selectedGameObject);
                     if (HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
                     {
                         data.ComponentIcons = HD_Manager.GetComponentIcons(selectedGameObject);
@@ -1280,7 +1326,7 @@ namespace HierarchyDesigner
             {
                 foreach (GameObject selectedGameObject in selectedGameObjects)
                 {
-                    int instanceID = selectedGameObject.GetInstanceID();
+                    int instanceID = GetGameObjectCacheID(selectedGameObject);
                     if (HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
                     {
                         data.HierarchyTreeIcon = HD_Manager.GetOrCreateBranchIcon(selectedGameObject.transform);
@@ -1303,7 +1349,7 @@ namespace HierarchyDesigner
             {
                 foreach (GameObject selectedGameObject in selectedGameObjects)
                 {
-                    int instanceID = selectedGameObject.GetInstanceID();
+                    int instanceID = GetGameObjectCacheID(selectedGameObject);
                     if (HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
                     {
                         data.Tag = selectedGameObject.tag;
@@ -1326,7 +1372,7 @@ namespace HierarchyDesigner
             {
                 foreach (GameObject selectedGameObject in selectedGameObjects)
                 {
-                    int instanceID = selectedGameObject.GetInstanceID();
+                    int instanceID = GetGameObjectCacheID(selectedGameObject);
                     if (HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
                     {
                         data.Layer = LayerMask.LayerToName(selectedGameObject.layer);
@@ -1342,7 +1388,7 @@ namespace HierarchyDesigner
 
         public static void RefreshGameObjectData(GameObject gameObject)
         {
-            int instanceID = gameObject.GetInstanceID();
+            int instanceID = GetGameObjectCacheID(gameObject);
             if (!HD_Manager.gameObjectDataCache.TryGetValue(instanceID, out HD_Manager.GameObjectData data))
             {
                 data = new HD_Manager.GameObjectData();
@@ -1377,6 +1423,22 @@ namespace HierarchyDesigner
         }
         #endregion
 
+        #region Helpers
+        private static int GetGameObjectCacheID(GameObject gameObject)
+        {
+#if UNITY_6000_5_OR_NEWER
+            return gameObject.GetEntityId().GetHashCode();
+#elif UNITY_6000_4_OR_NEWER
+#pragma warning disable CS0618
+    int instanceID = gameObject.GetInstanceID();
+#pragma warning restore CS0618
+    return instanceID;
+#else
+    return gameObject.GetInstanceID();
+#endif
+        }
+        #endregion
+
         #region General
         public static void CollapseAllGameObjects()
         {
@@ -1400,6 +1462,164 @@ namespace HierarchyDesigner
             }
         }
 
+        #if UNITY_6000_5_OR_NEWER
+        private static void CollapseRecursive(GameObject obj)
+        {
+            SetExpandedRecursive(obj.GetEntityId(), false);
+        }
+
+        private static void ExpandRecursive(GameObject obj)
+        {
+            SetExpandedRecursive(obj.GetEntityId(), true);
+        }
+
+        private static void InitializeHierarchyExpandDelegates(EditorWindow hierarchyWindow)
+        {
+            setExpandedEntityIdDelegate = null;
+            setExpandedRecursiveEntityIdDelegate = null;
+
+            Type entityIdType = typeof(UnityEngine.EntityId);
+            Type hierarchyWindowType = hierarchyWindow.GetType();
+
+            setExpandedEntityIdDelegate = CompileHierarchyExpandDelegate(hierarchyWindow, hierarchyWindowType, entityIdType, "SetExpanded");
+            setExpandedRecursiveEntityIdDelegate = CompileHierarchyExpandDelegate(hierarchyWindow, hierarchyWindowType, entityIdType, "SetExpandedRecursive");
+        }
+
+        private static void SetExpandedRecursive(UnityEngine.EntityId entityId, bool expand)
+        {
+            EditorWindow hierarchyWindow = GetHierarchyWindow();
+            if (hierarchyWindow == null) return;
+
+            if (!isReflectionInitialized || cachedHierarchyWindow != hierarchyWindow)
+            {
+                cachedHierarchyWindow = hierarchyWindow;
+                InitializeHierarchyExpandDelegates(hierarchyWindow);
+                isReflectionInitialized = true;
+            }
+
+            if (setExpandedRecursiveEntityIdDelegate != null)
+            {
+                setExpandedRecursiveEntityIdDelegate(entityId, expand);
+            }
+            else
+            {
+                setExpandedEntityIdDelegate?.Invoke(entityId, expand);
+            }
+        }
+
+        private static Action<UnityEngine.EntityId, bool> CompileHierarchyExpandDelegate(EditorWindow hierarchyWindow, Type hierarchyWindowType, Type entityIdType, string methodName)
+        {
+            MethodInfo method = hierarchyWindowType.GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                null,
+                new Type[] { entityIdType, typeof(bool) },
+                null);
+
+            if (method == null) return null;
+
+            System.Linq.Expressions.ParameterExpression entityIdParameter = System.Linq.Expressions.Expression.Parameter(typeof(UnityEngine.EntityId), "entityId");
+            System.Linq.Expressions.ParameterExpression expandParameter = System.Linq.Expressions.Expression.Parameter(typeof(bool), "expand");
+            System.Linq.Expressions.ConstantExpression hierarchyWindowExpression = System.Linq.Expressions.Expression.Constant(hierarchyWindow);
+            System.Linq.Expressions.MethodCallExpression methodCallExpression = System.Linq.Expressions.Expression.Call(hierarchyWindowExpression, method, entityIdParameter, expandParameter);
+
+            return System.Linq.Expressions.Expression
+                .Lambda<Action<UnityEngine.EntityId, bool>>(methodCallExpression, entityIdParameter, expandParameter)
+                .Compile();
+        }
+       
+        #elif UNITY_6000_4_OR_NEWER
+        private static void CollapseRecursive(GameObject obj)
+        {
+        #pragma warning disable CS0618
+            SetExpandedRecursive(obj.GetInstanceID(), false);
+        #pragma warning restore CS0618
+        }
+
+        private static void ExpandRecursive(GameObject obj)
+        {
+        #pragma warning disable CS0618
+            SetExpandedRecursive(obj.GetInstanceID(), true);
+        #pragma warning restore CS0618
+        }
+
+        private static void InitializeHierarchyExpandDelegates(EditorWindow hierarchyWindow)
+        {
+            setExpandedDelegate = null;
+            setExpandedRecursiveDelegate = null;
+
+            Type entityIdType = typeof(UnityEngine.EntityId);
+            Type hierarchyWindowType = hierarchyWindow.GetType();
+
+            MethodInfo conversionOperation = null;
+            MethodInfo[] operations = entityIdType.GetMethods(BindingFlags.Static | BindingFlags.Public);
+            foreach (MethodInfo operation in operations)
+            {
+                if ((operation.Name == "op_Implicit" || operation.Name == "op_Explicit") && operation.ReturnType == entityIdType)
+                {
+                    ParameterInfo[] parameters = operation.GetParameters();
+                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(int))
+                    {
+                        conversionOperation = operation;
+                        break;
+                    }
+                }
+            }
+
+            if (conversionOperation == null)
+            {
+                Debug.LogWarning("Hierarchy Designer could not find the int to EntityId conversion operation.");
+                return;
+            }
+
+            setExpandedDelegate = CompileHierarchyExpandDelegate(hierarchyWindow, hierarchyWindowType, entityIdType, conversionOperation, "SetExpanded");
+            setExpandedRecursiveDelegate = CompileHierarchyExpandDelegate(hierarchyWindow, hierarchyWindowType, entityIdType, conversionOperation, "SetExpandedRecursive");
+        }
+
+        private static void SetExpandedRecursive(int instanceID, bool expand)
+        {
+            EditorWindow hierarchyWindow = GetHierarchyWindow();
+            if (hierarchyWindow == null) return;
+
+            if (!isReflectionInitialized || cachedHierarchyWindow != hierarchyWindow)
+            {
+                cachedHierarchyWindow = hierarchyWindow;
+                InitializeHierarchyExpandDelegates(hierarchyWindow);
+                isReflectionInitialized = true;
+            }
+
+            if (setExpandedRecursiveDelegate != null)
+            {
+                setExpandedRecursiveDelegate(instanceID, expand);
+            }
+            else
+            {
+                setExpandedDelegate?.Invoke(instanceID, expand);
+            }
+        }
+
+        private static Action<int, bool> CompileHierarchyExpandDelegate(EditorWindow hierarchyWindow, Type hierarchyWindowType, Type entityIdType, MethodInfo conversionOperation, string methodName)
+        {
+            MethodInfo method = hierarchyWindowType.GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                null,
+                new Type[] { entityIdType, typeof(bool) },
+                null);
+
+            if (method == null) return null;
+
+            System.Linq.Expressions.ParameterExpression idParameter = System.Linq.Expressions.Expression.Parameter(typeof(int), "instanceID");
+            System.Linq.Expressions.ParameterExpression expandParameter = System.Linq.Expressions.Expression.Parameter(typeof(bool), "expand");
+            System.Linq.Expressions.ConstantExpression hierarchyWindowExpression = System.Linq.Expressions.Expression.Constant(hierarchyWindow);
+            System.Linq.Expressions.MethodCallExpression entityIdExpression = System.Linq.Expressions.Expression.Call(conversionOperation, idParameter);
+            System.Linq.Expressions.MethodCallExpression methodCallExpression = System.Linq.Expressions.Expression.Call(hierarchyWindowExpression, method, entityIdExpression, expandParameter);
+
+            return System.Linq.Expressions.Expression
+                .Lambda<Action<int, bool>>(methodCallExpression, idParameter, expandParameter)
+                .Compile();
+        }
+#else
         private static void CollapseRecursive(GameObject obj)
         {
             int instanceID = obj.GetInstanceID();
@@ -1433,6 +1653,7 @@ namespace HierarchyDesigner
                 expandMethod.Invoke(hierarchyWindow, new object[] { instanceID, expand });
             }
         }
+#endif
 
         public static bool IsHierarchyMostlyExpanded()
         {
@@ -1445,7 +1666,10 @@ namespace HierarchyDesigner
                 if (shw == null) return false;
 
                 BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-                object sceneHierarchy = shwType.GetField("m_SceneHierarchy", flags)?.GetValue(shw) ?? shwType.GetProperty("sceneHierarchy", flags)?.GetValue(shw);
+
+                object sceneHierarchy = shwType.GetField("m_SceneHierarchy", flags)?.GetValue(shw) ??
+                                        shwType.GetProperty("sceneHierarchy", flags)?.GetValue(shw);
+
                 if (sceneHierarchy == null) return false;
 
                 MethodInfo getExpanded = sceneHierarchy.GetType().GetMethod("GetExpandedIDs", flags);
@@ -1453,9 +1677,27 @@ namespace HierarchyDesigner
 
                 if (getExpanded.Invoke(sceneHierarchy, null) is not IEnumerable expandedEnum) return false;
 
-                HashSet<int> expanded = new();
+#if UNITY_6000_5_OR_NEWER
+                HashSet<UnityEngine.EntityId> expanded = new();
                 foreach (object o in expandedEnum)
-                    if (o is int id) expanded.Add(id);
+                {
+                    if (o is UnityEngine.EntityId entityId)
+                    {
+                        expanded.Add(entityId);
+                    }
+                }
+#else
+HashSet<int> expanded = new();
+foreach (object o in expandedEnum)
+{
+    if (o == null) continue;
+
+    if (int.TryParse(o.ToString(), out int id))
+    {
+        expanded.Add(id);
+    }
+}
+#endif
 
                 int totalWithChildren = 0;
                 int expandedWithChildren = 0;
@@ -1464,11 +1706,15 @@ namespace HierarchyDesigner
                 {
                     Scene scene = SceneManager.GetSceneAt(s);
                     if (!scene.IsValid() || !scene.isLoaded) continue;
+
                     foreach (GameObject root in scene.GetRootGameObjects())
+                    {
                         Tally(root.transform, expanded, ref totalWithChildren, ref expandedWithChildren);
+                    }
                 }
 
                 if (totalWithChildren == 0) return false;
+
                 float ratio = (float)expandedWithChildren / totalWithChildren;
                 return ratio >= 0.6f;
             }
@@ -1477,15 +1723,31 @@ namespace HierarchyDesigner
                 return false;
             }
 
-            static void Tally(Transform t, HashSet<int> expanded, ref int total, ref int expandedCount)
+#if UNITY_6000_5_OR_NEWER
+            static void Tally(Transform t, HashSet<UnityEngine.EntityId> expanded, ref int total, ref int expandedCount)
+#else
+static void Tally(Transform t, HashSet<int> expanded, ref int total, ref int expandedCount)
+#endif
             {
                 if (t.childCount > 0)
                 {
                     total++;
-                    if (expanded.Contains(t.gameObject.GetInstanceID())) expandedCount++;
+
+#if UNITY_6000_5_OR_NEWER
+                    if (expanded.Contains(t.gameObject.GetEntityId())) expandedCount++;
+#elif UNITY_6000_4_OR_NEWER
+#pragma warning disable CS0618
+        if (expanded.Contains(t.gameObject.GetInstanceID())) expandedCount++;
+#pragma warning restore CS0618
+#else
+        if (expanded.Contains(t.gameObject.GetInstanceID())) expandedCount++;
+#endif
                 }
+
                 for (int i = 0; i < t.childCount; i++)
+                {
                     Tally(t.GetChild(i), expanded, ref total, ref expandedCount);
+                }
             }
         }
 

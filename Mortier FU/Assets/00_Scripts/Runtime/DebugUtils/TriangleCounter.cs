@@ -29,7 +29,7 @@ public class TriangleCounter : MonoBehaviour
         long totalTris = 0;
 
         // MeshFilters
-        var meshFilters = FindObjectsByType<MeshFilter>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        var meshFilters = FindObjectsByType<MeshFilter>(FindObjectsInactive.Exclude);
         foreach (var mf in meshFilters)
         {
             var mesh = mf.sharedMesh;
@@ -61,7 +61,7 @@ public class TriangleCounter : MonoBehaviour
         if (includeSkinnedMeshes)
         {
             var skinnedRenderers =
-                FindObjectsByType<SkinnedMeshRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                FindObjectsByType<SkinnedMeshRenderer>(FindObjectsInactive.Exclude);
             foreach (var smr in skinnedRenderers)
             {
                 var mesh = smr.sharedMesh;
@@ -102,11 +102,10 @@ public class TriangleCounter : MonoBehaviour
         foreach (var c in topMeshes)
             sb.AppendLine(
                 $"{rank++}-{c.Name}: {c.TotalTris} tris, {c.DuplicateCount} duplicates ({c.TrisPerDuplicate:F2} tris/instance)");
-     //   Logs.Log(sb.ToString());
-
-//        Logs.Log($"Total: {totalTris} tris");
-       // foreach (var kvp in sceneCounts)
-       //     Logs.Log($"{kvp.Key}: {kvp.Value} tris");
+        Logs.Log(sb.ToString());
+       Logs.Log($"Total: {totalTris} tris");
+        foreach (var kvp in sceneCounts)
+            Logs.Log($"{kvp.Key}: {kvp.Value} tris");
     }
 
     private long CountMeshTriangles(Mesh mesh)
