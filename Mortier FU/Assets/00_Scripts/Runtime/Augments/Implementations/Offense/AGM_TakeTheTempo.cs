@@ -6,6 +6,7 @@
         public struct Params
         {
             public AugmentStatMod FireRateMod;
+            public AugmentStatMod BombshellSpeedMod;
             public float MaxStacksTempo;
         }
         
@@ -19,6 +20,8 @@
 
         public override void Initialize()
         {
+            stats.BombshellSpeed.AddModifier(db.TakeTheTempoParams.BombshellSpeedMod.ToMod(this));
+            
             _hitBinding = new EventBinding<TriggerHit>(OnHit);
             EventBus<TriggerHit>.Register(_hitBinding);
             
@@ -53,6 +56,7 @@
             EventBus<TriggerHit>.Deregister(_hitBinding);
             EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
             stats.FireRate.RemoveAllModifiersFromSource(this);
+            stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
         }
     }
 }
