@@ -1,7 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -9,11 +8,8 @@ namespace MortierFu
     public class GamePauseSystem : IGameSystem
     {
         private SaveService _saveService;
-        private LobbyService _lobbyService;
 
         public bool IsPaused { get; private set; }
-
-        private string _previousInputMap;
 
         public event Action Paused;
         public event Action Resumed;
@@ -35,9 +31,6 @@ namespace MortierFu
         {
             if (!IsPaused) return;
 
-            PrimaryPlayerInput.SwitchCurrentActionMap(_previousInputMap); 
-            PrimaryPlayerInput.actions.FindActionMap("Global").Enable();
-
             IsPaused = false;
             Time.timeScale = 1f;
             Resumed?.Invoke();
@@ -47,15 +40,10 @@ namespace MortierFu
         {
             if (IsPaused) return;
 
-            _previousInputMap = PrimaryPlayerInput.currentActionMap.name;
-            PrimaryPlayerInput.SwitchCurrentActionMap("UI");
-
             IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke();
         }
-
-        private PlayerInput PrimaryPlayerInput => _lobbyService.GetPlayerByIndex(0).PlayerInput;
 
         public void Cancel()
         {
@@ -67,8 +55,6 @@ namespace MortierFu
             var s = _saveService.Settings;
             Screen.fullScreen = s.IsFullscreen;
             QualitySettings.vSyncCount = s.IsVSyncEnabled ? 1 : 0;
-
-            // TODO : Apply volume settings to FMOD Bus
         }
 
         public void UpdateUIFromSave(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider,
@@ -129,16 +115,22 @@ namespace MortierFu
         {
             _saveService.SaveSettings().Forget();
         }
-
-        public void Dispose()
-        {
-        }
-
+        
         public UniTask OnInitialize()
         {
+            IsPaused = false;
             _saveService = ServiceManager.Instance.Get<SaveService>();
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             return UniTask.CompletedTask;
+        }
+        
+        public void Dispose()
+        {
+            IsPaused = false;
+            Time.timeScale = 1f;
+
+            Paused = null;
+            Resumed = null;
+            Canceled = null;
         }
 
         public bool IsInitialized { get; set; }

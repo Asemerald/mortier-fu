@@ -14,7 +14,10 @@ namespace MortierFu
 
         public static void Raise(T @event)
         {
-            foreach (var binding in _bindings)
+            var bindingsSnapshot = new IEventBinding<T>[_bindings.Count];
+            _bindings.CopyTo(bindingsSnapshot);
+
+            foreach (var binding in bindingsSnapshot)
             {
                 binding.OnEvent.Invoke(@event);
                 binding.OnEventNoArgs.Invoke();
@@ -23,7 +26,6 @@ namespace MortierFu
 
         static void Clear()
         {
-//            Logs.Log($"Clearing {typeof(T).Name} bindings");
             _bindings.Clear();
         }
     }

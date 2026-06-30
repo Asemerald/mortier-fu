@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using UnityEngine.InputSystem;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
 {
-    /// <summary>
-    /// Gère la liste des joueurs actifs dans le lobby et relaie leurs événements.
-    /// </summary>
     public class LobbyService : IGameService
     {
         public readonly List<PlayerManager> Players = new();
+
         private int _maxPlayers = 4;
 
         public event Action<PlayerManager> OnPlayerJoined;
@@ -20,39 +18,59 @@ namespace MortierFu
 
         public int CurrentPlayerCount => Players.Count;
 
+        public bool IsInitialized { get; set; }
+
+        public UniTask OnInitialize()
+        {
+            return UniTask.CompletedTask;
+        }
+
         public void Dispose()
         {
-            Players.Clear();
+            ClearPlayers(destroyPlayerObjects: false);
+
+            OnPlayerJoined = null;
+            OnPlayerLeft = null;
+
             Logs.Log("[LobbyService] Disposed.");
         }
 
-        public void ClearPlayers()
+        public IReadOnlyList<PlayerManager> GetPlayers()
         {
-            for (int i = Players.Count - 1; i >= 0; i--)
-            {
-                Object.DestroyImmediate(Players[i].gameObject);
-            }
-
-            Players.Clear();
+            return Players.AsReadOnly();
         }
 
-        public void RemovePlayer(PlayerManager player)
+        public PlayerManager GetPlayerByIndex(int playerIndex)
         {
-            if (player == null || !Players.Contains(player))
-                return;
+            for (int i = 0; i < Players.Count; i++)
+            {
+                var player = Players[i];
 
-            Players.Remove(player);
+                if (!player)
+                    continue;
 
-            // remove player from PlayerInputManager
-            player.SelfDestroy();
+                if (player.PlayerIndex == playerIndex)
+                    return player;
+            }
 
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex} removed from the lobby.");
-            OnPlayerLeft?.Invoke(player);
+            return null;
+        }
+
+        public bool TryGetPlayerByIndex(int playerIndex, out PlayerManager player)
+        {
+            player = GetPlayerByIndex(playerIndex);
+            return player;
         }
 
         public void RegisterPlayer(PlayerManager player)
         {
-            if (player == null || Players.Contains(player))
+            if (!player)
+            {
+                Logs.LogError("[LobbyService] Cannot register player because PlayerManager is missing.");
+                return;
+            }
+
+            if (Players.Contains(player))
                 return;
 
             if (Players.Count >= _maxPlayers)
@@ -62,56 +80,119 @@ namespace MortierFu
             }
 
             Players.Add(player);
-            
+
+            player.OnPlayerInitialized -= HandlePlayerInitialized;
+            player.OnPlayerDestroyed -= HandlePlayerDestroyed;
+
+            player.OnPlayerInitialized += HandlePlayerInitialized;
+            player.OnPlayerDestroyed += HandlePlayerDestroyed;
+
 #if !UNITY_EDITOR
             var shakeService = ServiceManager.Instance?.Get<ShakeService>();
             shakeService?.ShakeController(player, ShakeService.ShakeType.MID);
-            
-           AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Join);
 #endif
-            player.OnPlayerInitialized += HandlePlayerInitialized;
-            player.OnPlayerDestroyed += HandlePlayerDestroyed;
+
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} registered.");
 
             OnPlayerJoined?.Invoke(player);
         }
 
         public void UnregisterPlayer(PlayerManager player)
         {
-            if (player == null || !Players.Contains(player))
+            if (!player)
                 return;
 
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
-            player.OnPlayerInitialized -= HandlePlayerInitialized;
-            player.OnPlayerDestroyed -= HandlePlayerDestroyed;
+            if (!Players.Contains(player))
+                return;
+
+            UnbindPlayerEvents(player);
 
             Players.Remove(player);
-            Logs.Log($"[LobbyService] Player {player.PlayerIndex} left the lobby.");
+
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} left the lobby.");
+
             OnPlayerLeft?.Invoke(player);
+        }
+
+        public void RemovePlayer(PlayerManager player)
+        {
+            if (!player)
+                return;
+
+            UnregisterPlayer(player);
+
+            var deviceService = ServiceManager.Instance?.Get<DeviceService>();
+
+            if (player.PlayerInput)
+                deviceService?.UnregisterPlayerInput(player.PlayerInput);
+
+            player.SelfDestroy();
+
+            Logs.Log($"[LobbyService] Player {GetSafeDisplayIndex(player)} removed from the lobby.");
+        }
+
+        public void ClearPlayers(bool destroyPlayerObjects = true)
+        {
+            if (Players.Count == 0)
+                return;
+
+            Logs.Log($"[LobbyService] Clearing {Players.Count} player(s). DestroyObjects={destroyPlayerObjects}");
+
+            var playersToClear = new List<PlayerManager>(Players);
+            Players.Clear();
+
+            var deviceService = ServiceManager.Instance?.Get<DeviceService>();
+
+            for (int i = 0; i < playersToClear.Count; i++)
+            {
+                var player = playersToClear[i];
+
+                if (!player)
+                    continue;
+
+                UnbindPlayerEvents(player);
+
+                if (player.PlayerInput)
+                    deviceService?.UnregisterPlayerInput(player.PlayerInput);
+
+                OnPlayerLeft?.Invoke(player);
+
+                if (destroyPlayerObjects)
+                    Object.Destroy(player.gameObject);
+            }
+        }
+
+        private void UnbindPlayerEvents(PlayerManager player)
+        {
+            if (!player)
+                return;
+
+            player.OnPlayerInitialized -= HandlePlayerInitialized;
+            player.OnPlayerDestroyed -= HandlePlayerDestroyed;
+        }
+
+        private static string GetSafeDisplayIndex(PlayerManager player)
+        {
+            if (!player)
+                return "?";
+
+            int playerIndex = player.PlayerIndex;
+
+            if (playerIndex < 0)
+                return "?";
+
+            return (playerIndex + 1).ToString();
         }
 
         private void HandlePlayerInitialized(PlayerManager player)
         {
-            // Peut être utile pour relancer une UI / ready check
-            //Logs.Log($"[LobbyService] Player {player.PlayerIndex} ready.");
         }
 
         private void HandlePlayerDestroyed(PlayerManager player)
         {
             UnregisterPlayer(player);
         }
-
-        public IReadOnlyList<PlayerManager> GetPlayers() => Players.AsReadOnly();
-
-        public UniTask OnInitialize()
-        {
-            return UniTask.CompletedTask;
-        }
-
-        public PlayerManager GetPlayerByIndex(int index)
-        {
-            return Players[index];
-        }
-
-        public bool IsInitialized { get; set; }
     }
 }

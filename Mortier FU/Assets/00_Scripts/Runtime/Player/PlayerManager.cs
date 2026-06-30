@@ -4,188 +4,201 @@ using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
+    [RequireComponent(typeof(PlayerInput))]
     public class PlayerManager : MonoBehaviour
     {
-        [Header("Setup")] [Tooltip("Prefab du personnage à instancier en jeu.")]
+        [Header("Setup")]
+        [Tooltip("Prefab du personnage à instancier en jeu.")]
         public GameObject playerInGamePrefab;
 
         public PlayerTeam Team { get; private set; }
         public PlayerMetrics Metrics;
+
         private PlayerInput _playerInput;
-        private GameObject _inGameCharacter;
-        private bool _isInGame = false;
-
-        public PlayerInput PlayerInput => _playerInput;
-        public GameObject CharacterGO => _inGameCharacter;
-
-        private PlayerCharacter _playerCharacter;
-
+        private PlayerRuntimeController _runtimeController;
         private GamePauseSystem _gamePauseSystem;
-        private InputAction _pauseAction;
-        private InputAction _unPauseAction;
-        private InputAction _cancelUIAction;
+        private PlayerInputRouter _inputRouter;
 
-        public PlayerCharacter Character
+        private readonly PlayerCustomizationData _customization = new();
+
+        public PlayerInput PlayerInput
         {
             get
             {
-                _playerCharacter ??= _inGameCharacter != null ? _inGameCharacter.GetComponent<PlayerCharacter>() : null;
-                return _playerCharacter;
+                ResolvePlayerInput();
+                return _playerInput;
             }
         }
 
-        public int PlayerIndex => _playerInput.playerIndex;
-        public bool IsInGame => _isInGame;
+        public GameObject CharacterGO => RuntimeController.CharacterGO;
+        public PlayerCharacter Character => RuntimeController.Character;
+        public bool IsInGame => RuntimeController.IsInGame;
+
+        public PlayerControlContext ControlContext => InputRouter.ControlContext;
+        public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
+
+        public int PlayerIndex
+        {
+            get
+            {
+                ResolvePlayerInput();
+                return _playerInput ? _playerInput.playerIndex : -1;
+            }
+        }
+
+        public bool IsReady { get; private set; }
+
+        public PlayerCustomizationData Customization => _customization;
+
+        public int SkinIndex => _customization.SkinIndex;
+        public int FaceColumn => _customization.FaceColumn;
+        public int FaceRow => _customization.FaceRow;
 
         public event System.Action<PlayerManager> OnPlayerInitialized;
         public event System.Action<PlayerManager> OnPlayerDestroyed;
 
-        public bool IsReady => _lobbyPlayer != null && _lobbyPlayer.IsReady;
+        private PlayerInputRouter InputRouter
+        {
+            get
+            {
+                ResolvePlayerInput();
+
+                if (!_playerInput)
+                {
+                    Logs.LogError("[PlayerManager] Cannot create PlayerInputRouter because PlayerInput is missing.", this);
+                    return null;
+                }
+
+                _inputRouter ??= new PlayerInputRouter(
+                    _playerInput,
+                    TogglePause,
+                    NavigateUI,
+                    SubmitUI,
+                    CancelUI,
+                    Interact
+                );
+
+                return _inputRouter;
+            }
+        }
+
+        private PlayerRuntimeController RuntimeController
+        {
+            get
+            {
+                _runtimeController ??= new PlayerRuntimeController(
+                    this,
+                    playerInGamePrefab
+                );
+
+                return _runtimeController;
+            }
+        }
+
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
+
+        private PlayerInteractionService InteractionService =>
+            ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void Awake()
         {
-            _playerInput = GetComponent<PlayerInput>();
-            DontDestroyOnLoad(gameObject);
+            ResolvePlayerInput();
 
-            // lobby type shit
-            if (LobbyMenu3D.Instance != null)
+            if (!_playerInput)
             {
-                var list = LobbyMenu3D.Instance.playerPrefabs;
-
-                if (PlayerIndex < list.Length && list[PlayerIndex] != null)
-                    _lobbyPlayer = list[PlayerIndex].GetComponent<LobbyPlayer>();
+                Logs.LogError("[PlayerManager] PlayerInput component is missing.", this);
+                enabled = false;
+                return;
             }
 
-            _navigateAction = _playerInput.actions.FindAction("Navigate");
-            _submitAction = _playerInput.actions.FindAction("Submit");
+            DontDestroyOnLoad(gameObject);
 
-            if (_navigateAction != null)
-                _navigateAction.performed += Navigate;
-            if (_submitAction != null)
-                _submitAction.performed += Submit;
+            bool inputRouterAlreadyCreated = _inputRouter is not null;
 
-            _playerInput.SwitchCurrentActionMap("UI");
+            var inputRouter = InputRouter;
 
-            if (PlayerIndex != 0 || MenuManager.Instance == null) return;
+            if (!inputRouterAlreadyCreated)
+            {
+                inputRouter.SetContext(PlayerControlContext.Lobby, Character);
+            }
 
-            Logs.Log("[PlayerManager] Assigning Player 1 Input Action");
-            MenuManager.Instance.SetPlayer1InputAction(_playerInput);
+            inputRouter.BindInputCallbacks();
         }
 
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);
 
-            if (_pauseAction != null)
-                _pauseAction.performed -= TogglePause;
+            _inputRouter?.Dispose();
+            _inputRouter = null;
 
-            if (_unPauseAction != null)
-                _unPauseAction.performed -= TogglePause;
+            _runtimeController?.DestroyRuntime();
+            _runtimeController = null;
 
-            if (_cancelUIAction != null)
-                _cancelUIAction.performed -= CancelUI;
+            OnPlayerInitialized = null;
+            OnPlayerDestroyed = null;
         }
 
-        // TODO: Faire un input manager plus tard
-        private void TogglePause(InputAction.CallbackContext ctx)
+        private void ResolvePlayerInput()
         {
-            if (PlayerIndex != 0)
+            if (_playerInput)
                 return;
 
-            _gamePauseSystem.TogglePause();
+            _playerInput = GetComponent<PlayerInput>();
         }
 
-        public void EnableGameplayInputMap(bool enable = true)
+        private bool TryResolveGamePauseSystem()
         {
-            string targetMap = enable
-                ? "Gameplay"
-                : "UI";
+            if (SystemManager.Instance == null)
+            {
+                _gamePauseSystem = null;
+                Logs.LogWarning("[PlayerManager] Cannot resolve GamePauseSystem because SystemManager is not available.");
+                return false;
+            }
 
-            PlayerInput.SwitchCurrentActionMap(targetMap);
-            PlayerInput.actions.FindActionMap("Global", true).Enable();
+            var currentPauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+
+            if (currentPauseSystem == null)
+            {
+                _gamePauseSystem = null;
+                Logs.LogWarning("[PlayerManager] GamePauseSystem is not available.");
+                return false;
+            }
+
+            if (ReferenceEquals(_gamePauseSystem, currentPauseSystem))
+                return true;
+
+            _gamePauseSystem = currentPauseSystem;
+            Logs.Log($"[PlayerManager] Refreshed GamePauseSystem reference for Player {PlayerIndex + 1}.");
+
+            return true;
         }
 
-        private void CancelUI(InputAction.CallbackContext ctx)
+        public void SetControlContext(PlayerControlContext context)
         {
-            if (PlayerIndex != 0)
-                return;
-
-            if (!_gamePauseSystem.IsPaused) return;
-
-            _gamePauseSystem.Cancel();
+            InputRouter?.SetContext(context, Character);
         }
 
-        /// <summary>
-        /// Instancie le personnage du joueur dans la scène de jeu.
-        /// </summary>
         public void SpawnInGame(Vector3 spawnPosition, Quaternion spawnRotation)
         {
-            // if (_isInGame)
-            //     return;
-            if (_inGameCharacter == null && playerInGamePrefab != null)
-            {
-                _inGameCharacter = Instantiate(playerInGamePrefab, spawnPosition, spawnRotation);
-                Character.Initialize(this);
+            if (!RuntimeController.Spawn(spawnPosition, spawnRotation, out bool createdCharacter))
+                return;
 
-                _isInGame = true;
-            }
+            InputRouter?.ApplyCurrentContextTo(RuntimeController.Character);
 
-            if (_inGameCharacter != null)
-            {
-                _inGameCharacter.transform.SetPositionAndRotation(
-                    spawnPosition,
-                    spawnRotation
-                );
-                _inGameCharacter.SetActive(true);
-
-                _isInGame = true;
-            }
-            else
-            {
-                Logs.LogError($"[PlayerManager] No in-game prefab assigned for Player {PlayerIndex}");
-            }
-
-            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
-
-            _pauseAction = PlayerInput.actions.FindAction("Pause");
-            _unPauseAction = PlayerInput.actions.FindAction("UnPause");
-            _cancelUIAction = PlayerInput.actions.FindAction("Cancel");
-
-            if (_pauseAction != null) _pauseAction.performed += TogglePause;
-            if (_unPauseAction != null) _unPauseAction.performed += TogglePause;
-            if (_cancelUIAction != null) _cancelUIAction.performed += CancelUI;
-
-            //  _playerInput.SwitchCurrentActionMap("Gameplay");
-            // PlayerInput.actions.FindActionMap("Global").Enable();
+            if (createdCharacter)
+                OnPlayerInitialized?.Invoke(this);
         }
 
-        /// <summary>
-        /// Supprime le joueur de la scène de jeu.
-        /// </summary>
         public void DespawnInGame()
         {
-            if (_inGameCharacter != null)
-            {
-                _inGameCharacter.SetActive(false);
-            }
-
-            _isInGame = false;
+            RuntimeController.Despawn();
         }
 
-        public void JoinTeam(PlayerTeam team) => Team = team;
-
-        public void LeaveTeam()
+        public void JoinTeam(PlayerTeam team)
         {
-            if (Team == null)
-            {
-                Logs.LogError("Trying to remove a player from his team although he is not part of any team !");
-                return;
-            }
-
-            if (!Team.Members.Remove(this))
-                Logs.LogWarning("Trying to remove a player from a team where he isn't part of !");
-
-            Team = null;
+            Team = team;
         }
 
         public void SelfDestroy()
@@ -193,68 +206,76 @@ namespace MortierFu
             Destroy(gameObject);
         }
 
-        #region Lobby Methods
-
-        private InputAction _navigateAction;
-        private InputAction _submitAction;
-
-        private LobbyPlayer _lobbyPlayer;
-
-        public int SkinIndex = 0;
-        public int FaceColumn = 1;
-        public int FaceRow = 1;
-
-        private Vector2 _previousNavigateInput = Vector2.zero;
-        private float _lastNavigateTime = 0f;
-        private float _navigateCooldown = 0.3f;
-        private const float _threshold = 0.7f;
-
-        private void Navigate(InputAction.CallbackContext ctx)
+        private void TogglePause(InputAction.CallbackContext ctx)
         {
-            if (_lobbyPlayer == null) return;
+            if (!ctx.performed)
+                return;
 
-            Vector2 currentInput = ctx.ReadValue<Vector2>();
+            if (PlayerIndex != 0)
+                return;
 
-            // Vérifier si on vient de passer le seuil sur l'axe X (horizontal)
-            bool wasNotPushedX = Mathf.Abs(_previousNavigateInput.x) < _threshold;
-            bool isPushedNowX = Mathf.Abs(currentInput.x) >= _threshold;
+            if (!CurrentPermissions.CanPause)
+                return;
 
-            // Vérifier si on vient de passer le seuil sur l'axe Y (vertical)
-            bool wasNotPushedY = Mathf.Abs(_previousNavigateInput.y) < _threshold;
-            bool isPushedNowY = Mathf.Abs(currentInput.y) >= _threshold;
+            if (!TryResolveGamePauseSystem())
+                return;
 
-            // Vérifier le cooldown
-            bool cooldownExpired = Time.time - _lastNavigateTime >= _navigateCooldown;
-
-            // Changer seulement si :
-            // - On vient de pousser le stick sur X OU Y
-            // - OU le stick est poussé ET le cooldown est écoulé
-            bool shouldTrigger = ((wasNotPushedX && isPushedNowX) || (wasNotPushedY && isPushedNowY))
-                                 || ((isPushedNowX || isPushedNowY) && cooldownExpired);
-
-            if (shouldTrigger)
-            {
-                _lobbyPlayer.ChangeSkin(currentInput);
-                _lastNavigateTime = Time.time;
-            }
-
-            _previousNavigateInput = currentInput;
+            _gamePauseSystem.TogglePause();
         }
 
-
-        public void Submit(InputAction.CallbackContext context)
+        private void Interact(InputAction.CallbackContext ctx)
         {
-            if (_lobbyPlayer != null && context.performed)
-            {
-                _lobbyPlayer.ToggleReady();
+            if (!ctx.performed)
+                return;
 
-                // Sauvegarder les valeurs de customisation
-                SkinIndex = _lobbyPlayer.SkinIndex;
-                FaceColumn = _lobbyPlayer.FaceColumn;
-                FaceRow = _lobbyPlayer.FaceRow;
-            }
+            if (!CurrentPermissions.CanInteract)
+                return;
+
+            InteractionService?.TryInteract(this);
         }
 
-        #endregion
+        private void NavigateUI(InputAction.CallbackContext ctx)
+        {
+            if (!CurrentPermissions.CanNavigateUI)
+                return;
+
+            Vector2 direction = ctx.ReadValue<Vector2>();
+
+            UIInputService?.TryNavigate(this, direction);
+        }
+
+        private void SubmitUI(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed)
+                return;
+
+            if (!CurrentPermissions.CanConfirmUI)
+                return;
+
+            UIInputService?.TrySubmit(this);
+        }
+
+        private void CancelUI(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed)
+                return;
+
+            if (!CurrentPermissions.CanCancelUI)
+                return;
+
+            if (UIInputService != null && UIInputService.TryCancel(this))
+                return;
+
+            if (PlayerIndex != 0)
+                return;
+
+            if (!TryResolveGamePauseSystem())
+                return;
+
+            if (!_gamePauseSystem.IsPaused)
+                return;
+
+            _gamePauseSystem.Cancel();
+        }
     }
 }

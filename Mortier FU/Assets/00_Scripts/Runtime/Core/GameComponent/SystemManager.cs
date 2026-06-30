@@ -50,6 +50,14 @@ namespace MortierFu
             Register(system);
         }
         
+        public void CreateAndRegisterIfMissing<TSystem>() where TSystem : class, IGameSystem, new()
+        {
+            if (Get<TSystem>() != null)
+                return;
+
+            CreateAndRegister<TSystem>();
+        }
+        
         public void UnregisterAndDispose<TSystem>() where TSystem : class, IGameSystem
         {
             var system = Get<TSystem>();

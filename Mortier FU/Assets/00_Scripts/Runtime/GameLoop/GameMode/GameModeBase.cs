@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
-using PrimeTween;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Random = UnityEngine.Random;
-using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -18,124 +17,195 @@ using UnityEditor;
 
 namespace MortierFu
 {
-    // TODO: Le GameMode de salopard, il fait bientôt 600 lignes, il faudrait peut-être mettre le bébé au régime
+    // Orchestrates the high-level match flow.
+    // Most concrete responsibilities are delegated to dedicated controllers.
     public abstract class GameModeBase : IGameMode
     {
         protected List<PlayerTeam> teams;
-        public List<RoundInfo> RoundHistory { get; protected set; } = new List<RoundInfo>();
+        public List<RoundInfo> RoundHistory { get; protected set; } = new();
         private RoundInfo _currentRound;
         public ReadOnlyCollection<PlayerTeam> Teams { get; private set; }
 
         protected List<PlayerCharacter> alivePlayers;
-        public ReadOnlyCollection<PlayerCharacter> AlivePlayers;
+        public ReadOnlyCollection<PlayerCharacter> AlivePlayers { get; private set; }
 
-        protected int currentRank;
-        protected bool oneTeamStanding;
-        protected GameState currentState;
         protected PlayerTeam gameVictor;
+        protected GameState currentState;
+
+        private ScoreController _scoreController;
+        private RoundController _roundController;
+        private PlayerSpawnController _playerSpawnController;
+        private AugmentRaceController _augmentRaceController;
+        private RoundStartController _roundStartController;
+        private RoundWinnerPresentationController _roundWinnerPresentationController;
+        private ScorePhaseController _scorePhaseController;
+        private PlayerTeamSetupController _teamSetupController;
+        private GameModeDependencies _dependencies;
 
         // Dependencies
-        protected LobbyService lobbyService;
-        protected SceneService sceneService;
-        protected AugmentSelectionSystem augmentSelectionSys;
-        protected LevelSystem levelSystem;
+        protected LobbyService lobbyService => _dependencies?.LobbyService;
+        protected SceneService sceneService => _dependencies?.SceneService;
+        protected AudioService audioService => _dependencies?.AudioService;
 
-        protected BombshellSystem bombshellSys;
+        protected AugmentSelectionSystem augmentSelectionSys => _dependencies?.AugmentSelectionSystem;
+        protected LevelSystem levelSystem => _dependencies?.LevelSystem;
+        protected BombshellSystem bombshellSys => _dependencies?.BombshellSystem;
+        protected CameraSystem cameraSystem => _dependencies?.CameraSystem;
+        protected AnalyticsSystem analyticsSystem => _dependencies?.AnalyticsSystem;
 
-        // protected PuddleSystem puddleSys;
-        protected CameraSystem cameraSystem;
         protected CountdownTimer timer;
 
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
-        public SO_GameModeData Data => _dataHandle.Result;
+        private AsyncOperationHandle<SO_GameFlowSettings> _flowSettingsHandle;
+        private CancellationTokenSource _gameplayCancellation;
 
-        private EventBinding<EventPlayerDeath> _playerDeathBinding;
+        private bool _isRaceMapLoaded;
+        private bool _isArenaMapLoaded;
+        private bool _isRaceScenePrepared;
+
+        public SO_GameModeData Data => _dataHandle.Result;
+        public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
 
-        public int ScoreToWin { get; private set; }
+        public MatchConfig MatchConfig { get; private set; } = MatchConfig.Default;
+
+        public int ScoreToWin => MatchConfig.ScoreToWin;
 
         public bool IsReady
         {
             get
             {
-                var players = lobbyService.GetPlayers();
+                var players = lobbyService?.GetPlayers();
+
+                if (players == null)
+                    return false;
+
                 return players.Count >= MinPlayerCount && players.Count <= MaxPlayerCount;
             }
         }
 
-        public GameState CurrentState => currentState;
         public int CurrentRoundCount => _currentRound.RoundIndex;
-        public float CountdownRemainingTime => timer.CurrentTime;
 
         /// EVENTS
         public event Action<GameState> OnGameStateChanged;
-
-        /// <summary>
-        /// Invoked when a player kills another player.
-        /// <remarks>Killer / Victim</remarks>
-        /// </summary>
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
-
         public event Action OnGameStarted;
         public event Action<RoundInfo> OnRoundStarted;
+        public event Func<CancellationToken, UniTask> OnRoundStartPresentationAsync;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
-        public event Func<RoundInfo, UniTask> OnRoundEndedAsync;
+        public event Func<RoundInfo, CancellationToken, UniTask> OnRoundEndedAsync;
         public event Action OnRaceStart;
-        public event Func<UniTask> OnRaceEndedUI;
+        public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
+        public event Func<UniTask, CancellationToken, UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
         public virtual async UniTask Initialize()
         {
-            // Resolve Dependencies
-            lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            sceneService = ServiceManager.Instance.Get<SceneService>();
+            _dependencies = GameModeDependencies.ResolveServices();
 
-            // Load configuration
+            if (!_dependencies.HasRequiredServices())
+            {
+                Logs.LogError("[GameModeBase] Missing required services.");
+            }
+
             _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
+            _flowSettingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GameFlowSettings>("DA_GameFlowSettings");
 
             timer = new CountdownTimer(0f);
 
-            _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
+            _roundStartController = new RoundStartController(
+                timer,
+                Data,
+                SetPlayerControlContext,
+                UpdateGameState,
+                roundInfo => OnRoundStarted?.Invoke(roundInfo)
+            );
 
             Logs.Log("Game mode initialized successfully.");
         }
 
-        public virtual async UniTask StartGame()
+        protected virtual List<PlayerTeam> CreateTeamsForMatch(IReadOnlyList<PlayerManager> players)
         {
-            augmentSelectionSys = SystemManager.Instance.Get<AugmentSelectionSystem>();
-            cameraSystem = SystemManager.Instance.Get<CameraSystem>();
-            bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
-            levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            return _teamSetupController.CreateFreeForAllTeams(players);
+        }
 
-            teams = new List<PlayerTeam>();
+        protected virtual void ResolveGameplayDependencies()
+        {
+            _dependencies.ResolveGameplaySystems();
+
+            if (!_dependencies.HasRequiredGameplaySystems())
+            {
+                Logs.LogError("[GameModeBase] Missing required gameplay systems.");
+            }
+        }
+
+        protected virtual void CreateTeams()
+        {
+            _teamSetupController = new PlayerTeamSetupController();
+
+            var players = lobbyService.GetPlayers();
+
+            teams = CreateTeamsForMatch(players);
             Teams = teams.AsReadOnly();
 
             alivePlayers = new List<PlayerCharacter>();
             AlivePlayers = new ReadOnlyCollection<PlayerCharacter>(alivePlayers);
+        }
 
-            var players = lobbyService.GetPlayers();
+        protected virtual void CreateControllers()
+        {
+            _playerSpawnController = new PlayerSpawnController(teams, levelSystem);
 
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-                player.SpawnInGame(new Vector3(i, 5, i) * 2f, player.transform.rotation);
+            _roundWinnerPresentationController = new RoundWinnerPresentationController();
 
-                // Use event bus to prevent closure and weird on Death subscriptions
-                // player.Character.Health. += source => OnDeath(player, source);
+            _scorePhaseController = new ScorePhaseController(
+                teams,
+                cameraSystem,
+                UpdateGameState,
+                () => _roundStartController.StopCountdown(),
+                () => OnScoreDisplayOver?.Invoke()
+            );
 
-                var team = new PlayerTeam(i, player);
-                teams.Add(team);
-            }
+            _augmentRaceController = new AugmentRaceController(
+                teams,
+                augmentSelectionSys,
+                _playerSpawnController,
+                SetPlayerControlContext,
+                () => OnRaceStart?.Invoke()
+            );
+
+            _roundController = new RoundController(teams, alivePlayers);
+            _roundController.OnPlayerDied += HandleRoundPlayerDied;
+            _roundController.OnPlayerKilled += HandleRoundPlayerKilled;
+
+            AlivePlayers = _roundController.AlivePlayers;
+
+            _scoreController = new ScoreController(
+                Data,
+                teams,
+                ScoreToWin,
+                analyticsSystem
+            );
+        }
+
+        public virtual async UniTask StartGame()
+        {
+            ResolveGameplayDependencies();
+
+            CreateTeams();
+
+            CreateControllers();
 
             if (!IsReady)
             {
                 Logs.LogWarning(
                     "Not enough players or too many players for this gamemode ! Falling back to playground.");
+
                 await levelSystem.LoadArenaMap();
-                
+
                 StartRound();
                 return;
             }
@@ -143,7 +213,9 @@ namespace MortierFu
             _currentRound = new RoundInfo();
             gameVictor = null;
 
-            GameplayCoroutine().Forget();
+            _gameplayCancellation = new CancellationTokenSource();
+            GameplayLoop(_gameplayCancellation.Token).Forget();
+
             Logs.Log("Starting the game...");
         }
 
@@ -151,7 +223,7 @@ namespace MortierFu
         {
             if (_currentRound.WinningTeam == null || _currentRound.WinningTeam.Members.Count <= 0)
                 return (TransitionColor)Random.Range(0, Enum.GetNames(typeof(TransitionColor)).Length);
-            
+
             return _currentRound.WinningTeam.Members[0].PlayerIndex switch
             {
                 0 => TransitionColor.Blue,
@@ -161,74 +233,135 @@ namespace MortierFu
             };
         }
 
-        protected async UniTaskVoid GameplayCoroutine()
+        protected virtual async UniTask RunAugmentRacePhaseAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
         {
-            UpdateGameState(GameState.StartGame);
-            OnGameStarted?.Invoke();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Gameplay).Forget();
+            await EnsureRaceScenePreparedAsync(
+                transitionColor,
+                cancellationToken
+            );
 
+            await _augmentRaceController.PrepareSelectionAsync(cancellationToken,
+                FlowSettings.AugmentStartShowcaseDelay);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            audioService.SetPhase(0);
+
+            await RunAugmentRaceStartPresentationAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            UpdateGameState(GameState.AugmentRace);
+            SetPlayerControlContext(PlayerControlContext.AugmentRace);
+
+            _augmentRaceController.StartRaceTimer(FlowSettings.AugmentRaceDuration);
+
+            await _augmentRaceController.WaitUntilSelectionOverAsync(cancellationToken);
+
+            _augmentRaceController.EndSelection();
+
+            EndRace();
+
+            EnablePlayerGravity(false);
+
+            await RunAugmentSummaryAndOptionalArenaPreloadAsync(
+                transitionColor,
+                cancellationToken
+            );
+        }
+
+        protected virtual async UniTask WaitUntilRoundOverAsync(CancellationToken cancellationToken)
+        {
+            while (_roundController != null && !_roundController.OneTeamStanding)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await UniTask.Yield();
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected virtual async UniTask RunRoundEndPresentationAsync(CancellationToken cancellationToken)
+        {
+            if (OnRoundEndedAsync == null)
+                return;
+
+            foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<RoundInfo, CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(_currentRound, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected virtual UniTask RunScorePhaseAsync()
+        {
+            DisplayScores();
+
+            HideScores();
+
+            return UniTask.CompletedTask;
+        }
+
+        protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await EnsureArenaMapLoadedAsync(transitionColor, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            StartRound();
+
+            await RunRoundStartPresentationAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SetPlayerControlContext(PlayerControlContext.RoundGameplay);
+
+            await WaitUntilRoundOverAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            UpdateGameState(GameState.EndRound);
+
+            EndRound();
+
+            bool matchWillEnd = IsGameOver(out gameVictor);
+            TransitionColor nextRaceTransitionColor = GetTransitionColor();
+
+            await RunRoundEndPresentationAndOptionalRacePreloadAsync(
+                nextRaceTransitionColor,
+                shouldPreloadNextRace: !matchWillEnd,
+                cancellationToken
+            );
+
+            await RunScorePhaseAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        protected virtual async UniTask RunMatchLoopAsync(CancellationToken cancellationToken)
+        {
             while (currentState != GameState.EndGame)
             {
-                EnablePlayerGravity(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var transitionColor = GetTransitionColor();
-                await levelSystem.LoadRaceMap(true, transitionColor);
-                ServiceManager.Instance.Get<AudioService>().SetPhase(1);
-                
-                UpdateGameState(GameState.DisplayAugment);
-                StartRace();
 
-                await cameraSystem.Controller.ApplyCameraMapConfigAsync(maxWaitSeconds: 4f);
+                await RunAugmentRacePhaseAsync(transitionColor, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var augmentPickers = GetAugmentPickers();
-                await augmentSelectionSys.HandleAugmentSelection(augmentPickers, Data.AugmentSelectionDuration);
-                ServiceManager.Instance.Get<AudioService>().SetPhase(0);
+                if (currentState == GameState.EndGame)
+                    break;
 
-                UpdateGameState(GameState.RaceInProgress);
-
-                while (!augmentSelectionSys.IsSelectionOver)
-                    await UniTask.Yield();
-
-                augmentSelectionSys.EndRace();
-                EndRace();
-
-                EnablePlayerGravity(false);
-
-                // TODO: Potentiellement horrible 
-                if (OnRaceEndedUI != null)
-                {
-                    foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
-                    {
-                        var handler = (Func<UniTask>)@delegate;
-                        await handler.Invoke();
-                    }
-                }
-                
-                await levelSystem.LoadArenaMap(true, transitionColor);
-
-                StartRound();
-
-                while (!oneTeamStanding)
-                    await UniTask.Yield();
-
-                UpdateGameState(GameState.EndRound);
-                EndRound();
-
-                // TODO: Potentiellement horrible 
-                if (OnRoundEndedAsync != null)
-                {
-                    foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
-                    {
-                        var handler = (Func<RoundInfo, UniTask>)@delegate;
-                        await handler.Invoke(_currentRound);
-                    }
-                }
-
-                UpdateGameState(GameState.DisplayScores);
-                //DisplayScores();
-
-                HideScores();
+                await RunRoundPhaseAsync(transitionColor, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsGameOver(out gameVictor))
                 {
@@ -236,119 +369,80 @@ namespace MortierFu
                     UpdateGameState(GameState.EndGame);
                 }
             }
+        }
 
-            EndGame();
+        protected async UniTaskVoid GameplayLoop(CancellationToken cancellationToken)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                UpdateGameState(GameState.StartGame);
+                OnGameStarted?.Invoke();
+
+                audioService
+                    .StartMusic(AudioService.FMODEvents.MUS_Gameplay)
+                    .Forget();
+
+                await RunMatchLoopAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                EndGame();
+            }
+            catch (OperationCanceledException)
+            {
+                Logs.Log("[GameModeBase] Gameplay coroutine canceled.");
+            }
         }
 
         public bool IsGameOver(out PlayerTeam victor)
         {
-            victor = gameVictor;
-            return gameVictor != null;
-        }
-
-        private List<PlayerManager> GetAugmentPickers()
-        {
-            var pickers = new List<PlayerManager>();
-            foreach (var team in teams)
+            if (_scoreController == null)
             {
-                if (team.Rank == 1) continue;
-
-                pickers.AddRange(team.Members);
+                victor = null;
+                return false;
             }
 
-            if (pickers.Count == 0)
-            {
-                Logs.LogWarning("Found no pickers for this augment selection phase.");
-            }
-
-            return pickers;
+            return _scoreController.IsGameOver(out victor);
         }
 
         private void EnablePlayerGravity(bool enabled = true)
         {
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.Controller.rigidbody.useGravity = enabled;
-                }
-            }
+            _playerSpawnController?.SetPlayerGravity(enabled);
         }
 
         private void SpawnPlayers()
         {
-            bool opposite = _currentRound.RoundIndex % 2 == 0;
-            int spawnIndex = opposite ? teams.Sum(t => t.Members.Count()) - 1 : 0;
-
-            foreach (var team in teams.OrderByDescending(t => t.Rank))
-            {
-                foreach (var member in team.Members)
-                {
-                    Transform spawnPoint;
-
-                    if (levelSystem.IsRaceMap())
-                    {
-                        spawnPoint = team.Rank == 1
-                            ? levelSystem.GetWinnerSpawnPoint()
-                            : levelSystem.GetSpawnPoint(spawnIndex);
-                    }
-                    else
-                    {
-                        spawnPoint = levelSystem.GetSpawnPoint(spawnIndex);
-                    }
-
-                    member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
-
-                    if (opposite)
-                        spawnIndex--;
-                    else
-                        spawnIndex++;
-                }
-            }
+            _playerSpawnController?.SpawnPlayers(_currentRound.RoundIndex);
         }
 
-        private void SpawnWinnerTeam(PlayerTeam winnerTeam)
-        {
-            var spawnPoint = levelSystem.GetRoundWinnerSpawnPoint();
-
-            foreach (var member in winnerTeam.Members)
-            {
-                member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
-            }
-        }
-
-        public void EnablePlayerInputs(bool enable = true)
+        private void SetPlayerControlContext(PlayerControlContext context)
         {
             foreach (var team in teams)
             {
                 foreach (var member in team.Members)
                 {
-                    member.EnableGameplayInputMap(enable);
+                    member.SetControlContext(context);
                 }
             }
 
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("DummyDebugToolEnabled", true))
             {
-                PlayerInputSwapper.Instance.UpdateActivePlayer();
+                //TODO PlayerInputSwapper.Instance.UpdateActivePlayer();
             }
 #endif
         }
 
         protected virtual void ResetPlayers()
         {
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Character.Reset();
-                }
-            }
+            _playerSpawnController?.ResetPlayers();
         }
 
         protected virtual void StartRound()
         {
-            UpdateGameState(GameState.Round);
+            UpdateGameState(GameState.RoundCountdown);
 
             _currentRound = new RoundInfo
             {
@@ -358,335 +452,77 @@ namespace MortierFu
 
             RoundHistory.Add(_currentRound);
 
-            currentRank = teams.Count;
-            oneTeamStanding = false;
-
             ResetPlayers();
             SpawnPlayers();
             EnablePlayerGravity();
-            EnablePlayerInputs(false);
 
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.Metrics.ResetRoundMetrics();
-                    alivePlayers.Add(member.Character);
-                }
+            SetPlayerControlContext(PlayerControlContext.RoundCountdown);
 
-                team.Rank = -1;
-            }
+            _roundController.BeginRound();
 
-            var groupMembers = alivePlayers.Select(p => p.transform).ToArray();
+            var groupMembers = AlivePlayers.Select(player => player.transform).ToArray();
             cameraSystem.Controller.PopulateTargetGroup(groupMembers);
 
-            EventBus<EventPlayerDeath>.Register(_playerDeathBinding);
-
-            HandleCountdown();
-        }
-
-        protected void HandleCountdown()
-        {
-            float duration = Data.RoundStartCountdown;
-#if UNITY_EDITOR
-            int speedMult = EditorPrefs.GetInt("CountdownSpeedMult", 1);
-            duration *= 1f / speedMult;
-#endif
-
-            timer.Reset(duration - 0.01f);
-
-            timer.OnTimerStart -= HandleStartOfCountdown;
-            timer.OnTimerStop -= HandleEndOfCountdown;
-
-            timer.OnTimerStart += HandleStartOfCountdown;
-            timer.OnTimerStop += HandleEndOfCountdown;
-
-            timer.Start();
-        }
-
-        protected void HandleEndOfCountdown()
-        {
-            timer.OnTimerStop -= HandleEndOfCountdown;
-
-            EnablePlayerInputs();
-            PlayerCharacter.AllowGameplayActions = true;
-
-            Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
-        }
-
-        protected void HandleStartOfCountdown()
-        {
-            OnRoundStarted?.Invoke(_currentRound);
+            _roundStartController.StartCountdown(_currentRound);
         }
 
         protected virtual void EndRound()
         {
-            timer.Stop();
+            _roundStartController.StopCountdown();
 
-            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
+            _roundController.EndRound();
 
             bombshellSys.ClearActiveBombshells();
 
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
-            EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
-            alivePlayers.Clear();
+
+            SetPlayerControlContext(PlayerControlContext.RoundEnded);
 
             EvaluateScores();
 
-            _currentRound.WinningTeam = teams.FirstOrDefault(t => t.Rank == 1);
+            _currentRound.WinningTeam = _roundController.WinningTeam;
 
-            if (_currentRound.WinningTeam != null)
-            {
-                var winner = _currentRound.WinningTeam.Members[0];
-                winner.Character.Reset();
-
-                SpawnWinnerTeam(_currentRound.WinningTeam);
-
-                cameraSystem.Controller.EndFightCameraMovement(
-                    winner.Character.transform,
-                    2f);
-
-                winner.Character.WinRoundDance();
-            }
+            _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
 
             OnRoundEnded?.Invoke(_currentRound);
         }
 
         protected virtual void EvaluateScores()
         {
-            foreach (var team in teams)
+            if (_scoreController == null)
             {
-                if (team.Score >= ScoreToWin)
-                {
-                    if (team.Rank != 1) continue;
-                    gameVictor = team;
-                }
-                else
-                {
-                    int rankBonusScore = GetScorePerRank(team.Rank);
-
-                    int killBonusScore = 0;
-                    foreach (var member in team.Members)
-                    {
-                        foreach (var deathCause in member.Metrics.RoundKills)
-                        {
-                            killBonusScore += Data.KillBonusScore;
-                            switch (deathCause)
-                            {
-                                case E_DeathCause.Fall:
-                                    killBonusScore += Data.KillPushBonusScore;
-                                    break;
-                                case E_DeathCause.VehicleCrash:
-                                    killBonusScore += Data.KillCarCrashBonusScore;
-                                    break;
-                            }
-                        }
-                    }
-
-                    team.Score = Math.Min(team.Score + rankBonusScore + killBonusScore, ScoreToWin);
-
-                    // notify analytics system
-                    var analyticsSys = SystemManager.Instance.Get<AnalyticsSystem>();
-                    analyticsSys?.OnScoreChanged(team.Members[0].Character, team.Score);
-                }
+                Logs.LogError("[GameModeBase] Cannot evaluate scores because ScoreController is null.");
+                return;
             }
+
+            gameVictor = _scoreController.EvaluateScores();
         }
 
         public int GetScorePerRank(int teamRank)
         {
-            if (teamRank >= teams.Count) return 0;
-
-            return teamRank switch
-            {
-                1 => Data.FirstRankBonusScore,
-                2 => Data.SecondRankBonusScore,
-                3 => Data.ThirdRankBonusScore,
-                _ => 0
-            };
+            return _scoreController?.GetScorePerRank(teamRank) ?? 0;
         }
 
         protected virtual void DisplayScores()
         {
-            UpdateGameState(GameState.DisplayScores);
-
-            // Update UI Score Panel
-            // Link countdown timer
-
-            Logs.Log("Displaying scores...");
-
-            foreach (var team in teams)
-            {
-                Logs.Log($"Team Score: {team.Score}");
-            }
+            _scorePhaseController?.DisplayScores();
         }
 
         protected virtual void HideScores()
         {
-            //TEMPORARY
-            cameraSystem.Controller.ResetToMainCamera();
-
-            timer.Stop();
-
-            // Hide UI
-            OnScoreDisplayOver?.Invoke();
+            _scorePhaseController?.HideScores();
         }
 
         protected virtual void StartRace()
         {
-            UpdateGameState(GameState.RaceInProgress);
-
-            ResetPlayers();
-            SpawnPlayers();
-            EnablePlayerGravity();
-
-            // Hide previous showcase UI            
-            EnablePlayerInputs(false);
-            PlayerCharacter.AllowGameplayActions = false;
-
-            OnRaceStart?.Invoke();
-
-            Logs.Log("Starting augment selection...");
+            _augmentRaceController.BeginRace(_currentRound.RoundIndex);
         }
 
         protected virtual void EndRace()
         {
-            UpdateGameState(GameState.EndingRace);
+            UpdateGameState(GameState.EndAugmentRace);
 
-            EnablePlayerInputs(false);
-
-            // stop selection UI
-
-            ResetPlayers();
-            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
-        }
-
-        public virtual void EndGame()
-        {
-            ServiceManager.Instance.Get<AudioService>().StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
-
-            foreach (var team in teams)
-            {
-                foreach (var member in team.Members)
-                {
-                    member.EnableGameplayInputMap(false);
-                }
-            }
-            
-            OnGameEnded?.Invoke(GetWinnerPlayerIndex());
-            Logs.Log("Game has ended.");
-        }
-
-        public void ReturnToMainMenu()
-        {
-            ReturnToMainMenuAfterDelay().Forget();
-        }
-
-        private async UniTaskVoid ReturnToMainMenuAfterDelay()
-        {
-            SystemManager.Instance.Dispose();
-
-            lobbyService.ClearPlayers();
-
-            await levelSystem.UnloadCurrentMap();
-            await sceneService.UnloadScene("Gameplay");
-
-            await sceneService.LoadScene("MainMenu", true);
-            //TODO: a full check au cas ou
-        }
-
-        protected virtual void UpdateGameState(GameState newState)
-        {
-            currentState = newState;
-            OnGameStateChanged?.Invoke(newState);
-        }
-
-        public void SetScoreToWin(int score)
-        {
-            ScoreToWin = score;
-        }
-
-        public virtual void Update()
-        {
-        }
-
-        public virtual void Dispose()
-        {
-            Addressables.Release(_dataHandle);
-
-            EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
-            _playerDeathBinding = null;
-
-            teams.Clear();
-            timer.Dispose();
-        }
-
-        protected void OnPlayerDeath(EventPlayerDeath evt)
-        {
-            var player = evt.Character.Owner;
-
-            player.Metrics.TotalDeaths++;
-            alivePlayers.Remove(player.Character);
-            cameraSystem.Controller.RemoveTarget(evt.Character.transform);
-
-            if (evt.Context.Killer)
-            {
-                OnPlayerKill(evt);
-            }
-
-            var victimTeam = teams.FirstOrDefault(t => t.Members.Contains(player));
-            if (victimTeam == null)
-            {
-                Logs.LogError("[GameModeBase] Victim's team not found!");
-                return;
-            }
-
-            if (victimTeam.Members.All(m => m.Character.Health.IsAlive == false))
-            {
-                victimTeam.Rank = currentRank;
-                currentRank--;
-
-                Logs.Log("This eliminated, assigned rank #" + victimTeam.Rank);
-            }
-
-            // Check if there is one team standing
-            int aliveTeamIndex = -1;
-            for (int i = 0; i < teams.Count; i++)
-            {
-                PlayerTeam team = teams[i];
-                if (team.Members.Any(m => m.Character.Health.IsAlive))
-                {
-                    if (aliveTeamIndex == -1)
-                    {
-                        aliveTeamIndex = i;
-                    }
-                    else
-                    {
-                        aliveTeamIndex = -1;
-                        break;
-                    }
-                }
-            }
-
-            // Set the rank of the winning team to 1 if one.
-            if (aliveTeamIndex != -1)
-            {
-                teams[aliveTeamIndex].Rank = 1;
-                oneTeamStanding = true;
-            }
-        }
-
-        protected virtual void OnPlayerKill(EventPlayerDeath evt)
-        {
-            var killer = evt.Context.Killer.Owner;
-            var victim = evt.Character.Owner;
-
-            if (killer != victim)
-            {
-                killer.Metrics.RoundKills.Add(evt.Context.DeathCause);
-            }
-
-            OnPlayerKilled?.Invoke(killer, victim);
+            _augmentRaceController.EndRace();
         }
 
         public int GetWinnerPlayerIndex()
@@ -696,7 +532,352 @@ namespace MortierFu
                 return victor?.Index ?? -1;
             }
 
-            return _currentRound.WinningTeam.Index; // Aucun gagnant pour l'instant
+            if (_currentRound.WinningTeam != null)
+            {
+                return _currentRound.WinningTeam.Index;
+            }
+
+            Logs.LogWarning("[GameModeBase] GetWinnerPlayerIndex called but no game victor or round winner was found.");
+            return -1;
+        }
+
+        public virtual void EndGame()
+        {
+            audioService
+                .StartMusic(AudioService.FMODEvents.MUS_Victory)
+                .Forget();
+
+            SetPlayerControlContext(PlayerControlContext.EndGame);
+            OnGameEnded?.Invoke(GetWinnerPlayerIndex());
+            Logs.Log("Game has ended.");
+        }
+
+        protected virtual async UniTask RunAugmentRaceStartPresentationAsync(CancellationToken cancellationToken)
+        {
+            if (OnAugmentRaceStartPresentationAsync == null)
+                return;
+
+            foreach (var @delegate in OnAugmentRaceStartPresentationAsync.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected virtual async UniTask RunRoundStartPresentationAsync(CancellationToken cancellationToken)
+        {
+            if (OnRoundStartPresentationAsync == null)
+                return;
+
+            foreach (var @delegate in OnRoundStartPresentationAsync.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected virtual void UpdateGameState(GameState newState)
+        {
+            currentState = newState;
+            OnGameStateChanged?.Invoke(newState);
+        }
+
+        public void SetMatchConfig(MatchConfig config)
+        {
+            MatchConfig = config;
+
+            _scoreController?.SetScoreToWin(config.ScoreToWin);
+        }
+
+        public void SetScoreToWin(int score)
+        {
+            SetMatchConfig(new MatchConfig(score));
+        }
+
+        public virtual void Update()
+        {
+        }
+
+        public virtual void Dispose()
+        {
+            _gameplayCancellation?.Cancel();
+            _gameplayCancellation?.Dispose();
+            _gameplayCancellation = null;
+
+            if (_dataHandle.IsValid())
+            {
+                Addressables.Release(_dataHandle);
+            }
+
+            if (_flowSettingsHandle.IsValid())
+            {
+                Addressables.Release(_flowSettingsHandle);
+            }
+
+            if (_roundController != null)
+            {
+                _roundController.OnPlayerDied -= HandleRoundPlayerDied;
+                _roundController.OnPlayerKilled -= HandleRoundPlayerKilled;
+                _roundController.Dispose();
+                _roundController = null;
+            }
+
+            _roundStartController?.Dispose();
+            _roundStartController = null;
+
+            _scoreController = null;
+            _playerSpawnController = null;
+            _augmentRaceController = null;
+            _roundWinnerPresentationController = null;
+            _scorePhaseController = null;
+            _teamSetupController = null;
+
+            teams?.Clear();
+            alivePlayers?.Clear();
+            RoundHistory?.Clear();
+
+            timer?.Dispose();
+            timer = null;
+
+            _dependencies = null;
+        }
+
+        private void HandleRoundPlayerDied(PlayerCharacter character)
+        {
+            if (character == null)
+                return;
+
+            cameraSystem?.Controller?.RemoveTarget(character.transform);
+        }
+
+        private void HandleRoundPlayerKilled(PlayerManager killer, PlayerManager victim)
+        {
+            OnPlayerKilled?.Invoke(killer, victim);
+        }
+
+        private bool ShouldUseVideoTransitions()
+        {
+            return FlowSettings && FlowSettings.UseVideoTransitions;
+        }
+
+        private async UniTask EnsureRaceMapLoadedAsync(TransitionColor transitionColor,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (_isRaceMapLoaded && levelSystem.IsRaceMap())
+                return;
+
+            await levelSystem.LoadRaceMap(
+                ShouldUseVideoTransitions(),
+                transitionColor
+            );
+
+            _isRaceMapLoaded = true;
+            _isArenaMapLoaded = false;
+            _isRaceScenePrepared = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask EnsureArenaMapLoadedAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (_isArenaMapLoaded)
+                return;
+
+            await levelSystem.LoadArenaMap(
+                ShouldUseVideoTransitions(),
+                transitionColor
+            );
+
+            _isArenaMapLoaded = true;
+            _isRaceMapLoaded = false;
+            _isRaceScenePrepared = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private float GetAugmentSummaryMinimumDuration()
+        {
+            return FlowSettings ? Mathf.Max(0f, FlowSettings.AugmentSummaryDuration) : 4f;
+        }
+
+        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
+        {
+            if (!FlowSettings || !FlowSettings.UseAugmentSummaryAsArenaMapLoadCover)
+                return;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await levelSystem.LoadArenaMap(
+                useTransition: false,
+                color: transitionColor
+            );
+
+            _isArenaMapLoaded = true;
+            _isRaceMapLoaded = false;
+            _isRaceScenePrepared = false;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask, CancellationToken cancellationToken)
+        {
+            if (OnRaceEndedUI == null)
+                return;
+
+            foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handler = (Func<UniTask, CancellationToken, UniTask>)@delegate;
+
+                await handler.Invoke(
+                    canHideTask,
+                    cancellationToken
+                );
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        private async UniTask RunAugmentSummaryAndOptionalArenaPreloadAsync(TransitionColor transitionColor,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var minimumDurationTask = UniTask.Delay(
+                TimeSpan.FromSeconds(GetAugmentSummaryMinimumDuration()),
+                cancellationToken: cancellationToken
+            );
+
+            var loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(
+                transitionColor,
+                cancellationToken
+            );
+
+            var canHideSummaryTask = UniTask.WhenAll(
+                minimumDurationTask,
+                loadArenaTask
+            );
+
+            await RunAugmentSummaryPresentationAsync(
+                canHideSummaryTask,
+                cancellationToken
+            );
+
+            await canHideSummaryTask;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask PreloadRaceMapAfterWinnerFocusAsync(TransitionColor transitionColor, bool shouldPreload,
+            CancellationToken cancellationToken)
+        {
+            if (!shouldPreload)
+                return;
+
+            if (!FlowSettings || !FlowSettings.UseScoreboardAsRaceMapLoadCover)
+                return;
+
+            await levelSystem.LoadRaceMap(
+                useTransition: false,
+                color: transitionColor
+            );
+
+            _isRaceMapLoaded = true;
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(TransitionColor nextRaceTransitionColor, bool shouldPreloadNextRace, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var presentationTask = RunRoundEndPresentationAsync(cancellationToken);
+
+            var preloadTask = PrepareRaceSceneUnderScoreboardCoverAsync(
+                nextRaceTransitionColor,
+                shouldPreloadNextRace,
+                cancellationToken
+            );
+
+            await UniTask.WhenAll(
+                presentationTask,
+                preloadTask
+            );
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private void PrepareRaceSceneAfterMapLoaded()
+        {
+            if (_isRaceScenePrepared)
+                return;
+
+            EnablePlayerGravity(false);
+
+            audioService.SetPhase(1);
+
+            UpdateGameState(GameState.AugmentIntro);
+
+            StartRace();
+
+            cameraSystem.Controller.ApplyRaceCameraMapConfigInstant();
+
+            _isRaceScenePrepared = true;
+        }
+
+        private async UniTask EnsureRaceScenePreparedAsync(
+            TransitionColor transitionColor,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await EnsureRaceMapLoadedAsync(
+                transitionColor,
+                cancellationToken
+            );
+
+            PrepareRaceSceneAfterMapLoaded();
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask PrepareRaceSceneUnderScoreboardCoverAsync(TransitionColor transitionColor,
+            bool shouldPrepare, CancellationToken cancellationToken)
+        {
+            if (!shouldPrepare)
+                return;
+
+            if (!FlowSettings || !FlowSettings.UseScoreboardAsRaceMapLoadCover)
+                return;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await levelSystem.LoadRaceMap(
+                useTransition: false,
+                color: transitionColor
+            );
+
+            _isRaceMapLoaded = true;
+            _isArenaMapLoaded = false;
+            _isRaceScenePrepared = false;
+
+            PrepareRaceSceneAfterMapLoaded();
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 }

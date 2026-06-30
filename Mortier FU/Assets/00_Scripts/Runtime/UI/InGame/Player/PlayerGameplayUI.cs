@@ -57,12 +57,6 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_gm != null)
-        {
-            _gm.OnRoundEnded += OnRoundEnded;
-            _gm.OnRaceStart += OnRaceStart;
-        }
-
         if (_character == null)
         {
             enabled = false;
@@ -70,21 +64,61 @@ public class PlayerGameplayUI : MonoBehaviour
             return;
         }
 
+        if (_gm != null)
+        {
+            _gm.OnRoundEnded -= OnRoundEnded;
+            _gm.OnRaceStart -= OnRaceStart;
+
+            _gm.OnRoundEnded += OnRoundEnded;
+            _gm.OnRaceStart += OnRaceStart;
+        }
+
         _ticksMaterialInstance = new Material(_healthTicksImg.material);
         _healthTicksImg.material = _ticksMaterialInstance;
 
-        _character.Health.OnHealthChanged += OnHealthChanged;
-        _character.Health.OnMaxHealthChanged += OnMaxHealthChanged;
-        _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
+        if (_character.Health != null)
+        {
+            _character.Health.OnHealthChanged -= OnHealthChanged;
+            _character.Health.OnMaxHealthChanged -= OnMaxHealthChanged;
+
+            _character.Health.OnHealthChanged += OnHealthChanged;
+            _character.Health.OnMaxHealthChanged += OnMaxHealthChanged;
+        }
+
+        if (_character.Stats != null && _character.Stats.DashCharges != null)
+        {
+            _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
+            _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
+        }
     }
 
     private void OnDisable()
     {
-        if (_character == null) return;
+        if (_character != null)
+        {
+            if (_character.Health != null)
+            {
+                _character.Health.OnHealthChanged -= OnHealthChanged;
+                _character.Health.OnMaxHealthChanged -= OnMaxHealthChanged;
+            }
 
-        _character.Health.OnHealthChanged -= OnHealthChanged;
-        _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
-        _gm.OnRoundEnded -= OnRoundEnded;
+            if (_character.Stats != null && _character.Stats.DashCharges != null)
+            {
+                _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
+            }
+        }
+
+        if (_gm != null)
+        {
+            _gm.OnRoundEnded -= OnRoundEnded;
+            _gm.OnRaceStart -= OnRaceStart;
+        }
+
+        if (_damageTween.isAlive)
+            _damageTween.Stop();
+
+        if (_healthTween.isAlive)
+            _healthTween.Stop();
     }
 
     private void Start()
@@ -101,6 +135,14 @@ public class PlayerGameplayUI : MonoBehaviour
         {
             _damageBarWidth = parentRect.rect.width;
         }
+    }
+    
+    private void OnDestroy()
+    {
+        if (_ticksMaterialInstance == null) return;
+        
+        Destroy(_ticksMaterialInstance);
+        _ticksMaterialInstance = null;
     }
 
     private void Update()

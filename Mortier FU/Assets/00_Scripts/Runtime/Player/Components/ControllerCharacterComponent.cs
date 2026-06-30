@@ -100,9 +100,12 @@ namespace MortierFu
 
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
-
+        
         public Vector3 GetDashDirection()
         {
+            if (!character.CanDash)
+                return Vector3.zero;
+
             Vector2 input = _moveAction.ReadValue<Vector2>();
             Vector2 targetDirection = input.normalized;
             float targetForce = Stats.MoveSpeed.Value;
@@ -112,7 +115,9 @@ namespace MortierFu
         
         public void HandleMovementUpdate(float factor = 1.0f)
         {
-            Vector2 input = _moveAction.ReadValue<Vector2>();
+            Vector2 input = character.CanMove
+                ? _moveAction.ReadValue<Vector2>()
+                : Vector2.zero;
 
             // Deadzone stricte
             if (input.sqrMagnitude < 0.01f)

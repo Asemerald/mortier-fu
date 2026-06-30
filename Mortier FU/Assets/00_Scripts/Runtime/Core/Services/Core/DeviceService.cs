@@ -129,7 +129,7 @@ namespace MortierFu
                 playerInput.DeactivateInput();
             
 #if UNITY_EDITOR
-            PlayerInputSwapper.Instance.UpdateActivePlayer();
+            // TODO PlayerInputSwapper.Instance.UpdateActivePlayer();
 #endif
         }
 
@@ -167,6 +167,15 @@ namespace MortierFu
             => _playerInputs.TryGetValue(playerIndex, out playerInput);
 
         public List<PlayerInput> GetAllPlayerInputs() => new (_playerInputs.Values);
+        
+        public void ClearPlayers()
+        {
+            _playerDevices.Clear();
+            _deviceToPlayer.Clear();
+            _playerInputs.Clear();
+
+            Logs.Log("[DeviceService] Cleared all registered players and devices.");
+        }
         
         #endregion
     }

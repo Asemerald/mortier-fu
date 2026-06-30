@@ -12,6 +12,7 @@ namespace MortierFu
     public class BombshellSystem : IGameSystem
     {
         private CameraSystem _cameraSystem;
+        private FXService _fxService;
 
         private IObjectPool<Bombshell> _pool;
         private const bool k_collectionCheck = true;
@@ -41,6 +42,15 @@ namespace MortierFu
 
         public void ReleaseBombshell(Bombshell bombshell)
         {
+            if (bombshell == null)
+                return;
+
+            if (_pool == null)
+                return;
+
+            if (_active == null || !_active.Contains(bombshell))
+                return;
+
             _pool.Release(bombshell);
         }
 
@@ -92,18 +102,13 @@ namespace MortierFu
                 {
                     AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
                 }
-
-                if (bombshell.Bounces > 0)
-                {
-                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
-                }
             }
 
             //GAMEFEEL CALLS
-            if (TEMP_FXHandler.Instance)
+            if (_fxService != null)
             {
                 var character = bombshell.Owner;
-                TEMP_FXHandler.Instance.InstantiateExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
+                _fxService.PlayBombshellExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
             else Logs.LogWarning("No FX Handler");
 
@@ -135,7 +140,6 @@ namespace MortierFu
                 });
             }
 
-            //TODO: Maybe a better way to only spawn puddle on ground hit?
             bool isGround = hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground");
             
             if (hits.Count > 0)
@@ -153,10 +157,11 @@ namespace MortierFu
 
         public void ClearActiveBombshells()
         {
-            if (_active.Count <= 0) return;
+            if (_active == null || _active.Count <= 0)
+                return;
 
-            // Release all active bombshells, this remove them from hash set so must not foreach
             var activeBombshells = new List<Bombshell>(_active);
+
             for (int i = 0; i < activeBombshells.Count; i++)
             {
                 ReleaseBombshell(activeBombshells[i]);
@@ -183,10 +188,13 @@ namespace MortierFu
 
         private void OnReleaseBombshell(Bombshell bombshell)
         {
-            bombshell.OnRelease();
-            bombshell.gameObject.SetActive(false);
+            if (bombshell == null)
+                return;
 
             _active.Remove(bombshell);
+
+            bombshell.OnRelease();
+            bombshell.gameObject.SetActive(false);
         }
 
         private void OnDestroyBombshell(Bombshell bombshell)
@@ -201,13 +209,14 @@ namespace MortierFu
 
         public async UniTask OnInitialize()
         {
-            // Load the system settings;lla
             _settingsHandle = await SystemManager.Config.BombshellSettings.LazyLoadAssetRef();
 
             _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
             
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
-            if (_cameraSystem == null) return;
+            _fxService = ServiceManager.Instance.Get<FXService>();
+            
+            if (_cameraSystem == null || _fxService == null) return;
             
             _bombshellParent = new GameObject("Bombshells").transform;
 

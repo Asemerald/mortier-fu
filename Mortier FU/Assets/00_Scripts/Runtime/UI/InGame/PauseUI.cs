@@ -1,26 +1,27 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using PrimeTween;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
-using Unity.Mathematics;
 
 namespace MortierFu
 {
-    public class PauseUI : MonoBehaviour
+    public class PauseUI : MonoBehaviour, IPlayerUIInputHandler
     {
-        [Header("Toggles & Sliders")] [SerializeField]
-        private Toggle _fullscreenToggle;
-
+        [Header("Toggles & Sliders")]
+        [SerializeField] private Toggle _fullscreenToggle;
         [SerializeField] private Toggle _vSyncToggle;
         [SerializeField] private Slider _masterVolumeSlider;
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
 
-        [Header("Panels")] [SerializeField] private GameObject _pausePanel;
+        [Header("Panels")]
+        [SerializeField] private GameObject _pausePanel;
         [SerializeField] private GameObject _pauseBackground;
         [SerializeField] private GameObject _blackPanel;
         [SerializeField] private GameObject _settingsPanel;
@@ -31,7 +32,8 @@ namespace MortierFu
         [SerializeField] private RawImage _pauseTopText;
         [SerializeField] private RawImage _pauseBottomText;
 
-        [Header("Buttons")] [SerializeField] private Button _settingsButton;
+        [Header("Buttons")]
+        [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
         [SerializeField] private Button _quitButton;
@@ -40,12 +42,12 @@ namespace MortierFu
         [SerializeField] private Button _confirmQuitGameButton;
         [SerializeField] private Button _cancelQuitGameButton;
 
-        [Header("Mortars")] [SerializeField] private GameObject[] _mortarHands;
+        [Header("Mortars")]
+        [SerializeField] private GameObject[] _mortarHands;
         [SerializeField] private GameObject[] _mortarHeads;
 
-        [Header("Animation Settings")] [SerializeField]
-        private float _headYOffset = 80f;
-
+        [Header("Animation Settings")]
+        [SerializeField] private float _headYOffset = 80f;
         [SerializeField] private float _headPulseOffset = 15f;
         [SerializeField] private float _headMoveDuration = 0.4f;
         [SerializeField] private float _headPulseDuration = 0.4f;
@@ -56,9 +58,8 @@ namespace MortierFu
 
         [SerializeField] private float _tilablePauseSpeed = 0.5f;
 
-        [Header("Panel Animation Settings")] [SerializeField]
-        private float _panelScaleDuration = 0.5f;
-
+        [Header("Panel Animation Settings")]
+        [SerializeField] private float _panelScaleDuration = 0.5f;
         [SerializeField] private Ease _panelScaleEase = Ease.OutElastic;
 
         private CancellationTokenSource _controlPanelCTS;
@@ -70,94 +71,212 @@ namespace MortierFu
 
         private EventSystem _eventSystem;
         private GamePauseSystem _gamePauseSystem;
-        private GameModeBase _gm;
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
         private PlayerManager _playerManager;
+        private GameService _gameService;
 
         private Vector3[] _mortarHandsInitialPositions;
         private Vector3[] _mortarHeadsInitialPositions;
         private Quaternion[] _mortarInitialRotations;
 
+        private PlayerControlContext _previousPlayerContext;
+        private bool _hasPreviousPlayerContext;
+
+        private PlayerUIInputService UIInputService =>
+            ServiceManager.Instance?.Get<PlayerUIInputService>();
+
         private void Start()
         {
             InitReferences();
             InitUI();
+            BindPauseSystemEvents();
             InitMortars();
             Hide();
         }
 
-        private void Update()
+        private void OnDisable()
         {
-            if (!_gamePauseSystem.IsPaused) return;
-            ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
-            ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
-        }
+            RemoveFromUIInputService();
+            ExitPauseInputContext();
 
-        private void OnDisable() => StopAllActiveAnimations();
+            UnbindPauseSystemEvents();
+            StopAllActiveAnimations();
+        }
 
         private void OnDestroy()
         {
-            if (_gamePauseSystem != null)
-            {
-                _gamePauseSystem.Paused -= Pause;
-                _gamePauseSystem.Resumed -= UnPause;
-                _gamePauseSystem.Canceled -= Return;
-            }
+            RemoveFromUIInputService();
+            ExitPauseInputContext();
 
+            UnbindPauseSystemEvents();
+            UnbindUIEvents();
             StopAllActiveAnimations();
+
             _mortarHandsInitialPositions = null;
             _mortarHeadsInitialPositions = null;
             _mortarInitialRotations = null;
         }
 
+        private void Update()
+        {
+            if (_gamePauseSystem is null || !_gamePauseSystem.IsPaused)
+                return;
+
+            if (_pauseTopText)
+                ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
+
+            if (_pauseBottomText)
+                ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
+        }
+
         private void InitReferences()
         {
             _eventSystem = EventSystem.current;
-            _gm = GameService.CurrentGameMode as GameModeBase;
+            _gameService = ServiceManager.Instance.Get<GameService>();
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            _playerManager = _lobbyService.GetPlayerByIndex(0);
+
+            _playerManager = TryGetPlayerByIndex(0);
+
+            if (!_playerManager)
+            {
+                Logs.LogWarning("[PauseUI] Player 1 was not found during initialization.", this);
+            }
+        }
+
+        private PlayerManager TryGetPlayerByIndex(int playerIndex)
+        {
+            if (_lobbyService is null)
+                return null;
+
+            var players = _lobbyService.GetPlayers();
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+
+                if (!player)
+                    continue;
+
+                if (player.PlayerIndex == playerIndex)
+                    return player;
+            }
+
+            return null;
         }
 
         private void InitUI()
         {
+            if (_gamePauseSystem is null)
+                return;
+
             _gamePauseSystem.RestoreSettingsFromSave();
+
             _gamePauseSystem.UpdateUIFromSave(
-                _fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
+                _fullscreenToggle,
+                _vSyncToggle,
+                _masterVolumeSlider,
+                _musicVolumeSlider,
+                _sfxVolumeSlider
+            );
+
             _gamePauseSystem.BindUIEvents(
-                _fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
+                _fullscreenToggle,
+                _vSyncToggle,
+                _masterVolumeSlider,
+                _musicVolumeSlider,
+                _sfxVolumeSlider
+            );
 
-            _gamePauseSystem.Paused += Pause;
-            _gamePauseSystem.Resumed += UnPause;
-            _gamePauseSystem.Canceled += Return;
+            if (_settingsButton)
+                _settingsButton.onClick.AddListener(OpenSettingPanel);
 
-            _settingsButton.onClick.AddListener(OpenSettingPanel);
-            _controlsButton.onClick.AddListener(OpenControlPanel);
-            _endGameButton.onClick.AddListener(OpenEndGamePanel);
-            _quitButton.onClick.AddListener(OpenQuitPanel);
+            if (_controlsButton)
+                _controlsButton.onClick.AddListener(OpenControlPanel);
 
-            _fullscreenToggle.onValueChanged.AddListener(PlayToggleFeedback);
-            _vSyncToggle.onValueChanged.AddListener(PlayToggleFeedback);
+            if (_endGameButton)
+                _endGameButton.onClick.AddListener(OpenEndGamePanel);
 
-            _masterVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
-            _musicVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
-            _sfxVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+            if (_quitButton)
+                _quitButton.onClick.AddListener(OpenQuitPanel);
 
-            if (_gm != null)
-            {
-                _confirmEndGameButton.onClick.AddListener(_gamePauseSystem.TogglePause);
-                _confirmEndGameButton.onClick.AddListener(_gm.ReturnToMainMenu);
-            }
+            if (_fullscreenToggle)
+                _fullscreenToggle.onValueChanged.AddListener(PlayToggleFeedback);
 
-            _cancelEndGameButton.onClick.AddListener(Return);
-            _confirmQuitGameButton.onClick.AddListener(Application.Quit);
-            _cancelQuitGameButton.onClick.AddListener(Return);
+            if (_vSyncToggle)
+                _vSyncToggle.onValueChanged.AddListener(PlayToggleFeedback);
+
+            if (_masterVolumeSlider)
+                _masterVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+
+            if (_musicVolumeSlider)
+                _musicVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+
+            if (_sfxVolumeSlider)
+                _sfxVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+
+            if (_confirmEndGameButton)
+                _confirmEndGameButton.onClick.AddListener(OnConfirmEndGame);
+
+            if (_cancelEndGameButton)
+                _cancelEndGameButton.onClick.AddListener(Return);
+
+            if (_confirmQuitGameButton)
+                _confirmQuitGameButton.onClick.AddListener(Application.Quit);
+
+            if (_cancelQuitGameButton)
+                _cancelQuitGameButton.onClick.AddListener(Return);
+        }
+
+        private void UnbindUIEvents()
+        {
+            if (_settingsButton)
+                _settingsButton.onClick.RemoveListener(OpenSettingPanel);
+
+            if (_controlsButton)
+                _controlsButton.onClick.RemoveListener(OpenControlPanel);
+
+            if (_endGameButton)
+                _endGameButton.onClick.RemoveListener(OpenEndGamePanel);
+
+            if (_quitButton)
+                _quitButton.onClick.RemoveListener(OpenQuitPanel);
+
+            if (_fullscreenToggle)
+                _fullscreenToggle.onValueChanged.RemoveListener(PlayToggleFeedback);
+
+            if (_vSyncToggle)
+                _vSyncToggle.onValueChanged.RemoveListener(PlayToggleFeedback);
+
+            if (_masterVolumeSlider)
+                _masterVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+
+            if (_musicVolumeSlider)
+                _musicVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+
+            if (_sfxVolumeSlider)
+                _sfxVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+
+            if (_confirmEndGameButton)
+                _confirmEndGameButton.onClick.RemoveListener(OnConfirmEndGame);
+
+            if (_cancelEndGameButton)
+                _cancelEndGameButton.onClick.RemoveListener(Return);
+
+            if (_confirmQuitGameButton)
+                _confirmQuitGameButton.onClick.RemoveListener(Application.Quit);
+
+            if (_cancelQuitGameButton)
+                _cancelQuitGameButton.onClick.RemoveListener(Return);
         }
 
         private void InitMortars()
         {
+            if (_mortarHands is null || _mortarHeads is null)
+                return;
+
             _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
             _mortarHeadsInitialPositions = new Vector3[_mortarHeads.Length];
             _mortarInitialRotations = new Quaternion[_mortarHands.Length];
@@ -165,18 +284,42 @@ namespace MortierFu
 
             for (int i = 0; i < _mortarHands.Length; i++)
             {
+                if (!_mortarHands[i])
+                    continue;
+
                 _mortarHandsInitialPositions[i] = _mortarHands[i].transform.position;
-                _mortarHeadsInitialPositions[i] = _mortarHeads[i].transform.position;
                 _mortarInitialRotations[i] = _mortarHands[i].transform.rotation;
 
                 _mortarHands[i].SetActive(false);
+            }
+
+            for (int i = 0; i < _mortarHeads.Length; i++)
+            {
+                if (!_mortarHeads[i])
+                    continue;
+
+                _mortarHeadsInitialPositions[i] = _mortarHeads[i].transform.position;
                 _mortarHeads[i].SetActive(false);
             }
         }
 
+        private void OnConfirmEndGame()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+
+            if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
+            {
+                _gamePauseSystem.TogglePause();
+            }
+
+            _gameService?.ReturnToLobby();
+        }
 
         private void ScrollRawImageUV(RawImage image, float speed)
         {
+            if (!image)
+                return;
+
             var rect = image.uvRect;
             rect.x = math.frac(rect.x + speed * Time.unscaledDeltaTime);
             image.uvRect = rect;
@@ -184,11 +327,13 @@ namespace MortierFu
 
         private void StopAllActiveAnimations()
         {
-            if (_activeHeadTweens != null)
+            if (_activeHeadTweens is not null)
             {
-                foreach (var tween in _activeHeadTweens)
-                    if (tween.isAlive)
-                        tween.Stop();
+                for (int i = 0; i < _activeHeadTweens.Length; i++)
+                {
+                    if (_activeHeadTweens[i].isAlive)
+                        _activeHeadTweens[i].Stop();
+                }
             }
 
             _animateCancellation?.Cancel();
@@ -207,46 +352,105 @@ namespace MortierFu
             cts = null;
         }
 
+        private CancellationTokenSource CreatePanelCts(CancellationTokenSource current)
+        {
+            current?.Cancel();
+            current?.Dispose();
+            return new CancellationTokenSource();
+        }
+
         private void OpenSettingPanel()
         {
             PlayPanelSelectionFeedback();
-            _settingsPanel.SetActive(true);
-            _pausePanel.SetActive(false);
-            _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
+
+            if (_settingsPanel)
+                _settingsPanel.SetActive(true);
+
+            if (_pausePanel)
+                _pausePanel.SetActive(false);
+
+            if (_eventSystem && _fullscreenToggle)
+                _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
         }
 
         private void OpenControlPanel()
         {
             PlayPanelSelectionFeedback();
-            AnimateOpenPanel(_controlsPanel, _controlPanelCTS, null, 0.2f, Ease.OutCubic).Forget();
+            AnimateOpenControlPanel().Forget();
         }
 
         private void OpenEndGamePanel()
         {
             PlayPanelSelectionFeedback();
-            AnimateOpenPanel(_endGameConfirmationPanel, _endGamePanelCTS, _confirmEndGameButton.gameObject,
-                _panelScaleDuration, _panelScaleEase).Forget();
+            AnimateOpenEndGamePanel().Forget();
         }
 
         private void OpenQuitPanel()
         {
             PlayPanelSelectionFeedback();
-            AnimateOpenPanel(_quitGameConfirmationPanel, _quitPanelCTS, _confirmQuitGameButton.gameObject, _panelScaleDuration,
-                _panelScaleEase).Forget();
+            AnimateOpenQuitPanel().Forget();
         }
 
-        private async UniTask AnimateOpenPanel(GameObject panel, CancellationTokenSource cts, GameObject selectedButton,
-            float duration, Ease ease)
+        private async UniTask AnimateOpenControlPanel()
         {
-            SafeCancelCts(ref cts);
-            cts = new CancellationTokenSource();
+            _controlPanelCTS = CreatePanelCts(_controlPanelCTS);
+
+            await AnimateOpenPanel(
+                _controlsPanel,
+                _controlPanelCTS,
+                null,
+                0.2f,
+                Ease.OutCubic
+            );
+        }
+
+        private async UniTask AnimateOpenEndGamePanel()
+        {
+            _endGamePanelCTS = CreatePanelCts(_endGamePanelCTS);
+
+            await AnimateOpenPanel(
+                _endGameConfirmationPanel,
+                _endGamePanelCTS,
+                _confirmEndGameButton ? _confirmEndGameButton.gameObject : null,
+                _panelScaleDuration,
+                _panelScaleEase
+            );
+        }
+
+        private async UniTask AnimateOpenQuitPanel()
+        {
+            _quitPanelCTS = CreatePanelCts(_quitPanelCTS);
+
+            await AnimateOpenPanel(
+                _quitGameConfirmationPanel,
+                _quitPanelCTS,
+                _confirmQuitGameButton ? _confirmQuitGameButton.gameObject : null,
+                _panelScaleDuration,
+                _panelScaleEase
+            );
+        }
+
+        private async UniTask AnimateOpenPanel(
+            GameObject panel,
+            CancellationTokenSource cts,
+            GameObject selectedButton,
+            float duration,
+            Ease ease
+        )
+        {
+            if (!panel || cts is null)
+                return;
+
             CancellationToken ct = cts.Token;
 
             panel.transform.localScale = Vector3.zero;
             panel.SetActive(true);
-            _eventSystem.SetSelectedGameObject(selectedButton);
 
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            if (_eventSystem && selectedButton)
+                _eventSystem.SetSelectedGameObject(selectedButton);
+
+            if (_shakeService is not null && _playerManager)
+                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
 
             try
             {
@@ -255,23 +459,34 @@ namespace MortierFu
             }
             catch (OperationCanceledException)
             {
-                // Safe cancellation
+                // Safe cancellation.
             }
         }
 
         private void PlayPanelSelectionFeedback()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            if (_shakeService is not null && _playerManager)
+                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
         }
 
         private void Show()
         {
-            _pausePanel.SetActive(true);
-            _pauseBackground.SetActive(true);
-            _blackPanel.SetActive(true);
-            _pauseTopText.transform.parent.gameObject.SetActive(true);
-            _pauseBottomText.transform.parent.gameObject.SetActive(true);
+            if (_pausePanel)
+                _pausePanel.SetActive(true);
+
+            if (_pauseBackground)
+                _pauseBackground.SetActive(true);
+
+            if (_blackPanel)
+                _blackPanel.SetActive(true);
+
+            if (_pauseTopText && _pauseTopText.transform.parent)
+                _pauseTopText.transform.parent.gameObject.SetActive(true);
+
+            if (_pauseBottomText && _pauseBottomText.transform.parent)
+                _pauseBottomText.transform.parent.gameObject.SetActive(true);
 
             SafeCancelCts(ref _animateCancellation);
             _animateCancellation = new CancellationTokenSource();
@@ -281,15 +496,32 @@ namespace MortierFu
 
         private void Hide()
         {
-            _pausePanel.SetActive(false);
-            _pauseBackground.SetActive(false);
-            _settingsPanel.SetActive(false);
-            _controlsPanel.SetActive(false);
-            _blackPanel.SetActive(false);
-            _endGameConfirmationPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(false);
-            _pauseTopText.transform.parent.gameObject.SetActive(false);
-            _pauseBottomText.transform.parent.gameObject.SetActive(false);
+            if (_pausePanel)
+                _pausePanel.SetActive(false);
+
+            if (_pauseBackground)
+                _pauseBackground.SetActive(false);
+
+            if (_settingsPanel)
+                _settingsPanel.SetActive(false);
+
+            if (_controlsPanel)
+                _controlsPanel.SetActive(false);
+
+            if (_blackPanel)
+                _blackPanel.SetActive(false);
+
+            if (_endGameConfirmationPanel)
+                _endGameConfirmationPanel.SetActive(false);
+
+            if (_quitGameConfirmationPanel)
+                _quitGameConfirmationPanel.SetActive(false);
+
+            if (_pauseTopText && _pauseTopText.transform.parent)
+                _pauseTopText.transform.parent.gameObject.SetActive(false);
+
+            if (_pauseBottomText && _pauseBottomText.transform.parent)
+                _pauseBottomText.transform.parent.gameObject.SetActive(false);
 
             StopAllActiveAnimations();
             RestoreMortarsInitialState();
@@ -297,53 +529,103 @@ namespace MortierFu
 
         private void RestoreMortarsInitialState()
         {
-            for (int i = 0; i < _mortarHands.Length; i++)
+            if (_mortarHands is not null &&
+                _mortarHandsInitialPositions is not null &&
+                _mortarInitialRotations is not null)
             {
-                _mortarHands[i].SetActive(false);
-                _mortarHeads[i].SetActive(false);
+                for (int i = 0; i < _mortarHands.Length; i++)
+                {
+                    if (!_mortarHands[i])
+                        continue;
 
-                _mortarHands[i].transform.position = _mortarHandsInitialPositions[i];
-                _mortarHands[i].transform.rotation = _mortarInitialRotations[i];
+                    _mortarHands[i].SetActive(false);
+                    _mortarHands[i].transform.position = _mortarHandsInitialPositions[i];
+                    _mortarHands[i].transform.rotation = _mortarInitialRotations[i];
+                }
+            }
 
-                _mortarHeads[i].transform.position = _mortarHeadsInitialPositions[i];
-                _mortarHeads[i].transform.rotation = _mortarInitialRotations[i];
+            if (_mortarHeads is not null && _mortarHeadsInitialPositions is not null)
+            {
+                for (int i = 0; i < _mortarHeads.Length; i++)
+                {
+                    if (!_mortarHeads[i])
+                        continue;
+
+                    _mortarHeads[i].SetActive(false);
+                    _mortarHeads[i].transform.position = _mortarHeadsInitialPositions[i];
+                }
             }
         }
 
         private async UniTask AnimateMortarsRandomly(CancellationToken ct)
         {
+            if (_activeHeadTweens is null || _mortarHands is null || _mortarHeads is null)
+                return;
+
             for (int i = 0; i < _activeHeadTweens.Length; i++)
+            {
                 if (_activeHeadTweens[i].isAlive)
                     _activeHeadTweens[i].Stop();
+            }
 
-            int playerCount = Mathf.Min(_lobbyService.CurrentPlayerCount, _mortarHands.Length);
+            int playerCount = Mathf.Min(
+                _lobbyService?.CurrentPlayerCount ?? 0,
+                _mortarHands.Length,
+                _mortarHeads.Length
+            );
 
             int[] indices = new int[_mortarHands.Length];
-            for (int i = 0; i < indices.Length; i++) indices[i] = i;
+
+            for (int i = 0; i < indices.Length; i++)
+                indices[i] = i;
+
             Shuffle(indices);
 
             for (int i = 0; i < playerCount; i++)
             {
-                if (ct.IsCancellationRequested) return;
+                if (ct.IsCancellationRequested)
+                    return;
 
                 int positionIndex = indices[i];
+
                 var hand = _mortarHands[i];
                 var head = _mortarHeads[i];
 
+                if (!hand || !head)
+                    continue;
+
                 bool shouldRotate = (i % 2) != (positionIndex % 2);
-                ApplyMortarTransform(hand, _mortarHandsInitialPositions[positionIndex], _mortarInitialRotations[i],
-                    shouldRotate);
+
+                ApplyMortarTransform(
+                    hand,
+                    _mortarHandsInitialPositions[positionIndex],
+                    _mortarInitialRotations[i],
+                    shouldRotate
+                );
+
                 hand.SetActive(true);
 
-                ApplyMortarTransform(head, _mortarHeadsInitialPositions[positionIndex], _mortarInitialRotations[i],
-                    shouldRotate, _headYOffset * ((positionIndex % 2 == 0) ? -1 : 1));
+                ApplyMortarTransform(
+                    head,
+                    _mortarHeadsInitialPositions[positionIndex],
+                    _mortarInitialRotations[i],
+                    shouldRotate,
+                    _headYOffset * ((positionIndex % 2 == 0) ? -1 : 1)
+                );
+
                 head.SetActive(true);
 
-                await Tween.Position(head.transform, _mortarHeadsInitialPositions[positionIndex], _headMoveDuration,
-                        _headMoveEase, useUnscaledTime: true)
+                await Tween.Position(
+                        head.transform,
+                        _mortarHeadsInitialPositions[positionIndex],
+                        _headMoveDuration,
+                        _headMoveEase,
+                        useUnscaledTime: true
+                    )
                     .ToUniTask(cancellationToken: ct);
 
-                if (ct.IsCancellationRequested) return;
+                if (ct.IsCancellationRequested)
+                    return;
 
                 _activeHeadTweens[i] = Tween.Position(
                     head.transform,
@@ -357,63 +639,236 @@ namespace MortierFu
                 );
 
                 float delay = Random.Range(_minRandomDelay, _maxRandomDelay);
-                await UniTask.Delay(TimeSpan.FromSeconds(delay), ignoreTimeScale: true, cancellationToken: ct);
+
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(delay),
+                    ignoreTimeScale: true,
+                    cancellationToken: ct
+                );
             }
         }
 
-        private void ApplyMortarTransform(GameObject obj, Vector3 targetPos, Quaternion baseRot, bool rotate,
-            float yOffset = 0f)
+        private void ApplyMortarTransform(GameObject obj, Vector3 targetPos, Quaternion baseRot, bool rotate, float yOffset = 0f)
         {
+            if (!obj)
+                return;
+
             obj.transform.rotation = baseRot;
-            if (rotate) obj.transform.Rotate(0f, 0f, 180f);
+
+            if (rotate)
+                obj.transform.Rotate(0f, 0f, 180f);
+
             obj.transform.position = targetPos + new Vector3(0f, yOffset, 0f);
         }
 
         private void Pause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
+
             ServiceManager.Instance.Get<AudioService>().SetPause(1);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            if (_shakeService is not null && _playerManager)
+                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            EnterPauseInputContext();
+            RegisterToUIInputService();
+
             Show();
-            _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+
+            if (_eventSystem && _settingsButton)
+                _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
         }
 
         private void UnPause()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, 0);
+
             ServiceManager.Instance.Get<AudioService>().SetPause(0);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            if (_shakeService is not null && _playerManager)
+                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+
+            RemoveFromUIInputService();
+            ExitPauseInputContext();
+
             Hide();
         }
 
-        private void PlayToggleFeedback(bool value) => PlayMinorUIFeedback();
-        private void PlaySliderFeedback(float value) => PlayMinorUIFeedback();
+        private void EnterPauseInputContext()
+        {
+            if (!_playerManager)
+                _playerManager = TryGetPlayerByIndex(0);
+
+            if (!_playerManager)
+                return;
+
+            if (_playerManager.ControlContext != PlayerControlContext.PauseMenu)
+            {
+                _previousPlayerContext = _playerManager.ControlContext;
+                _hasPreviousPlayerContext = true;
+            }
+
+            _playerManager.SetControlContext(PlayerControlContext.PauseMenu);
+        }
+
+        private void ExitPauseInputContext()
+        {
+            if (!_playerManager)
+                return;
+
+            if (_hasPreviousPlayerContext)
+            {
+                _playerManager.SetControlContext(_previousPlayerContext);
+            }
+
+            _hasPreviousPlayerContext = false;
+        }
+
+        private void RegisterToUIInputService()
+        {
+            if (!_playerManager)
+                _playerManager = TryGetPlayerByIndex(0);
+
+            if (!_playerManager)
+                return;
+
+            UIInputService?.Push(_playerManager, this);
+        }
+
+        private void RemoveFromUIInputService()
+        {
+            if (_playerManager)
+            {
+                UIInputService?.Remove(_playerManager, this);
+                return;
+            }
+
+            UIInputService?.RemoveFromAll(this);
+        }
+
+        private void PlayToggleFeedback(bool value)
+        {
+            PlayMinorUIFeedback();
+        }
+
+        private void PlaySliderFeedback(float value)
+        {
+            PlayMinorUIFeedback();
+        }
 
         private void PlayMinorUIFeedback()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
-            _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
+
+            if (_shakeService is not null && _playerManager)
+                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
         }
 
         private void Return()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
 
-            if (_controlsPanel.activeSelf) _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
-            if (_endGameConfirmationPanel.activeSelf) _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
-            if (_quitGameConfirmationPanel.activeSelf) _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
-            if (_settingsPanel.activeSelf) _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+            if (_controlsPanel && _controlsPanel.activeSelf && _controlsButton && _eventSystem)
+                _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
 
-            _settingsPanel.SetActive(false);
-            _controlsPanel.SetActive(false);
-            _endGameConfirmationPanel.SetActive(false);
-            _quitGameConfirmationPanel.SetActive(false);
-            _pausePanel.SetActive(true);
-            _blackPanel.SetActive(true);
+            if (_endGameConfirmationPanel && _endGameConfirmationPanel.activeSelf && _endGameButton && _eventSystem)
+                _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
+
+            if (_quitGameConfirmationPanel && _quitGameConfirmationPanel.activeSelf && _quitButton && _eventSystem)
+                _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
+
+            if (_settingsPanel && _settingsPanel.activeSelf && _settingsButton && _eventSystem)
+                _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+
+            if (_settingsPanel)
+                _settingsPanel.SetActive(false);
+
+            if (_controlsPanel)
+                _controlsPanel.SetActive(false);
+
+            if (_endGameConfirmationPanel)
+                _endGameConfirmationPanel.SetActive(false);
+
+            if (_quitGameConfirmationPanel)
+                _quitGameConfirmationPanel.SetActive(false);
+
+            if (_pausePanel)
+                _pausePanel.SetActive(true);
+
+            if (_blackPanel)
+                _blackPanel.SetActive(true);
+        }
+
+        private bool IsAnySubPanelOpen()
+        {
+            return (_settingsPanel && _settingsPanel.activeSelf) ||
+                   (_controlsPanel && _controlsPanel.activeSelf) ||
+                   (_endGameConfirmationPanel && _endGameConfirmationPanel.activeSelf) ||
+                   (_quitGameConfirmationPanel && _quitGameConfirmationPanel.activeSelf);
+        }
+
+        private void BindPauseSystemEvents()
+        {
+            if (_gamePauseSystem is null)
+                return;
+
+            _gamePauseSystem.Paused -= Pause;
+            _gamePauseSystem.Resumed -= UnPause;
+            _gamePauseSystem.Canceled -= Return;
+
+            _gamePauseSystem.Paused += Pause;
+            _gamePauseSystem.Resumed += UnPause;
+            _gamePauseSystem.Canceled += Return;
+        }
+
+        private void UnbindPauseSystemEvents()
+        {
+            if (_gamePauseSystem is null)
+                return;
+
+            _gamePauseSystem.Paused -= Pause;
+            _gamePauseSystem.Resumed -= UnPause;
+            _gamePauseSystem.Canceled -= Return;
+        }
+
+        public bool CanHandleUIInput(PlayerManager player)
+        {
+            return _gamePauseSystem is not null &&
+                   _gamePauseSystem.IsPaused &&
+                   _playerManager &&
+                   ReferenceEquals(_playerManager, player);
+        }
+
+        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        {
+            return false;
+        }
+
+        public bool HandleSubmit(PlayerManager player)
+        {
+            return false;
+        }
+
+        public bool HandleCancel(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            if (IsAnySubPanelOpen())
+            {
+                Return();
+                return true;
+            }
+
+            _gamePauseSystem.TogglePause();
+            return true;
         }
 
         private void Shuffle(int[] array)
         {
+            if (array is null)
+                return;
+
             for (int i = array.Length - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);

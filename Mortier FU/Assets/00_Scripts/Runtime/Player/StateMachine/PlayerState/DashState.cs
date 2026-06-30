@@ -7,6 +7,8 @@ namespace MortierFu
 {
     public class DashState : BaseState
     {
+        private FXService _fxService;
+        
         private Collider[] _overlapBuffer = new Collider[100];
 
         private HashSet<GameObject> _processedRoots;
@@ -21,6 +23,8 @@ namespace MortierFu
 
         public DashState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
+            _fxService = ServiceManager.Instance.Get<FXService>();
+            
             _processedRoots = new HashSet<GameObject>();
             _hitCharacters = new HashSet<PlayerCharacter>();
 
@@ -56,7 +60,10 @@ namespace MortierFu
 
         public override void OnEnter()
         {
+            character.Mortar.CancelAiming();
+
             _availableCharges -= 1;
+            
             if (!_dashCooldownTimer.IsRunning)
             {
                 _dashCooldownTimer.Start();
@@ -71,7 +78,7 @@ namespace MortierFu
                 Character = character,
             });
 
-            TEMP_FXHandler.Instance.InstantiateDashFX(character.GetStrikePoint(),
+            _fxService.PlayDashFX(character.GetStrikePoint(),
                 character.Stats.GetStrikeRadius() * 0.5f);
             if (debug)
                 Logs.Log("Entering Dash State");
@@ -173,7 +180,7 @@ namespace MortierFu
 
                 //var knockbackDir = (other.transform.position - character.transform.position).normalized;
                 var knockbackDir = character.Controller.GetDashDirection().normalized;
-                
+
                 var knockbackForce = knockbackDir * character.Stats.GetDashPushForce();
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();

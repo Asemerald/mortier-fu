@@ -13,7 +13,7 @@ namespace MortierFu
         
         public override void Initialize()
         {
-            stats.DashCharges.AddModifier(new StatModifier(db.DoubleDashParams.ExtraDashes, E_StatModType.Flat));
+            stats.DashCharges.AddModifier(new StatModifier(db.DoubleDashParams.ExtraDashes, E_StatModType.Flat, this));
         }
         
         public override void Dispose()

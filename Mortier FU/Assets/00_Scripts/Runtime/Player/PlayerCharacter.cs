@@ -2,11 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
-using PrimeTween;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -18,7 +16,16 @@ namespace MortierFu
         /// <summary>
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
-        public static bool AllowGameplayActions { get; set; }
+        public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
+
+        public PlayerActionPermissions ActionPermissions { get; private set; } =
+            PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
+
+        public bool CanMove => ActionPermissions.CanMove && Health != null && Health.IsAlive;
+        public bool CanAim => ActionPermissions.CanAim && Health != null && Health.IsAlive;
+        public bool CanShoot => ActionPermissions.CanShoot && Health != null && Health.IsAlive;
+        public bool CanDash => ActionPermissions.CanDash && Health != null && Health.IsAlive;
+        public bool CanTaunt => ActionPermissions.CanTaunt && Health != null && Health.IsAlive;
 
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
 
@@ -36,7 +43,10 @@ namespace MortierFu
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
+        [Header("Customization")]
+        [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
+        public PlayerCustomizationVisual CustomizationVisual => _customizationVisual;
         private StateMachine _stateMachine;
 
         private InputAction _dashAction;
@@ -53,14 +63,10 @@ namespace MortierFu
         public SO_CharacterStats Stats { get; private set; }
 
         private List<IAugment> _augments = new();
-        public ReadOnlyCollection<IAugment> Augments;
-        
+        public ReadOnlyCollection<IAugment> Augments { get; private set; }
+
         // Assets specified by player color.
-        [field: SerializeField]
-        public SO_PlayerAssets Assets { get; private set; }
-        
-        // private List<IEffect<PlayerCharacter>> _activeEffects = new();
-        //private List<Ability> PuddleAbilities; //TODO: Make it better
+        [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
 
         private LocomotionState _locomotionState;
         private KnockbackState _knockbackState;
@@ -68,15 +74,11 @@ namespace MortierFu
         private DashState _dashState;
 
         private ShakeService _shakeService;
-        private CameraSystem _cameraSystem;
-        private Camera _main;
 
         private readonly int _speedHash = Animator.StringToHash("Speed");
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
         public ShakeService ShakeService => _shakeService;
-
-        // public List<Ability> GetPuddleAbilities => PuddleAbilities;
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
@@ -84,9 +86,80 @@ namespace MortierFu
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
 
+        void Awake()
+        {
+            // Create character components
+            Health = new HealthCharacterComponent(this);
+            Controller = new ControllerCharacterComponent(this);
+            Aspect = new AspectCharacterComponent(this);
+            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
+
+            // Create a unique instance of CharacterData for this character
+            Stats = Instantiate(_characterStatsTemplate);
+
+            // Handle augments
+            _augments = new List<IAugment>();
+            Augments = _augments.AsReadOnly();
+            
+            ResolveCustomizationVisual();
+            InitStateMachine();
+        }
+
+        void Start()
+        {
+            // Find and cache Input Actions
+            FindInputAction("Dash", out _dashAction);
+            FindInputAction("ToggleAim", out _toggleAimAction);
+            FindInputAction("Taunt", out _tauntAction);
+
+            // Initialize character components
+            Health.Initialize();
+            Controller.Initialize();
+            Aspect.Initialize(); // Require to be initialized before the mortar
+            Mortar.Initialize();
+
+            _toggleAimAction.started += Mortar.BeginAiming;
+            _toggleAimAction.canceled += Mortar.EndAiming;
+
+            _dashAction.started += PlayDashSFX;
+            _tauntAction.started += Taunt;
+
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
+            _dashState.Reset();
+            ExternalSpeedMultiplier = 1f;
+        }
+
+        private void OnDisable()
+        {
+            Mortar?.CancelAiming();
+        }
+
+        private void OnDestroy()
+        {
+            ClearAugments();
+
+            _stateMachine?.Dispose();
+
+            Health?.Dispose();
+            Controller?.Dispose();
+            Aspect?.Dispose();
+            Mortar?.Dispose();
+
+            if (_dashAction != null)
+                _dashAction.started -= PlayDashSFX;
+
+            if (_tauntAction != null)
+                _tauntAction.started -= Taunt;
+
+            if (_toggleAimAction == null || Mortar == null) return;
+            _toggleAimAction.started -= Mortar.BeginAiming;
+            _toggleAimAction.canceled -= Mortar.EndAiming;
+        }
+
         public void Initialize(PlayerManager owner)
         {
-            if (owner == null)
+            if (!owner)
             {
                 Logs.LogError("Cannot initialize player with null Owner !");
                 return;
@@ -103,61 +176,42 @@ namespace MortierFu
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
 
-            // Appliquer le skin choisi dans le lobby
-            ApplySkinFromLobby(owner.SkinIndex);
+            ResolveCustomizationVisual();
 
-            // Appliquer le visage choisi dans le lobby
-            ApplyFaceFromLobby(owner.FaceColumn, owner.FaceRow);
+            if (_customizationVisual)
+                _customizationVisual.Apply(owner.Customization);
+            else
+                Logs.LogWarning("[PlayerCharacter] No PlayerCustomizationVisual assigned.", this);
 
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
         }
 
-        void Awake()
+        public void RefreshCustomizationFromOwner()
         {
-            // Create character components
-            Health = new HealthCharacterComponent(this);
-            Controller = new ControllerCharacterComponent(this);
-            Aspect = new AspectCharacterComponent(this);
-            Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
+            if (!Owner)
+                return;
 
-            // Create a unique instance of CharacterData for this character
-            Stats = Instantiate(_characterStatsTemplate);
+            ResolveCustomizationVisual();
 
-            // Handle augments
-            _augments = new List<IAugment>();
-            Augments = _augments.AsReadOnly();
-
-            // _activeEffects = new List<IEffect<PlayerCharacter>>();
-            //   PuddleAbilities = new List<Ability>();
-
-            InitStateMachine();
+            if (_customizationVisual)
+                _customizationVisual.Apply(Owner.Customization);
         }
-
-        void Start()
+        
+        public void SetControlContext(PlayerControlContext context)
         {
-            // Find and cache Input Actions
-            FindInputAction("Dash", out _dashAction);
-            FindInputAction("ToggleAim", out _toggleAimAction);
-            FindInputAction("Taunt", out _tauntAction);
+            ControlContext = context;
+            ActionPermissions = PlayerActionPermissions.FromContext(context);
 
-            // Initialize character components
-            Health.Initialize();
-            Controller.Initialize();
-            Aspect.Initialize(); // Require to be initialized before the mortar
-            Mortar.Initialize();
-            //TEMP Initialiser l'aimindicator
-            //  GetComponent<TEMP_AimIndicatorSystem>().Initialize();
+            if (!CanAim)
+            {
+                Mortar?.CancelAiming();
+            }
 
-            _toggleAimAction.started += Mortar.BeginAiming;
-            _toggleAimAction.canceled += Mortar.EndAiming;
-
-            _dashAction.started += PlayDashSFX;
-            _tauntAction.started += Taunt;
-
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
-            _main = _cameraSystem.Controller.Camera;
+            if (!CanMove)
+            {
+                Controller?.ResetVelocity();
+            }
         }
 
         public void Reset()
@@ -173,40 +227,25 @@ namespace MortierFu
             Aspect.Reset();
             Mortar.Reset();
 
-            /* var effectsCopy = new List<IEffect<PlayerCharacter>>(_activeEffects);
-
-              foreach (var effect in effectsCopy)
-              {
-                  effect.OnCompleted -= RemoveEffect;
-                  effect.Cancel(this);
-              }
-
-            _activeEffects.Clear();*/
-
             _knockbackState.Reset();
             _dashState.Reset();
 
             _stateMachine.SetState(_locomotionState);
-            
+
             ExternalSpeedMultiplier = 1f;
         }
 
-        void OnDestroy()
+        public void RespawnAt(Vector3 position, Quaternion rotation)
         {
-            _stateMachine.Dispose();
+            Mortar?.CancelAiming();
 
-            Health.Dispose();
-            Controller.Dispose();
-            Aspect.Dispose();
-            Mortar.Dispose();
+            Reset();
 
-            _dashAction.started -= PlayDashSFX;
-            _tauntAction.started -= Taunt;
+            transform.SetPositionAndRotation(position, rotation);
 
-            if (_toggleAimAction == null || Mortar == null) return;
+            Controller?.ResetVelocity();
 
-            _toggleAimAction.started -= Mortar.BeginAiming;
-            _toggleAimAction.canceled -= Mortar.EndAiming;
+            Logs.Log($"[PlayerCharacter] Respawned {name} at {position}.");
         }
 
         private void InitStateMachine()
@@ -223,26 +262,66 @@ namespace MortierFu
             var deathState = new DeathState(this, _animator);
 
             // Define transitions
-            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
-            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
-            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
-            At(_locomotionState, _dashState, new FuncPredicate(() => _dashAction.triggered
-                                                                     && _dashState.AvailableCharges > 0 &&
-                                                                     Controller.GetDashDirection().sqrMagnitude >
-                                                                     0.01f));
-            At(_locomotionState, aimState, new GameplayFuncPredicate(() => _toggleAimAction.IsPressed()));
-            At(aimState, _locomotionState, new GameplayFuncPredicate(() => !_toggleAimAction.IsPressed()));
-            At(aimState, _dashState, new GameplayFuncPredicate(() => _dashAction.triggered &&
-                                                                     _dashState.AvailableCharges > 0 &&
-                                                                     Controller.GetDashDirection().sqrMagnitude >
-                                                                     0.01f));
-            At(aimState, shootState, new GameplayFuncPredicate(() => Mortar.IsShooting));
-            At(shootState, aimState, new GameplayFuncPredicate(() => shootState.IsClipFinished));
 
-            Any(deathState, new FuncPredicate(() => !Health.IsAlive));
+            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive
+            ));
+
+            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive
+            ));
+
+            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished
+            ));
+
+            // Locomotion -> Dash
+            At(_locomotionState, _dashState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanDash,
+                () => _dashAction.triggered
+                      && _dashState.AvailableCharges > 0
+                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
+            ));
+
+            // Locomotion -> Aim
+            At(_locomotionState, aimState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanAim,
+                () => _toggleAimAction.IsPressed()
+            ));
+
+            // Aim -> Locomotion
+            At(aimState, _locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed() || !CanAim
+            ));
+
+            // Aim -> Dash
+            At(aimState, _dashState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanDash,
+                () => _dashAction.triggered
+                      && _dashState.AvailableCharges > 0
+                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
+            ));
+
+            // Aim -> Shoot
+            At(aimState, shootState, new PlayerActionPredicate(
+                this,
+                permissions => permissions.CanShoot,
+                () => Mortar.IsShooting
+            ));
+
+            // Shoot -> Aim
+            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished || !CanShoot
+            ));
+
+            // Transitions globales prioritaires
+            Any(deathState, new FuncPredicate(() => !Health.IsAlive
+            ));
+
             Any(_knockbackState,
-                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
-            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
+                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive
+                ));
+
+            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive
+            ));
 
             // Set initial state
             _stateMachine.SetState(_locomotionState);
@@ -254,7 +333,7 @@ namespace MortierFu
             _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
-        public void ReceiveStun(float duration)
+        private void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
         }
@@ -288,25 +367,21 @@ namespace MortierFu
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
-        /* public void AddPuddleEffect(Ability ability)
-         {
-             if (!PuddleAbilities.Contains(ability)) //TODO: see later if we add duplicate or power up the effect
-             {
-                 PuddleAbilities.Add(ability);
-             }
-         }
-
-         public void RemovePuddleEffect(Ability ability)
-         {
-             PuddleAbilities.Remove(ability);
-         }*/
-
-        //   private bool HasEffect(IEffect<PlayerCharacter> effect) => _activeEffects.Contains(effect);
-
-        // Could also implement a RemoveAugment method if needed
-
         public void ClearAugments()
         {
+            for (int i = _augments.Count - 1; i >= 0; i--)
+            {
+                try
+                {
+                    _augments[i]?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Logs.LogError(
+                        $"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
+                }
+            }
+
             _augments.Clear();
         }
 
@@ -321,7 +396,7 @@ namespace MortierFu
             Health.Update();
             Controller.Update();
             Aspect.Update();
-            Mortar.Update();
+            Mortar?.Update();
 
             UpdateAnimator();
         }
@@ -333,12 +408,12 @@ namespace MortierFu
             Health.FixedUpdate();
             Controller.FixedUpdate();
             Aspect.FixedUpdate();
-            Mortar.FixedUpdate();
+            Mortar?.FixedUpdate();
         }
 
         private void OnCollisionEnter(Collision other)
         {
-            // C'est affreux mais asshoul
+            // C'est affreux
             if (_knockbackState.IsActive && other.impulse.magnitude > 5 &&
                 (_knockbackState.LastBumpSource is not PlayerCharacter character ||
                  !other.gameObject.TryGetComponent<PlayerCharacter>(out var otherChar) || character != otherChar))
@@ -371,7 +446,7 @@ namespace MortierFu
             Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
 
-            if (Owner != null)
+            if (Owner)
             {
                 Gizmos.color = Color.white;
                 UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
@@ -386,7 +461,7 @@ namespace MortierFu
             Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
 
-            if (Owner != null)
+            if (Owner)
             {
                 Gizmos.color = Color.white;
                 UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
@@ -403,24 +478,11 @@ namespace MortierFu
             _animator.SetFloat(_speedHash, Controller.SpeedRatio);
         }
 
-        /*public void ApplyEffect(IEffect<PlayerCharacter> effect)
-        {
-            if (HasEffect(effect))
-                return;
-
-            _activeEffects.Add(effect);
-            effect.OnCompleted += RemoveEffect;
-            effect.Apply(this);
-        }
-
-        public void RemoveEffect(IEffect<PlayerCharacter> effect)
-        {
-            effect.OnCompleted -= RemoveEffect;
-            _activeEffects.Remove(effect);
-        }*/
-
         private void PlayDashSFX(InputAction.CallbackContext context)
         {
+            if (!CanDash)
+                return;
+
             if (_dashState.DashCooldownProgress > 0f)
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
@@ -442,111 +504,27 @@ namespace MortierFu
         private bool ShouldShowStats => Stats != null;
 #endif
 
-        private void Taunt(InputAction.CallbackContext ctx) => _tauntFeedback.Taunt();
-
-        #region SKINS
-
-        [Header("Skins")] [SerializeField] private GameObject[] availableInGameSkins;
-        [SerializeField] private GameObject[] availableInGameSkinsOutline;
-        [SerializeField] private SkinnedMeshRenderer faceInGameMeshRenderer;
-        [SerializeField] private string columnPropertyName = "_Column";
-        [SerializeField] private string rowPropertyName = "_Row";
-
-        private Material _faceInGameMaterial;
-
-        private void ApplySkinFromLobby(int skinIndex)
+        private void Taunt(InputAction.CallbackContext ctx)
         {
-            if (availableInGameSkins == null || availableInGameSkins.Length == 0)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No in-game skins available.");
+            if (!CanTaunt)
                 return;
-            }
 
-            // Désactiver tous les skins
-            for (int i = 0; i < availableInGameSkins.Length; i++)
-            {
-                if (availableInGameSkins[i] != null)
-                {
-                    availableInGameSkins[i].SetActive(false);
-                }
-            }
-
-            // Désactiver toutes les outlines
-            for (int i = 0; i < availableInGameSkinsOutline.Length; i++)
-            {
-                if (availableInGameSkinsOutline[i] != null)
-                {
-                    availableInGameSkinsOutline[i].SetActive(false);
-                }
-            }
-
-            // Activer le skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkins.Length)
-            {
-                if (availableInGameSkins[skinIndex] != null)
-                {
-                    availableInGameSkins[skinIndex].SetActive(true);
-                    Logs.Log($"[PlayerCharacter]: Applied skin {skinIndex} for player {Owner.PlayerIndex}");
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin index {skinIndex} is out of range.");
-            }
-
-            // Activer l'outline du skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkinsOutline.Length)
-            {
-                if (availableInGameSkinsOutline[skinIndex] != null)
-                {
-                    availableInGameSkinsOutline[skinIndex].SetActive(true);
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin outline {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin outline index {skinIndex} is out of range.");
-            }
+            _tauntFeedback.Taunt();
         }
 
-        private void ApplyFaceFromLobby(int column, int row)
+        private void ResolveCustomizationVisual()
         {
-            if (faceInGameMeshRenderer == null)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No face mesh renderer assigned.");
+            if (_customizationVisual)
                 return;
-            }
 
-            // Récupérer ou créer le material de la face
-            _faceInGameMaterial = faceInGameMeshRenderer.material;
-
-            if (_faceInGameMaterial != null)
-            {
-                _faceInGameMaterial.SetFloat(columnPropertyName, column);
-                _faceInGameMaterial.SetFloat(rowPropertyName, row);
-                Logs.Log(
-                    $"[PlayerCharacter]: Applied face (Column: {column}, Row: {row}) for player {Owner.PlayerIndex}");
-            }
-            else
-            {
-                Logs.LogWarning("[PlayerCharacter]: Face material is null.");
-            }
+            _customizationVisual = GetComponentInChildren<PlayerCustomizationVisual>(true);
         }
 
-        #endregion
-        
         #region Caca Qui Slow
-        
+
         private Coroutine _speedModifierCoroutine;
         public float ExternalSpeedMultiplier { get; private set; } = 1f;
-        
+
         /// <summary>
         /// Smoothly transitions an external movement speed multiplier on the player.
         /// Controller components should multiply their base speed by PlayerCharacter.ExternalSpeedMultiplier.
@@ -555,9 +533,10 @@ namespace MortierFu
         {
             if (_speedModifierCoroutine != null)
                 StopCoroutine(_speedModifierCoroutine);
-            _speedModifierCoroutine = StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
+            _speedModifierCoroutine =
+                StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
         }
-        
+
         private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
         {
             float start = ExternalSpeedMultiplier;
@@ -566,7 +545,7 @@ namespace MortierFu
                 ExternalSpeedMultiplier = target;
                 yield break;
             }
-        
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -574,7 +553,7 @@ namespace MortierFu
                 ExternalSpeedMultiplier = Mathf.Lerp(start, target, elapsed / duration);
                 yield return null;
             }
-        
+
             ExternalSpeedMultiplier = target;
             _speedModifierCoroutine = null;
         }
@@ -583,13 +562,13 @@ namespace MortierFu
         {
             if (ExternalSpeedMultiplier > 0.5f)
                 return;
-            
+
             // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
-            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position, _feetPoint.rotation );
+            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position,
+                _feetPoint.rotation);
             Destroy(caca, 10f);
         }
-        
+
         #endregion
-        
     }
 }
