@@ -1,6 +1,4 @@
-// REWRITE USING NEW INPUT SYSTEM
-
-/*using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -374,4 +372,4 @@ public class DebugManager : MonoBehaviour
     }
 
     // === METHODS FOR GAME-SPECIFIC DEBUG ===
-}*/
+}
