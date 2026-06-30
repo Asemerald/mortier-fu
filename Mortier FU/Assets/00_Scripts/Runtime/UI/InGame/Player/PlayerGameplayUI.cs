@@ -149,6 +149,7 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         // Reverse progress bar
         float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
+        // Utiliser : _character.Mortar.ShootCooldownProgress pour montrer le Reload Time
 
         // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
@@ -316,7 +317,7 @@ public class PlayerGameplayUI : MonoBehaviour
         // If we the amount hasn't change, no reason to change the sprite.
         if (_currentDashCharges == dashCharges)
             return;
-
+ 
         _currentDashCharges = dashCharges;
 
         Rect rect = _dashChargeTiledImg.uvRect;
