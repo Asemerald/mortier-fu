@@ -132,10 +132,10 @@ namespace MortierFu
             await Tween.Alpha(_background, 1f, _backgroundEaseDuration, _backgroundEase)
                 .Group(Tween.Alpha(_logo, 1f, _logoEaseDuration, _logoEase));
 
-            await Tween.Scale(PlayButton.transform, 1f, _playButtonEaseDuration, _playButtonEase)
-                .Group(Tween.Scale(CreditsButton.transform, 1f, _creditsButtonEaseDuration, _creditsButtonEase))
-                .Group(Tween.Scale(SettingsButton.transform, 1f, _settingsButtonEaseDuration, _settingsButtonEase))
-                .Group(Tween.Scale(QuitButton.transform, 1f, _quitButtonEaseDuration, _quitButtonEase));
+            await Tween.Scale(PlayButton.transform, 1.5f, _playButtonEaseDuration, _playButtonEase)
+                .Group(Tween.Scale(CreditsButton.transform, 1.5f, _creditsButtonEaseDuration, _creditsButtonEase))
+                .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
+                .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
 
             if (_eventSystem && PlayButton)
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
