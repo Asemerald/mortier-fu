@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using PrimeTween;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -15,7 +16,8 @@ namespace MortierFu
     public sealed class MenuManager : MonoBehaviour, IPlayerUIInputHandler
     {
         [field: Header("Main Menu References")]
-        [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
+        [field: SerializeField]
+        public MainMenuPanel MainMenuPanel { get; private set; }
 
         [field: SerializeField] public Button PlayButton { get; private set; }
         [field: SerializeField] public Button SettingsButton { get; private set; }
@@ -25,21 +27,39 @@ namespace MortierFu
         [SerializeField] private GameObject _animatedCharacter;
         [SerializeField] private GameObject _animatedOutlineCharacter;
 
+        [Header("Animation")] [SerializeField] private Image _background;
+        [SerializeField] private Image _logo;
+
+        [SerializeField] private Ease _backgroundEase = Ease.OutQuad;
+        [SerializeField] private Ease _logoEase = Ease.OutQuad;
+        [SerializeField] private Ease _playButtonEase = Ease.OutQuad;
+        [SerializeField] private Ease _creditsButtonEase = Ease.OutQuad;
+        [SerializeField] private Ease _settingsButtonEase = Ease.OutQuad;
+        [SerializeField] private Ease _quitButtonEase = Ease.OutQuad;
+
+        [SerializeField] private float _backgroundEaseDuration = 1.5f;
+        [SerializeField] private float _logoEaseDuration = 1.5f;
+        [SerializeField] private float _playButtonEaseDuration = 0.7f;
+        [SerializeField] private float _creditsButtonEaseDuration = 0.7f;
+        [SerializeField] private float _settingsButtonEaseDuration = 0.7f;
+        [SerializeField] private float _quitButtonEaseDuration = 0.7f;
+
         [field: Header("Settings References")]
-        [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
+        [field: SerializeField]
+        public SettingsPanel SettingsPanel { get; private set; }
 
         [field: Header("Credits References")]
-        [field: SerializeField] public CreditsPanel CreditsPanel { get; private set; }
+        [field: SerializeField]
+        public CreditsPanel CreditsPanel { get; private set; }
 
-        [Header("Utils")]
-        [SerializeField] private MainMenuCameraManager _cameraManager;
+        [Header("Utils")] [SerializeField] private MainMenuCameraManager _cameraManager;
         [SerializeField] private float _delayBeforeMainMenuShow = 2f;
 
         private EventSystem _eventSystem;
         private PlayerManager _player1;
         private InputSystemUIInputModule _uiInputModule;
         private InputAction _cancelAction;
-        
+
         private bool _isLoadingLobby;
 
         public static MenuManager Instance { get; private set; }
@@ -80,7 +100,7 @@ namespace MortierFu
             BindButtons();
 
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
-            
+
             if (PlayerInputBridge.Instance)
             {
                 PlayerInputBridge.Instance.CanJoin(false);
@@ -97,6 +117,28 @@ namespace MortierFu
             UnbindGlobalCancelAction();
             UnregisterPlayer1();
             UnbindButtons();
+        }
+
+        private async UniTask AnimateMainMenu()
+        {
+            _background.gameObject.SetActive(true);
+            _logo.gameObject.SetActive(true);
+
+            PlayButton.transform.localScale = Vector3.zero;
+            CreditsButton.transform.localScale = Vector3.zero;
+            SettingsButton.transform.localScale = Vector3.zero;
+            QuitButton.transform.localScale = Vector3.zero;
+
+            await Tween.Alpha(_background, 1f, _backgroundEaseDuration, _backgroundEase)
+                .Group(Tween.Alpha(_logo, 1f, _logoEaseDuration, _logoEase));
+
+            await Tween.Scale(PlayButton.transform, 1.5f, _playButtonEaseDuration, _playButtonEase)
+                .Group(Tween.Scale(CreditsButton.transform, 1.5f, _creditsButtonEaseDuration, _creditsButtonEase))
+                .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
+                .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
+
+            if (_eventSystem && PlayButton)
+                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
         }
 
         private void BindButtons()
@@ -147,7 +189,7 @@ namespace MortierFu
                 actionMap.Enable();
             }
         }
-        
+
         private void BindGlobalCancelAction()
         {
             UnbindGlobalCancelAction();
@@ -191,8 +233,7 @@ namespace MortierFu
             if (MainMenuPanel)
                 MainMenuPanel.Show();
 
-            if (_eventSystem && PlayButton)
-                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            await AnimateMainMenu();
         }
 
         private void UnregisterPlayer1()
@@ -292,15 +333,12 @@ namespace MortierFu
         public void QuitGame()
         {
             Logs.Log("[MenuManager] Quitting game.");
+            
+            Application.Quit();
 
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
-            return;
 #endif
-
-#pragma warning disable CS0162
-            Application.Quit();
-#pragma warning restore CS0162
         }
 
         private void SetCharactersVisible(bool visible)

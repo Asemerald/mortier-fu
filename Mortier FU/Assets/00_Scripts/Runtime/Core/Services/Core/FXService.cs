@@ -140,6 +140,30 @@ namespace MortierFu
             Object.Destroy(strikeFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
         }
 
+        public void PlayStunFX(GameObject stunnedPlayer)
+        {
+            if (stunnedPlayer == null)
+                return;
+            
+            if (!TryGetLibrary(out var library))
+                return;
+
+            if (library.Stun == null)
+            {
+                Logs.LogWarning("[FXService] Stun prefab is missing.");
+                return;
+            }
+            
+            var stunFX = Object.Instantiate(library.Stun, stunnedPlayer.transform);
+            stunFX.transform.localPosition = new Vector3(0f, 3f, 0f);
+            stunFX.transform.rotation = Quaternion.Euler(-90, 0, 0);
+            
+            Logs.LogWarning("[FXService] Stun");
+            
+            var main = stunFX.main;
+            Object.Destroy(stunFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
+        }
+
         public void PlayWaterExplosionFX(Vector3 hitPoint)
         {
             if (!TryGetLibrary(out var library))
