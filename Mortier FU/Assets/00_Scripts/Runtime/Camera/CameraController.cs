@@ -22,10 +22,14 @@ namespace MortierFu
         [SerializeField] private Camera _renderOnTopCamera;
 
         [SerializeField] private CinemachineCamera zoomCineCam;
+        
+        [SerializeField] private BoxCollider _boundbox;
+        [SerializeField] private float _dampingBound;
 
         [SerializeField] private Vector3 _offset = new(3.5f, -1.2f, 0f);
 
         private float _currentOrthoSize;
+        private float _maxArenaOrthoSize;
         private Transform _endFightTarget;
 
         private SO_CameraSettings _cameraSettings;
@@ -42,9 +46,10 @@ namespace MortierFu
         private void Start()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
-
+            
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
         }
 
         public void SetArenaMode(bool isArena)
@@ -126,7 +131,9 @@ namespace MortierFu
             {
                 _arenaMode = ArenaCameraMode.FollowingPlayers;
             }
-
+            
+            HandleBoundBox();
+            
             if (_arenaMode == ArenaCameraMode.StaticMapView)
             {
                 _virtualTarget.position = Vector3.Lerp(
@@ -147,6 +154,11 @@ namespace MortierFu
             {
                 FollowPlayers(center, extent);
             }
+        }
+
+        private void HandleBoundBox()
+        {
+            _boundbox.size = new Vector3((_maxArenaOrthoSize - _currentOrthoSize +_dampingBound) * _camera.aspect , _maxArenaOrthoSize - _currentOrthoSize +_dampingBound, 1);
         }
 
         private void FollowPlayers(Vector3 center, float extent)
@@ -171,7 +183,7 @@ namespace MortierFu
 
             float targetOrtho = Mathf.Lerp(
                 _cameraSettings.MinOrthoSize,
-                _cameraSettings.MaxOrthoSize,
+                _levelSystem.CurrentCameraMapConfig.OrthoSize,
                 t
             );
 
@@ -182,6 +194,7 @@ namespace MortierFu
             );
 
             ApplyLens();
+            
         }
 
         public async UniTask ApplyCameraMapConfigAsync(float tolerance = 0.01f,
@@ -234,6 +247,8 @@ namespace MortierFu
 
             _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForRace;
             _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
+            
+            SetupBoundBox(_levelSystem.CurrentCameraMapConfig.PositionForRace,_currentOrthoSize);
 
             ApplyLens();
 
@@ -259,13 +274,14 @@ namespace MortierFu
 
             return _virtualTarget.position + follow.FollowOffset;
         }
-
+        
         private void ResetCameraInstant()
         {
             if (_isArenaMap)
             {
                 _virtualTarget.position = _levelSystem.CurrentCameraMapConfig.PositionForMap;
                 _currentOrthoSize = _levelSystem.CurrentCameraMapConfig.OrthoSize;
+                SetupBoundBox(_levelSystem.CurrentCameraMapConfig.PositionForMap,_currentOrthoSize);
                 ApplyLens();
                 return;
             }
@@ -284,6 +300,12 @@ namespace MortierFu
 
             _currentOrthoSize = midOrtho;
             ApplyLens();
+        }
+
+        private void SetupBoundBox(Vector3 position, float orthoSize)
+        {
+            _maxArenaOrthoSize = orthoSize;
+            _boundbox.transform.position = position +  _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
         }
 
         public void Shake(float aoeRange, float power, float travelTime, float delay = 0f)
