@@ -641,6 +641,7 @@ GameObject:
   - component: {fileID: 8047922189435491126}
   - component: {fileID: 7540939271376141447}
   - component: {fileID: 6139260222370270294}
+  - component: {fileID: 5411959057904701821}
   m_Layer: 11
   m_Name: PF_PlayerCharacter
   m_TagString: Untagged
@@ -1161,6 +1162,24 @@ MonoBehaviour:
   _columnPropertyName: _Column
   _rowPropertyName: _Row
   _showDebugLogs: 0
+--- !u!114 &5411959057904701821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34e7deaf3900dce48969ffb1ff8c5973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OutlineCustom
+  outlineMode: 0
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &2880022406255162882
 GameObject:
   m_ObjectHideFlags: 0
@@ -2967,6 +2986,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7868516590158368177, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -7768357120943046683, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -4.0711006e-13
@@ -3777,6 +3800,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8062723153311485011, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
       propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8072846227208952371, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8219971925872809792, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
