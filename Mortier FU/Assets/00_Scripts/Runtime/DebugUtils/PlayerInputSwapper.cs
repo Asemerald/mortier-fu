@@ -1,6 +1,4 @@
-// Rewrite using new input system
-
-/*using System.Linq;
+using System.Linq;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -130,4 +128,4 @@ namespace MortierFu
             }
         }
     }
-}*/
+}

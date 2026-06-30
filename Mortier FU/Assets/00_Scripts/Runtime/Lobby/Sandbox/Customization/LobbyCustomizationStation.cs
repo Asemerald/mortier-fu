@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace MortierFu
 {
@@ -9,10 +12,17 @@ namespace MortierFu
         [Header("References")]
         [SerializeField] private LobbySandboxController _sandboxController;
         [SerializeField] private LobbySandboxStateController _stateController;
-        [SerializeField] private LobbyCustomizationPanel[] _playerPanels = new LobbyCustomizationPanel[4];
+        [SerializeField] private LobbyCustomizationController[] _playerPanels = new LobbyCustomizationController[4];
 
-        private readonly Dictionary<PlayerManager, LobbyCustomizationPanel> _activePanels = new();
+        private readonly Dictionary<PlayerManager, LobbyCustomizationController> _activePanels = new();
+        private readonly HashSet<PlayerManager> _closingPlayers = new();
+        private CancellationTokenSource _stationCancellation;
 
+        private void Awake()
+        {
+            _stationCancellation = new CancellationTokenSource();
+        }
+        
         private void OnEnable()
         {
             if (_stateController)
@@ -24,9 +34,18 @@ namespace MortierFu
             if (_stateController)
                 _stateController.OnCustomizationInterrupted -= HandleCustomizationInterrupted;
 
+            _stationCancellation?.Cancel();
+            
             ForceCloseAllCustomizations(restoreSandboxControl: false, exitState: true);
 
             base.OnDisable();
+        }
+        
+        private void OnDestroy()
+        {
+            _stationCancellation?.Cancel();
+            _stationCancellation?.Dispose();
+            _stationCancellation = null;
         }
 
         protected override bool CanInteract(PlayerManager player)
@@ -37,6 +56,9 @@ namespace MortierFu
             if (_activePanels.ContainsKey(player))
                 return false;
 
+            if (_closingPlayers.Contains(player))
+                return false;
+            
             if (!_stateController)
                 return false;
 
@@ -57,7 +79,7 @@ namespace MortierFu
                 return;
             }
 
-            var panel = GetPanelForPlayer(player);
+            LobbyCustomizationController panel = GetPanelForPlayer(player);
 
             if (!panel)
             {
@@ -82,7 +104,12 @@ namespace MortierFu
             if (!player)
                 return;
 
-            ForceCloseCustomization(player, restoreSandboxControl: true, exitState: true);
+            ForceCloseCustomizationAsync(
+                player,
+                restoreSandboxControl: true,
+                exitState: true,
+                waitForExitAnimation: true
+            ).Forget();
         }
 
         private void HandleCustomizationInterrupted(PlayerManager player)
@@ -90,7 +117,12 @@ namespace MortierFu
             if (!player)
                 return;
 
-            ForceCloseCustomization(player, restoreSandboxControl: false, exitState: false);
+            ForceCloseCustomizationAsync(
+                player,
+                restoreSandboxControl: false,
+                exitState: false,
+                waitForExitAnimation: false
+            ).Forget();
         }
 
         private void ForceCloseAllCustomizations(bool restoreSandboxControl, bool exitState)
@@ -108,30 +140,73 @@ namespace MortierFu
 
         private void ForceCloseCustomization(PlayerManager player, bool restoreSandboxControl, bool exitState)
         {
+            ForceCloseCustomizationAsync(
+                player,
+                restoreSandboxControl,
+                exitState,
+                waitForExitAnimation: false
+            ).Forget();
+        }
+        
+        private async UniTaskVoid ForceCloseCustomizationAsync(PlayerManager player, bool restoreSandboxControl, bool exitState, bool waitForExitAnimation)
+        {
             if (!player)
                 return;
 
             if (!_activePanels.TryGetValue(player, out var panel))
                 return;
 
-            if (panel)
-                panel.Close();
+            if (!_closingPlayers.Add(player))
+                return;
 
-            _activePanels.Remove(player);
-
-            if (exitState && _stateController)
-                _stateController.TryExitCustomization(player);
-
-            if (restoreSandboxControl)
+            try
             {
-                RestorePlayerLobbyContext(player);
+                player.SetControlContext(PlayerControlContext.LobbyCustomization);
+
+                if (panel)
+                {
+                    if (waitForExitAnimation && _stationCancellation != null)
+                    {
+                        await panel.CloseAsync(_stationCancellation.Token);
+                    }
+                    else
+                    {
+                        panel.Close();
+                    }
+                }
+
+                _activePanels.Remove(player);
+
+                if (exitState && _stateController)
+                    _stateController.TryExitCustomization(player);
+
+                if (restoreSandboxControl)
+                {
+                    RestorePlayerLobbyContext(player);
+                }
+                else
+                {
+                    player.SetControlContext(PlayerControlContext.LobbyLocked);
+                }
+
+                Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
             }
-            else
+            catch (OperationCanceledException)
             {
+                if (panel)
+                    panel.Close();
+
+                _activePanels.Remove(player);
+
+                if (exitState && _stateController)
+                    _stateController.TryExitCustomization(player);
+
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
             }
-
-            Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
+            finally
+            {
+                _closingPlayers.Remove(player);
+            }
         }
 
         private void RestorePlayerLobbyContext(PlayerManager player)
@@ -148,7 +223,7 @@ namespace MortierFu
             player.SetControlContext(PlayerControlContext.LobbySandbox);
         }
 
-        private LobbyCustomizationPanel GetPanelForPlayer(PlayerManager player)
+        private LobbyCustomizationController GetPanelForPlayer(PlayerManager player)
         {
             if (!player)
                 return null;
