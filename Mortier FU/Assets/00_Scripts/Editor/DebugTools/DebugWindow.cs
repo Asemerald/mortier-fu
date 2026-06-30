@@ -14,6 +14,7 @@ namespace MortierFu.Editor {
         private VisualElement _contentContainer;
         private ToolbarButton _settingsTab, _balancingTab;
         private SerializedObject _serializedObject;
+        private BalancingStatsTab _balancingStatsTab;
         
         private const string k_skipMenuEnabled = "SkipMenuEnabled";
         private const string k_countdownSpeedMultiplier = "CountdownSpeedMult";
@@ -38,6 +39,11 @@ namespace MortierFu.Editor {
             set => EditorPrefs.SetBool(k_dummyDebugToolEnabled, value);
         }
         
+        private void OnDisable()
+        {
+            _balancingStatsTab?.Dispose();
+        }
+        
         private void CreateGUI() {
             //  This will be used to retrieve serialized properties
             _serializedObject = new SerializedObject(this);
@@ -46,7 +52,7 @@ namespace MortierFu.Editor {
             VisualElement root = rootVisualElement;
             
             // Create toolbar
-            var toolbar = new Toolbar() {
+            Toolbar toolbar = new () {
                 style = {
                     height = 30,
                 }
@@ -77,6 +83,7 @@ namespace MortierFu.Editor {
             root.Add(toolbar);
 
             _contentContainer = new VisualElement();
+            _balancingStatsTab = new BalancingStatsTab(_contentContainer);
             _contentContainer.style.flexGrow = 1f;
             _contentContainer.SetMargin(10f);
             root.Add(_contentContainer);
@@ -217,10 +224,9 @@ namespace MortierFu.Editor {
         private void ShowBalancing() {
             _settingsTab.style.unityFontStyleAndWeight = FontStyle.Normal;
             _balancingTab.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _contentContainer.Clear();
             
-            _contentContainer.AddHeader("Balancing");
-            _contentContainer.Add(new Label("Coming soon..."));
+            _balancingStatsTab ??= new BalancingStatsTab(_contentContainer);
+            _balancingStatsTab.Show();
         }
         
         [MenuItem("Tools/Debug Window %#M")]
