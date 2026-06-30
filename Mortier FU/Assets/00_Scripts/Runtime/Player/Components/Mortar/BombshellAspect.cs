@@ -5,7 +5,10 @@ namespace MortierFu
     {
         [Header("References")]
         [SerializeField] private ParticleSystem _smokeParticles;
-        [Space]
+
+        [Space] 
+        [SerializeField] private MeshRenderer _whiteCone01;
+        [SerializeField] private MeshRenderer _whiteCone02;
         [SerializeField] private MeshRenderer _cone03;
         [SerializeField] private MeshRenderer _cone02;
         [SerializeField] private MeshRenderer _dotsCone;
@@ -57,7 +60,9 @@ namespace MortierFu
         {
             var aspect = _bombshell.Owner.Aspect;
             var mats = aspect.AspectMaterials;
-            
+
+            _whiteCone01.sharedMaterial = mats.WhiteSpike00;
+            _whiteCone02.sharedMaterial = mats.WhiteSpike01;
             _cone03.sharedMaterial = mats.BurnBaseVoronoiMat;
             _cone02.sharedMaterial = mats.OrangeSpikesMat;
             _dotsCone.sharedMaterial = mats.DotsAlphaSpikesMat;
