@@ -6,9 +6,11 @@ namespace MortierFu
     public class StunState : BaseState
     {
         private CountdownTimer _stunTimer;
+        private FXService _fxService;
 
         public StunState(PlayerCharacter character, Animator animator) : base(character, animator)
         {
+            _fxService = ServiceManager.Instance.Get<FXService>();
             _stunTimer = new CountdownTimer(0f);
         }
 
@@ -33,6 +35,8 @@ namespace MortierFu
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+            
+            _fxService.PlayStunFX(character.gameObject);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {

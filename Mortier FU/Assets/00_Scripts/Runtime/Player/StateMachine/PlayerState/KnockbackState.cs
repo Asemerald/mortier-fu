@@ -67,9 +67,7 @@ namespace MortierFu
             //character.Controller.ResetVelocity();
             
             //Apply Knockback
-            //character.Controller.ApplyKnockback(_currentBumpForce);
-            
-            character.Controller.rigidbody.AddForce(bumpForce * 1f, ForceMode.Impulse);
+            character.Controller.ApplyKnockback(_currentBumpForce);
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Knockback, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
