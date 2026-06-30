@@ -76,6 +76,7 @@ namespace MortierFu
             Vector3 currentVelocity = rigidbody.linearVelocity;
             Vector3 targetVelocity = new (_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
 
+            
             // -------------------------------
             // 1) APPLICATION DU KNOCKBACK
             // -------------------------------
@@ -94,9 +95,13 @@ namespace MortierFu
 
             // Le contrôle est réduit quand knockback actif
             if (_knockback.sqrMagnitude > 0.01f)
+            {
                 velocityChange *= _moveDuringKnockbackFactor;
-
-            velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
+            }
+            else
+            {
+                velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
+            }
 
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
