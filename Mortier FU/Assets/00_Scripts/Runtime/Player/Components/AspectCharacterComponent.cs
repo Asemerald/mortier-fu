@@ -9,6 +9,8 @@ namespace MortierFu
     [Serializable]
     public struct CharacterAspectMaterials
     {
+        public Material WhiteSpike00;
+        public Material WhiteSpike01;
         public Material BurnBaseVoronoiMat;
         public Material DotsAlphaSpikesMat;
         public Material OrangeSpikesMat;
