@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
-
+using UnityEngine.InputSystem;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -37,7 +37,9 @@ namespace MortierFu
 
         private EventSystem _eventSystem;
         private PlayerManager _player1;
-
+        private InputSystemUIInputModule _uiInputModule;
+        private InputAction _cancelAction;
+        
         private bool _isLoadingLobby;
 
         public static MenuManager Instance { get; private set; }
@@ -74,6 +76,7 @@ namespace MortierFu
             }
 
             EnableUiInputModule();
+            BindGlobalCancelAction();
             BindButtons();
 
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
@@ -91,6 +94,7 @@ namespace MortierFu
                 Instance = null;
             }
 
+            UnbindGlobalCancelAction();
             UnregisterPlayer1();
             UnbindButtons();
         }
@@ -130,18 +134,54 @@ namespace MortierFu
             if (!_eventSystem)
                 return;
 
-            var inputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
+            _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
 
-            if (!inputModule || !inputModule.actionsAsset)
+            if (!_uiInputModule || !_uiInputModule.actionsAsset)
             {
                 Logs.LogWarning("[MenuManager] InputSystemUIInputModule or actions asset is missing.", this);
                 return;
             }
 
-            foreach (var actionMap in inputModule.actionsAsset.actionMaps)
+            foreach (var actionMap in _uiInputModule.actionsAsset.actionMaps)
             {
                 actionMap.Enable();
             }
+        }
+        
+        private void BindGlobalCancelAction()
+        {
+            UnbindGlobalCancelAction();
+
+            if (!_uiInputModule)
+                return;
+
+            _cancelAction = _uiInputModule.cancel.action;
+
+            if (_cancelAction == null)
+            {
+                Logs.LogWarning("[MenuManager] UI cancel action is missing on InputSystemUIInputModule.", this);
+                return;
+            }
+
+            _cancelAction.performed += HandleGlobalCancelPerformed;
+            _cancelAction.Enable();
+        }
+
+        private void UnbindGlobalCancelAction()
+        {
+            if (_cancelAction == null)
+                return;
+
+            _cancelAction.performed -= HandleGlobalCancelPerformed;
+            _cancelAction = null;
+        }
+
+        private void HandleGlobalCancelPerformed(InputAction.CallbackContext context)
+        {
+            if (_isLoadingLobby)
+                return;
+
+            TryCancelCurrentPanel();
         }
 
         private async UniTask ShowMainMenuAfterDelay(float delay)
@@ -153,24 +193,6 @@ namespace MortierFu
 
             if (_eventSystem && PlayButton)
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
-        }
-
-        public void SetPlayer1(PlayerManager player)
-        {
-            UnregisterPlayer1();
-
-            if (!player)
-                return;
-
-            _player1 = player;
-            _player1.SetControlContext(PlayerControlContext.Menu);
-
-            UIInputService?.Push(_player1, this);
-
-            if (PlayerInputBridge.Instance)
-                PlayerInputBridge.Instance.CanJoin(false);
-
-            Logs.Log("[MenuManager] Player 1 assigned.");
         }
 
         private void UnregisterPlayer1()

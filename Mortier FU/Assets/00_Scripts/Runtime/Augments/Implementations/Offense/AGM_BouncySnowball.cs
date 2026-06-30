@@ -6,7 +6,7 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod BombshellImpactRadius;
-            public float OnBounceImpactRadiusScalar;
+            public float ImpactRadiusScale; // old [OnBounceImpactRadiusScalar] Raccourcit par facilité 
             public int ExtraBombshellBounces;
         }
         
@@ -30,7 +30,7 @@ namespace MortierFu
         {
             if (evt.Bombshell == null || evt.Bombshell.Owner != owner) return;
             
-            float scalar = 1f + db.BouncySnowballParams.OnBounceImpactRadiusScalar;
+            float scalar = 1f + db.BouncySnowballParams.ImpactRadiusScale;
             
             evt.Bombshell.AoeRange *= scalar;
             evt.Bombshell.MultiplyScale(scalar);
