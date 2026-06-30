@@ -18,7 +18,7 @@ MonoBehaviour:
       ModType: 100
   ToughnessParams:
     MaxHealthMod:
-      Value: 0.25
+      Value: 0.2
       ModType: 300
     FireRateMod:
       Value: -0.2
@@ -33,13 +33,13 @@ MonoBehaviour:
   BerserkerParams:
     HealthThreshold: 0.5
     BombshellDamageMod:
-      Value: 20
+      Value: 30
       ModType: 100
     MoveSpeedMod:
-      Value: 1.8
+      Value: 3
       ModType: 100
     FireRateMod:
-      Value: 1.8
+      Value: 2.5
       ModType: 100
     BombshellDamageModPreproc:
       Value: 12
@@ -52,10 +52,10 @@ MonoBehaviour:
       ModType: 100
   BigBulletsParams:
     FireRateMod:
-      Value: -0.14
-      ModType: 200
+      Value: 0
+      ModType: 100
     BombshellDamageMod:
-      Value: 10
+      Value: 5
       ModType: 100
     BombshellImpactRadiusMod:
       Value: 0.8
@@ -71,7 +71,7 @@ MonoBehaviour:
     ExtraBombshellBounces: 1
   BouncySnowballParams:
     BombshellImpactRadius:
-      Value: -0.2
+      Value: 0
       ModType: 200
     ImpactRadiusScale: 0.15
     ExtraBombshellBounces: 1
@@ -105,19 +105,19 @@ MonoBehaviour:
       ModType: 200
   OverheatingParams:
     OnAttackBombshellSpeedMod:
-      Value: 0.4
+      Value: 0.8
       ModType: 100
-    MaxStacksOver: 10
+    MaxStacksOver: 20
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 14
       ModType: 100
   TakeTheTempoParams:
     FireRateMod:
-      Value: 0.8
+      Value: 1.5
       ModType: 100
     BombshellSpeedMod:
-      Value: 8
+      Value: 10
       ModType: 100
     MaxStacksTempo: 8
   TsarBombaParams:
@@ -147,9 +147,9 @@ MonoBehaviour:
     ExtraDashes: 1
   FastDashParams:
     DashCooldownMod:
-      Value: 0.2
+      Value: -0.25
       ModType: 100
   PerfectPushParams:
     MaxHealthMod:
-      Value: 6
+      Value: 10
       ModType: 100
