@@ -13,7 +13,7 @@ namespace MortierFu
         [SerializeField] private float _duration = 1f;
 
         private Material _material;
-        
+
         public static CircleOpen Instance { get; private set; }
 
         private void Awake()
@@ -24,11 +24,11 @@ namespace MortierFu
                 Destroy(this.gameObject);
                 return;
             }
+
             Instance = this;
-            
+
             _material = _image.material;
             _material.SetFloat("_Progress", 0);
-            
         }
 
         private void Start()
@@ -44,9 +44,8 @@ namespace MortierFu
                 .SetEase(Ease.InOutQuad);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_duration));
-        
-            _image.gameObject.SetActive(false);
 
+            _image.gameObject.SetActive(false);
         }
     }
 }
