@@ -20,7 +20,6 @@ namespace MortierFu
         private LobbyService _lobbyService;
         private readonly List<PlayerManager> _spawnedPlayers = new();
 
-        private bool _isInitialized;
         private int _lastKnownPlayerCount = -1;
 
         public bool IsGlobalLockActive { get; private set; }
@@ -43,21 +42,11 @@ namespace MortierFu
             _spawnedPlayers.Clear();
         }
 
-        private void Update()
-        {
-          //  if (!_isInitialized)
-          //      return;
-
-         //   SyncLobbyPlayers();
-        }
-
         private async UniTaskVoid InitializeAsync()
         {
             await EnsureLobbySandboxSystemsAsync();
 
             ResolveDependencies();
-
-            _isInitialized = true;
 
             if (_spawnPlayersOnStart)
             {

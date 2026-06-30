@@ -9,10 +9,6 @@ namespace MortierFu
         public virtual void Show()
         {
             gameObject.SetActive(true);
-            if (DefaultButton != null)
-            {
-                DefaultButton.Select();
-            }
         }
         
         public virtual void Hide()

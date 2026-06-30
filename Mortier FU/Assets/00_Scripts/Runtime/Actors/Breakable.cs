@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace MortierFu
@@ -27,13 +28,10 @@ namespace MortierFu
         public void Interact(Vector3 contactPoint)
         {
             _life--;
-            if (_life <= 0)
-            {
-                AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint);
+            if (_life > 0) return;
+            AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint).Forget();
                 
-                Destruct(contactPoint);
-                return;
-            }
+            Destruct(contactPoint);
         }
 
         protected virtual void Destruct(Vector3 contactPoint)
