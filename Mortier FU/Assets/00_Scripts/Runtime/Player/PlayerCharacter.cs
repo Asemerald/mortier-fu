@@ -43,7 +43,10 @@ namespace MortierFu
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
+        [Header("Customization")]
+        [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
+        public PlayerCustomizationVisual CustomizationVisual => _customizationVisual;
         private StateMachine _stateMachine;
 
         private InputAction _dashAction;
@@ -97,7 +100,8 @@ namespace MortierFu
             // Handle augments
             _augments = new List<IAugment>();
             Augments = _augments.AsReadOnly();
-
+            
+            ResolveCustomizationVisual();
             InitStateMachine();
         }
 
@@ -172,11 +176,12 @@ namespace MortierFu
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
 
-            // Appliquer le skin choisi dans le lobby
-            ApplySkinFromLobby(owner.SkinIndex);
+            ResolveCustomizationVisual();
 
-            // Appliquer le visage choisi dans le lobby
-            ApplyFaceFromLobby(owner.FaceColumn, owner.FaceRow);
+            if (_customizationVisual)
+                _customizationVisual.Apply(owner.Customization);
+            else
+                Logs.LogWarning("[PlayerCharacter] No PlayerCustomizationVisual assigned.", this);
 
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
@@ -187,10 +192,12 @@ namespace MortierFu
             if (!Owner)
                 return;
 
-            ApplySkinFromLobby(Owner.SkinIndex);
-            ApplyFaceFromLobby(Owner.FaceColumn, Owner.FaceRow);
-        }
+            ResolveCustomizationVisual();
 
+            if (_customizationVisual)
+                _customizationVisual.Apply(Owner.Customization);
+        }
+        
         public void SetControlContext(PlayerControlContext context)
         {
             ControlContext = context;
@@ -505,103 +512,13 @@ namespace MortierFu
             _tauntFeedback.Taunt();
         }
 
-        #region SKINS
-
-        [Header("Skins")] [SerializeField] private GameObject[] availableInGameSkins;
-        [SerializeField] private GameObject[] availableInGameSkinsOutline;
-        [SerializeField] private SkinnedMeshRenderer faceInGameMeshRenderer;
-        [SerializeField] private string columnPropertyName = "_Column";
-        [SerializeField] private string rowPropertyName = "_Row";
-
-        private Material _faceInGameMaterial;
-
-        private void ApplySkinFromLobby(int skinIndex)
+        private void ResolveCustomizationVisual()
         {
-            if (availableInGameSkins == null || availableInGameSkins.Length == 0)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No in-game skins available.");
+            if (_customizationVisual)
                 return;
-            }
 
-            // Désactiver tous les skins
-            for (int i = 0; i < availableInGameSkins.Length; i++)
-            {
-                if (availableInGameSkins[i])
-                {
-                    availableInGameSkins[i].SetActive(false);
-                }
-            }
-
-            // Désactiver toutes les outlines
-            for (int i = 0; i < availableInGameSkinsOutline.Length; i++)
-            {
-                if (availableInGameSkinsOutline[i])
-                {
-                    availableInGameSkinsOutline[i].SetActive(false);
-                }
-            }
-
-            // Activer le skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkins.Length)
-            {
-                if (availableInGameSkins[skinIndex])
-                {
-                    availableInGameSkins[skinIndex].SetActive(true);
-                    Logs.Log($"[PlayerCharacter]: Applied skin {skinIndex} for player {Owner.PlayerIndex}");
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin index {skinIndex} is out of range.");
-            }
-
-            // Activer l'outline du skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkinsOutline.Length)
-            {
-                if (availableInGameSkinsOutline[skinIndex])
-                {
-                    availableInGameSkinsOutline[skinIndex].SetActive(true);
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin outline {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin outline index {skinIndex} is out of range.");
-            }
+            _customizationVisual = GetComponentInChildren<PlayerCustomizationVisual>(true);
         }
-
-        private void ApplyFaceFromLobby(int column, int row)
-        {
-            if (!faceInGameMeshRenderer)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No face mesh renderer assigned.");
-                return;
-            }
-
-            // Récupérer ou créer le material de la face
-            _faceInGameMaterial = faceInGameMeshRenderer.material;
-
-            if (_faceInGameMaterial)
-            {
-                _faceInGameMaterial.SetFloat(columnPropertyName, column);
-                _faceInGameMaterial.SetFloat(rowPropertyName, row);
-                Logs.Log(
-                    $"[PlayerCharacter]: Applied face (Column: {column}, Row: {row}) for player {Owner.PlayerIndex}");
-            }
-            else
-            {
-                Logs.LogWarning("[PlayerCharacter]: Face material is null.");
-            }
-        }
-
-        #endregion
 
         #region Caca Qui Slow
 
