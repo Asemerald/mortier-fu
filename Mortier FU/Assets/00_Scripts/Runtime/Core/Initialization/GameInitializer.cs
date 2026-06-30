@@ -3,13 +3,12 @@ using UnityEngine;
 using MortierFu.Services;
 using NaughtyAttributes;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Serialization;
 
 namespace MortierFu
 {
     public class GameInitializer : MonoBehaviour
     {
-        [FormerlySerializedAs("scene")] [Header("Scene to load after init")]
+        [Header("Scene to load after init")]
         public string sceneName = "MainMenu";
 
         [Expandable] public SO_GameConfig config;
@@ -21,6 +20,8 @@ namespace MortierFu
         [Header("Debug")] public bool isPortableBootstrap = false;
 
         public float GetInitializationProgress() => _progress;
+        
+        public bool IsInitialized { get; private set; }
 
         private ServiceManager _serviceManager;
         private SystemManager _systemManager;
@@ -99,6 +100,8 @@ namespace MortierFu
 
             if (isPortableBootstrap)
             {
+                _progress = 1f;
+                IsInitialized = true;
                 _sceneService.HideLoadingScreen();
                 return;
             }
@@ -110,6 +113,8 @@ namespace MortierFu
 
             _progress = 1f;
             _sceneService.HideLoadingScreen();
+
+            IsInitialized = true;
         }
 
 
