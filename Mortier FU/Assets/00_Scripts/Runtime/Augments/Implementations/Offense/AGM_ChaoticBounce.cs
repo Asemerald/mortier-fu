@@ -31,8 +31,8 @@ namespace MortierFu
 
             evt.Context.UpRotationMinAngle += db.ChaoticBounceParams.OnBounceUpMinAngle;
             evt.Context.RotationMaxAngle += db.ChaoticBounceParams.OnBounceUpMaxAngle;
-            evt.Context.OnBounceUpMinShotRange += db.ChaoticBounceParams.OnBounceUpMinShotRange;
-            evt.Context.OnBounceUpMaxShotRange += db.ChaoticBounceParams.OnBounceUpMaxShotRange;
+            evt.Context.MinBounceRange += db.ChaoticBounceParams.OnBounceUpMinShotRange;
+            evt.Context.MaxBounceRange += db.ChaoticBounceParams.OnBounceUpMaxShotRange;
         }
 
         public override void Dispose()
