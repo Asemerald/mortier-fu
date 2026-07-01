@@ -59,6 +59,7 @@ namespace MortierFu
             foreach (var playerManager in _lobbyService.Players)
             {
                 Gamepad gamepad = playerManager.PlayerInput.GetDevice<Gamepad>();
+                if(gamepad == null) return;
                 
                 switch (type)
                 {
