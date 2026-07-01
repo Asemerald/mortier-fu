@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 permissions:
   contents: write
@@ -11,7 +12,7 @@ permissions:
 jobs:
   buildForAllSupportedPlatforms:
     name: Build for ${{ matrix.targetPlatform }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -19,14 +20,6 @@ jobs:
           - StandaloneWindows64
     
     steps:
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo docker system prune -af
-          df -h
 
       - uses: actions/checkout@v4
         with:

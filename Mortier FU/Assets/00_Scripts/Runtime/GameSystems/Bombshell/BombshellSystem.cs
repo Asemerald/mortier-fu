@@ -77,10 +77,16 @@ namespace MortierFu
 
                     if (!character.Health.IsAlive)
                         continue;
+                    
+                    bool damageApplied = character.Health.TakeDamage(
+                        bombshell.Damage,
+                        bombshell.Owner
+                    );
+
+                    if (!damageApplied)
+                        continue;
 
                     hitCharacters.Add(character);
-
-                    character.Health.TakeDamage(bombshell.Damage, bombshell.Owner);
 
                     if (Settings.EnableDebug)
                     {
