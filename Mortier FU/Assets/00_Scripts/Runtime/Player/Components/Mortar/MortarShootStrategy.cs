@@ -40,31 +40,4 @@ namespace MortierFu
         public virtual void Update()
         { }
     }
-
-    public static class MortarShootStrategyFactory
-    {
-        public static MortarShootStrategy Create(ShootMode mode, MortarCharacterComponent mortar, InputAction aimAction, InputAction shootAction)
-        {
-            return mode switch
-            {
-                ShootMode.PositionLimited => new MSSPositionLimited(mortar, aimAction, shootAction),
-                ShootMode.PositionFree => new MSSPositionFree(mortar, aimAction, shootAction),
-                ShootMode.DirectionMaxDistanceOnly => new MSSDirectionMaxDistanceOnly(mortar, aimAction, shootAction),
-                ShootMode.DirectionLimited => new MSSDirectionLimited(mortar, aimAction, shootAction),
-                ShootMode.Charge => new MSSCharge(mortar, aimAction, shootAction),
-                ShootMode.DirectionAutoTarget => new MSSDirectionAutoTarget(mortar, aimAction, shootAction),
-                _ => throw new System.ArgumentOutOfRangeException(nameof(mode), mode, null)
-            };
-        }
-    }
-    
-    public enum ShootMode
-    {
-        PositionLimited,
-        PositionFree,
-        DirectionMaxDistanceOnly,
-        DirectionLimited,
-        Charge,
-        DirectionAutoTarget
-    }
 }
