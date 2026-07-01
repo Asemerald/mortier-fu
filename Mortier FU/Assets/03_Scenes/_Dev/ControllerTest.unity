@@ -599,6 +599,32 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &1332774992 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f3b600e717c5a049b083392bb757c02, type: 3}
+  m_PrefabInstance: {fileID: 1690951714}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1332774996
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1332774992}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 31.496061, y: 55.11812, z: 0.39370087}
+  m_Center: {x: 0, y: 0, z: 0.19685043}
 --- !u!1 &1517318217
 GameObject:
   m_ObjectHideFlags: 0
@@ -706,7 +732,7 @@ Transform:
   m_GameObject: {fileID: 1517318217}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -2.4, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -738,7 +764,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4f3b600e717c5a049b083392bb757c02, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4f3b600e717c5a049b083392bb757c02, type: 3}
       propertyPath: m_LocalPosition.z
@@ -795,7 +821,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f3b600e717c5a049b083392bb757c02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1332774996}
   m_SourcePrefab: {fileID: 100100000, guid: 4f3b600e717c5a049b083392bb757c02, type: 3}
 --- !u!1001 &2533412981977511034
 PrefabInstance:
