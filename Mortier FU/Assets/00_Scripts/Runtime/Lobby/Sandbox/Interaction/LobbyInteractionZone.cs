@@ -44,12 +44,10 @@ namespace MortierFu
         }
 
         protected virtual void OnPlayerEntered(PlayerManager player)
-        {
-        }
+        { }
 
         protected virtual void OnPlayerExited(PlayerManager player)
-        {
-        }
+        { }
 
         protected virtual bool CanInteract(PlayerManager player)
         {
@@ -83,7 +81,7 @@ namespace MortierFu
 
             var players = new List<PlayerManager>(PlayersInside);
 
-            for (int i = 0; i < players.Count; i++)
+            for (var i = 0; i < players.Count; i++)
             {
                 InteractionService?.Unregister(players[i], this);
             }

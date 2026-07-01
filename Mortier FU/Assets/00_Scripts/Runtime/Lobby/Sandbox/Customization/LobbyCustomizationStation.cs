@@ -79,7 +79,7 @@ namespace MortierFu
                 return;
             }
 
-            LobbyCustomizationController panel = GetPanelForPlayer(player);
+            var panel = GetPanelForPlayer(player);
 
             if (!panel)
             {
@@ -132,7 +132,7 @@ namespace MortierFu
 
             var players = new List<PlayerManager>(_activePanels.Keys);
 
-            for (int i = 0; i < players.Count; i++)
+            for (var i = 0; i < players.Count; i++)
             {
                 ForceCloseCustomization(players[i], restoreSandboxControl, exitState);
             }
@@ -231,7 +231,7 @@ namespace MortierFu
             if (_playerPanels is null)
                 return null;
 
-            int index = player.PlayerIndex;
+            var index = player.PlayerIndex;
 
             if (index < 0 || index >= _playerPanels.Length)
                 return null;

@@ -11,9 +11,6 @@ namespace MortierFu
         [Header("Player Spawns")]
         [SerializeField] private Transform[] _playerSpawnPoints = new Transform[4];
 
-        [Header("State")]
-        [SerializeField] private LobbySandboxStateController _stateController;
-
         [Header("Startup")]
         [SerializeField] private bool _spawnPlayersOnStart;
 
@@ -22,7 +19,7 @@ namespace MortierFu
 
         private int _lastKnownPlayerCount = -1;
 
-        public bool IsGlobalLockActive { get; private set; }
+        private bool _isGlobalLockActive;
 
         public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
@@ -107,7 +104,7 @@ namespace MortierFu
             if (players.Count == 0)
                 return;
 
-            for (int i = 0; i < players.Count; i++)
+            for (var i = 0; i < players.Count; i++)
             {
                 var player = players[i];
 
@@ -152,7 +149,7 @@ namespace MortierFu
             if (!player)
                 return;
 
-            Transform spawnPoint = GetSpawnPoint(playerIndex);
+            var spawnPoint = GetSpawnPoint(playerIndex);
 
             if (!spawnPoint)
             {
@@ -162,7 +159,7 @@ namespace MortierFu
 
             player.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
 
-            if (IsGlobalLockActive)
+            if (_isGlobalLockActive)
             {
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
             }
@@ -183,13 +180,13 @@ namespace MortierFu
 
         public void LockAllPlayers()
         {
-            if (!IsGlobalLockActive)
+            if (!_isGlobalLockActive)
             {
-                IsGlobalLockActive = true;
+                _isGlobalLockActive = true;
                 OnGlobalLockStarted?.Invoke();
             }
 
-            for (int i = 0; i < _spawnedPlayers.Count; i++)
+            for (var i = 0; i < _spawnedPlayers.Count; i++)
             {
                 var player = _spawnedPlayers[i];
 
@@ -202,12 +199,12 @@ namespace MortierFu
 
         public void UnlockAllPlayers()
         {
-            if (!IsGlobalLockActive)
+            if (!_isGlobalLockActive)
                 return;
 
-            IsGlobalLockActive = false;
+            _isGlobalLockActive = false;
 
-            for (int i = 0; i < _spawnedPlayers.Count; i++)
+            for (var i = 0; i < _spawnedPlayers.Count; i++)
             {
                 ApplyCurrentContextToPlayer(_spawnedPlayers[i]);
             }
@@ -226,7 +223,7 @@ namespace MortierFu
             return spawnPoint;
         }
 
-        public PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
+        private PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
         {
             return PlayerControlContext.LobbySandbox;
         }
