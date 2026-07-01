@@ -44,8 +44,14 @@ namespace MortierFu
             
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
-            
-            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
+
+            float aimSpeed = CharacterStats.AimWidgetSpeed.Value;
+            if (IsKeyboardAndMouseControlScheme())
+            {
+                aimSpeed *= CharacterStats.KeyboardAndMouseAimWidgetSpeedMultiplier;
+            }
+
+            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * aimSpeed);
             Vector3 newPos = aimWidget.RelativePosition + offset;
             newPos = Vector3.ClampMagnitude(newPos, CharacterStats.GetShotRange());
             aimWidget.SetRelativePosition(newPos);
@@ -80,6 +86,15 @@ namespace MortierFu
         public override void CancelAiming()
         {
             _enableShoot = false;
+        }
+
+        private bool IsKeyboardAndMouseControlScheme()
+        {
+            return mortar.Character?.PlayerInput != null
+                && string.Equals(
+                    mortar.Character.PlayerInput.currentControlScheme,
+                    "Keyboard and Mouse",
+                    System.StringComparison.Ordinal);
         }
     }
 }
