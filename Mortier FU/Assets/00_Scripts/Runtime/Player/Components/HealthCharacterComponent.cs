@@ -1,7 +1,6 @@
 using System;
-using JetBrains.Annotations;
-using MortierFu.Shared;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace MortierFu
 {
@@ -21,6 +20,8 @@ namespace MortierFu
 
     public class HealthCharacterComponent : CharacterComponent
     {
+        private readonly HashSet<object> _invincibilitySources = new();
+        
         private float _currentHealth;
         private float _maxHealth;
 
@@ -28,8 +29,10 @@ namespace MortierFu
 
         /// Sent every time health changes. Provide the old health and the new health.
         public Action<float, float> OnHealthChanged;
-
         public Action<float> OnMaxHealthChanged;
+        public Action<bool> OnInvincibilityChanged;
+
+        private bool IsInvincible => _invincibilitySources.Count > 0;
 
         public HealthCharacterComponent(PlayerCharacter character) : base(character)
         {
@@ -37,7 +40,6 @@ namespace MortierFu
             _currentHealth = 1f;
         }
 
-        public float CurrentHealth => _currentHealth;
         public float MaxHealth => _maxHealth;
         public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
         public bool IsAlive => _currentHealth > 0f;
@@ -48,14 +50,22 @@ namespace MortierFu
             UpdateHealth();
         }
 
-        public void TakeDamage(float amount, object source, bool isLethal = false)
+        public bool TakeDamage(float amount, object source, bool isLethal = false, bool ignoreInvincibility = false)
         {
-            // Cannot take damage if already dead
             if (!IsAlive)
-                return;
+                return false;
 
-            float previousHealth = _currentHealth;
-            _currentHealth = Mathf.Clamp(_currentHealth - amount, 0f, _maxHealth);
+            if (IsInvincible && !ignoreInvincibility)
+                return false;
+
+            var damageAmount = isLethal ? _currentHealth : amount;
+
+            if (damageAmount <= 0f)
+                return false;
+
+            var previousHealth = _currentHealth;
+            _currentHealth = Mathf.Clamp(_currentHealth - damageAmount, 0f, _maxHealth);
+
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
 
             Character.Aspect?.PlayDamageBlink(
@@ -66,27 +76,28 @@ namespace MortierFu
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
-                Instigator = source as PlayerCharacter, // Si ça ça marche jsuis content
+                Instigator = source as PlayerCharacter,
                 Character = Character,
                 PreviousHealth = previousHealth,
                 NewHealth = _currentHealth,
                 MaxHealth = _maxHealth,
-                Delta = -amount
+                Delta = -damageAmount
             });
 
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
-            if (!IsAlive)
-            {
-                _currentHealth = 0;
-                OnDeath?.Invoke(source);
+            if (IsAlive) return true;
+            
+            _currentHealth = 0;
+            OnDeath?.Invoke(source);
 
-                EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath()
-                {
-                    Character = Character,
-                    Context = ResolveDeathContext(character, source)
-                });
-            }
+            EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath()
+            {
+                Character = Character,
+                Context = ResolveDeathContext(character, source)
+            });
+
+            return true;
         }
 
         private DeathContext ResolveDeathContext(PlayerCharacter character, object source)
@@ -146,7 +157,10 @@ namespace MortierFu
             };
         }
 
-        public void TakeLethalDamage(object source) => TakeDamage(_currentHealth, source, true);
+        public bool TakeLethalDamage(object source, bool ignoreInvincibility = false)
+        {
+            return TakeDamage(_currentHealth, source, isLethal: true, ignoreInvincibility: ignoreInvincibility);
+        }
 
         public void Heal(float amount)
         {
@@ -166,32 +180,66 @@ namespace MortierFu
 
         public override void Reset()
         {
-            float previousHealth = _currentHealth;
+            var previousHealth = _currentHealth;
             _currentHealth = _maxHealth;
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
         }
 
         void UpdateHealth()
         {
-            float newMaxHealth = Stats.MaxHealth.Value;
+            var newMaxHealth = Stats.MaxHealth.Value;
 
-            // Calculate gain or loss in max health
-            float delta = newMaxHealth - _maxHealth;
+            var delta = newMaxHealth - _maxHealth;
 
             _maxHealth = newMaxHealth;
 
-            // If max health increased, add the same amount to current health
             if (delta > 0)
             {
                 _currentHealth += delta;
             }
 
-            // Always clamp to ensure we stay inside valid bounds
-            float previousHealth = _currentHealth;
+            var previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth, 0f, _maxHealth);
 
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
             OnMaxHealthChanged?.Invoke(_maxHealth);
+        }
+        
+        public void AddInvincibility(object source)
+        {
+            if (source is null)
+                return;
+
+            var wasInvincible = IsInvincible;
+
+            if (!_invincibilitySources.Add(source))
+                return;
+
+            if (wasInvincible != IsInvincible)
+                OnInvincibilityChanged?.Invoke(IsInvincible);
+        }
+
+        public void RemoveInvincibility(object source)
+        {
+            if (source is null)
+                return;
+
+            var wasInvincible = IsInvincible;
+
+            if (!_invincibilitySources.Remove(source))
+                return;
+
+            if (wasInvincible != IsInvincible)
+                OnInvincibilityChanged?.Invoke(IsInvincible);
+        }
+
+        public void ClearInvincibility()
+        {
+            if (_invincibilitySources.Count == 0)
+                return;
+
+            _invincibilitySources.Clear();
+            OnInvincibilityChanged?.Invoke(false);
         }
 
         public override void Dispose()

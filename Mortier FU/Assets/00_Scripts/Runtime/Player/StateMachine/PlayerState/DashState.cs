@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -60,7 +61,7 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            character.Mortar.CancelAiming();
+            //character.Mortar.CancelAiming();
 
             _availableCharges -= 1;
             
@@ -84,7 +85,7 @@ namespace MortierFu
                 Logs.Log("Entering Dash State");
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Dash, character.transform.position);
-            character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+            //character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
             Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir * 8f, ForceMode.Impulse);
@@ -185,6 +186,7 @@ namespace MortierFu
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
                 other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration, character);
+                character.Controller.DivideVelocity(0.33f);
             }
 
             if (_hitCharacters.Count > 0)

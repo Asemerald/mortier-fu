@@ -153,6 +153,14 @@ public class PlayerGameplayUI : MonoBehaviour
 
         // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
+        if (strikeProgress >= 1f)
+        {
+            _strikeCdImage.color = Color.Lerp(_strikeCdImage.color, Color.white, 25 * Time.deltaTime);
+        }
+        else
+        {
+            _strikeCdImage.color = new Color(0.75f, 0.75f, 0.75f, 1);
+        }
 
         UpdateDashChargeSprite();
     }

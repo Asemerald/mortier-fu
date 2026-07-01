@@ -13,6 +13,8 @@ namespace MortierFu
 {
     public class PlayerCharacter : MonoBehaviour
     {
+        private static readonly object k_controlContextInvincibilitySource = new ControlContextInvincibilitySource();
+        
         /// <summary>
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
@@ -202,6 +204,8 @@ namespace MortierFu
         {
             ControlContext = context;
             ActionPermissions = PlayerActionPermissions.FromContext(context);
+
+            UpdateInvincibilityFromControlContext(context);
 
             if (!CanAim)
             {
@@ -493,16 +497,36 @@ namespace MortierFu
         {
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
+        
+        private void UpdateInvincibilityFromControlContext(PlayerControlContext context)
+        {
+            if (Health == null)
+                return;
+
+            if (ShouldBeInvincibleInContext(context))
+            {
+                Health.AddInvincibility(k_controlContextInvincibilitySource);
+            }
+            else
+            {
+                Health.RemoveInvincibility(k_controlContextInvincibilitySource);
+            }
+        }
+
+        private static bool ShouldBeInvincibleInContext(PlayerControlContext context)
+        {
+            return context is PlayerControlContext.LobbyCustomization
+                or PlayerControlContext.LobbySettingsOwner
+                or PlayerControlContext.LobbyReturnConfirmationOwner;
+        }
+
+        private sealed class ControlContextInvincibilitySource
+        { }
 
         private void At(IState from, IState to, IPredicate condition) =>
             _stateMachine.AddTransition(from, to, condition);
 
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
-
-#if UNITY_EDITOR
-        // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
-        private bool ShouldShowStats => Stats != null;
-#endif
 
         private void Taunt(InputAction.CallbackContext ctx)
         {

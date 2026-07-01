@@ -1,0 +1,65 @@
+using UnityEngine;
+
+namespace MortierFu
+{
+    public sealed class PreviousRoundWinnerRaceSizeController
+    {
+        private readonly object _modifierSource = new PreviousRoundWinnerRaceSizeModifierSource();
+
+        private PlayerCharacter _activeCharacter;
+
+        public void Apply(PlayerCharacter character, float targetFinalSize)
+        {
+            Clear();
+
+            if (!character || !character.Stats)
+                return;
+
+            targetFinalSize = Mathf.Max(0.1f, targetFinalSize);
+
+            var flatDelta = CalculateAvatarFlatDeltaForTargetFinalSize(
+                character.Stats,
+                targetFinalSize
+            );
+
+            if (Mathf.Approximately(flatDelta, 0f))
+                return;
+
+            character.Stats.AvatarSize.AddModifier(
+                new StatModifier(
+                    flatDelta,
+                    E_StatModType.Flat,
+                    _modifierSource
+                )
+            );
+
+            _activeCharacter = character;
+        }
+
+        public void Clear()
+        {
+            if (!_activeCharacter || !_activeCharacter.Stats)
+            {
+                _activeCharacter = null;
+                return;
+            }
+
+            _activeCharacter.Stats.AvatarSize.RemoveAllModifiersFromSource(_modifierSource);
+            _activeCharacter = null;
+        }
+
+        private static float CalculateAvatarFlatDeltaForTargetFinalSize(SO_CharacterStats stats, float targetFinalSize)
+        {
+            var maxHealthContribution =
+                (stats.MaxHealth.Value - stats.MaxHealth.BaseValue) *
+                stats.MaxHealthToAvatarSizeFactor;
+
+            var requiredAvatarStatValue = targetFinalSize - maxHealthContribution;
+
+            return requiredAvatarStatValue - stats.AvatarSize.Value;
+        }
+
+        private sealed class PreviousRoundWinnerRaceSizeModifierSource
+        { }
+    }
+}
