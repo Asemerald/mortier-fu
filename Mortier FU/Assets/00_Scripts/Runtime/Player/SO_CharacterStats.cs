@@ -45,6 +45,9 @@ namespace MortierFu
         
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);
+
+        [field: SerializeField, Tooltip("Multiplier applied to aim speed for Keyboard and Mouse while aiming.")]
+        public float KeyboardAndMouseAimWidgetSpeedMultiplier { get; private set; } = 0.5f;
         
         [field: SerializeField, Tooltip("Damage of the Strike attack.")]
         public CharacterStat StrikeDamage { get; private set; } = new(.0f);
