@@ -148,7 +148,7 @@ public class PlayerGameplayUI : MonoBehaviour
     private void Update()
     {
         // Reverse progress bar
-        float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
+        float strikeProgress = 1 - _character.Mortar.ShootCooldownProgress;
         // Utiliser : _character.Mortar.ShootCooldownProgress pour montrer le Reload Time
 
         // _strikeCdImage.enabled = strikeProgress >= 0;

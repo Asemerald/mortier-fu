@@ -19,6 +19,7 @@ namespace MortierFu
         public void ShakeController(PlayerManager pm, ShakeType type)
         {
             Gamepad gamepad = pm.PlayerInput.GetDevice<Gamepad>();
+            if(gamepad == null) return;
 
             switch (type)
             {
@@ -37,6 +38,7 @@ namespace MortierFu
         public void ShakeController(InputDevice pm, ShakeType type)
         {
             Gamepad gamepad = pm as Gamepad;
+            if(gamepad == null) return;
 
             switch (type)
             {
