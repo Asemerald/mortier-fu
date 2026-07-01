@@ -9,6 +9,33 @@ namespace MortierFu
 {
     public class RoundAnnouncementUI : MonoBehaviour
     {
+        #region References
+
+        [Header("UI References")] [SerializeField]
+        private GameObject _matchpoint;
+
+        [SerializeField] private GameObject _playGameObject;
+
+        [Header("Canvas Groups")] [SerializeField]
+        private CanvasGroup _countdownCanvasGroup;
+
+        [SerializeField] private CanvasGroup _playCanvasGroup;
+
+        #endregion
+        
+        #region Play Animation
+
+        [Header("Play Animation Settings")] [SerializeField]
+        private float _playDropOffset = 250f;
+
+        [SerializeField] private float _playShowDelay = 0.2f;
+        [SerializeField] private float _playPopDuration = 0.4f;
+        [SerializeField] private float _playStartingScale = 1.3f;
+        [SerializeField] private float _playScaleUp = 1.7f;
+        [SerializeField] private float _playFadeOutDuration = 0.3f;
+
+        #endregion
+        
         private ShakeService _shakeService;
 
         private GameModeBase _gameMode;
@@ -77,8 +104,8 @@ namespace MortierFu
             if (_playGameObject)
                 _playGameObject.SetActive(false);
 
-            if (_goldenBombshellGameObject)
-                _goldenBombshellGameObject.SetActive(false);
+            if (_matchpoint)
+                _matchpoint.SetActive(false);
         }
 
         private async UniTask PlayRoundStartPresentationAsync(CancellationToken cancellationToken)
@@ -102,10 +129,10 @@ namespace MortierFu
 
         private void UpdateMatchPointIndicator(GameModeBase gm)
         {
-            if (gm == null || !_goldenBombshellGameObject)
+            if (gm == null || !_matchpoint)
                 return;
 
-            if (_goldenBombshellGameObject.activeSelf)
+            if (_matchpoint.activeSelf)
                 return;
 
             var isMatchPoint = false;
@@ -118,16 +145,13 @@ namespace MortierFu
                 break;
             }
 
-            _goldenBombshellGameObject.SetActive(isMatchPoint);
+            _matchpoint.SetActive(isMatchPoint);
 
             if (isMatchPoint)
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_MatchPoint);
         }
 
-        private async UniTask PlayCountdown(
-            GameModeBase gm,
-            CancellationToken ct
-        )
+        private async UniTask PlayCountdown(GameModeBase gm, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -216,34 +240,7 @@ namespace MortierFu
 
             ct.ThrowIfCancellationRequested();
 
-            _playGameObject.SetActive(false);
+            HidePresentationObjects();
         }
-
-        #region References
-
-        [Header("UI References")] [SerializeField]
-        private GameObject _goldenBombshellGameObject;
-
-        [SerializeField] private GameObject _playGameObject;
-
-        [Header("Canvas Groups")] [SerializeField]
-        private CanvasGroup _countdownCanvasGroup;
-
-        [SerializeField] private CanvasGroup _playCanvasGroup;
-
-        #endregion
-
-        #region Play Animation
-
-        [Header("Play Animation Settings")] [SerializeField]
-        private float _playDropOffset = 250f;
-
-        [SerializeField] private float _playShowDelay = 0.2f;
-        [SerializeField] private float _playPopDuration = 0.4f;
-        [SerializeField] private float _playStartingScale = 1.3f;
-        [SerializeField] private float _playScaleUp = 1.7f;
-        [SerializeField] private float _playFadeOutDuration = 0.3f;
-
-        #endregion
     }
 }
