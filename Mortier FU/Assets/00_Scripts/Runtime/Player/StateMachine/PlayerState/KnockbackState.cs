@@ -28,7 +28,7 @@ namespace MortierFu
         
         public override void Update()
         {
-            character.Controller.HandleMovementUpdate();
+            character.Controller.HandleMovementUpdate(0.5f);
         }
         
         public override void FixedUpdate()
@@ -64,10 +64,9 @@ namespace MortierFu
             _knockbackTimer.Reset(duration);
             _knockbackTimer.Start();
             
-            //character.Controller.ResetVelocity();
-            
             //Apply Knockback
             character.Controller.ApplyKnockback(_currentBumpForce);
+            character.Controller.ResetVelocity();
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Knockback, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);

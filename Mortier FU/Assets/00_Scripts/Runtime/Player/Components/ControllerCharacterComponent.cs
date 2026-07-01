@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using UnityEngine.InputSystem;
 using MortierFu.Shared;
@@ -167,12 +168,20 @@ namespace MortierFu
             rigidbody.angularVelocity = Vector3.zero;
             _moveDirection = Vector3.zero;
         }
+
+        public void DivideVelocity(float factor = 0.5f)
+        {
+            _knockback = Vector3.zero;
+            rigidbody.linearVelocity *= factor;
+            rigidbody.angularVelocity *= factor;
+            _moveDirection = Vector3.zero;
+        }
         
         public void ApplyKnockback(Vector3 force)
         {
             force.y = 0f;
             
-            rigidbody.AddForce(force, ForceMode.Impulse);
+            rigidbody.AddForce(force * 6.5f, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
     }
