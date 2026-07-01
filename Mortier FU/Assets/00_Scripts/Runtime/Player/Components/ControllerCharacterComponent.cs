@@ -181,7 +181,7 @@ namespace MortierFu
         {
             force.y = 0f;
             
-            rigidbody.AddForce(force * 6.5f, ForceMode.Impulse);
+            rigidbody.AddForce(force * 7f, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
     }

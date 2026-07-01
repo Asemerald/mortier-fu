@@ -46,6 +46,11 @@ namespace MortierFu
             if(debug)
                 Logs.Log("Entering Stun State");
         }
+        
+        public override void FixedUpdate()
+        {
+            character.Controller.ResetVelocity();
+        }
 
         public override void OnExit()
         {
