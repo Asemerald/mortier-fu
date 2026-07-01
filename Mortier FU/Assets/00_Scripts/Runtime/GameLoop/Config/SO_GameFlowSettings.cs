@@ -37,6 +37,12 @@ namespace MortierFu
         [Header("End Game")]
         [Tooltip("Durée minimale de l'écran de fin de partie avant autorisation d'action joueur.")]
         public float EndGameMinimumDuration = 2f;
+        
+        [Header("Previous Winner Race Size")]
+        public bool EnablePreviousRoundWinnerRaceGiant = true;
+
+        [Min(0.1f)]
+        public float PreviousRoundWinnerRaceTargetSize = 3.5f;
 
         [Header("Loading Mask Strategy")]
         [Tooltip("Si true, le scoreboard sert à cacher le chargement de la prochaine map race.")]

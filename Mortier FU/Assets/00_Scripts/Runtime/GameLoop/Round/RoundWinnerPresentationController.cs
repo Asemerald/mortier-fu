@@ -21,15 +21,8 @@ namespace MortierFu
 
             winner.Character.Reset();
 
-           // _playerSpawnController.SpawnWinnerTeam(winningTeam);
-
             if (winner.Character == null)
                 return;
-
-            /*_cameraSystem.Controller.EndFightCameraMovement(
-                winner.Character.transform,
-                2f
-            );*/
 
             winner.Character.WinRoundDance();
         }
