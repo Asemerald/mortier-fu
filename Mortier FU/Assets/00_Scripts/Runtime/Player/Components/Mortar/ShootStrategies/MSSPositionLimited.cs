@@ -50,10 +50,12 @@ namespace MortierFu
             {
                 aimSpeed *= CharacterStats.KeyboardAndMouseAimWidgetSpeedMultiplier;
             }
-
             Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * aimSpeed);
             Vector3 newPos = aimWidget.RelativePosition + offset;
+
+            newPos = newPos.With(y: 0f);
             newPos = Vector3.ClampMagnitude(newPos, CharacterStats.GetShotRange());
+
             aimWidget.SetRelativePosition(newPos);
         }
         
@@ -78,8 +80,10 @@ namespace MortierFu
             
             Vector2 aimInput = aimAction.ReadValue<Vector2>();
             float shotRange = CharacterStats.GetShotRange();
-            
-            Vector3 newPos = Vector3.ClampMagnitude(new Vector3(aimInput.x, 0.0f, aimInput.y) * shotRange, shotRange);
+
+            Vector3 newPos = new Vector3(aimInput.x, 0.0f, aimInput.y) * shotRange;
+            newPos = Vector3.ClampMagnitude(newPos.With(y: 0f), shotRange);
+
             aimWidget.SetRelativePosition(newPos);
         }
         

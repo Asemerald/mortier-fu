@@ -34,6 +34,7 @@ namespace MortierFu
         private Vector3 _velocity;
         private Vector3 _toTarget;
         private float _travelTime;
+        private int _previewRequestId;
 
         private BombshellSystem _system;
         private FXService _fxService;
@@ -89,38 +90,61 @@ namespace MortierFu
 
         public void Configure(Data data)
         {
-            // Initial setup
             _data = data;
+            _previewRequestId++;
 
-            _toTarget = _data.TargetPos - _data.StartPos;
-            CalculateTrajectory();
-
-            // Set the scale for the initial scale.
             transform.localScale = Vector3.one * _data.Scale;
+
+            _toTarget = GetTrajectoryTargetPosition() - _data.StartPos;
+            CalculateTrajectory();
 
             _impactDebounceTimer.Stop();
 
-            // Preview
-            HandleImpactPreview().Forget();
+            StartImpactPreviewFrom(_data.StartPos, _velocity);
+        }
+
+        private Vector3 GetTrajectoryTargetPosition()
+        {
+            float radius = _data.Scale * 0.5f;
+
+            return _data.TargetPos + Vector3.up * radius;
         }
 
         private void CalculateTrajectory()
         {
-            // Calculate horizontal direction and adjusted target position
             Vector3 groundDir = _toTarget.With(y: 0f);
-            _direction = groundDir.normalized;
-            var yTargetPos = new Vector3(groundDir.magnitude, _toTarget.y, 0);
 
-            // Calculate the trajectory
+            if (groundDir.sqrMagnitude < 0.0001f)
+                groundDir = transform.forward.With(y: 0f);
+
+            if (groundDir.sqrMagnitude < 0.0001f)
+                groundDir = Vector3.forward;
+
+            _direction = groundDir.normalized;
+
+            Vector3 yTargetPos = new(groundDir.magnitude, _toTarget.y, 0f);
+
             float bombshellHeight = CalculateBombshellHeight(groundDir.magnitude);
 
-            ComputePathWithHeight(yTargetPos, bombshellHeight, _data.GravityScale, out float initialSpeed,
-                out float angle, out _travelTime);
-            _velocity = ComputeVelocityAtTime(_direction, angle, initialSpeed, _data.GravityScale, 0f);
+            ComputePathWithHeight(
+                yTargetPos,
+                bombshellHeight,
+                _data.GravityScale,
+                out float initialSpeed,
+                out float angle,
+                out _travelTime
+            );
 
-            // Place the projectile according to the computed trajectory
-            transform.position = _data.StartPos;
-            transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
+            _velocity = ComputeVelocityAtTime(
+                _direction,
+                angle,
+                initialSpeed,
+                _data.GravityScale,
+                0f
+            );
+
+            Quaternion rotation = Quaternion.LookRotation(_direction, Vector3.up);
+            SetPositionAndRotationImmediate(_data.StartPos, rotation);
         }
 
         private float CalculateBombshellHeight(float targetDistance)
@@ -131,7 +155,7 @@ namespace MortierFu
             float alpha = Mathf.InverseLerp(distRange.x, distRange.y, targetDistance);
             float curvedAlpha = _system.Settings.BombshellHeightCurve.Evaluate(alpha);
 
-            return Mathf.Lerp(valueRange.x, valueRange.y, alpha);
+            return Mathf.Lerp(valueRange.x, valueRange.y, curvedAlpha);
         }
 
         public void OnGet()
@@ -141,106 +165,159 @@ namespace MortierFu
 
         public void OnRelease()
         {
+            _previewRequestId++;
             _aspect.OnRelease();
         }
 
         public void ReturnToPool() => _system.ReleaseBombshell(this);
 
-        // Move FixedUpdate to be called by the system (requires to be injected in the player loop or to be tailored to a MB)
-        void FixedUpdate()
+        private void FixedUpdate()
         {
-            float dT = Time.deltaTime * _data.Speed;
+            if (!_rb)
+                return;
 
-            // Apply gravity
-            _velocity += Physics.gravity * (_data.GravityScale * dT);
+            float remainingSimulationTime = Time.fixedDeltaTime * _data.Speed;
 
-            // Compute intended movement
-            Vector3 startPos = _rb.position;
-            Vector3 moveDir = _velocity.normalized;
-            float remainingDistance = _velocity.magnitude * dT;
+            if (remainingSimulationTime <= 0f)
+                return;
+
+            Vector3 gravityAcceleration = Physics.gravity * _data.GravityScale;
+            Vector3 currentPos = _rb.position;
+
             float radius = _data.Scale * 0.5f;
             const float k_skin = 0.01f;
 
             int safety = 0;
-            while (remainingDistance > 0f && safety++ < 5)
+
+            while (remainingSimulationTime > 0f && safety++ < 5)
             {
-                RaycastHit hit;
-                if (Physics.SphereCast(startPos, radius, moveDir, out hit,
-                        remainingDistance, _system.Settings.WhatIsCollidable,
+                if (!TryComputeStep(
+                        _velocity,
+                        gravityAcceleration,
+                        remainingSimulationTime,
+                        out Vector3 displacement,
+                        out Vector3 nextVelocity))
+                {
+                    break;
+                }
+
+                float moveDistance = displacement.magnitude;
+
+                if (moveDistance <= 0.0001f)
+                    break;
+
+                Vector3 moveDir = displacement / moveDistance;
+
+                if (Physics.SphereCast(
+                        currentPos,
+                        radius,
+                        moveDir,
+                        out RaycastHit hit,
+                        moveDistance,
+                        _system.Settings.WhatIsCollidable,
                         QueryTriggerInteraction.Collide))
                 {
-                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Water"))
-                    {
-                        // Water intercept collisions
-                        // TODO: Add water splash sound
-                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, hit.point);
-                        // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
-                        _fxService.PlayWaterExplosionFX(hit.point);
-                        ReturnToPool();
-                        break;
-                    }
+                    float stepRatio = Mathf.Clamp01(hit.distance / moveDistance);
+                    float simulationTimeToHit = remainingSimulationTime * stepRatio;
 
-                    // Move center to the point where the sphere center would be at impact
-                    Vector3 centerAtHit = startPos + moveDir * hit.distance;
-
-                    // Nudge slightly away along the normal to avoid sticking
+                    Vector3 velocityAtHit = _velocity + gravityAcceleration * simulationTimeToHit;
+                    Vector3 centerAtHit = currentPos + moveDir * hit.distance;
                     centerAtHit += hit.normal * k_skin;
 
-                    // Commit position
-                    _rb.MovePosition(centerAtHit);
+                    SetPositionImmediate(centerAtHit);
 
-                    // Notify impact
+                    _velocity = velocityAtHit;
+
+                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+                    {
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, hit.point);
+                        _fxService.PlayWaterExplosionFX(hit.point);
+                        ReturnToPool();
+                        return;
+                    }
+
                     _system.NotifyImpact(this, hit);
 
-                    if (_data.Bounces > 0)
-                    {
-                        _data.Bounces--;
-
-                        BounceContext bounceContext = new();
-                        EventBus<TriggerBounce>.Raise(new TriggerBounce()
-                        {
-                            Bombshell = this,
-                            Context = bounceContext
-                        });
-
-                        ApplyBounceVelocity(hit.normal, bounceContext);
-
-                        _data.Damage *= _system.Settings.BounceDamageDampingFactor;
-
-                        // Recompute movement for the remaining distance after the hit:
-                        // Subtract the distance we already travelled to the hit point.
-                        remainingDistance -= hit.distance;
-
-                        // Update startPos and moveDir for the next loop iteration
-                        startPos = centerAtHit;
-                        moveDir = (_velocity.sqrMagnitude > 0f) ? _velocity.normalized : Vector3.zero;
-
-                        HandleImpactPreview().Forget();
-
-                        // If velocity dropped to near zero, break
-                        if (_velocity.sqrMagnitude < 0.0001f) break;
-                    }
-                    else
+                    if (_data.Bounces <= 0)
                     {
                         ReturnToPool();
                         return;
                     }
+
+                    _data.Bounces--;
+
+                    BounceContext bounceContext = new();
+                    EventBus<TriggerBounce>.Raise(new TriggerBounce()
+                    {
+                        Bombshell = this,
+                        Context = bounceContext
+                    });
+
+                    ApplyBounceVelocity(hit.normal, bounceContext);
+
+                    _data.Damage *= _system.Settings.BounceDamageDampingFactor;
+
+                    remainingSimulationTime -= Mathf.Max(simulationTimeToHit, 0.0001f);
+                    currentPos = centerAtHit;
+
+                    StartImpactPreviewFrom(centerAtHit, _velocity);
+
+                    if (_velocity.sqrMagnitude < 0.0001f)
+                        break;
+
+                    continue;
                 }
-                else
-                {
-                    // No collision: move the remaining distance and exit loop
-                    Vector3 finalPos = startPos + moveDir * remainingDistance;
-                    _rb.MovePosition(finalPos);
-                    remainingDistance = 0f;
-                }
+
+                currentPos += displacement;
+                _velocity = nextVelocity;
+
+                SetPositionImmediate(currentPos);
+
+                remainingSimulationTime = 0f;
             }
 
-            // rotation toward velocity
-            if (_velocity.sqrMagnitude > 0.001f)
+            if (!(_velocity.sqrMagnitude > 0.001f)) return;
+            Quaternion targetRot = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
+            SetRotationImmediate(targetRot);
+        }
+
+        private static bool TryComputeStep(Vector3 velocity, Vector3 acceleration, float deltaTime, out Vector3 displacement, out Vector3 nextVelocity)
+        {
+            nextVelocity = velocity + acceleration * deltaTime;
+            displacement = velocity * deltaTime + acceleration * (0.5f * deltaTime * deltaTime);
+
+            return displacement.sqrMagnitude > 0.000001f;
+        }
+
+        private void SetPositionImmediate(Vector3 position)
+        {
+            transform.position = position;
+
+            if (_rb)
+                _rb.position = position;
+
+            Physics.SyncTransforms();
+        }
+
+        private void SetPositionAndRotationImmediate(Vector3 position, Quaternion rotation)
+        {
+            transform.SetPositionAndRotation(position, rotation);
+
+            if (_rb)
             {
-                Quaternion targetRot = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
-                _rb.MoveRotation(targetRot);
+                _rb.position = position;
+                _rb.rotation = rotation;
             }
+
+            Physics.SyncTransforms();
+        }
+
+        private void SetRotationImmediate(Quaternion rotation)
+        {
+            transform.rotation = rotation;
+
+            if (_rb)
+                _rb.rotation = rotation;
         }
 
         private void ApplyBounceVelocity(Vector3 hitNormal, BounceContext bounceContext)
@@ -260,10 +337,7 @@ namespace MortierFu
             if (bounceContext.UpRotationMinAngle == 0f && bounceContext.RotationMaxAngle == 0f)
                 return;
 
-            float randomAngle = Random.Range(
-                bounceContext.UpRotationMinAngle,
-                bounceContext.RotationMaxAngle
-            );
+            float randomAngle = Random.Range(bounceContext.UpRotationMinAngle, bounceContext.RotationMaxAngle);
 
             _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
         }
@@ -297,7 +371,7 @@ namespace MortierFu
 
         private void RecalculateVelocityForBounceRange(Vector3 bounceDirection, float bounceRange)
         {
-            Vector3 targetPos = new Vector3(bounceRange, 0f, 0f);
+            Vector3 targetPos = new(bounceRange, 0f, 0f);
 
             float bombshellHeight = CalculateBombshellHeight(bounceRange);
 
@@ -319,56 +393,131 @@ namespace MortierFu
             );
         }
 
-        private async UniTask HandleImpactPreview()
+        private void StartImpactPreviewFrom(Vector3 startPos, Vector3 startVelocity)
         {
-            const float k_maxSimulationTime = 30f;
+            int requestId = ++_previewRequestId;
 
-            Vector3 currentPos = transform.position;
-            Vector3 currentVel = _velocity;
-            float radius = _data.Scale * 0.5f;
-            float simulationSpeedFactor = _system.Settings.SimulationSpeedCurve.Evaluate(_data.Speed);
-            float dT = Time.fixedDeltaTime * simulationSpeedFactor * _data.Speed;
+            HandleImpactPreviewAsync(
+                requestId,
+                startPos,
+                startVelocity
+            ).Forget();
+        }
 
-            int simulationIterationCount = 0;
-
-            RaycastHit hitResult;
-            for (float previewTime = Time.fixedDeltaTime;
-                 previewTime < k_maxSimulationTime;
-                 previewTime += Time.fixedDeltaTime * simulationSpeedFactor)
+        private async UniTask HandleImpactPreviewAsync(int requestId, Vector3 startPos, Vector3 startVelocity)
+        {
+            if (!TryPredictNextImpact(
+                    startPos,
+                    startVelocity,
+                    out RaycastHit hitResult,
+                    out float realTimeToImpact,
+                    out int simulationIterations))
             {
-                simulationIterationCount++;
+                return;
+            }
 
-                Debug.DrawLine(currentPos, currentPos + currentVel * dT, Color.red, 4f);
+            if (_system.Settings.EnableDebug)
+            {
+                Logs.Log($"[Bombshell Preview] Predicted impact on '{hitResult.collider.name}' " + $"layer '{LayerMask.LayerToName(hitResult.collider.gameObject.layer)}' " + 
+                         $"at {hitResult.point}. Aim target was {_data.TargetPos}. " + $"Iterations: {simulationIterations}.");
+            }
 
-                if (Physics.SphereCast(currentPos, radius, currentVel.normalized, out hitResult,
-                        currentVel.magnitude * dT, _system.Settings.WhatIsPreviewable, QueryTriggerInteraction.Collide))
-                {
-                    Logs.Log("Physics Simulation took " + simulationIterationCount + " iterations.");
+            float delay = Mathf.Max(0f, realTimeToImpact * _system.Settings.ImpactPreviewDelayFactor);
+            float previewDuration = Mathf.Max(0.01f, realTimeToImpact - delay);
 
-                    float delay = previewTime * _system.Settings.ImpactPreviewDelayFactor;
-                    Vector3 previewPoint = hitResult.point.Add(y: 0.3f);
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
-                    await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            if (requestId != _previewRequestId)
+                return;
 
-                    if (_fxService != null)
-                    {
-                        _fxService.PlayBombshellPreview(previewPoint, previewTime - delay, _data.AoeRange);
-                    }
-                    else Logs.LogWarning("No FX Handler");
+            if (!this || !gameObject.activeInHierarchy)
+                return;
 
-                    break;
-                }
-                else
-                {
-                    // Update velocity
-                    currentVel += Physics.gravity * (_data.GravityScale * dT);
-
-                    // Apply velocity to position
-                    currentPos += currentVel * dT;
-                }
+            if (_fxService != null)
+            {
+                _fxService.PlayBombshellPreview(
+                    hitResult.point,
+                    hitResult.normal,
+                    previewDuration,
+                    _data.AoeRange
+                );
+            }
+            else
+            {
+                Logs.LogWarning("No FX Handler");
             }
         }
 
+        private bool TryPredictNextImpact(Vector3 startPos, Vector3 startVelocity, out RaycastHit hitResult, out float realTimeToImpact, out int simulationIterations)
+        {
+            const float k_maxRealTime = 30f;
+
+            hitResult = default;
+            realTimeToImpact = 0f;
+            simulationIterations = 0;
+
+            Vector3 currentPos = startPos;
+            Vector3 currentVelocity = startVelocity;
+            Vector3 gravityAcceleration = Physics.gravity * _data.GravityScale;
+
+            float radius = _data.Scale * 0.5f;
+
+            while (realTimeToImpact < k_maxRealTime)
+            {
+                simulationIterations++;
+
+                float realDeltaTime = Time.fixedDeltaTime;
+                float simulationDeltaTime = realDeltaTime * _data.Speed;
+
+                if (!TryComputeStep(
+                        currentVelocity,
+                        gravityAcceleration,
+                        simulationDeltaTime,
+                        out Vector3 displacement,
+                        out Vector3 nextVelocity))
+                {
+                    return false;
+                }
+
+                float moveDistance = displacement.magnitude;
+
+                if (moveDistance <= 0.0001f)
+                    return false;
+
+                Vector3 moveDir = displacement / moveDistance;
+
+                if (_system.Settings.EnableDebug)
+                {
+                    Debug.DrawLine(
+                        currentPos,
+                        currentPos + displacement,
+                        Color.red,
+                        4f
+                    );
+                }
+
+                if (Physics.SphereCast(
+                        currentPos,
+                        radius,
+                        moveDir,
+                        out hitResult,
+                        moveDistance,
+                        _system.Settings.WhatIsCollidable,
+                        QueryTriggerInteraction.Collide))
+                {
+                    float stepRatio = Mathf.Clamp01(hitResult.distance / moveDistance);
+                    realTimeToImpact += realDeltaTime * stepRatio;
+                    return true;
+                }
+
+                currentPos += displacement;
+                currentVelocity = nextVelocity;
+                realTimeToImpact += realDeltaTime;
+            }
+
+            return false;
+        }
+        
         /// <summary>
         /// Calculates the initial velocity, launch angle, and flight time required to reach a target position
         /// with a specified arc height and gravity scale.
@@ -379,20 +528,22 @@ namespace MortierFu
         /// <param name="v0">Output: The required initial velocity.</param>
         /// <param name="angle">Output: The launch angle in radians.</param>
         /// <param name="time">Output: The total flight time.</param>
-        private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale,
-            out float v0, out float angle, out float time)
+        private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale, out float v0, out float angle, out float time)
         {
-            float xt = targetPos.x;
+            float xt = Mathf.Max(0.001f, targetPos.x);
             float yt = targetPos.y;
             float g = -Physics.gravity.y * gravityScale;
 
-            float b = Mathf.Sqrt(2 * g * height);
+            height = Mathf.Max(height, yt + 0.01f, 0.01f);
+
+            float b = Mathf.Sqrt(2f * g * height);
             float a = -0.5f * g;
             float c = -yt;
 
             float tplus = MathUtils.QuadraticEquation(a, b, c, 1);
             float tmin = MathUtils.QuadraticEquation(a, b, c, -1);
-            time = tplus > tmin ? tplus : tmin;
+
+            time = Mathf.Max(tplus, tmin, 0.001f);
 
             angle = Mathf.Atan(b * time / xt);
             v0 = b / Mathf.Sin(angle);
