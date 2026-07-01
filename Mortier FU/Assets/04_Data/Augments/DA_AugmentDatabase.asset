@@ -64,17 +64,20 @@ MonoBehaviour:
     BombShellDamageMod:
       Value: 0
       ModType: 100
+    ShotRangeMod:
+      Value: -4
+      ModType: 100
     ExtraBombshellBounces: 1
   ChaoticBounceParams:
-    OnBounceUpMinAngle: 33
+    OnBounceUpMinAngle: -33
     OnBounceUpMaxAngle: 33
-    OnBounceUpMinShotRange: 1
-    OnBounceUpMaxShotRange: 20
+    OnBounceUpMinShotRange: 5
+    OnBounceUpMaxShotRange: 15
     ExtraBombshellBounces: 1
   BouncySnowballParams:
     BombshellImpactRadius:
-      Value: 0
-      ModType: 200
+      Value: 0.5
+      ModType: 100
     ImpactRadiusScale: 0.15
     ExtraBombshellBounces: 1
   ConfidenceParams:

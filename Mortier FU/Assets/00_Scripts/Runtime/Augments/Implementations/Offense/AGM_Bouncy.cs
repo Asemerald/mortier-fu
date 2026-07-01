@@ -6,6 +6,7 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod BombShellDamageMod;
+            public AugmentStatMod ShotRangeMod;
             public int ExtraBombshellBounces;
         }
         
@@ -15,6 +16,7 @@ namespace MortierFu
         public override void Initialize()
         {
             stats.BombshellDamage.AddModifier(db.BouncyParams.BombShellDamageMod.ToMod(this));
+            stats.ShotRange.AddModifier(db.BouncyParams.ShotRangeMod.ToMod(this));
             stats.BombshellBounces.AddModifier(new StatModifier(db.BouncyParams.ExtraBombshellBounces, E_StatModType.Flat, this));
         }
 
