@@ -96,7 +96,7 @@ namespace MortierFu
             _progress = 0.8f;
 
             // Check les services manquants
-            await _serviceManager.CheckForMissingServices<IGameService>();
+            //await _serviceManager.CheckForMissingServices<IGameService>();
 
             if (isPortableBootstrap)
             {
