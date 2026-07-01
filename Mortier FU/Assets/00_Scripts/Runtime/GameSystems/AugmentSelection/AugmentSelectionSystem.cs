@@ -33,7 +33,6 @@ namespace MortierFu
 
         private int _playerCount;
         private int _augmentCount;
-        private bool _showcaseInProgress;
         private bool _raceInProgress;
 
         private CountdownTimer _augmentTimer;
@@ -165,8 +164,6 @@ namespace MortierFu
             var augmentPoints = new Vector3[_augmentCount];
             _levelSystem.PopulateAugmentPoints(augmentPoints);
 
-            _showcaseInProgress = true;
-
             try
             {
                 await _augmentShowcaser.Showcase(
@@ -177,7 +174,7 @@ namespace MortierFu
             }
             finally
             {
-                _showcaseInProgress = false;
+                //Noop
             }
 
             cancellationToken.ThrowIfCancellationRequested();
