@@ -39,9 +39,11 @@ namespace MortierFu
         public float EndGameMinimumDuration = 2f;
         
         [Header("Previous Winner Race Size")]
+        [Tooltip("Si true, le gagnant du round aura une taille différente pendant la race.")]
         public bool EnablePreviousRoundWinnerRaceGiant = true;
 
         [Min(0.1f)]
+        [Tooltip("La taille pendant la race du gagnant du round précédent.")]
         public float PreviousRoundWinnerRaceTargetSize = 3.5f;
 
         [Header("Loading Mask Strategy")]
@@ -51,7 +53,7 @@ namespace MortierFu
         [Tooltip("Si true, le résumé d'augments sert à cacher le chargement de la prochaine map arena.")]
         public bool UseAugmentSummaryAsArenaMapLoadCover = true;
 
-        [Tooltip("Ancien système : transitions vidéo. À terme, on le désactivera.")]
+        [Tooltip("Ancien système, à terme, on le désactivera.")]
         public bool UseVideoTransitions;
     }
 }

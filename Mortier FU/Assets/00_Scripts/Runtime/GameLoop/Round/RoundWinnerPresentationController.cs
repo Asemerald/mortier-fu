@@ -1,5 +1,3 @@
-using System;
-
 namespace MortierFu
 {
     public sealed class RoundWinnerPresentationController
@@ -8,13 +6,10 @@ namespace MortierFu
 
         public void PresentWinner(PlayerTeam winningTeam)
         {
-            if (winningTeam == null)
+            if (winningTeam?.Members == null || winningTeam.Members.Count == 0)
                 return;
 
-            if (winningTeam.Members == null || winningTeam.Members.Count == 0)
-                return;
-
-            PlayerManager winner = winningTeam.Members[0];
+            var winner = winningTeam.Members[0];
 
             if (winner == null || winner.Character == null)
                 return;
