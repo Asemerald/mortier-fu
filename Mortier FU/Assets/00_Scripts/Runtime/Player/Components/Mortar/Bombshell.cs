@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
-
     [RequireComponent(typeof(Rigidbody), typeof(BombshellAspect))]
     public class Bombshell : MonoBehaviour
     {
@@ -15,47 +14,50 @@ namespace MortierFu
         {
             // Meta
             public PlayerCharacter Owner;
-        
+
             // Movement
             public Vector3 StartPos;
             public Vector3 TargetPos;
             public float Scale;
             public float Speed;
             public float GravityScale;
-        
+
             // Damage
             public float Damage;
             public float AoeRange;
             public int Bounces;
         }
-        
+
         private Data _data;
 
         private Vector3 _direction;
         private Vector3 _velocity;
         private Vector3 _toTarget;
         private float _travelTime;
-        
+
         private BombshellSystem _system;
         private FXService _fxService;
         private Rigidbody _rb;
         private BombshellAspect _aspect;
-        
+
         private CountdownTimer _impactDebounceTimer;
 
         public PlayerCharacter Owner => _data.Owner;
-        
+
         #region API // TODO: This can be improved to faciliate alteration of Bombshell behaviours in augments and mods
+
         public float Damage
         {
             get => _data.Damage;
             set => _data.Damage = value;
         }
+
         public float AoeRange
         {
             get => _data.AoeRange;
             set => _data.AoeRange = value;
         }
+
         public int Bounces
         {
             get => _data.Bounces;
@@ -67,24 +69,24 @@ namespace MortierFu
             _data.Scale *= scalar;
             transform.localScale = Vector3.one * _data.Scale;
         }
-        
+
         public float GetTravelTime() => _travelTime / _data.Speed;
-        
+
         #endregion
-        
+
         public void Initialize(BombshellSystem system)
         {
             _system = system;
             _fxService = ServiceManager.Instance.Get<FXService>();
-            
+
             _rb = GetComponent<Rigidbody>();
-            
+
             _aspect = GetComponent<BombshellAspect>();
             _aspect.Initialize(this);
-            
+
             _impactDebounceTimer = new CountdownTimer(0.1f);
         }
-        
+
         public void Configure(Data data)
         {
             // Initial setup
@@ -92,42 +94,43 @@ namespace MortierFu
 
             _toTarget = _data.TargetPos - _data.StartPos;
             CalculateTrajectory();
-            
+
             // Set the scale for the initial scale.
             transform.localScale = Vector3.one * _data.Scale;
-            
+
             _impactDebounceTimer.Stop();
-            
+
             // Preview
             HandleImpactPreview().Forget();
         }
-        
+
         private void CalculateTrajectory()
         {
             // Calculate horizontal direction and adjusted target position
             Vector3 groundDir = _toTarget.With(y: 0f);
             _direction = groundDir.normalized;
             var yTargetPos = new Vector3(groundDir.magnitude, _toTarget.y, 0);
-            
+
             // Calculate the trajectory
             float bombshellHeight = CalculateBombshellHeight(groundDir.magnitude);
-            
-            ComputePathWithHeight(yTargetPos, bombshellHeight, _data.GravityScale, out float initialSpeed, out float angle, out _travelTime);
+
+            ComputePathWithHeight(yTargetPos, bombshellHeight, _data.GravityScale, out float initialSpeed,
+                out float angle, out _travelTime);
             _velocity = ComputeVelocityAtTime(_direction, angle, initialSpeed, _data.GravityScale, 0f);
-            
+
             // Place the projectile according to the computed trajectory
             transform.position = _data.StartPos;
             transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
         }
-        
+
         private float CalculateBombshellHeight(float targetDistance)
         {
             Vector2 distRange = _system.Settings.BombshellHeightDistance;
             Vector2 valueRange = _system.Settings.BombshellHeightValue;
-            
+
             float alpha = Mathf.InverseLerp(distRange.x, distRange.y, targetDistance);
             float curvedAlpha = _system.Settings.BombshellHeightCurve.Evaluate(alpha);
-            
+
             return Mathf.Lerp(valueRange.x, valueRange.y, alpha);
         }
 
@@ -140,16 +143,17 @@ namespace MortierFu
         {
             _aspect.OnRelease();
         }
-        
+
         public void ReturnToPool() => _system.ReleaseBombshell(this);
-        
+
         // Move FixedUpdate to be called by the system (requires to be injected in the player loop or to be tailored to a MB)
-        void FixedUpdate() {
-			float dT = Time.deltaTime * _data.Speed;
+        void FixedUpdate()
+        {
+            float dT = Time.deltaTime * _data.Speed;
 
             // Apply gravity
             _velocity += Physics.gravity * (_data.GravityScale * dT);
-            
+
             // Compute intended movement
             Vector3 startPos = _rb.position;
             Vector3 moveDir = _velocity.normalized;
@@ -162,29 +166,29 @@ namespace MortierFu
             {
                 RaycastHit hit;
                 if (Physics.SphereCast(startPos, radius, moveDir, out hit,
-                                       remainingDistance, _system.Settings.WhatIsCollidable,
-                                       QueryTriggerInteraction.Collide))
+                        remainingDistance, _system.Settings.WhatIsCollidable,
+                        QueryTriggerInteraction.Collide))
                 {
                     if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Water"))
                     {
                         // Water intercept collisions
                         // TODO: Add water splash sound
                         AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, hit.point);
-                       // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
-                       _fxService.PlayWaterExplosionFX(hit.point);
+                        // AudioService.PlayOneShot(AudioService.FMODEvents, hit.point);
+                        _fxService.PlayWaterExplosionFX(hit.point);
                         ReturnToPool();
                         break;
                     }
-                    
+
                     // Move center to the point where the sphere center would be at impact
                     Vector3 centerAtHit = startPos + moveDir * hit.distance;
-                    
+
                     // Nudge slightly away along the normal to avoid sticking
                     centerAtHit += hit.normal * k_skin;
-                    
+
                     // Commit position
                     _rb.MovePosition(centerAtHit);
-                    
+
                     // Notify impact
                     _system.NotifyImpact(this, hit);
 
@@ -198,19 +202,11 @@ namespace MortierFu
                             Bombshell = this,
                             Context = bounceContext
                         });
-                        
-                        // Reflect velocity using the collider normal
-                        _velocity = Vector3.Reflect(_velocity, hit.normal) * _system.Settings.BounceSpeedDampingFactor;
-                        
-                        if(bounceContext.UpRotationMinAngle != 0 || bounceContext.RotationMaxAngle != 0f)
-                        {
-                            // Apply random rotation within specified angle range
-                            float randomAngle = Random.Range(bounceContext.UpRotationMinAngle, bounceContext.RotationMaxAngle);
-                            _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
-                        }
-                        
+
+                        ApplyBounceVelocity(hit.normal, bounceContext);
+
                         _data.Damage *= _system.Settings.BounceDamageDampingFactor;
-                        
+
                         // Recompute movement for the remaining distance after the hit:
                         // Subtract the distance we already travelled to the hit point.
                         remainingDistance -= hit.distance;
@@ -220,7 +216,7 @@ namespace MortierFu
                         moveDir = (_velocity.sqrMagnitude > 0f) ? _velocity.normalized : Vector3.zero;
 
                         HandleImpactPreview().Forget();
-                        
+
                         // If velocity dropped to near zero, break
                         if (_velocity.sqrMagnitude < 0.0001f) break;
                     }
@@ -238,7 +234,7 @@ namespace MortierFu
                     remainingDistance = 0f;
                 }
             }
-            
+
             // rotation toward velocity
             if (_velocity.sqrMagnitude > 0.001f)
             {
@@ -246,8 +242,85 @@ namespace MortierFu
                 _rb.MoveRotation(targetRot);
             }
         }
-        
-        private async UniTask HandleImpactPreview() {
+
+        private void ApplyBounceVelocity(Vector3 hitNormal, BounceContext bounceContext)
+        {
+            _velocity = Vector3.Reflect(_velocity, hitNormal) * _system.Settings.BounceSpeedDampingFactor;
+
+            ApplyBounceRandomYaw(bounceContext);
+
+            if (!HasBounceRangeOverride(bounceContext))
+                return;
+
+            ApplyRandomBounceRange(bounceContext);
+        }
+
+        private void ApplyBounceRandomYaw(BounceContext bounceContext)
+        {
+            if (bounceContext.UpRotationMinAngle == 0f && bounceContext.RotationMaxAngle == 0f)
+                return;
+
+            float randomAngle = Random.Range(
+                bounceContext.UpRotationMinAngle,
+                bounceContext.RotationMaxAngle
+            );
+
+            _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
+        }
+
+        private bool HasBounceRangeOverride(BounceContext bounceContext)
+        {
+            return bounceContext.MinBounceRange != 0f || bounceContext.MaxBounceRange != 0f;
+        }
+
+        private void ApplyRandomBounceRange(BounceContext bounceContext)
+        {
+            float minRange = Mathf.Min(bounceContext.MinBounceRange, bounceContext.MaxBounceRange);
+            float maxRange = Mathf.Max(bounceContext.MinBounceRange, bounceContext.MaxBounceRange);
+
+            if (maxRange <= 0f)
+                return;
+
+            minRange = Mathf.Max(0.1f, minRange);
+
+            float randomBounceRange = Random.Range(minRange, maxRange);
+
+            Vector3 bounceDirection = _velocity.With(y: 0f);
+
+            if (bounceDirection.sqrMagnitude < 0.0001f)
+                return;
+
+            bounceDirection.Normalize();
+
+            RecalculateVelocityForBounceRange(bounceDirection, randomBounceRange);
+        }
+
+        private void RecalculateVelocityForBounceRange(Vector3 bounceDirection, float bounceRange)
+        {
+            Vector3 targetPos = new Vector3(bounceRange, 0f, 0f);
+
+            float bombshellHeight = CalculateBombshellHeight(bounceRange);
+
+            ComputePathWithHeight(
+                targetPos,
+                bombshellHeight,
+                _data.GravityScale,
+                out float initialSpeed,
+                out float angle,
+                out _travelTime
+            );
+
+            _velocity = ComputeVelocityAtTime(
+                bounceDirection,
+                angle,
+                initialSpeed,
+                _data.GravityScale,
+                0f
+            );
+        }
+
+        private async UniTask HandleImpactPreview()
+        {
             const float k_maxSimulationTime = 30f;
 
             Vector3 currentPos = transform.position;
@@ -257,34 +330,39 @@ namespace MortierFu
             float dT = Time.fixedDeltaTime * simulationSpeedFactor * _data.Speed;
 
             int simulationIterationCount = 0;
-            
+
             RaycastHit hitResult;
-            for (float previewTime = Time.fixedDeltaTime; previewTime  < k_maxSimulationTime; previewTime += Time.fixedDeltaTime * simulationSpeedFactor) 
+            for (float previewTime = Time.fixedDeltaTime;
+                 previewTime < k_maxSimulationTime;
+                 previewTime += Time.fixedDeltaTime * simulationSpeedFactor)
             {
                 simulationIterationCount++;
-                
+
                 Debug.DrawLine(currentPos, currentPos + currentVel * dT, Color.red, 4f);
-                
+
                 if (Physics.SphereCast(currentPos, radius, currentVel.normalized, out hitResult,
-                        currentVel.magnitude * dT, _system.Settings.WhatIsPreviewable, QueryTriggerInteraction.Collide)) 
+                        currentVel.magnitude * dT, _system.Settings.WhatIsPreviewable, QueryTriggerInteraction.Collide))
                 {
                     Logs.Log("Physics Simulation took " + simulationIterationCount + " iterations.");
-                    
+
                     float delay = previewTime * _system.Settings.ImpactPreviewDelayFactor;
                     Vector3 previewPoint = hitResult.point.Add(y: 0.3f);
-                    
+
                     await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
-                    if (_fxService != null) {
+                    if (_fxService != null)
+                    {
                         _fxService.PlayBombshellPreview(previewPoint, previewTime - delay, _data.AoeRange);
-                    } else Logs.LogWarning("No FX Handler");
+                    }
+                    else Logs.LogWarning("No FX Handler");
 
                     break;
-
-                } else {
+                }
+                else
+                {
                     // Update velocity
                     currentVel += Physics.gravity * (_data.GravityScale * dT);
-                    
+
                     // Apply velocity to position
                     currentPos += currentVel * dT;
                 }
@@ -301,17 +379,17 @@ namespace MortierFu
         /// <param name="v0">Output: The required initial velocity.</param>
         /// <param name="angle">Output: The launch angle in radians.</param>
         /// <param name="time">Output: The total flight time.</param>
-        private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale, 
+        private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale,
             out float v0, out float angle, out float time)
         {
             float xt = targetPos.x;
             float yt = targetPos.y;
             float g = -Physics.gravity.y * gravityScale;
-            
+
             float b = Mathf.Sqrt(2 * g * height);
             float a = -0.5f * g;
             float c = -yt;
-            
+
             float tplus = MathUtils.QuadraticEquation(a, b, c, 1);
             float tmin = MathUtils.QuadraticEquation(a, b, c, -1);
             time = tplus > tmin ? tplus : tmin;
@@ -319,11 +397,11 @@ namespace MortierFu
             angle = Mathf.Atan(b * time / xt);
             v0 = b / Mathf.Sin(angle);
         }
-        
+
         private static Vector3 ComputeVelocityAtTime(Vector3 dir, float angle, float v0, float gravityScale, float t)
         {
             float g = -Physics.gravity.y * gravityScale;
-    
+
             float vx = v0 * Mathf.Cos(angle);
             float vy = v0 * Mathf.Sin(angle) - g * t;
 
