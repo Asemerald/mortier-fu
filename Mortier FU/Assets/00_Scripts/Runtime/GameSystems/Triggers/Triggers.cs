@@ -43,6 +43,8 @@ namespace MortierFu
     {
         public float UpRotationMinAngle;
         public float RotationMaxAngle;
+        public float OnBounceUpMinShotRange;
+        public float OnBounceUpMaxShotRange;
     }
     
     public struct TriggerBounce : ITrigger
