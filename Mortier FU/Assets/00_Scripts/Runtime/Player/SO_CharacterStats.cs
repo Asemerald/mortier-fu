@@ -61,6 +61,9 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Duration of the Strike attack.")]
         public CharacterStat DashDuration { get; private set; } = new( 0.2f);
         
+        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
+        public CharacterStat DashForce { get; private set; } = new( 8f);
+        
         [field: SerializeField, Tooltip("Radius of the Strike while dashing.")]
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
         
