@@ -19,6 +19,8 @@ namespace MortierFu
         private GamePauseSystem _gamePauseSystem;
         private PlayerInputRouter _inputRouter;
 
+        private IPlayerPawn _activePawn;
+
         private readonly PlayerCustomizationData _customization = new();
 
         public PlayerInput PlayerInput
@@ -33,6 +35,9 @@ namespace MortierFu
         public GameObject CharacterGO => RuntimeController.CharacterGO;
         public PlayerCharacter Character => RuntimeController.Character;
         public bool IsInGame => RuntimeController.IsInGame;
+        public IPlayerPawn ActivePawn => _activePawn;
+        public bool IsControllingPawn => _activePawn is { IsPawnActive: true };
+        public bool IsControllingGhost => _activePawn is PlayerGhostPawn { IsPawnActive: true };
 
         public PlayerControlContext ControlContext => InputRouter.ControlContext;
         public PlayerActionPermissions CurrentPermissions => InputRouter.CurrentPermissions;
@@ -45,8 +50,6 @@ namespace MortierFu
                 return _playerInput ? _playerInput.playerIndex : -1;
             }
         }
-
-        public bool IsReady { get; private set; }
 
         public PlayerCustomizationData Customization => _customization;
 
@@ -95,11 +98,9 @@ namespace MortierFu
             }
         }
 
-        private PlayerUIInputService UIInputService =>
-            ServiceManager.Instance?.Get<PlayerUIInputService>();
+        private PlayerUIInputService UIInputService => ServiceManager.Instance?.Get<PlayerUIInputService>();
 
-        private PlayerInteractionService InteractionService =>
-            ServiceManager.Instance?.Get<PlayerInteractionService>();
+        private PlayerInteractionService InteractionService => ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void Awake()
         {
@@ -107,7 +108,7 @@ namespace MortierFu
 
             if (!_playerInput)
             {
-                Logs.LogError("[PlayerManager] PlayerInput component is missing.", this);
+                Logs.LogError("[PlayerManager] PlayerInput component is missing.");
                 enabled = false;
                 return;
             }
@@ -116,7 +117,7 @@ namespace MortierFu
 
             bool inputRouterAlreadyCreated = _inputRouter is not null;
 
-            var inputRouter = InputRouter;
+            PlayerInputRouter inputRouter = InputRouter;
 
             if (!inputRouterAlreadyCreated)
             {
@@ -129,6 +130,8 @@ namespace MortierFu
         private void OnDestroy()
         {
             OnPlayerDestroyed?.Invoke(this);
+
+            ClearActivePawn();
 
             _inputRouter?.Dispose();
             _inputRouter = null;
@@ -157,7 +160,7 @@ namespace MortierFu
                 return false;
             }
 
-            var currentPauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+            GamePauseSystem currentPauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
 
             if (currentPauseSystem == null)
             {
@@ -175,9 +178,27 @@ namespace MortierFu
             return true;
         }
 
-        public void SetControlContext(PlayerControlContext context)
+        public void SetControlContext(PlayerControlContext context) => InputRouter?.SetContext(context, Character);
+
+        public void SetActivePawn(IPlayerPawn pawn)
         {
-            InputRouter?.SetContext(context, Character);
+            if (ReferenceEquals(_activePawn, pawn))
+                return;
+
+            _activePawn?.ExitPawn();
+
+            _activePawn = pawn;
+
+            _activePawn?.EnterPawn();
+        }
+
+        public void ClearActivePawn(IPlayerPawn expectedPawn = null)
+        {
+            if (expectedPawn != null && !ReferenceEquals(_activePawn, expectedPawn))
+                return;
+
+            _activePawn?.ExitPawn();
+            _activePawn = null;
         }
 
         public void SpawnInGame(Vector3 spawnPosition, Quaternion spawnRotation)
@@ -193,18 +214,13 @@ namespace MortierFu
 
         public void DespawnInGame()
         {
+            ClearActivePawn();
             RuntimeController.Despawn();
         }
 
-        public void JoinTeam(PlayerTeam team)
-        {
-            Team = team;
-        }
+        public void JoinTeam(PlayerTeam team) => Team = team;
 
-        public void SelfDestroy()
-        {
-            Destroy(gameObject);
-        }
+        public void SelfDestroy() => Destroy(gameObject);
 
         private void TogglePause(InputAction.CallbackContext ctx)
         {

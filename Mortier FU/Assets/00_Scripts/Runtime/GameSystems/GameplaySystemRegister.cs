@@ -14,6 +14,7 @@ namespace MortierFu
             }
 
             systemManager.CreateAndRegister<GamePauseSystem>();
+            systemManager.CreateAndRegister<GhostSystem>();
             systemManager.CreateAndRegister<CameraSystem>();
             systemManager.CreateAndRegister<LevelSystem>();
             systemManager.CreateAndRegister<BombshellSystem>();

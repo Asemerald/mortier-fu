@@ -196,6 +196,9 @@ namespace MortierFu
 
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             if (!_isInitialized)
                 return;
 
@@ -215,6 +218,9 @@ namespace MortierFu
 
         public void EndAiming(InputAction.CallbackContext ctx)
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             if (!_isInitialized)
                 return;
 
@@ -227,6 +233,9 @@ namespace MortierFu
         
         public void CancelAiming()
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             AimWidget?.Hide();
 
             _shootStrategy?.CancelAiming();

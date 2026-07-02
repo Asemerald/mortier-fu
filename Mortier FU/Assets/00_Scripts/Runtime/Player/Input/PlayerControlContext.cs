@@ -17,8 +17,9 @@ namespace MortierFu
 
         RoundCountdown,
         RoundGameplay,
+        RoundGhost,
         RoundEnded,
-
+        
         Scoreboard,
         EndGame
     }

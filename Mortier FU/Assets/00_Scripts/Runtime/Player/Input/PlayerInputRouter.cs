@@ -29,13 +29,7 @@ namespace MortierFu
         public PlayerActionPermissions CurrentPermissions { get; private set; } =
             PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
 
-        public PlayerInputRouter(
-            PlayerInput playerInput,
-            Action<InputAction.CallbackContext> onPause,
-            Action<InputAction.CallbackContext> onNavigateUI,
-            Action<InputAction.CallbackContext> onSubmitUI,
-            Action<InputAction.CallbackContext> onCancelUI,
-            Action<InputAction.CallbackContext> onInteract)
+        public PlayerInputRouter(PlayerInput playerInput, Action<InputAction.CallbackContext> onPause, Action<InputAction.CallbackContext> onNavigateUI, Action<InputAction.CallbackContext> onSubmitUI, Action<InputAction.CallbackContext> onCancelUI, Action<InputAction.CallbackContext> onInteract)
         {
             _playerInput = playerInput ?? throw new ArgumentNullException(nameof(playerInput));
 
@@ -56,13 +50,8 @@ namespace MortierFu
                 : PlayerInputActionNames.UIMap;
 
             _playerInput.SwitchCurrentActionMap(targetMap);
-            
-            UnityEngine.Debug.Log(
-                $"[PlayerInputRouter] Player {_playerInput.playerIndex + 1} context={context}, " +
-                $"targetMap={targetMap}, currentMap={_playerInput.currentActionMap?.name}"
-            );
 
-            var globalMap = _playerInput.actions.FindActionMap(PlayerInputActionNames.GlobalMap, false);
+            InputActionMap globalMap = _playerInput.actions.FindActionMap(PlayerInputActionNames.GlobalMap);
             globalMap?.Enable();
 
             character?.SetControlContext(context);
@@ -78,14 +67,14 @@ namespace MortierFu
             if (_callbacksBound)
                 return;
 
-            _pauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.Pause, false);
-            _unPauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.UnPause, false);
+            _pauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.Pause);
+            _unPauseAction = _playerInput.actions.FindAction(PlayerInputActionNames.UnPause);
 
-            _navigateUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Navigate, false);
-            _submitUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Submit, false);
-            _cancelUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Cancel, false);
+            _navigateUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Navigate);
+            _submitUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Submit);
+            _cancelUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Cancel);
 
-            _interactAction = _playerInput.actions.FindAction(PlayerInputActionNames.Interact, false);
+            _interactAction = _playerInput.actions.FindAction(PlayerInputActionNames.Interact);
 
             if (_pauseAction is not null)
                 _pauseAction.performed += _onPause;
@@ -160,7 +149,8 @@ namespace MortierFu
                 or PlayerControlContext.AugmentRace
                 or PlayerControlContext.RoundCountdown
                 or PlayerControlContext.RoundGameplay
-                or PlayerControlContext.RoundEnded;
+                or PlayerControlContext.RoundEnded
+                or PlayerControlContext.RoundGhost;
         }
     }
 }
