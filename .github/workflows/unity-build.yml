@@ -11,12 +11,31 @@ jobs:
     name: Build Windows
     runs-on:
       - self-hosted
-      - windows
+
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Activate Unity License
+        uses: game-ci/unity-activate@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
       - name: Build Unity
         shell: cmd
-        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
+        run: >
+          "C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe"
+          -batchmode
+          -quit
+          -projectPath "%GITHUB_WORKSPACE%\Mortier FU"
+          -executeMethod BuildScript.BuildWindows
+          -logFile -
+
+      - name: Return Unity License
+        if: always()
+        uses: game-ci/unity-return-license@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
