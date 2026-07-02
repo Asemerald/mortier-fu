@@ -97,6 +97,8 @@ namespace MortierFu
                 else if (rb.TryGetComponent(out IInteractable interactable) &&
                          interactable.IsBombshellInteractable)
                 {
+                    Logs.Log("TOUCHER");
+                    
                     Vector3 point = bombshell.transform.position;
                     Vector3 contactPoint = Physics.ClosestPoint(point, hitCollider, 
                         hitCollider.transform.position, hitCollider.transform.rotation);

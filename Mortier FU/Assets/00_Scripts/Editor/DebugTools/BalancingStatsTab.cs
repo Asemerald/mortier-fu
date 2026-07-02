@@ -503,6 +503,7 @@ namespace MortierFu.Editor
             AddRaw("Dash", "Dash Charges", s => s.DashCharges);
             AddRaw("Dash", "Dash Cooldown", s => s.DashCooldown);
             AddRaw("Dash", "Dash Duration", s => s.DashDuration);
+            AddRaw("Dash", "Dash Duration", s => s.DashForce);
             AddRaw("Dash", "Strike Radius", s => s.StrikeRadius);
             AddRaw("Dash", "Strike Push Force", s => s.StrikePushForce);
             AddRaw("Dash", "Strike Knockback Duration", s => s.StrikeKnockbackDuration);
