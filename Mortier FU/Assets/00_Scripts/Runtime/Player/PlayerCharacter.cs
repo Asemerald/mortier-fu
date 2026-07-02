@@ -87,6 +87,8 @@ namespace MortierFu
 
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
+        
+        public Transform FeetPoint => _feetPoint;
 
         void Awake()
         {
@@ -582,16 +584,7 @@ namespace MortierFu
             _speedModifierCoroutine = null;
         }
 
-        public void PlayCacaQuiSlowVFX()
-        {
-            if (ExternalSpeedMultiplier > 0.5f)
-                return;
-
-            // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
-            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position,
-                _feetPoint.rotation);
-            Destroy(caca, 10f);
-        }
+        
 
         #endregion
     }
