@@ -8,6 +8,8 @@ namespace MortierFu
         [Header("Durability")]
         public AGM_RockSolid.Params RockSolidParams;
         public AGM_Toughness.Params ToughnessParams;
+        //public AGM_Vampire.Params  VampireParams;
+        public AGM_WayFaster.Params WayFasterParams;
         
         [Header("Offensive")]
         public AGM_Ballista.Params BallistaParams;
@@ -18,10 +20,13 @@ namespace MortierFu
         public AGM_BouncySnowball.Params BouncySnowballParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_FastReload.Params FastReloadParams;
+        public AGM_GigaSharper.Params GigaSharperParams;
         public AGM_Gunslinger.Params GunslingerParams;
+        public AGM_Impact.Params ImpactParams;
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
         public AGM_Overheating.Params OverheatingParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
+        public AGM_Sniper.Params SniperParams;
         public AGM_TakeTheTempo.Params TakeTheTempoParams;
         public AGM_TsarBomba.Params TsarBombaParams;
         

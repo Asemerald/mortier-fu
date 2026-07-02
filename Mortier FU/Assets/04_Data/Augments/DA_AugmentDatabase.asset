@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_AugmentDatabase
   RockSolidParams:
     MaxHealthMod:
-      Value: 32
+      Value: 25
       ModType: 100
   ToughnessParams:
     MaxHealthMult:
@@ -26,12 +26,16 @@ MonoBehaviour:
     FireRateMod:
       Value: -0.2
       ModType: 200
+  WayFasterParams:
+    MoveSpeedMod:
+      Value: 0.5
+      ModType: 100
   BallistaParams:
     FireRateMod:
-      Value: 4.25
+      Value: 2.5
       ModType: 100
     BombshellDamageMod:
-      Value: -20
+      Value: -10
       ModType: 100
   BerserkerParams:
     ThresholdTimer: 10
@@ -55,7 +59,7 @@ MonoBehaviour:
       ModType: 100
   BigBulletsParams:
     FireRateMod:
-      Value: 0
+      Value: -0.5
       ModType: 100
     BombshellDamageMod:
       Value: 5
@@ -72,8 +76,8 @@ MonoBehaviour:
       ModType: 100
     ExtraBombshellBounces: 1
   ChaoticBounceParams:
-    OnBounceUpMinAngle: -33
-    OnBounceUpMaxAngle: 33
+    OnBounceUpMinAngle: -15
+    OnBounceUpMaxAngle: 15
     OnBounceUpMinShotRange: 5
     OnBounceUpMaxShotRange: 15
     ExtraBombshellBounces: 1
@@ -81,7 +85,7 @@ MonoBehaviour:
     BombshellImpactRadius:
       Value: 0.5
       ModType: 100
-    ImpactRadiusScale: 0.15
+    ImpactRadiusScale: 0.1
     ExtraBombshellBounces: 1
   ConfidenceParams:
     BombshellDamageMod:
@@ -92,7 +96,11 @@ MonoBehaviour:
       ModType: 100
   FastReloadParams:
     FireRateMod:
-      Value: 1.6
+      Value: 1.25
+      ModType: 100
+  GigaSharperParams:
+    BombshellDamageMod:
+      Value: 25
       ModType: 100
   GunslingerParams:
     FireRateMod:
@@ -104,9 +112,13 @@ MonoBehaviour:
     MaxHealthMod:
       Value: -20
       ModType: 100
+  ImpactParams:
+    BombshellImpactRadiusMod:
+      Value: 1
+      ModType: 100
   MaximumVelocityParams:
     BombshellSpeedMod:
-      Value: 16
+      Value: 20
       ModType: 100
     FireRateMod:
       Value: -0.1
@@ -118,7 +130,11 @@ MonoBehaviour:
     MaxStacksOver: 15
   SharperBulletsParams:
     BombshellDamageMod:
-      Value: 14
+      Value: 10
+      ModType: 100
+  SniperParams:
+    ShotRangeMod:
+      Value: 3.5
       ModType: 100
   TakeTheTempoParams:
     FireRateMod:
@@ -155,7 +171,7 @@ MonoBehaviour:
     ExtraDashes: 1
   FastDashParams:
     DashCooldownMod:
-      Value: -0.25
+      Value: -0.5
       ModType: 100
   PerfectPushParams:
     MaxHealthMod:
