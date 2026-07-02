@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - develop
+    
+concurrency:
+  group: unity-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
