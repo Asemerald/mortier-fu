@@ -19,6 +19,4 @@ jobs:
 
       - name: Build Unity
         shell: cmd
-                 - name: Build Unity
-                 shell: cmd
-                 run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
