@@ -8,7 +8,7 @@ namespace MortierFu
         [Header("Durability")]
         public AGM_RockSolid.Params RockSolidParams;
         public AGM_Toughness.Params ToughnessParams;
-        //public AGM_Vampire.Params  VampireParams;
+        public AGM_Vampire.Params  VampireParams;
         public AGM_WayFaster.Params WayFasterParams;
         
         [Header("Offensive")]
