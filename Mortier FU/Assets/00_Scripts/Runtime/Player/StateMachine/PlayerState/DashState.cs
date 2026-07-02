@@ -88,7 +88,7 @@ namespace MortierFu
             //character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
             Vector3 dashDir = character.Controller.GetDashDirection();
-            character.Controller.rigidbody.AddForce(dashDir * 8f, ForceMode.Impulse);
+            character.Controller.rigidbody.AddForce(dashDir, ForceMode.Impulse);
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();

@@ -114,7 +114,7 @@ namespace MortierFu
 
             Vector2 input = _moveAction.ReadValue<Vector2>();
             Vector2 targetDirection = input.normalized;
-            float targetForce = Stats.MoveSpeed.Value;
+            float targetForce = Stats.MoveSpeed.Value * Stats.DashForce.Value;
 
             return new Vector3(targetDirection.x, 0f, targetDirection.y) * targetForce;
         }
