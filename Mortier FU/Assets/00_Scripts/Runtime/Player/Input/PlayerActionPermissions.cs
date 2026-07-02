@@ -199,6 +199,19 @@ namespace MortierFu
                     canCancelUI: true
                 ),
 
+                PlayerControlContext.RoundGhost => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: false,
+                    canTaunt: false,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: false
+                ),
+
                 PlayerControlContext.RoundEnded => new PlayerActionPermissions(
                     canMove: false,
                     canAim: false,
