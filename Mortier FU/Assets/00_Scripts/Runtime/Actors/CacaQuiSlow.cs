@@ -1,51 +1,56 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace MortierFu
 {
-    public class CacaQuiSlow : MonoBehaviour
+    public class CacaQuiSlow : BaseZone
     {
         #region Variables
-
         
         [SerializeField] private float slowMultiplier = 0.5f;
         [SerializeField] private float transitionDuration = 0.5f;
-        
         [SerializeField] private GameObject vfxCacaQuiSlowPrefab;
-        
-        [SerializeField] private float vfxCacaQuiSlowDuration = 0.5f;
-
-        private readonly Dictionary<PlayerCharacter, float> _counters = new();
-
-        private readonly List<PlayerCharacter> _playersCache = new();
         
         #endregion
 
         #region Unity Lifecycle
 
-        private void OnTriggerEnter(Collider other)
+        protected void OnTriggerEnter(Collider other)
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
             
-            if (!player || !_counters.TryAdd(player, vfxCacaQuiSlowDuration)) return;
+            if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
 
-            player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
+            ApplyEffectZoneEnter(player);
         }
 
-        private void OnTriggerExit(Collider other)
+        protected void OnTriggerExit(Collider other)
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
             
             if (!player || !_counters.Remove(player)) return;
 
-            player.SetExternalSpeedMultiplier(1f, transitionDuration);
+            ApplyEffectZoneExit(player);
         }
 
         
-        private void Update() => UpdateVfxCacaQuiSlowVFX();
+        private void Update() => ApplyEffectZoneTick();
+        
 
-        private void UpdateVfxCacaQuiSlowVFX()
+        #endregion
+
+        #region Base Logic
+
+        protected override void ApplyEffectZoneEnter(PlayerCharacter player)
+        {
+            player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
+        }
+
+        protected override void ApplyEffectZoneExit(PlayerCharacter player)
+        {
+            player.SetExternalSpeedMultiplier(1f, transitionDuration);
+        }
+
+        protected override void ApplyEffectZoneTick()
         {
             int counter = _counters.Count;
             
@@ -59,15 +64,13 @@ namespace MortierFu
                 if (_counters[player] <= 0f)
                 {
                     PlayCacaQuiSlowVFX(player);
-                    _counters[player] = vfxCacaQuiSlowDuration;
+                    _counters[player] = vfxFootPrintDuration;
                 }
                 else
                 {
                     _counters[player] -= Time.deltaTime;
                 }
             }
-
-            
         }
 
         #endregion
@@ -91,6 +94,7 @@ namespace MortierFu
             _counters.Clear();
             _playersCache.Clear();
         }
+
         
     }
 }
