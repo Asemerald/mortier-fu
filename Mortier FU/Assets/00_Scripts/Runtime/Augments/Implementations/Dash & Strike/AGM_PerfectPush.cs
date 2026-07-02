@@ -7,6 +7,8 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod MaxHealthMod; // OLD [OnSuccesfulMaxHealthMod) raccourcit pour équilibrage plus simple 
+            public AugmentStatMod StrikePushForceMod;
+            public AugmentStatMod DashCooldownMod;
         }
         
         private EventBinding<TriggerSuccessfulPush> _successfulPushBinding;
@@ -17,6 +19,9 @@ namespace MortierFu
 
         public override void Initialize()
         {
+            stats.StrikePushForce.AddModifier(db.PerfectPushParams.StrikePushForceMod.ToMod(this));
+            stats.DashCooldown.AddModifier(db.PerfectPushParams.DashCooldownMod.ToMod(this));
+            
             _successfulPushBinding = new EventBinding<TriggerSuccessfulPush>(OnSuccessfulPush);
             EventBus<TriggerSuccessfulPush>.Register(_successfulPushBinding);
 
