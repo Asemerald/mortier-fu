@@ -934,14 +934,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 447637676}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -986,7 +986,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -1449,6 +1449,7 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.025}
   m_Size: {x: 10, y: 10, z: 0.05}
   m_FadeFactor: 1
+  m_VisibleInScene: 1
   version: 1
   m_DecalLayerMask: 1
 --- !u!43 &732399842
@@ -1865,6 +1866,7 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.025}
   m_Size: {x: 10, y: 10, z: 0.05}
   m_FadeFactor: 1
+  m_VisibleInScene: 1
   version: 1
   m_DecalLayerMask: 1
 --- !u!1 &1197031426
@@ -1925,6 +1927,7 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.025}
   m_Size: {x: 10, y: 10, z: 0.05}
   m_FadeFactor: 1
+  m_VisibleInScene: 1
   version: 1
   m_DecalLayerMask: 1
 --- !u!43 &1224740490
@@ -2697,6 +2700,7 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.025}
   m_Size: {x: 10, y: 10, z: 0.05}
   m_FadeFactor: 1
+  m_VisibleInScene: 1
   version: 1
   m_DecalLayerMask: 1
 --- !u!1 &2113081247
@@ -2757,6 +2761,7 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.025}
   m_Size: {x: 10, y: 10, z: 0.05}
   m_FadeFactor: 1
+  m_VisibleInScene: 1
   version: 1
   m_DecalLayerMask: 1
 --- !u!1001 &1341817297225063959
@@ -2951,6 +2956,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 533200183}
+    - target: {fileID: 6017185530856215432, guid: 1a9ecb85087012f4dbad2de36652ee0f, type: 3}
+      propertyPath: m_Name
+      value: Arch5x5
+      objectReference: {fileID: 0}
     - target: {fileID: 6323174151414991285, guid: 1a9ecb85087012f4dbad2de36652ee0f, type: 3}
       propertyPath: m_Mesh
       value: 

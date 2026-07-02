@@ -917,6 +917,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cded085d155cde949b60f67a11dbc3bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.ProbeVolume
+  version: 2
+  globalVolume: 0
   mode: 1
   size: {x: 145.62772, y: 17.702513, z: 158.13564}
   overrideRendererFilters: 0
@@ -947,8 +949,6 @@ MonoBehaviour:
     e33: 1
   cachedHashCode: -339945483
   fillEmptySpaces: 0
-  version: 2
-  globalVolume: 0
 --- !u!4 &1436261102
 Transform:
   m_ObjectHideFlags: 0
@@ -1113,6 +1113,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1737984795
 MeshFilter:
@@ -1647,7 +1648,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6570714286885820617, guid: 1b3d1447be6e41142968bca82bd8a2a1, type: 3}
       propertyPath: m_Name
-      value: LD1_V2_Race_temp
+      value: LD_Race_01
       objectReference: {fileID: 0}
     - target: {fileID: 6624234395018274415, guid: 1b3d1447be6e41142968bca82bd8a2a1, type: 3}
       propertyPath: m_StaticEditorFlags
