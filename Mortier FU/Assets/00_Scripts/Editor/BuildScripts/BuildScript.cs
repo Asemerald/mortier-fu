@@ -12,7 +12,7 @@ public static class BuildScript
 
         BuildPipeline.BuildPlayer(
             scenes,
-            "Build/Windows/Mortar Game.exe",
+            "Build/Go Kaboom!.exe",
             BuildTarget.StandaloneWindows64,
             BuildOptions.None
         );

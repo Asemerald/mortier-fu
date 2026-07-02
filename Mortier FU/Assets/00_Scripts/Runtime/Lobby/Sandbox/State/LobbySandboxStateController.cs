@@ -7,48 +7,28 @@ namespace MortierFu
 {
     public sealed class LobbySandboxStateController : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private LobbySandboxController _sandboxController;
+        [Header("References")] [SerializeField]
+        private LobbySandboxController _sandboxController;
 
-        [Header("Rules")]
-        [SerializeField] private int _settingsOwnerPlayerIndex = 0;
-
-        public LobbySandboxState CurrentState { get; private set; } = LobbySandboxState.Sandbox;
+        [Header("Rules")] private LobbySandboxState CurrentState { get; set; } = LobbySandboxState.Sandbox;
 
         private readonly HashSet<PlayerManager> _customizationPlayers = new();
 
-        public IReadOnlyCollection<PlayerManager> CustomizationPlayers => _customizationPlayers;
-        public PlayerManager ActiveSettingsPlayer { get; private set; }
+        private PlayerManager ActiveSettingsPlayer { get; set; }
 
-        public bool IsGlobalLockActive =>
-            CurrentState is LobbySandboxState.GlobalSettings or LobbySandboxState.LaunchingGame;
+        private bool IsLaunching => CurrentState == LobbySandboxState.LaunchingGame;
 
-        public bool IsLaunching => CurrentState == LobbySandboxState.LaunchingGame;
-
-        public event Action<LobbySandboxState, LobbySandboxState> OnStateChanged;
         public event Action<PlayerManager> OnCustomizationInterrupted;
+        public event Action<PlayerManager> OnSettingsInterrupted;
 
         public bool TryEnterCustomization(PlayerManager player)
         {
-            if (!player)
+            if (!CanUseCustomizationStation(player))
                 return false;
-
-            if (CurrentState is LobbySandboxState.GlobalSettings or LobbySandboxState.LaunchingGame)
-                return false;
-
-            if (_customizationPlayers.Contains(player))
-                return false;
-
-            bool wasEmpty = _customizationPlayers.Count == 0;
 
             _customizationPlayers.Add(player);
 
-            if (wasEmpty)
-            {
-                ChangeState(LobbySandboxState.PlayerCustomization);
-            }
-
-            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered customization state.");
+            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered customization.");
 
             return true;
         }
@@ -58,50 +38,24 @@ namespace MortierFu
             if (!player)
                 return false;
 
-            if (!_customizationPlayers.Contains(player))
+            if (!_customizationPlayers.Remove(player))
                 return false;
 
-            _customizationPlayers.Remove(player);
-
-            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited customization state.");
-
-            if (_customizationPlayers.Count == 0 &&
-                CurrentState == LobbySandboxState.PlayerCustomization)
-            {
-                ChangeState(LobbySandboxState.Sandbox);
-            }
+            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited customization.");
 
             return true;
         }
 
         public bool TryEnterSettings(PlayerManager player)
         {
-            if (!player)
+            if (!CanUseSettingsStation(player))
                 return false;
-
-            if (player.PlayerIndex != _settingsOwnerPlayerIndex)
-                return false;
-
-            if (CurrentState == LobbySandboxState.GlobalSettings)
-                return false;
-
-            if (CurrentState == LobbySandboxState.LaunchingGame)
-                return false;
-
-            if (_customizationPlayers.Count > 0)
-            {
-                InterruptAllCustomizations();
-            }
 
             ActiveSettingsPlayer = player;
 
-            ChangeState(LobbySandboxState.GlobalSettings);
-
-            _sandboxController?.LockAllPlayers();
-
             player.SetControlContext(PlayerControlContext.LobbySettingsOwner);
 
-            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered settings state.");
+            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered settings.");
 
             return true;
         }
@@ -111,32 +65,25 @@ namespace MortierFu
             if (!player)
                 return false;
 
-            if (CurrentState != LobbySandboxState.GlobalSettings)
-                return false;
-
             if (!ReferenceEquals(ActiveSettingsPlayer, player))
                 return false;
 
             ActiveSettingsPlayer = null;
 
-            ChangeState(LobbySandboxState.Sandbox);
+            RestorePlayerLobbyContext(player);
 
-            _sandboxController?.UnlockAllPlayers();
-
-            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited settings state.");
+            Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited settings.");
 
             return true;
         }
 
         public bool TryBeginLaunching()
         {
-            if (CurrentState == LobbySandboxState.LaunchingGame)
+            if (IsLaunching)
                 return false;
 
-            if (_customizationPlayers.Count > 0)
-            {
-                InterruptAllCustomizations();
-            }
+            InterruptActiveSettings();
+            InterruptAllCustomizations();
 
             ChangeState(LobbySandboxState.LaunchingGame);
 
@@ -147,20 +94,20 @@ namespace MortierFu
             return true;
         }
 
-        public bool CanUseStartTarget()
-        {
-            return CurrentState == LobbySandboxState.Sandbox;
-        }
+        public bool CanUseStartTarget() => !IsLaunching;
 
         public bool CanUseCustomizationStation(PlayerManager player)
         {
             if (!player)
                 return false;
 
+            if (IsLaunching)
+                return false;
+
             if (_customizationPlayers.Contains(player))
                 return false;
 
-            return CurrentState is LobbySandboxState.Sandbox or LobbySandboxState.PlayerCustomization;
+            return !ReferenceEquals(ActiveSettingsPlayer, player);
         }
 
         public bool CanUseSettingsStation(PlayerManager player)
@@ -168,29 +115,13 @@ namespace MortierFu
             if (!player)
                 return false;
 
-            if (player.PlayerIndex != _settingsOwnerPlayerIndex)
+            if (IsLaunching)
                 return false;
 
-            return CurrentState is LobbySandboxState.Sandbox or LobbySandboxState.PlayerCustomization;
-        }
-        
-        public PlayerControlContext GetContextForNewPlayer(PlayerManager player)
-        {
-            if (!player)
-                return PlayerControlContext.LobbyLocked;
+            if (ActiveSettingsPlayer)
+                return false;
 
-            return CurrentState switch
-            {
-                LobbySandboxState.Sandbox => PlayerControlContext.LobbySandbox,
-
-                LobbySandboxState.PlayerCustomization => PlayerControlContext.LobbySandbox,
-
-                LobbySandboxState.GlobalSettings => PlayerControlContext.LobbyLocked,
-
-                LobbySandboxState.LaunchingGame => PlayerControlContext.LobbyLocked,
-
-                _ => PlayerControlContext.LobbyLocked
-            };
+            return !_customizationPlayers.Contains(player);
         }
 
         private void InterruptAllCustomizations()
@@ -202,14 +133,48 @@ namespace MortierFu
 
             _customizationPlayers.Clear();
 
-            foreach (var player in interruptedPlayers)
+            for (var i = 0; i < interruptedPlayers.Count; i++)
             {
+                var player = interruptedPlayers[i];
+
                 if (!player)
                     continue;
 
                 Logs.Log($"[LobbySandboxStateController] Interrupting customization for Player {player.PlayerIndex + 1}.");
                 OnCustomizationInterrupted?.Invoke(player);
             }
+        }
+
+        private void InterruptActiveSettings()
+        {
+            if (!ActiveSettingsPlayer)
+                return;
+
+            var interruptedPlayer = ActiveSettingsPlayer;
+            ActiveSettingsPlayer = null;
+
+            Logs.Log($"[LobbySandboxStateController] Interrupting settings for Player {interruptedPlayer.PlayerIndex + 1}.");
+            OnSettingsInterrupted?.Invoke(interruptedPlayer);
+        }
+
+        private void RestorePlayerLobbyContext(PlayerManager player)
+        {
+            if (!player)
+                return;
+
+            if (IsLaunching)
+            {
+                player.SetControlContext(PlayerControlContext.LobbyLocked);
+                return;
+            }
+
+            if (_sandboxController)
+            {
+                _sandboxController.ApplyCurrentContextToPlayer(player);
+                return;
+            }
+
+            player.SetControlContext(PlayerControlContext.LobbySandbox);
         }
 
         private void ChangeState(LobbySandboxState newState)
@@ -221,8 +186,6 @@ namespace MortierFu
             CurrentState = newState;
 
             Logs.Log($"[LobbySandboxStateController] State changed: {previousState} -> {newState}");
-
-            OnStateChanged?.Invoke(previousState, newState);
         }
     }
 }

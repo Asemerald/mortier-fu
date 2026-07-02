@@ -32,54 +32,58 @@ namespace MortierFu
         {
             int length = outAugments.Length;
             var rarities = _rarityTable.BatchPull(length);
+                var removedAugments = new List<(E_AugmentRarity rarity, SO_Augment augment)>();
 
-            for (int i = 0; i < length; i++)
-            {
-                E_AugmentRarity rarity = rarities[i];
-                if (!_augmentsPerRarity.TryGetValue(rarity, out var augments))
+                for (int i = 0; i < length; i++)
                 {
-                    Logs.LogError($"No augment found of rarity {rarity} !");
-                    outAugments[i] = null;
-                    continue;
-                }
-
-                // TODO: SHOULD BE REMOVED WHEN SUFFICIENT AMOUNT OF AUGMENTS
-                // Hard fix for empty augment lists
-                if (augments.Count == 0)
-                {
-                    rarity = E_AugmentRarity.Rare;
-                    if (!_augmentsPerRarity.TryGetValue(rarity, out augments))
+                    E_AugmentRarity rarity = rarities[i];
+                    if (!_augmentsPerRarity.TryGetValue(rarity, out var augments))
                     {
                         Logs.LogError($"No augment found of rarity {rarity} !");
                         outAugments[i] = null;
                         continue;
                     }
-                }
-                
-                int randIndex = WeightedRandomIndex(augments);
-                var pulledAugment = augments[randIndex];
 
-                // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
+                    // TODO: SHOULD BE REMOVED WHEN SUFFICIENT AMOUNT OF AUGMENTS
+                    // Hard fix for empty augment lists
+                    if (augments.Count == 0)
+                    {
+                        rarity = E_AugmentRarity.Rare;
+                        if (!_augmentsPerRarity.TryGetValue(rarity, out augments))
+                        {
+                            Logs.LogError($"No augment found of rarity {rarity} !");
+                            outAugments[i] = null;
+                            continue;
+                        }
+                    }
+                
+                    int randIndex = WeightedRandomIndex(augments);
+                    var pulledAugment = augments[randIndex];
+
+                    // Remove the augment from its rarity list to prevent picking it up multiple times this batch.
+                    if (!Settings.AllowCopiesInBatch)
+                    {
+                        int lastIndex = augments.Count - 1;
+                        augments[randIndex] = augments[lastIndex];
+                        augments.RemoveAt(lastIndex);
+                        removedAugments.Add((rarity, pulledAugment));
+                    }
+
+                    outAugments[i] = pulledAugment;
+                }
+
                 if (!Settings.AllowCopiesInBatch)
                 {
-                    int lastIndex = augments.Count - 1;
-                    augments[randIndex] = augments[lastIndex];
-                    augments.RemoveAt(lastIndex);
-                }
-
-                outAugments[i] = pulledAugment;
-            }
-
-            if (!Settings.AllowCopiesInBatch)
-            {
-                // Restore all pulled augments to their list
-                foreach (var augment in outAugments)
-                {
-                    if (augment == null) continue;
-                    AddAugmentInDictionary(augment);
+                    // Restore all pulled augments to their original rarity lists
+                    foreach (var (rarity, augment) in removedAugments)
+                    {
+                        if (_augmentsPerRarity.TryGetValue(rarity, out var augmentsList))
+                        {
+                            augmentsList.Add(augment);
+                        }
+                    }
                 }
             }
-        }
 
         public async UniTask OnInitialize()
         {

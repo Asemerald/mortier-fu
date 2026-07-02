@@ -608,8 +608,7 @@ namespace MortierFu
         }
 
         public virtual void Update()
-        {
-        }
+        { }
 
         public virtual void Dispose()
         {
