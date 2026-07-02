@@ -1,56 +1,100 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace MortierFu
 {
-    public class CacaQuiSlow : MonoBehaviour
+    public class CacaQuiSlow : BaseZone
     {
+        #region Variables
+        
         [SerializeField] private float slowMultiplier = 0.5f;
         [SerializeField] private float transitionDuration = 0.5f;
+        [SerializeField] private GameObject vfxCacaQuiSlowPrefab;
+        
+        #endregion
 
-        // Track how many slow zones are affecting each player
-        private readonly Dictionary<PlayerCharacter, int> _counters = new();
+        #region Unity Lifecycle
 
+        protected void OnTriggerEnter(Collider other)
+        {
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+            
+            if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
+
+            ApplyEffectZoneEnter(player);
+        }
+
+        protected void OnTriggerExit(Collider other)
+        {
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+            
+            if (!player || !_counters.Remove(player)) return;
+
+            ApplyEffectZoneExit(player);
+        }
+
+        
+        private void Update() => ApplyEffectZoneTick();
+        
+
+        #endregion
+
+        #region Base Logic
+
+        protected override void ApplyEffectZoneEnter(PlayerCharacter player)
+        {
+            player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
+        }
+
+        protected override void ApplyEffectZoneExit(PlayerCharacter player)
+        {
+            player.SetExternalSpeedMultiplier(1f, transitionDuration);
+        }
+
+        protected override void ApplyEffectZoneTick()
+        {
+            int counter = _counters.Count;
+            
+            if (counter == 0) return;
+            
+            _playersCache.Clear();
+            _playersCache.AddRange(_counters.Keys);
+            
+            foreach (var player in  _playersCache)
+            {
+                if (_counters[player] <= 0f)
+                {
+                    PlayCacaQuiSlowVFX(player);
+                    _counters[player] = vfxFootPrintDuration;
+                }
+                else
+                {
+                    _counters[player] -= Time.deltaTime;
+                }
+            }
+        }
+
+        #endregion
+
+        private void PlayCacaQuiSlowVFX(PlayerCharacter player)
+        {
+            if (player.ExternalSpeedMultiplier > 0.5f) return;
+            
+            var caca = Instantiate(vfxCacaQuiSlowPrefab, player.FeetPoint.position,
+                player.FeetPoint.rotation);
+            
+            Destroy(caca, 10f);
+        }
+        
         private void Reset()
         {
-            var col = GetComponent<Collider>();
-            if (col != null) col.isTrigger = true;
+            Collider col = GetComponent<Collider>();
+            
+            if (col) col.isTrigger = true;
+            
+            _counters.Clear();
+            _playersCache.Clear();
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            var player = other.GetComponentInParent<PlayerCharacter>();
-            if (player == null) return;
-
-            if (!_counters.TryGetValue(player, out var count))
-                count = 0;
-
-            count++;
-            _counters[player] = count;
-
-            if (count == 1)
-            {
-                player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
-            }
-        }
-
-        private void OnTriggerExit(Collider other)
-        {
-            var player = other.GetComponentInParent<PlayerCharacter>();
-            if (player == null) return;
-
-            if (!_counters.TryGetValue(player, out var count)) return;
-
-            count--;
-            if (count <= 0)
-            {
-                _counters.Remove(player);
-                player.SetExternalSpeedMultiplier(1f, transitionDuration);
-            }
-            else
-            {
-                _counters[player] = count;
-            }
-        }
+        
     }
 }
