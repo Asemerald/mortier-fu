@@ -1,3 +1,5 @@
+using UnityEngine.Serialization;
+
 namespace MortierFu
 {
     public class AGM_Vampire : AugmentBase
@@ -5,8 +7,8 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod BombshellImpactRadiusMod;
-            public AugmentStatMod AmountHealMod;
+            public AugmentStatMod BombshellDamageMod;
+            [FormerlySerializedAs("AmountHealMod")] public AugmentStatMod MaxHealthMod;
         }
 
         private EventBinding<TriggerHit> _hitBinding;
@@ -17,7 +19,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.BombshellImpactRadius.AddModifier(db.VampireParams.BombshellImpactRadiusMod.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.VampireParams.BombshellDamageMod.ToMod(this));
 
             _hitBinding = new EventBinding<TriggerHit>(OnHit);
             EventBus<TriggerHit>.Register(_hitBinding);
@@ -27,7 +29,7 @@ namespace MortierFu
         {
             if (evt.Bombshell.Owner != owner) return;
 
-            evt.Bombshell.Owner.Health.Heal(db.VampireParams.AmountHealMod.Value);
+            evt.Bombshell.Owner.Health.Heal(db.VampireParams.MaxHealthMod.Value);
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
 
