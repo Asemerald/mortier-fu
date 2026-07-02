@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
@@ -562,6 +564,25 @@ namespace MortierFu
             _speedModifierCoroutine =
                 StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
         }
+        
+        public float ExternalAccelerationMultiplier { get; private set; } = 1f;
+        private Coroutine _accelCoroutine;
+        public float ExternalDecelerationMultiplier { get; private set; } = 1f;
+        private Coroutine _decelCoroutine;
+
+        public void SetExternalAccelerationMultiplier(float targetMultiplier, float transitionDuration)
+        {
+            if (_accelCoroutine != null)
+                StopCoroutine(_accelCoroutine);
+            _accelCoroutine = StartCoroutine(SmoothSetAcceleration(targetMultiplier, transitionDuration));
+        }
+        
+        public void SetExternalDecelerationMultiplier(float targetMultiplier, float transitionDuration)
+        {
+            if (_decelCoroutine != null)
+                StopCoroutine(_decelCoroutine);
+            _decelCoroutine = StartCoroutine(SmoothSetDeceleration(targetMultiplier, transitionDuration));
+        }
 
         private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
         {
@@ -584,7 +605,47 @@ namespace MortierFu
             _speedModifierCoroutine = null;
         }
 
+        private IEnumerator SmoothSetAcceleration(float target, float duration)
+        {
+            float start = ExternalAccelerationMultiplier;
+            if (duration <= 0f)
+            {
+                ExternalAccelerationMultiplier = target;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                ExternalAccelerationMultiplier = Mathf.Lerp(start, target, elapsed / duration);
+                yield return null;
+            }
+
+            ExternalAccelerationMultiplier = target;
+            _accelCoroutine = null;
+        }
         
+        private IEnumerator SmoothSetDeceleration(float target, float duration)
+        {
+            float start = ExternalDecelerationMultiplier;
+            if (duration <= 0f)
+            {
+                ExternalDecelerationMultiplier = target;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                ExternalDecelerationMultiplier = Mathf.Lerp(start, target, elapsed / duration);
+                yield return null;
+            }
+
+            ExternalDecelerationMultiplier = target;
+            _decelCoroutine = null;
+        }
 
         #endregion
     }

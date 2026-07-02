@@ -85,16 +85,5 @@ namespace MortierFu
             Destroy(caca, 10f);
         }
         
-        private void Reset()
-        {
-            Collider col = GetComponent<Collider>();
-            
-            if (col) col.isTrigger = true;
-            
-            _counters.Clear();
-            _playersCache.Clear();
-        }
-
-        
     }
 }
