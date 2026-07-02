@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 namespace MortierFu
 {
     public class AGM_Berserker : AugmentBase
