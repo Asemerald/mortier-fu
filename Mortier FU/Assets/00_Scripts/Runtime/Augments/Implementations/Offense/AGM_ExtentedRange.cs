@@ -1,6 +1,6 @@
 namespace MortierFu
 {
-    public class AGM_Sniper : AugmentBase
+    public class AGM_ExtentedRange : AugmentBase
     {
         [System.Serializable]
         public struct Params
@@ -8,12 +8,12 @@ namespace MortierFu
             public AugmentStatMod ShotRangeMod;
         }
         
-        public AGM_Sniper(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
+        public AGM_ExtentedRange(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.ShotRange.AddModifier(db.SniperParams.ShotRangeMod.ToMod(this));
+            stats.ShotRange.AddModifier(db.ExtentedRangeParams.ShotRangeMod.ToMod(this));
         }
         
         public override void Dispose()

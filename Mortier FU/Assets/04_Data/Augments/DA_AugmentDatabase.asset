@@ -28,10 +28,10 @@ MonoBehaviour:
       ModType: 200
   VampireParams:
     BombshellDamageMod:
-      Value: 10
+      Value: 8
       ModType: 100
     MaxHealthMod:
-      Value: 20
+      Value: 25
       ModType: 100
   WayFasterParams:
     MoveSpeedMod:
@@ -44,7 +44,7 @@ MonoBehaviour:
     BombshellDamageMod:
       Value: -10
       ModType: 100
-  BerserkerParams:
+  AscensionParams:
     ThresholdTimer: 10
     BombshellDamageMod:
       Value: 42
@@ -57,19 +57,19 @@ MonoBehaviour:
       ModType: 100
     BombshellDamageModPreproc:
       Value: 0
-      ModType: 100
+      ModType: 0
     MoveSpeedModPreproc:
       Value: 0
-      ModType: 100
+      ModType: 0
     FireRateModPreproc:
       Value: 0
-      ModType: 100
+      ModType: 0
   BigBulletsParams:
     FireRateMod:
       Value: -0.5
       ModType: 100
     BombshellDamageMod:
-      Value: 5
+      Value: 10
       ModType: 100
     BombshellImpactRadiusMod:
       Value: 0.8
@@ -79,7 +79,7 @@ MonoBehaviour:
       Value: 0
       ModType: 100
     ShotRangeMod:
-      Value: -2
+      Value: -2.5
       ModType: 100
     ExtraBombshellBounces: 1
   ChaoticBounceParams:
@@ -88,6 +88,9 @@ MonoBehaviour:
     OnBounceUpMinShotRange: 5
     OnBounceUpMaxShotRange: 15
     ExtraBombshellBounces: 1
+    ShotRangeMod:
+      Value: -3
+      ModType: 100
   BouncySnowballParams:
     BombshellImpactRadius:
       Value: 0.5
@@ -96,11 +99,15 @@ MonoBehaviour:
     ExtraBombshellBounces: 1
   ConfidenceParams:
     BombshellDamageMod:
-      Value: 30
+      Value: 25
       ModType: 100
     BombshellSpeedMod:
       Value: -6
       ModType: 100
+  ExtentedRangeParams:
+    ShotRangeMod:
+      Value: 0
+      ModType: 0
   FastReloadParams:
     FireRateMod:
       Value: 1.25
@@ -125,32 +132,44 @@ MonoBehaviour:
       ModType: 100
   MaximumVelocityParams:
     BombshellSpeedMod:
-      Value: 20
+      Value: 15
       ModType: 100
     FireRateMod:
-      Value: -0.1
+      Value: -0.07
       ModType: 200
   OverheatingParams:
     OnAttackBombshellSpeedMod:
       Value: 2
       ModType: 100
     MaxStacksOver: 15
+  RealSniperParams:
+    ShotRangeMod:
+      Value: 15
+      ModType: 100
+    BombshellSpeedMod:
+      Value: 30
+      ModType: 100
+    FireRateMod:
+      Value: -0.5
+      ModType: 200
+    BombshellDamageMod:
+      Value: 40
+      ModType: 100
+    ImpactRadiusMod:
+      Value: -1
+      ModType: 100
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 10
       ModType: 100
-  SniperParams:
-    ShotRangeMod:
-      Value: 3.5
-      ModType: 100
   TakeTheTempoParams:
     FireRateMod:
-      Value: 1.5
+      Value: 0.4
       ModType: 100
     BombshellSpeedMod:
-      Value: 10
+      Value: 4
       ModType: 100
-    MaxStacksTempo: 8
+    MaxStacksTempo: 5
   TsarBombaParams:
     BombshellImpactRadiusMult:
       Value: 0.25
@@ -169,11 +188,15 @@ MonoBehaviour:
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:
-      Value: 0.42
-      ModType: 200
+      Value: 1
+      ModType: 100
     DashCooldownMod:
       Value: 0
       ModType: 100
+  BullyParams:
+    KnockbackStunDurationMod:
+      Value: 0
+      ModType: 0
   DoubleDashParams:
     ExtraDashes: 1
   FastDashParams:
@@ -185,8 +208,12 @@ MonoBehaviour:
       Value: 30
       ModType: 100
     StrikePushForceMod:
-      Value: 0.25
+      Value: 0.5
       ModType: 100
     DashCooldownMod:
       Value: 0.5
       ModType: 100
+  TravelerParams:
+    DashForceMod:
+      Value: 0
+      ModType: 0

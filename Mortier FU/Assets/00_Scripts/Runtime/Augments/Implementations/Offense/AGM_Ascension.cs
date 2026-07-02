@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 namespace MortierFu
 {
-    public class AGM_Berserker : AugmentBase
+    public class AGM_Ascension : AugmentBase
     {
         [System.Serializable]
         public struct Params
@@ -21,14 +21,14 @@ namespace MortierFu
         private IGameMode _gameMode;
         private bool _isActive;
         
-        public AGM_Berserker(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
+        public AGM_Ascension(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
-            stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageModPreproc.ToMod(this));
-            stats.FireRate.AddModifier(db.BerserkerParams.FireRateModPreproc.ToMod(this));
-            stats.MoveSpeed.AddModifier(db.BerserkerParams.MoveSpeedModPreproc.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.AscensionParams.BombshellDamageModPreproc.ToMod(this));
+            stats.FireRate.AddModifier(db.AscensionParams.FireRateModPreproc.ToMod(this));
+            stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedModPreproc.ToMod(this));
 
             _endRoundBinding = new EventBinding<TriggerEndRound>(OnEndRound);
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
@@ -50,7 +50,7 @@ namespace MortierFu
             ResetToPreproc();
             StopThresholdTimer();
 
-            float duration = db.BerserkerParams.ThresholdTimer;
+            float duration = db.AscensionParams.ThresholdTimer;
             if (duration <= 0f)
             {
                 ActivateThreshold();
@@ -73,9 +73,9 @@ namespace MortierFu
         private void ActivateThreshold()
         {
             _isActive = true;
-            stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageMod.ToMod(this));
-            stats.MoveSpeed.AddModifier(db.BerserkerParams.MoveSpeedMod.ToMod(this));
-            stats.FireRate.AddModifier(db.BerserkerParams.FireRateMod.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.AscensionParams.BombshellDamageMod.ToMod(this));
+            stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedMod.ToMod(this));
+            stats.FireRate.AddModifier(db.AscensionParams.FireRateMod.ToMod(this));
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
         }
 
@@ -101,9 +101,9 @@ namespace MortierFu
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
             stats.FireRate.RemoveAllModifiersFromSource(this);
-            stats.BombshellDamage.AddModifier(db.BerserkerParams.BombshellDamageModPreproc.ToMod(this));
-            stats.FireRate.AddModifier(db.BerserkerParams.FireRateModPreproc.ToMod(this));
-            stats.MoveSpeed.AddModifier(db.BerserkerParams.MoveSpeedModPreproc.ToMod(this));
+            stats.BombshellDamage.AddModifier(db.AscensionParams.BombshellDamageModPreproc.ToMod(this));
+            stats.FireRate.AddModifier(db.AscensionParams.FireRateModPreproc.ToMod(this));
+            stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedModPreproc.ToMod(this));
             _isActive = false;
         }
 
