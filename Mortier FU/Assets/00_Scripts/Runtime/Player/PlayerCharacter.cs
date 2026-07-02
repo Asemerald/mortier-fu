@@ -133,7 +133,10 @@ namespace MortierFu
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             _dashState.Reset();
-            ExternalSpeedMultiplier = 1f;
+            
+            _speedMultiplier.Reset();
+            _accelMultiplier.Reset();
+            _decelMultiplier.Reset();
         }
 
         private void OnDisable()
@@ -240,7 +243,9 @@ namespace MortierFu
 
             _stateMachine.SetState(_locomotionState);
 
-            ExternalSpeedMultiplier = 1f;
+            _speedMultiplier.Reset();
+            _accelMultiplier.Reset();
+            _decelMultiplier.Reset();
         }
 
         public void RespawnAt(Vector3 position, Quaternion rotation)
@@ -550,102 +555,22 @@ namespace MortierFu
 
         #region Caca Qui Slow
 
-        private Coroutine _speedModifierCoroutine;
-        public float ExternalSpeedMultiplier { get; private set; } = 1f;
+        private readonly SmoothedMultiplier _speedMultiplier = new();
+        private readonly SmoothedMultiplier _accelMultiplier = new();
+        private readonly SmoothedMultiplier _decelMultiplier = new();
 
-        /// <summary>
-        /// Smoothly transitions an external movement speed multiplier on the player.
-        /// Controller components should multiply their base speed by PlayerCharacter.ExternalSpeedMultiplier.
-        /// </summary>
-        public void SetExternalSpeedMultiplier(float targetMultiplier, float transitionDuration)
-        {
-            if (_speedModifierCoroutine != null)
-                StopCoroutine(_speedModifierCoroutine);
-            _speedModifierCoroutine =
-                StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
-        }
-        
-        public float ExternalAccelerationMultiplier { get; private set; } = 1f;
-        private Coroutine _accelCoroutine;
-        public float ExternalDecelerationMultiplier { get; private set; } = 1f;
-        private Coroutine _decelCoroutine;
+        public float ExternalSpeedMultiplier => _speedMultiplier.Value;
+        public float ExternalAccelerationMultiplier => _accelMultiplier.Value;
+        public float ExternalDecelerationMultiplier => _decelMultiplier.Value;
 
-        public void SetExternalAccelerationMultiplier(float targetMultiplier, float transitionDuration)
-        {
-            if (_accelCoroutine != null)
-                StopCoroutine(_accelCoroutine);
-            _accelCoroutine = StartCoroutine(SmoothSetAcceleration(targetMultiplier, transitionDuration));
-        }
-        
-        public void SetExternalDecelerationMultiplier(float targetMultiplier, float transitionDuration)
-        {
-            if (_decelCoroutine != null)
-                StopCoroutine(_decelCoroutine);
-            _decelCoroutine = StartCoroutine(SmoothSetDeceleration(targetMultiplier, transitionDuration));
-        }
+        public void SetExternalSpeedMultiplier(float target, float duration) =>
+            _speedMultiplier.SetTarget(target, duration, this);
 
-        private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
-        {
-            float start = ExternalSpeedMultiplier;
-            if (duration <= 0f)
-            {
-                ExternalSpeedMultiplier = target;
-                yield break;
-            }
+        public void SetExternalAccelerationMultiplier(float target, float duration) =>
+            _accelMultiplier.SetTarget(target, duration, this);
 
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                ExternalSpeedMultiplier = Mathf.Lerp(start, target, elapsed / duration);
-                yield return null;
-            }
-
-            ExternalSpeedMultiplier = target;
-            _speedModifierCoroutine = null;
-        }
-
-        private IEnumerator SmoothSetAcceleration(float target, float duration)
-        {
-            float start = ExternalAccelerationMultiplier;
-            if (duration <= 0f)
-            {
-                ExternalAccelerationMultiplier = target;
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                ExternalAccelerationMultiplier = Mathf.Lerp(start, target, elapsed / duration);
-                yield return null;
-            }
-
-            ExternalAccelerationMultiplier = target;
-            _accelCoroutine = null;
-        }
-        
-        private IEnumerator SmoothSetDeceleration(float target, float duration)
-        {
-            float start = ExternalDecelerationMultiplier;
-            if (duration <= 0f)
-            {
-                ExternalDecelerationMultiplier = target;
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                ExternalDecelerationMultiplier = Mathf.Lerp(start, target, elapsed / duration);
-                yield return null;
-            }
-
-            ExternalDecelerationMultiplier = target;
-            _decelCoroutine = null;
-        }
+        public void SetExternalDecelerationMultiplier(float target, float duration) =>
+            _decelMultiplier.SetTarget(target, duration, this);
 
         #endregion
     }
