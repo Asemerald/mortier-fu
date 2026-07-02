@@ -162,7 +162,7 @@ MonoBehaviour:
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:
-      Value: 0.3
+      Value: 0.42
       ModType: 200
     DashCooldownMod:
       Value: 0
@@ -171,9 +171,15 @@ MonoBehaviour:
     ExtraDashes: 1
   FastDashParams:
     DashCooldownMod:
-      Value: -0.5
+      Value: 1
       ModType: 100
   PerfectPushParams:
     MaxHealthMod:
-      Value: 10
+      Value: 30
+      ModType: 100
+    StrikePushForceMod:
+      Value: 0.25
+      ModType: 100
+    DashCooldownMod:
+      Value: 0.5
       ModType: 100
