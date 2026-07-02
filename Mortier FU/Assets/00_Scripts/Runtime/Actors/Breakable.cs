@@ -5,16 +5,16 @@ namespace MortierFu
 {
     public class Breakable : MonoBehaviour, IInteractable
     {
-        [SerializeField] private int _life = 1;
+        [SerializeField] protected int _life = 1;
         [SerializeField] private float _explosionForce = 50;
         [SerializeField] private float _explosionRadius = 5f;
         [SerializeField] private float _upwardsModifier = 1f;
         private bool _isIntact;
         [Space]
-        [SerializeField] private GameObject _intactMesh;
+        [SerializeField] protected GameObject _intactMesh;
         [SerializeField] private GameObject _shatteredMesh;
 
-        void Awake()
+        protected virtual void Awake()
         {
             if(_intactMesh)
                 _intactMesh?.SetActive(true);
@@ -25,7 +25,7 @@ namespace MortierFu
             _isIntact = true;
         }
         
-        public void Interact(Vector3 contactPoint)
+        public virtual void Interact(Vector3 contactPoint)
         {
             _life--;
             if (_life > 0) return;
