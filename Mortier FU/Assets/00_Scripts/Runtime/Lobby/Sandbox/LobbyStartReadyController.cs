@@ -21,6 +21,8 @@ namespace MortierFu
         private readonly HashSet<PlayerManager> _readyPlayers = new();
         private readonly HashSet<PlayerManager> _registeredPlayers = new();
         private readonly Dictionary<PlayerManager, float> _lastToggleTimes = new();
+        
+        public PlayerCharacter _character; //stoian
 
         private void Awake()
         {
@@ -228,7 +230,18 @@ namespace MortierFu
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
 
-            _matchLauncher.LaunchMatch();
+            //stoian
+            
+            if (!_character) return;
+            
+            var shooterCharacter = _character;
+            
+            if (!shooterCharacter || !shooterCharacter.Owner)
+                return;
+            
+            _matchLauncher.LaunchMatch(shooterCharacter.Owner);
+            
+            //stoian
         }
 
         private void RefreshFeedback()
