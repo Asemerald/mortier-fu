@@ -5,9 +5,9 @@ namespace MortierFu
     public class Movable : MonoBehaviour, IInteractable
     {
         [SerializeField] private bool _isAutomatic = true;
-        [SerializeField] private bool _isOneWay = false;
-        [SerializeField] private Transform _target;
-        [SerializeField] private float _speed;
+        [SerializeField] private bool destroyOnEnd = true;
+        public Transform _target;
+        public float _speed;
         
         private Vector3 _startingPoint;
         private Vector3 _targetPoint;
@@ -27,9 +27,9 @@ namespace MortierFu
             transform.position = Vector3.MoveTowards(transform.position, _targetPoint, _speed/1000);
             
             if (transform.position != _targetPoint) return;
-            if (_isOneWay)
+            if (destroyOnEnd)
             {
-                transform.position = _startingPoint;
+                Destroy(gameObject);
             }
             else
             {
