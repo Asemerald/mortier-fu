@@ -15,7 +15,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            //stats.DashForce.AddModifier(db.TravelerParams.DashForceMod.ToMod(this));
+            stats.DashForce.AddModifier(db.TravelerParams.DashForceMod.ToMod(this));
         }
         
         public override void Dispose()

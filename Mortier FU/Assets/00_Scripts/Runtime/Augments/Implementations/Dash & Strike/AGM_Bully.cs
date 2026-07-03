@@ -15,7 +15,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            //stats.KnockbackStunDuration.AddModifier(db.BullyParams.KnockbackStunDurationMod.ToMod(this));
+            stats.KnockbackStunDuration.AddModifier(db.BullyParams.KnockbackStunDurationMod.ToMod(this));
         }
         
         public override void Dispose()
