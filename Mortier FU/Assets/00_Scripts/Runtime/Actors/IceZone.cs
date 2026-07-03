@@ -35,6 +35,16 @@ namespace MortierFu
                 (1, decelSettingsSpeedMultiplier.transitionDuration);
         }
 
+        private void OnEnable()
+        {
+            OnTickZone += PlayFootprintVFX;
+        }
+
+        private void OnDisable()
+        {
+            OnTickZone -= PlayFootprintVFX;
+        }
+
         protected override void PlayFootprintVFX(PlayerCharacter player)
         {
             if (vfx == null) return;

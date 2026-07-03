@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MortierFu
@@ -16,6 +17,16 @@ namespace MortierFu
         protected override void ApplyEffectZoneExit(PlayerCharacter player)
         {
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
+        }
+
+        private void OnEnable()
+        {
+            OnTickZone += PlayFootprintVFX;
+        }
+
+        private void OnDisable()
+        {
+            OnTickZone -= PlayFootprintVFX;
         }
 
         protected override void PlayFootprintVFX(PlayerCharacter player)

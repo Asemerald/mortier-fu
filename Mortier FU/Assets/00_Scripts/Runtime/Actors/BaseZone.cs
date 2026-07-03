@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ namespace MortierFu
         private readonly Dictionary<PlayerCharacter, float> _counters = new();
 
         private readonly List<PlayerCharacter> _playersCache = new();
+
+        protected event Action<PlayerCharacter> OnTickZone; 
+        protected 
 
         #region Unity Lifecycle
 
@@ -61,7 +65,7 @@ namespace MortierFu
             {
                 if (_counters[player] <= 0f)
                 {
-                    PlayFootprintVFX(player);
+                    OnTickZone?.Invoke(player);
                     _counters[player] = vfxFootPrintDuration;
                 }
                 else
