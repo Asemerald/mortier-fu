@@ -9,17 +9,11 @@ namespace MortierFu
     {
         [SerializeField] private E_AugmentRarity _rarity;
 
-        [SerializeField] private ParticleSystem _dissolveColor01;
-        [SerializeField] private ParticleSystem _dissolveColor02;
-        [SerializeField] private ParticleSystem _roundColor01;
-        [SerializeField] private ParticleSystem _roundColor02;
-        [SerializeField] private MeshRenderer _planeMeshRenderer;
-        [SerializeField] private ParticleSystem _logoParticleSystem;
-        [SerializeField] private Light _light;
-        [SerializeField] private AugmentPickup[] _augmentVFXRarityPrototypes;
+        [SerializeField] private AugmentPickupVisual[] _augmentVFXRarityPrototypes;
         [SerializeField] private GameObject[] _pickupVFX;
 
         private Transform _attachmentPoint;
+        private GameObject _vfxInstance;
         
         public E_AugmentRarity Rarity => _rarity;
 
@@ -71,10 +65,29 @@ namespace MortierFu
 
         public void SetAugmentVisual(SO_Augment augment)
         {
-            _logoParticleSystem.textureSheetAnimation.SetSprite(0, augment.SmallSprite);
-
             var prototype = GetVFXRarityPrototype(augment.Rarity);
-            ConfigureAsClone(prototype);
+
+            // Destroy previous visual instance if present
+            if (_vfxInstance)
+            {
+                Destroy(_vfxInstance);
+                _vfxInstance = null;
+            }
+
+            // Instantiate the visual prefab for this rarity as a child
+            _vfxInstance = Instantiate(prototype.gameObject, transform.position, transform.rotation, transform);
+            _vfxInstance.transform.localPosition = Vector3.zero;
+            _vfxInstance.transform.localRotation = Quaternion.identity;
+            _vfxInstance.transform.localScale = Vector3.one;
+
+            var visualComp = _vfxInstance.GetComponent<AugmentPickupVisual>();
+            if (visualComp != null)
+            {
+                visualComp.SetLogoSprite(augment.SmallSprite);
+            }
+
+            // Adopt the rarity from the prototype
+            _rarity = prototype.Rarity;
         }
 
         private void Update()
@@ -96,63 +109,8 @@ namespace MortierFu
                 transform.position = point.position;
         }
 
-        // Prototype pattern
-        public void ConfigureAsClone(AugmentPickup source)
-        {
-            _rarity = source._rarity;
 
-            if (_dissolveColor01 && source._dissolveColor01)
-            {
-                var main = _dissolveColor01.main;
-                main.startColor = source._dissolveColor01.main.startColor;
-                
-                _dissolveColor01.gameObject.SetActive(source._dissolveColor01.gameObject.activeSelf);
-                _dissolveColor01.transform.localScale = source._dissolveColor01.transform.localScale;
-            }
-
-            if (_dissolveColor02 && source._dissolveColor02)
-            {
-                var main = _dissolveColor02.main;
-                main.startColor = source._dissolveColor02.main.startColor;
-                
-                _dissolveColor02.gameObject.SetActive(source._dissolveColor02.gameObject.activeSelf);
-                _dissolveColor02.transform.localScale = source._dissolveColor02.transform.localScale;
-            }
-
-            if (_roundColor01 && source._roundColor01)
-            {
-                var main = _roundColor01.main;
-                main.startColor = source._roundColor01.main.startColor;
-                
-                _roundColor01.gameObject.SetActive(source._roundColor01.gameObject.activeSelf);
-            }
-
-            if (_roundColor02 && source._roundColor02)
-            {
-                var main = _roundColor02.main;
-                main.startColor = source._roundColor02.main.startColor;
-                
-                _roundColor02.gameObject.SetActive(source._roundColor02.gameObject.activeSelf);
-            }
-
-            if (_planeMeshRenderer && source._planeMeshRenderer)
-            {
-                _planeMeshRenderer.sharedMaterial = source._planeMeshRenderer.sharedMaterial;
-                
-                _planeMeshRenderer.transform.localScale = source._planeMeshRenderer.transform.localScale;
-            }
-            
-            if (_light && source._light)
-            {
-                _light.color = source._light.color;
-                _light.intensity = source._light.intensity;
-                _light.areaSize = source._light.areaSize;
-                
-                _light.gameObject.SetActive(source._light.gameObject.activeSelf);
-            }
-        }
-
-        public AugmentPickup GetVFXRarityPrototype(E_AugmentRarity rarity)
+        public AugmentPickupVisual GetVFXRarityPrototype(E_AugmentRarity rarity)
         {
             foreach (var prototype in _augmentVFXRarityPrototypes)
             {

@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Dissolve_Violet_01
       objectReference: {fileID: 0}
+    - target: {fileID: 556872870179571583, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 822002783617997804, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: m_Name
       value: Round_Violet
@@ -31,6 +35,10 @@ PrefabInstance:
     - target: {fileID: 1198313198406792648, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: InitialModule.startColor.maxColor.r
       value: 0.5169783
+      objectReference: {fileID: 0}
+    - target: {fileID: 1760658350784446147, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2484226827835235597, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: ShapeModule.m_Position.x
@@ -68,10 +76,10 @@ PrefabInstance:
       propertyPath: _rarity
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 2697492833691007034, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
-      propertyPath: '_augmentVFXRarityPrototypes.Array.data[3]'
-      value: 
-      objectReference: {fileID: 6596449638363337226}
+    - target: {fileID: 4125106624896508156, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4136549829761267398, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -172,6 +180,10 @@ PrefabInstance:
       propertyPath: InitialModule.startColor.maxColor.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5332736048806356282, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5438410775228642604, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: InitialModule.startSize.scalar
       value: 3.65
@@ -224,23 +236,50 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 23
       objectReference: {fileID: 0}
+    - target: {fileID: 7142652313407246683, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8393519620301569831, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8643641996259191088, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2697492833691007034, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+    - {fileID: 1254907905361596677, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+    - {fileID: 3505337900109459640, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5588995305346624760, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1576757693759870504}
   m_SourcePrefab: {fileID: 100100000, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
---- !u!114 &6596449638363337226 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2697492833691007034, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+--- !u!1 &3707651141827561160 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5588995305346624760, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
   m_PrefabInstance: {fileID: 9143468944591874608}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+--- !u!114 &1576757693759870504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3707651141827561160}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f3cff2aa8ab18e4cb95a753706bec14, type: 3}
+  m_Script: {fileID: 11500000, guid: 122a866c8f2944e4f90cacecea66272f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.NewAugmentPickup
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.AugmentPickupVisual
+  _rarity: 3
+  _logoParticleSystem: {fileID: 8795455698049587585}
+--- !u!198 &8795455698049587585 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 354549434301330353, guid: 80bb1e3bb775ecf4a952fd28757efdfa, type: 3}
+  m_PrefabInstance: {fileID: 9143468944591874608}
+  m_PrefabAsset: {fileID: 0}
