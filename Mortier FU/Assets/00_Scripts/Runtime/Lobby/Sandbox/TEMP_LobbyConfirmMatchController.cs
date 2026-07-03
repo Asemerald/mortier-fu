@@ -65,19 +65,6 @@ namespace MortierFu
             _currentSelectable = null;
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            if (_isConfirmationOpen || _isReturning)
-                return;
-
-            var character = ResolvePlayerCharacter(other);
-
-            if (!character || !character.Owner)
-                return;
-
-            TryOpenConfirmation(character.Owner);
-        }
-
         private void ValidateReferences()
         {
             if (!_sandboxController)
@@ -102,19 +89,19 @@ namespace MortierFu
         private void BindButtons()
         {
             if (_confirmButton)
-                _confirmButton.onClick.AddListener(ConfirmReturnToMainMenu);
+                _confirmButton.onClick.AddListener(ConfirmLaunchMatch);
 
             if (_cancelButton)
-                _cancelButton.onClick.AddListener(CancelReturnToMainMenu);
+                _cancelButton.onClick.AddListener(CancelLaunchMatch);
         }
 
         private void UnbindButtons()
         {
             if (_confirmButton)
-                _confirmButton.onClick.RemoveListener(ConfirmReturnToMainMenu);
+                _confirmButton.onClick.RemoveListener(ConfirmLaunchMatch);
 
             if (_cancelButton)
-                _cancelButton.onClick.RemoveListener(CancelReturnToMainMenu);
+                _cancelButton.onClick.RemoveListener(CancelLaunchMatch);
         }
         
         private void DisableGlobalUIInputModule()
@@ -148,25 +135,6 @@ namespace MortierFu
                 _uiInputModule.enabled = _previousUiInputModuleEnabled;
 
             _hasStoredUiInputModuleState = false;
-        }
-
-        private PlayerCharacter ResolvePlayerCharacter(Collider other)
-        {
-            if (!other)
-                return null;
-
-            if (other.TryGetComponent(out PlayerCharacter directCharacter))
-                return directCharacter;
-
-            var attachedRigidbody = other.attachedRigidbody;
-
-            if (attachedRigidbody &&
-                attachedRigidbody.TryGetComponent(out PlayerCharacter rigidbodyCharacter))
-            {
-                return rigidbodyCharacter;
-            }
-
-            return other.GetComponentInParent<PlayerCharacter>();
         }
 
         public void TryOpenConfirmation(PlayerManager player)
@@ -257,7 +225,7 @@ namespace MortierFu
             EventSystem.current?.SetSelectedGameObject(selectable.gameObject);
         }
 
-        private void ConfirmReturnToMainMenu()
+        private void ConfirmLaunchMatch()
         {
             if (_isReturning)
                 return;
@@ -265,15 +233,16 @@ namespace MortierFu
             LaunchMatchAsync().Forget();
         }
 
-        private void CancelReturnToMainMenu()
+        private void CancelLaunchMatch()
         {
             if (!_isConfirmationOpen || _isReturning)
                 return;
 
-            Logs.Log("[LobbyReturnToMainMenuController] Return to main menu canceled.");
+            Logs.Log("[LobbyReturnToMainMenuController] Launch Match aborted.");
 
             CloseConfirmation();
             ResumeLobby();
+            _readyController.ResetReady();
         }
 
         private void CloseConfirmation()
@@ -422,7 +391,7 @@ namespace MortierFu
             if (!CanHandleUIInput(player))
                 return false;
 
-            CancelReturnToMainMenu();
+            CancelLaunchMatch();
             return true;
         }
 
