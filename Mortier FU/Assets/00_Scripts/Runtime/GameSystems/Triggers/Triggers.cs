@@ -99,4 +99,9 @@ namespace MortierFu
     
     public struct TriggerEndRound : ITrigger // Check
     { }
+
+    public struct TriggerEndDash : ITrigger
+    {
+        public PlayerCharacter Character;
+    }
 }
