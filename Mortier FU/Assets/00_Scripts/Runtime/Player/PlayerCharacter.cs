@@ -10,6 +10,7 @@ using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -66,6 +67,8 @@ namespace MortierFu
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
 
+        public Image TutorialImage;
+
         private List<IAugment> _augments = new();
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
 
@@ -89,7 +92,6 @@ namespace MortierFu
 
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
-        
         public Transform FeetPoint => _feetPoint;
 
         void Awake()

@@ -13,13 +13,20 @@ namespace MortierFu
 
         [Header("Startup")]
         [SerializeField] private bool _spawnPlayersOnStart;
+        
+        [Header("Tutorial")]
+        [SerializeField] private List<SO_Tutorial> _tutorials;
 
         private LobbyService _lobbyService;
         private readonly List<PlayerManager> _spawnedPlayers = new();
+        
+        private static readonly List<PlayerManager> _playerFirstJoin = new();
 
         private int _lastKnownPlayerCount = -1;
 
         private bool _isGlobalLockActive;
+
+        private List<PlayerLobbyTutorial> _playerLobbyTutorial = new List<PlayerLobbyTutorial>();
 
         public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
@@ -37,6 +44,9 @@ namespace MortierFu
             OnGlobalLockEnded = null;
 
             _spawnedPlayers.Clear();
+            
+            foreach (PlayerLobbyTutorial tuto in _playerLobbyTutorial)
+                tuto?.Disconnect();
         }
 
         private async UniTaskVoid InitializeAsync()
@@ -175,6 +185,15 @@ namespace MortierFu
 
             OnPlayerSpawned?.Invoke(player);
 
+            if (!_playerFirstJoin.Contains(player))
+            {
+                _playerFirstJoin.Add(player);
+
+
+                PlayerLobbyTutorial tempTuto = new PlayerLobbyTutorial(_tutorials, player);
+                _playerLobbyTutorial.Add(tempTuto);
+            }
+            
             Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
         }
 
@@ -245,6 +264,11 @@ namespace MortierFu
                 return null;
 
             return _playerSpawnPoints[playerIndex];
+        }
+
+        private void OnApplicationQuit()
+        {
+            _playerFirstJoin.Clear();
         }
     }
 }
