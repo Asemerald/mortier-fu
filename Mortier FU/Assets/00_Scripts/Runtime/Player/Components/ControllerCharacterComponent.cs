@@ -137,8 +137,8 @@ namespace MortierFu
             // Choix accel / decel basé sur la distance
             float maxDelta = (
                 targetVelocity.magnitude > _moveDirection.magnitude
-                    ? Stats.Accel.Value
-                    : Stats.Decel.Value
+                    ? Stats.Accel.Value * character.ExternalAccelerationMultiplier
+                    : Stats.Decel.Value * character.ExternalDecelerationMultiplier
             ) * Time.deltaTime;
 
             // Mouvement stable, sans ambiguïté
