@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.UI;
@@ -42,6 +43,8 @@ namespace MortierFu
         private CancellationTokenSource _cts;
         
         private ShakeService _shakeService;
+
+        private StringBuilder _sb = new StringBuilder();
 
         public void Initialize()
         {
@@ -89,7 +92,45 @@ namespace MortierFu
             _nameTxt.SetText(augment.Name.ToUpper());
             _titleRarityFilter.texture = _raritySpritesFactory.GetTitleRarityFilter(augment.Rarity);
             _nameTxt.color = data.NameColor;
-            _descTxt.SetText(augment.Description);
+            
+            //stoian
+            
+            _sb.Append(augment.ConditionText);
+            foreach (TEMP_STRUCT_AugmentDescription desc in augment.Description)
+            {
+                _sb.AppendLine();
+                _sb.Append(desc.variable);
+                
+                switch (desc.value)
+                {
+                    case TEMP_E_AugmentValue.MinusThree:
+                        _sb.Append(" ---");
+                        break;
+                    case TEMP_E_AugmentValue.MinusTwo:
+                        _sb.Append(" --");
+                        break;
+                    case TEMP_E_AugmentValue.MinusOne:
+                        _sb.Append(" -");
+                        break;
+                    case TEMP_E_AugmentValue.PlusOne:
+                        _sb.Append(" +");
+                        break;
+                    case TEMP_E_AugmentValue.PlusTwo:
+                        _sb.Append(" ++");
+                        break;
+                    case TEMP_E_AugmentValue.PlusThree:
+                        _sb.Append(" +++");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            _descTxt.color = data.DescriptionColor;
+            _descTxt.SetText(_sb.ToString());
+            
+            //stoian
+            
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
             _augmentBack.sprite = _raritySpritesFactory.GetRarityCardBgSpriteFromRarity(augment.Rarity);
             _augmentIcon.sprite = augment.SmallSprite;
@@ -186,6 +227,7 @@ namespace MortierFu
         {
             public E_AugmentRarity Rarity;
             public Color NameColor;
+            public Color DescriptionColor; //stoian
         }
     }
 }
