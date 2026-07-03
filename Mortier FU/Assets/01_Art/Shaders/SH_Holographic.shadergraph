@@ -209,6 +209,12 @@
         },
         {
             "m_Id": "3ada58a5bcc241a7a00118bffbb16813"
+        },
+        {
+            "m_Id": "849d9aae10064ffca91b87fdb2762d8f"
+        },
+        {
+            "m_Id": "224b0f557d0f46f1ba235945cb502983"
         }
     ],
     "m_GroupDatas": [
@@ -977,6 +983,12 @@
             },
             {
                 "m_Id": "a7123b3803374ed6bf540bf2b17d5eba"
+            },
+            {
+                "m_Id": "849d9aae10064ffca91b87fdb2762d8f"
+            },
+            {
+                "m_Id": "224b0f557d0f46f1ba235945cb502983"
             }
         ]
     },
@@ -1695,8 +1707,8 @@
     "m_ObjectId": "1d28b7e274c64409a87b64d124a071b7",
     "m_Title": "Change Color Base on View Drection ( Rainbow effect) ",
     "m_Position": {
-        "x": -2110.0,
-        "y": 3563.0
+        "x": -2109.999755859375,
+        "y": 3562.99951171875
     }
 }
 
@@ -1791,6 +1803,40 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "224b0f557d0f46f1ba235945cb502983",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "SurfaceDescription.AlphaClipThreshold",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "754adde057624a898b20ae725dc24029"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "SurfaceDescription.AlphaClipThreshold"
 }
 
 {
@@ -1981,10 +2027,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 434.0000305175781,
-            "y": -117.00003814697266,
-            "width": 138.00003051757813,
-            "height": 33.999961853027347
+            "x": 586.0,
+            "y": -18.000009536743165,
+            "width": 137.99993896484376,
+            "height": 34.000022888183597
         }
     },
     "m_Slots": [
@@ -2082,12 +2128,12 @@
         "m_Id": "260e1690b1c542659167bee468b24738"
     },
     "m_AllowMaterialOverride": false,
-    "m_SurfaceType": 0,
+    "m_SurfaceType": 1,
     "m_ZTestMode": 4,
     "m_ZWriteControl": 0,
     "m_AlphaMode": 0,
     "m_RenderFace": 2,
-    "m_AlphaClip": false,
+    "m_AlphaClip": true,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
     "m_DisableTint": false,
@@ -2198,7 +2244,7 @@
     "m_Title": "Foil Pattern",
     "m_Position": {
         "x": -2151.0,
-        "y": 4214.0
+        "y": 4213.99951171875
     }
 }
 
@@ -3133,7 +3179,7 @@
     "m_ObjectId": "5bfda889ea2a49be82db2644152384ec",
     "m_Title": "Change Color Base on View Drection ( Rainbow effect) ",
     "m_Position": {
-        "x": -2253.0,
+        "x": -2253.000244140625,
         "y": -110.0
     }
 }
@@ -3574,6 +3620,22 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "754adde057624a898b20ae725dc24029",
+    "m_Id": 0,
+    "m_DisplayName": "Alpha Clip Threshold",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "AlphaClipThreshold",
+    "m_StageCapability": 2,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.5,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.MultiplyNode",
     "m_ObjectId": "78b980000e014881872916d3a3afe3ec",
     "m_Group": {
@@ -3949,6 +4011,56 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "849d9aae10064ffca91b87fdb2762d8f",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "SurfaceDescription.Alpha",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "86b29494f46f4ae887d42f808e102aad"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "SurfaceDescription.Alpha"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "86b29494f46f4ae887d42f808e102aad",
+    "m_Id": 0,
+    "m_DisplayName": "Alpha",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Alpha",
+    "m_StageCapability": 2,
+    "m_Value": 1.0,
+    "m_DefaultValue": 1.0,
     "m_Labels": [],
     "m_LiteralMode": false
 }
@@ -4910,10 +5022,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1057.0,
-            "y": -50.99998092651367,
-            "width": 208.000244140625,
-            "height": 301.9999084472656
+            "x": 1209.0,
+            "y": 48.00001525878906,
+            "width": 208.0,
+            "height": 301.99993896484377
         }
     },
     "m_Slots": [
@@ -5190,8 +5302,8 @@
     "m_ObjectId": "af3ecb7aa77b48f6bfd2bfe5b89c1498",
     "m_Title": "Image",
     "m_Position": {
-        "x": 409.0,
-        "y": -176.0
+        "x": 561.0,
+        "y": -77.0
     }
 }
 
@@ -5337,7 +5449,7 @@
     "m_Title": "Foil Pattern",
     "m_Position": {
         "x": -2294.0,
-        "y": 526.0
+        "y": 526.000244140625
     }
 }
 
@@ -5440,10 +5552,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 711.0,
-            "y": -104.00010681152344,
-            "width": 208.00006103515626,
-            "height": 433.0001220703125
+            "x": 862.9999389648438,
+            "y": -5.000012397766113,
+            "width": 207.99993896484376,
+            "height": 432.99993896484377
         }
     },
     "m_Slots": [
@@ -6152,7 +6264,7 @@
     "m_Title": "Change Color Base on View Drection ( Rainbow effect) ",
     "m_Position": {
         "x": -2090.0,
-        "y": 1751.0
+        "y": 1750.999755859375
     }
 }
 
@@ -7362,8 +7474,8 @@
     "m_ObjectId": "fecbbbf9d6dc40a5a2f3f59f412933b2",
     "m_Title": "Foil Pattern",
     "m_Position": {
-        "x": -2131.0,
-        "y": 2387.0
+        "x": -2131.000244140625,
+        "y": 2386.999755859375
     }
 }
 
