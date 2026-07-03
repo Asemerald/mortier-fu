@@ -75,12 +75,11 @@ namespace MortierFu
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
                         continue;
 
-                    //if(!character.CanPlayerInteractWithBombShell()) continue;
+                    if(!character.CanPlayerInteractWithBombShell()) continue;
                     
                     if (character.ControlContext is PlayerControlContext.AugmentRace)
                     {
-                        //TODO CHANGE MAGIC NUMBER WITH SO VALUE
-                        //character.ReceiveStun(1f);
+                        character.ReceiveStun(character.Stats.GetKnockbackStunDuration());
                         continue;
                     }
                         
