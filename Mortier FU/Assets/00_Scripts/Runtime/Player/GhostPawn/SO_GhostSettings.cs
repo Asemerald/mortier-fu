@@ -38,7 +38,6 @@ namespace MortierFu
         [SerializeField] private SO_GhostPlaceableProp[] _placeableProps;
 
         [Header("Preview Materials")] 
-        [SerializeField] private GhostAspectMaterials[] _ghostAspectMaterials;
         [SerializeField] private Material _validPreviewMaterial;
         [SerializeField] private Material _invalidPreviewMaterial;
 
