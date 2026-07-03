@@ -5,6 +5,7 @@ namespace MortierFu
     public class Movable : MonoBehaviour, IInteractable
     {
         [SerializeField] private bool _isAutomatic = true;
+        [SerializeField] private bool _isOneWay = false;
         [SerializeField] private Transform _target;
         [SerializeField] private float _speed;
         
@@ -26,8 +27,16 @@ namespace MortierFu
             transform.position = Vector3.MoveTowards(transform.position, _targetPoint, _speed/1000);
             
             if (transform.position != _targetPoint) return;
-            (_targetPoint,_startingPoint) = (_startingPoint,_targetPoint);
-            _isActivated = false;
+            if (_isOneWay)
+            {
+                transform.position = _startingPoint;
+            }
+            else
+            {
+                (_targetPoint,_startingPoint) = (_startingPoint,_targetPoint);
+                _isActivated = false;
+            }
+            
         }
         
         private void OnCollisionEnter(Collision other)
