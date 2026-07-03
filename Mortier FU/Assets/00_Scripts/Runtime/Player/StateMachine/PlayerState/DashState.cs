@@ -36,6 +36,7 @@ namespace MortierFu
             character.Stats.DashCooldown.OnDirtyUpdated += UpdateDashCooldown;
             character.Stats.DashDuration.OnDirtyUpdated += UpdateDashDuration;
             character.Stats.DashCharges.OnDirtyUpdated += UpdateDashCharges;
+            character.Stats.DashForce.OnDirtyUpdated += UpdateDashForce;
 
             _whatIsStrikable = LayerMask.GetMask("DynamicActors");
         }
@@ -232,6 +233,11 @@ namespace MortierFu
             {
                 _dashCooldownTimer.Start();
             }
+        }
+
+        private void UpdateDashForce()
+        {
+            float dashForce = character.Stats.DashForce.Value;
         }
 
         private void OnCooldownTimerStop()
