@@ -19,8 +19,7 @@ public class platformSpawner : MonoBehaviour
 
     IEnumerator SpawnPlatform()
     {
-       
-        GameObject newPlatform = Instantiate(platform[Random.Range(0,platform.Count)],transform.position,transform.rotation);
+        GameObject newPlatform = Instantiate( platform[Random.Range(0,platform.Count)],transform.position,transform.rotation, gameObject.transform);
         newPlatform.GetComponent<Movable>()._target = targetPoint;
         newPlatform.GetComponent<Movable>()._speed = platformSpeed;
         yield return new WaitForSeconds(Random.Range(spawnTimeDelay.x, spawnTimeDelay.y));
