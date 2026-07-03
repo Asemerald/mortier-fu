@@ -120,7 +120,7 @@ namespace MortierFu
             _roundStartController = new RoundStartController(
                 timer,
                 Data,
-                SetPlayerControlContext,
+                SetPlayersControlContext,
                 UpdateGameState,
                 roundInfo => OnRoundStarted?.Invoke(roundInfo)
             );
@@ -174,7 +174,7 @@ namespace MortierFu
                 teams,
                 augmentSelectionSys,
                 _playerSpawnController,
-                SetPlayerControlContext,
+                SetPlayersControlContext,
                 () => OnRaceStart?.Invoke()
             );
 
@@ -245,8 +245,6 @@ namespace MortierFu
                 cancellationToken
             );
 
-            ApplyPreviousRoundWinnerRaceGiant();
-
             try
             {
                 await _augmentRaceController.PrepareSelectionAsync(
@@ -263,7 +261,10 @@ namespace MortierFu
                 cancellationToken.ThrowIfCancellationRequested();
 
                 UpdateGameState(GameState.AugmentRace);
-                SetPlayerControlContext(PlayerControlContext.AugmentRace);
+                
+                SetPlayersControlContext(PlayerControlContext.AugmentRace);
+                
+                ApplyPreviousRoundWinnerRaceGiant();
 
                 _augmentRaceController.StartRaceTimer(FlowSettings.AugmentRaceDuration);
 
@@ -338,7 +339,7 @@ namespace MortierFu
             await RunRoundStartPresentationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            SetPlayerControlContext(PlayerControlContext.RoundGameplay);
+            SetPlayersControlContext(PlayerControlContext.RoundGameplay);
 
             await WaitUntilRoundOverAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
@@ -427,7 +428,7 @@ namespace MortierFu
             _playerSpawnController?.SpawnPlayers(_currentRound.RoundIndex);
         }
 
-        private void SetPlayerControlContext(PlayerControlContext context)
+        private void SetPlayersControlContext(PlayerControlContext context)
         {
             foreach (var team in teams)
             {
@@ -466,7 +467,7 @@ namespace MortierFu
             SpawnPlayers();
             EnablePlayerGravity();
 
-            SetPlayerControlContext(PlayerControlContext.RoundCountdown);
+            SetPlayersControlContext(PlayerControlContext.RoundCountdown);
 
             _roundController.BeginRound();
 
@@ -486,7 +487,7 @@ namespace MortierFu
 
             EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
 
-            SetPlayerControlContext(PlayerControlContext.RoundEnded);
+            SetPlayersControlContext(PlayerControlContext.RoundEnded);
 
             EvaluateScores();
 
@@ -552,7 +553,7 @@ namespace MortierFu
                 .StartMusic(AudioService.FMODEvents.MUS_Victory)
                 .Forget();
 
-            SetPlayerControlContext(PlayerControlContext.EndGame);
+            SetPlayersControlContext(PlayerControlContext.EndGame);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
         }

@@ -77,7 +77,7 @@ namespace MortierFu
         public CharacterStat StrikeKnockbackDuration { get; private set; } = new(0.5f);
         
         [field: SerializeField, Tooltip("Stun duration caused when colliding into an obstacle during knockback.")]
-        public float KnockbackStunDuration { get; private set; } = 0.5f;
+        public CharacterStat KnockbackStunDuration { get; private set; } = new(0.5f);
         
         [field: Header("Formula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
         public float MaxHealthToAvatarSizeFactor { get; private set; } = 0.6f;
@@ -108,8 +108,8 @@ namespace MortierFu
         public float GetStrikeRadius()   => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetKnockbackStunDuration()
         {
-            float factor = KnockbackStunDuration / (StrikePushForce.BaseValue + StrikePushForceOffset);
-            return KnockbackStunDuration + StrikePushForce.Value * factor;
+            float factor = KnockbackStunDuration.Value / (StrikePushForce.BaseValue + StrikePushForceOffset);
+            return KnockbackStunDuration.Value + StrikePushForce.Value * factor;
         }
     }
 }

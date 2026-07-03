@@ -75,8 +75,14 @@ namespace MortierFu
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
                         continue;
 
-                    if (!character.Health.IsAlive)
+                    if(!character.CanPlayerInteractWithBombShell()) continue;
+                    
+                    if (character.ControlContext is PlayerControlContext.AugmentRace)
+                    {
+                        character.ReceiveStun(character.Stats.GetKnockbackStunDuration());
                         continue;
+                    }
+                        
                     
                     bool damageApplied = character.Health.TakeDamage(
                         bombshell.Damage,
@@ -92,6 +98,7 @@ namespace MortierFu
                     {
                         Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " + character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
                     }
+                    
                 }
                 // temp check for breakable object
                 else if (rb.TryGetComponent(out IInteractable interactable) &&
@@ -252,5 +259,7 @@ namespace MortierFu
         }
 
         public bool IsInitialized { get; set; }
+        
     }
+        
 }
