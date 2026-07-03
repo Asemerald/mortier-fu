@@ -24,6 +24,7 @@ namespace MortierFu
         {
             stats.FireRate.RemoveAllModifiersFromSource(this);
             stats.BombshellBounces.RemoveAllModifiersFromSource(this);
+            stats.ShotRange.RemoveAllModifiersFromSource(this);
         }
     }
 }

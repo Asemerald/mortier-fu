@@ -1,23 +1,26 @@
+using System;
 using UnityEngine;
 
 namespace MortierFu
 {
     public class SnapPlayer : MonoBehaviour
     {
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerStay(Collider other)
         {
-            if (other.TryGetComponent(out PlayerCharacter character))
+            if (other.transform.parent.parent.GetComponent<PlayerCharacter>() != null)
             {
-                character.gameObject.transform.SetParent(gameObject.transform.parent.gameObject.transform);
+                other.transform.parent.parent.SetParent(transform);
             }
         }
-    
+        
+        
         private void OnTriggerExit(Collider other)
         {
-            if (other.TryGetComponent(out PlayerCharacter character))
+            if (other.transform.parent.parent.GetComponent<PlayerCharacter>() != null)
             {
-                character.gameObject.transform.SetParent(null);
+                other.transform.parent.parent.SetParent(null);
             }
+            
         }
     }   
 }

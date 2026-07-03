@@ -10,6 +10,7 @@ namespace MortierFu
             public float OnBounceUpMinShotRange;
             public float OnBounceUpMaxShotRange;
             public int ExtraBombshellBounces;
+            public AugmentStatMod ShotRangeMod;
         }
         
         private EventBinding<TriggerBounce> _bounceBinding;
@@ -22,6 +23,7 @@ namespace MortierFu
             _bounceBinding = new EventBinding<TriggerBounce>(OnBounce);
             EventBus<TriggerBounce>.Register(_bounceBinding);
             
+            stats.ShotRange.AddModifier(db.ChaoticBounceParams.ShotRangeMod.ToMod(this));
             stats.BombshellBounces.AddModifier(new StatModifier(db.ChaoticBounceParams.ExtraBombshellBounces, E_StatModType.Flat, this));
         }
         
@@ -31,7 +33,7 @@ namespace MortierFu
 
             evt.Context.UpRotationMinAngle += db.ChaoticBounceParams.OnBounceUpMinAngle;
             evt.Context.RotationMaxAngle += db.ChaoticBounceParams.OnBounceUpMaxAngle;
-            evt.Context.MinBounceRange += db.ChaoticBounceParams.OnBounceUpMinShotRange;
+            evt.Context.MinBounceRange = db.ChaoticBounceParams.OnBounceUpMinShotRange;
             evt.Context.MaxBounceRange += db.ChaoticBounceParams.OnBounceUpMaxShotRange;
         }
 
@@ -40,6 +42,7 @@ namespace MortierFu
             EventBus<TriggerBounce>.Deregister(_bounceBinding);
 
             stats.BombshellBounces.RemoveAllModifiersFromSource(this);
+            stats.ShotRange.RemoveAllModifiersFromSource(this);
         }
     }
 }
