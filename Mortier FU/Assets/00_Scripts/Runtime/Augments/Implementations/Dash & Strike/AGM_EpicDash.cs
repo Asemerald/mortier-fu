@@ -11,9 +11,6 @@ namespace MortierFu
         {
             public float EpicDashDuration;
             public AugmentStatMod MoveSpeedMod;
-            public AugmentStatMod BombshellSpeedMod;
-            public AugmentStatMod BombshellDamageMod;
-            public AugmentStatMod FireRateMod;
             public AugmentStatMod DashCooldownMod;
         }
         
@@ -25,14 +22,16 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            _epicDashTimer = new CountdownTimer(Mathf.Clamp(db.EpicDashParams.EpicDashDuration,0,stats.DashCooldown.Value));
+            stats.DashCooldown.AddModifier(db.EpicDashParams.DashCooldownMod.ToMod(this));
+            
+            _epicDashTimer = new CountdownTimer(Mathf.Clamp(db.EpicDashParams.EpicDashDuration,0,stats.GetDashCooldown()));
             _endDashBinding = new EventBinding<TriggerEndDash>(StartEndDashTimer);
             EventBus<TriggerEndDash>.Register(_endDashBinding);
             _epicDashTimer.OnTimerStop += () =>
             {
                 stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-                stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
-                stats.BombshellDamage.RemoveAllModifiersFromSource(this);
+                //stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
+                //stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             };
         }
         
@@ -40,14 +39,11 @@ namespace MortierFu
         {
             _epicDashTimer.Start();
             stats.MoveSpeed.AddModifier(db.EpicDashParams.MoveSpeedMod.ToMod(this));
-            stats.BombshellSpeed.AddModifier(db.EpicDashParams.BombshellSpeedMod.ToMod(this));
-            stats.BombshellDamage.AddModifier(db.EpicDashParams.BombshellDamageMod.ToMod(this));
         }
 
         
         public override void Dispose()
         {
-            stats.StrikePushForce.RemoveAllModifiersFromSource(this);
             stats.DashCooldown.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
             _epicDashTimer.Stop();
