@@ -83,10 +83,10 @@ MonoBehaviour:
       ModType: 100
     ExtraBombshellBounces: 1
   ChaoticBounceParams:
-    OnBounceUpMinAngle: -15
-    OnBounceUpMaxAngle: 15
-    OnBounceUpMinShotRange: 5
-    OnBounceUpMaxShotRange: 15
+    OnBounceUpMinAngle: 0
+    OnBounceUpMaxAngle: 0
+    OnBounceUpMinShotRange: 0
+    OnBounceUpMaxShotRange: 0
     ExtraBombshellBounces: 1
     ShotRangeMod:
       Value: -3
@@ -144,13 +144,13 @@ MonoBehaviour:
     MaxStacksOver: 13
   RealSniperParams:
     ShotRangeMod:
-      Value: 13
+      Value: 12
       ModType: 100
     BombshellSpeedMod:
       Value: 30
       ModType: 100
     FireRateMod:
-      Value: -0.5
+      Value: -0.4
       ModType: 200
     BombshellDamageMod:
       Value: 20
@@ -179,7 +179,7 @@ MonoBehaviour:
       Value: 0.25
       ModType: 300
     BombshellImpactRadiusFlat:
-      Value: 1
+      Value: 1.5
       ModType: 100
     BombshellDamageMod:
       Value: 30
@@ -188,7 +188,7 @@ MonoBehaviour:
       Value: -0.15
       ModType: 200
     BombshellSpeedMod:
-      Value: -0.2
+      Value: -0.3
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:
@@ -203,6 +203,23 @@ MonoBehaviour:
       ModType: 100
   DoubleDashParams:
     ExtraDashes: 1
+  EpicDashParams:
+    EpicDashDuration: 2.5
+    MoveSpeedMod:
+      Value: 6
+      ModType: 100
+    BombshellSpeedMod:
+      Value: 10
+      ModType: 100
+    BombshellDamageMod:
+      Value: 20
+      ModType: 100
+    FireRateMod:
+      Value: 0.1
+      ModType: 200
+    DashCooldownMod:
+      Value: 0
+      ModType: 0
   FastDashParams:
     DashCooldownMod:
       Value: 1

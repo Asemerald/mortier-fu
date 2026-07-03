@@ -36,6 +36,7 @@ namespace MortierFu
         public AGM_BigStrike.Params BigStrikeParams;
         public AGM_Bully.Params BullyParams;
         public AGM_DoubleDash.Params DoubleDashParams;
+        public AGM_EpicDash.Params EpicDashParams;
         public AGM_FastDash.Params FastDashParams;
         public AGM_PerfectPush.Params PerfectPushParams;
         public AGM_Traveler.Params TravelerParams;

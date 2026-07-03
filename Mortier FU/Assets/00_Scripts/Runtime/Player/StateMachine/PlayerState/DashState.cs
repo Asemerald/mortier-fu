@@ -118,6 +118,11 @@ namespace MortierFu
 
             if (debug)
                 Logs.Log("Exiting Dash State");
+            
+            EventBus<TriggerEndDash>.Raise(new TriggerEndDash()
+            {
+                Character = character,
+            });
         }
 
         public void Reset()
