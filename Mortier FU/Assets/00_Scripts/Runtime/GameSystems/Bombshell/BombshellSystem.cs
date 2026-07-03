@@ -83,15 +83,14 @@ namespace MortierFu
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
                         continue;
 
-                    if(!character.CanPlayerInteractWithBombShell()) continue;
-                    
+                    if (!character.CanPlayerInteractWithBombShell()) continue;
+
                     if (character.ControlContext is PlayerControlContext.AugmentRace)
                     {
                         character.ReceiveStun(character.Stats.GetKnockbackStunDuration());
                         continue;
                     }
-                        
-                    
+
                     bool damageApplied = character.Health.TakeDamage(
                         bombshell.Damage,
                         bombshell.Owner
@@ -104,18 +103,15 @@ namespace MortierFu
 
                     if (Settings.EnableDebug)
                     {
-                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " + character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
+                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " +
+                                 character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
                     }
-                    
                 }
                 else if (rb.TryGetComponent(out IInteractable interactable) && interactable.IsBombshellInteractable)
                 {
-                    Logs.Log("TOUCHER");
-                    
-                    Vector3 point = bombshell.transform.position;
-                    Vector3 contactPoint = Physics.ClosestPoint(point, hitCollider, 
+                    Vector3 contactPoint = Physics.ClosestPoint(impactPoint, hitCollider,
                         hitCollider.transform.position, hitCollider.transform.rotation);
-                    
+
                     interactable.Interact(contactPoint);
                 }
 
@@ -143,7 +139,8 @@ namespace MortierFu
 
             if (hitCharacters.Count > 0)
             {
-                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell, impactPoint);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell,
+                    impactPoint);
             }
             else if (hits.Count > 0)
             {
@@ -268,7 +265,5 @@ namespace MortierFu
         }
 
         public bool IsInitialized { get; set; }
-        
     }
-        
 }
