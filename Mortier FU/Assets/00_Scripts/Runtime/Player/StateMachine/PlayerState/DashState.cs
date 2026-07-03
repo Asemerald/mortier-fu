@@ -78,9 +78,7 @@ namespace MortierFu
             {
                 Character = character,
             });
-
-            _fxService.PlayDashFX(character.GetStrikePoint(),
-                character.Stats.GetStrikeRadius() * 0.5f);
+            
             if (debug)
                 Logs.Log("Entering Dash State");
 
@@ -164,6 +162,10 @@ namespace MortierFu
                         hit.transform.position, hit.transform.rotation);
 
                     interactable.Interact(contactPoint);
+
+                    _fxService.PlayDashFX(character.GetStrikePoint(),
+                        character.Stats.GetStrikeRadius() * 0.5f);
+                    
                     continue;
                 }
 
@@ -171,9 +173,13 @@ namespace MortierFu
                 if (other == null) continue;
                 if (other == character) continue;
 
+                _fxService.PlayDashFX(character.GetStrikePoint(),
+                    character.Stats.GetStrikeRadius() * 0.5f);
+                
                 _hitCharacters.Add(other);
 
                 int dashDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
+                
                 if (dashDamage > 0 && other.Health.IsAlive)
                 {
                     other.Health.TakeDamage(dashDamage, character);
