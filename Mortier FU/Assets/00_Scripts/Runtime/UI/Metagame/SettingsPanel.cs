@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace MortierFu
 {
@@ -27,6 +28,11 @@ namespace MortierFu
         {
             Hide();
             OnVSyncSelected(false);
+        }
+
+        private void OnEnable()
+        {
+            EventSystem.current.SetSelectedGameObject(fullscreenToggle.gameObject);
         }
 
         private void RestoreSettingsFromSave()
