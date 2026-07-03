@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -96,37 +94,15 @@ namespace MortierFu
             _nameTxt.color = data.NameColor;
             
             //stoian
-            //mange ma mortichiasse
-
-            Dictionary<TEMP_E_AugmentVariable, string> dict = new Dictionary<TEMP_E_AugmentVariable, string>();
-            
-            List<TEMP_E_AugmentVariable> variableList = Enum.GetValues(typeof(TEMP_E_AugmentVariable)).Cast<TEMP_E_AugmentVariable>().ToList();
-
-            TEMP_LIST_AugmentDescription descriptionList = new TEMP_LIST_AugmentDescription();
-            
-            if (variableList.Count != descriptionList.AugmentDescription.Count) return;
-            
-            for (int len = variableList.Count-1; 0 <= len; len--)
-            {
-                dict.Add(variableList[len], descriptionList.AugmentDescription[len]);
-            }
             
             _sb.Append(augment.ConditionText);
-            
-            if (augment.ConditionText != "")
-            {
-                _sb.AppendLine();
-            }
-            
             foreach (TEMP_STRUCT_AugmentDescription desc in augment.Description)
             {
-                _sb.Append(dict[desc.variable]);
+                _sb.AppendLine();
+                _sb.Append(desc.variable);
                 
                 switch (desc.value)
                 {
-                    case TEMP_E_AugmentValue.Empty:
-                        _sb.Append("");
-                        break;
                     case TEMP_E_AugmentValue.MinusThree:
                         _sb.Append(" ---");
                         break;
@@ -139,9 +115,6 @@ namespace MortierFu
                     case TEMP_E_AugmentValue.PlusOne:
                         _sb.Append(" +");
                         break;
-                    case TEMP_E_AugmentValue.PlusOneNumber:
-                        _sb.Append(" +1");
-                        break;
                     case TEMP_E_AugmentValue.PlusTwo:
                         _sb.Append(" ++");
                         break;
@@ -151,8 +124,6 @@ namespace MortierFu
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                
-                _sb.AppendLine();
             }
 
             _descTxt.color = data.DescriptionColor;
