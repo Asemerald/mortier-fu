@@ -25,7 +25,6 @@ namespace MortierFu
         public SkinnedMeshRenderer[] CosmeticsOutlineMeshes;
         public GameObject SpawnVFXPrefab;
         public Material DashTrailMaterial;
-        public GameObject CacaQuiSlowPrefabVfx;
     }
 
     public class AspectCharacterComponent : CharacterComponent

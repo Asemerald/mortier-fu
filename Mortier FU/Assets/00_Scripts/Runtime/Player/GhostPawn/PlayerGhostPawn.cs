@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -14,12 +16,16 @@ namespace MortierFu
         private GhostMovementComponent _movement;
         private GhostPropPlacementComponent _propPlacement;
         private GhostVisualComponent _visual;
+        
+        [SerializeField] private GhostAspectMaterials[] _ghostAspectMaterials;
 
         private bool _componentsCreated;
 
         public PlayerManager Owner { get; private set; }
         public PlayerCharacter SourceCharacter { get; private set; }
         public SO_GhostSettings Settings { get; private set; }
+        
+        public GhostAspectMaterials[] AspectMaterials => _ghostAspectMaterials;
 
         public Transform PawnTransform => transform;
         public bool IsPawnActive { get; private set; }
@@ -71,6 +77,7 @@ namespace MortierFu
             _movement.Initialize();
             _propPlacement.Initialize();
             _visual.Initialize();
+            
 
             ExitPawn();
         }
