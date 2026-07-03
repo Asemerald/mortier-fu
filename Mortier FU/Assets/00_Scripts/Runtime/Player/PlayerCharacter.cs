@@ -346,7 +346,7 @@ namespace MortierFu
             _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
-        private void ReceiveStun(float duration)
+        public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
         }
@@ -571,6 +571,16 @@ namespace MortierFu
 
         public void SetExternalDecelerationMultiplier(float target, float duration) =>
             _decelMultiplier.SetTarget(target, duration, this);
+
+        #endregion
+        
+        #region Utils
+
+        public bool CanPlayerInteractWithBombShell()
+        {
+            if (!Health.IsAlive) return false;
+            return ControlContext is not PlayerControlContext.AugmentRaceBully;
+        }
 
         #endregion
     }
