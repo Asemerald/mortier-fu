@@ -39,7 +39,7 @@ MonoBehaviour:
       ModType: 100
   BallistaParams:
     FireRateMod:
-      Value: 2.5
+      Value: 3.5
       ModType: 100
     BombshellDamageMod:
       Value: -10
@@ -102,7 +102,7 @@ MonoBehaviour:
       Value: 25
       ModType: 100
     BombshellSpeedMod:
-      Value: -6
+      Value: -8
       ModType: 100
   ExtentedRangeParams:
     ShotRangeMod:
@@ -141,10 +141,10 @@ MonoBehaviour:
     OnAttackBombshellSpeedMod:
       Value: 2
       ModType: 100
-    MaxStacksOver: 15
+    MaxStacksOver: 13
   RealSniperParams:
     ShotRangeMod:
-      Value: 15
+      Value: 13
       ModType: 100
     BombshellSpeedMod:
       Value: 30
@@ -153,7 +153,7 @@ MonoBehaviour:
       Value: -0.5
       ModType: 200
     BombshellDamageMod:
-      Value: 40
+      Value: 20
       ModType: 100
     ImpactRadiusMod:
       Value: -1
@@ -161,6 +161,10 @@ MonoBehaviour:
   SharperBulletsParams:
     BombshellDamageMod:
       Value: 10
+      ModType: 100
+  SurpriseParams:
+    BombshellSpeedMod:
+      Value: 9.25
       ModType: 100
   TakeTheTempoParams:
     FireRateMod:
@@ -195,8 +199,8 @@ MonoBehaviour:
       ModType: 100
   BullyParams:
     KnockbackStunDurationMod:
-      Value: 0
-      ModType: 0
+      Value: 0.25
+      ModType: 100
   DoubleDashParams:
     ExtraDashes: 1
   FastDashParams:
@@ -215,5 +219,5 @@ MonoBehaviour:
       ModType: 100
   TravelerParams:
     DashForceMod:
-      Value: 0
-      ModType: 0
+      Value: 0.5
+      ModType: 100

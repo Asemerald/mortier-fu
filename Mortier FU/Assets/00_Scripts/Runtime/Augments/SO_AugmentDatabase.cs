@@ -28,6 +28,7 @@ namespace MortierFu
         public AGM_Overheating.Params OverheatingParams;
         public AGM_RealSniper.Params RealSniperParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
+        public AGM_Surprise.Params SurpriseParams;
         public AGM_TakeTheTempo.Params TakeTheTempoParams;
         public AGM_TsarBomba.Params TsarBombaParams;
         
