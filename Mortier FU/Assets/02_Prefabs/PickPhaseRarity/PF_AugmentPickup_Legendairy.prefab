@@ -44,14 +44,14 @@ PrefabInstance:
       propertyPath: ShapeModule.m_Scale.x
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2232119575359484423, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2592493304888947966, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
       propertyPath: _rarity
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 2592493304888947966, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
-      propertyPath: '_augmentVFXRarityPrototypes.Array.data[4]'
-      value: 
-      objectReference: {fileID: 7091366164394739515}
     - target: {fileID: 2660702412107862473, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
       propertyPath: ShapeModule.m_Scale.x
       value: 0
@@ -408,6 +408,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5591662464382134352, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5614885191266040296, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
       propertyPath: ShapeModule.enabled
       value: 1
@@ -488,19 +492,42 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8281781081652540387, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 2592493304888947966, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+    - {fileID: 1729203634400648641, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+    - {fileID: 3904761218771418236, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5405744529354088508, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5400116393604543051}
   m_SourcePrefab: {fileID: 100100000, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
---- !u!114 &7091366164394739515 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2592493304888947966, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+--- !u!1 &763049089304335353 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5405744529354088508, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
   m_PrefabInstance: {fileID: 4725389920296956869}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+--- !u!114 &5400116393604543051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 763049089304335353}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f3cff2aa8ab18e4cb95a753706bec14, type: 3}
+  m_Script: {fileID: 11500000, guid: 122a866c8f2944e4f90cacecea66272f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.NewAugmentPickup
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.AugmentPickupVisual
+  _rarity: 4
+  _logoParticleSystem: {fileID: 4894674267648674992}
+--- !u!198 &4894674267648674992 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 179745174278324085, guid: a9535d6b7ba579d42a34864b0617ca8c, type: 3}
+  m_PrefabInstance: {fileID: 4725389920296956869}
+  m_PrefabAsset: {fileID: 0}
