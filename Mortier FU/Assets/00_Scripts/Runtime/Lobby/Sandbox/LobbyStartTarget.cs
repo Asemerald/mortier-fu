@@ -6,6 +6,7 @@ namespace MortierFu
     public sealed class LobbyStartTarget : MonoBehaviour
     {
         public event Action<PlayerManager> OnHitByPlayer;
+        [SerializeField] private LobbyStartReadyController lobbyStartReadyController;
 
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
 
@@ -44,7 +45,9 @@ namespace MortierFu
             if (!shooterCharacter || !shooterCharacter.Owner)
                 return;
 
-            OnHitByPlayer?.Invoke(shooterCharacter.Owner);
+            lobbyStartReadyController._character = shooterCharacter; //stoian
+            
+            OnHitByPlayer?.Invoke( lobbyStartReadyController._character.Owner); //stoian
         }
 
         private bool IsTargetHit(GameObject hitObject)
