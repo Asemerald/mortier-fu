@@ -29,11 +29,8 @@ public class GrassInteractable : MonoBehaviour, IInteractable
 
     public void Interact(Vector3 contactPoint)
     {
-        Debug.Log("cc");
         if (!IsBombshellInteractable) return;
-        Debug.Log("aa");
         IsBombshellInteractable = false; 
-        
         LerpShaderGrass(_cts.Token).Forget();
     }
 
