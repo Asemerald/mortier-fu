@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
+    //TODO in the future make it a Bully Controller
     public sealed class PreviousRoundWinnerRaceSizeController
     {
         private readonly object _modifierSource = new PreviousRoundWinnerRaceSizeModifierSource();
@@ -33,6 +34,8 @@ namespace MortierFu
                 )
             );
 
+            character.SetControlContext(PlayerControlContext.AugmentRaceBully);
+            
             _activeCharacter = character;
         }
 
