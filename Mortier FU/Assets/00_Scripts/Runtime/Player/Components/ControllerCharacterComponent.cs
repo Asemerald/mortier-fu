@@ -107,6 +107,16 @@ namespace MortierFu
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
         
+        public void ApplyPlatformDelta(Vector3 deltaPos, Quaternion deltaRot, Vector3 platformPivot)
+        {
+            Vector3 offset = rigidbody.position - platformPivot;
+            Vector3 rotatedOffset = deltaRot * offset;
+
+            Vector3 newPos = rigidbody.position + deltaPos + (rotatedOffset - offset);
+
+            rigidbody.MovePosition(newPos);
+        }
+        
         public Vector3 GetDashDirection()
         {
             if (!character.CanDash)

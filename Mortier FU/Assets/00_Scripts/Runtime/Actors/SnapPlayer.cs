@@ -1,26 +1,50 @@
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MortierFu
 {
     public class SnapPlayer : MonoBehaviour
     {
-        private void OnTriggerStay(Collider other)
+        private Vector3 _lastPosition;
+        private Quaternion _lastRotation;
+        private readonly HashSet<PlayerCharacter> _playersOnPlatform = new();
+
+        void Awake()
         {
-            if (other.transform.parent.parent.GetComponent<PlayerCharacter>() != null)
-            {
-                other.transform.parent.parent.SetParent(transform);
-            }
+            _lastPosition = transform.position;
+            _lastRotation = transform.rotation;
         }
-        
-        
-        private void OnTriggerExit(Collider other)
+
+        void FixedUpdate()
         {
-            if (other.transform.parent.parent.GetComponent<PlayerCharacter>() != null)
+            Vector3 deltaPos = transform.position - _lastPosition;
+            Quaternion deltaRot = transform.rotation * Quaternion.Inverse(_lastRotation);
+
+            foreach (var player in _playersOnPlatform)
             {
-                other.transform.parent.parent.SetParent(null);
+                player.Controller.ApplyPlatformDelta(deltaPos, deltaRot, transform.position);
             }
+
+            _lastPosition = transform.position;
+            _lastRotation = transform.rotation;
+        }
+
+        void OnTriggerEnter(Collider other)
+        {
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+
+            if (!player) return;
             
+            _playersOnPlatform.Add(player);
         }
-    }   
+
+        void OnTriggerExit(Collider other)
+        {
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+
+            if (!player) return;
+            
+            _playersOnPlatform.Remove(player);
+        }
+    }
 }
