@@ -24,6 +24,8 @@ namespace MortierFu
 
         private readonly Dictionary<PlayerManager, List<GameObject>> _spawnedPropsByOwner = new();
 
+        private GhostSpawnResolver _spawnResolver;
+        
         private Transform _ghostPropsParent;
         private Transform _ghostParent;
 
@@ -35,13 +37,14 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             _settingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GhostSettings>(k_ghostSettingsAddress);
-
             if (!Settings)
             {
                 Logs.LogError("[GhostSystem] Ghost settings are missing.");
                 return;
             }
 
+            _spawnResolver = new GhostSpawnResolver(Settings, SystemManager.Instance.Get<LevelSystem>());
+            
             _ghostParent = new GameObject("Ghosts").transform;
             _ghostPropsParent = new GameObject("Ghost Spawned Props").transform;
             
@@ -65,8 +68,9 @@ namespace MortierFu
             CancelPendingGhostSpawn(owner);
             ClearGhost(owner);
 
-            Vector3 spawnPosition = ResolveGhostSpawnPosition(deadCharacter);
-            Quaternion spawnRotation = deadCharacter.transform.rotation;
+            GhostSpawnResult spawn = _spawnResolver.Resolve(deadCharacter, evt.Context);
+            Vector3 spawnPosition = spawn.Position;
+            Quaternion spawnRotation = spawn.Rotation;
 
             CancellationTokenSource cts = new();
             _pendingGhostSpawns[owner] = cts;
@@ -149,14 +153,6 @@ namespace MortierFu
             owner.SetActivePawn(ghost);
             
             Logs.Log($"[GhostSystem] Spawned ghost for Player {owner.PlayerIndex + 1}.");
-        }
-
-        private Vector3 ResolveGhostSpawnPosition(PlayerCharacter character)
-        {
-            if (!character)
-                return Vector3.zero;
-
-            return character.FeetPoint ? character.FeetPoint.position : character.transform.position;
         }
 
         private void OnEndRound(TriggerEndRound evt)

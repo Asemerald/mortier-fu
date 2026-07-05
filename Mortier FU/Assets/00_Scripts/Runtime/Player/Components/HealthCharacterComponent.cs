@@ -16,12 +16,14 @@ namespace MortierFu
     {
         public PlayerCharacter Killer;
         public E_DeathCause DeathCause;
+        public object Source;
+        public Vector3 DeathPosition;
     }
 
     public class HealthCharacterComponent : CharacterComponent
     {
         private readonly HashSet<object> _invincibilitySources = new();
-        
+
         private float _currentHealth;
         private float _maxHealth;
 
@@ -29,6 +31,7 @@ namespace MortierFu
 
         /// Sent every time health changes. Provide the old health and the new health.
         public Action<float, float> OnHealthChanged;
+
         public Action<float> OnMaxHealthChanged;
         public Action<bool> OnInvincibilityChanged;
 
@@ -87,14 +90,16 @@ namespace MortierFu
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.BIG);
 
             if (IsAlive) return true;
-            
+
             _currentHealth = 0;
             OnDeath?.Invoke(source);
 
-            EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath()
+            DeathContext context = ResolveDeathContext(character, source);
+
+            EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath
             {
                 Character = Character,
-                Context = ResolveDeathContext(character, source)
+                Context = context
             });
 
             return true;
@@ -106,12 +111,7 @@ namespace MortierFu
             if (source is PlayerCharacter killer)
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
-
-                return new DeathContext
-                {
-                    Killer = killer,
-                    DeathCause = E_DeathCause.BombshellExplosion
-                };
+                return CreateDeathContext(character, source, killer, E_DeathCause.BombshellExplosion);
             }
 
             // Died by falling
@@ -122,38 +122,34 @@ namespace MortierFu
                 // Only consider recent push
                 if (kn.ComputeLastBumpElapsedTime() < 4f)
                 {
-                    if (kn.LastBumpSource is Bumper bumper)
+                    if (kn.LastBumpSource is Bumper)
                     {
-                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_CarCrash,
-                            character.transform.position);
-
-                        return new DeathContext
-                        {
-                            Killer = kn.LastPusher,
-                            DeathCause = E_DeathCause.VehicleCrash
-                        };
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_CarCrash, character.transform.position);
+                        return CreateDeathContext(character, source, kn.LastPusher, E_DeathCause.VehicleCrash);
                     }
 
                     if (kn.LastPusher)
                     {
-                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death,
-                            character.transform.position);
-
-                        return new DeathContext
-                        {
-                            Killer = kn.LastPusher,
-                            DeathCause = E_DeathCause.Fall
-                        };
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
+                        return CreateDeathContext(character, source, kn.LastPusher, E_DeathCause.Fall);
                     }
                 }
             }
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Fall, character.transform.position);
+            return CreateDeathContext(character, source, null, E_DeathCause.Fall);
+        }
+
+        private DeathContext CreateDeathContext(PlayerCharacter character, object source, PlayerCharacter killer, E_DeathCause deathCause)
+        {
+            Vector3 deathPosition = character.FeetPoint ? character.FeetPoint.position : character.transform.position;
 
             return new DeathContext
             {
-                Killer = null,
-                DeathCause = E_DeathCause.Fall
+                Killer = killer,
+                DeathCause = deathCause,
+                Source = source,
+                DeathPosition = deathPosition
             };
         }
 
@@ -204,7 +200,7 @@ namespace MortierFu
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
             OnMaxHealthChanged?.Invoke(_maxHealth);
         }
-        
+
         public void AddInvincibility(object source)
         {
             if (source is null)

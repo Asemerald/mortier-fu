@@ -316,14 +316,19 @@ namespace MortierFu
             if (index < 0)
             {
                 if (IsDebugEnabled)
-                {
                     Logs.LogWarning("[LevelSystem] Trying to get a spawn point with a negative index.");
-                }
 
                 return FallbackTransform;
             }
 
-            return BoundReporter.SpawnPoints[index % BoundReporter.SpawnPoints.Length];
+            if (BoundReporter.SpawnPoints != null && BoundReporter.SpawnPoints.Length != 0)
+                return BoundReporter.SpawnPoints[index % BoundReporter.SpawnPoints.Length];
+            
+            if (IsDebugEnabled)
+                Logs.LogWarning("[LevelSystem] No spawn points available on current LevelReporter.");
+
+            return FallbackTransform;
+
         }
 
         public void PopulateAugmentPoints(Vector3[] outPoints)

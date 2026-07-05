@@ -28,6 +28,18 @@ namespace MortierFu
 
         [Min(0.01f)] [SerializeField] private float _groundRaycastLength = 8f;
 
+        [Header("Spawn Resolving")]
+        [Min(0.05f)]
+        [SerializeField] private float _spawnCheckRadius = 0.45f;
+
+        [Min(0.25f)]
+        [SerializeField] private float _vehicleSpawnSearchRadius = 4f;
+
+        [Min(4)]
+        [SerializeField] private int _vehicleSpawnSearchSteps = 16;
+
+        [SerializeField] private LayerMask _ghostSpawnBlockingMask;
+        
         [Header("Layers")] [SerializeField] private LayerMask _groundMask;
         [SerializeField] private LayerMask _ghostBoundaryMask;
         [SerializeField] private LayerMask _placementBlockingMask;
@@ -52,6 +64,11 @@ namespace MortierFu
         public float GroundRaycastStartHeight => _groundRaycastStartHeight;
         public float GroundRaycastLength => _groundRaycastLength;
 
+        public float SpawnCheckRadius => _spawnCheckRadius;
+        public float VehicleSpawnSearchRadius => _vehicleSpawnSearchRadius;
+        public int VehicleSpawnSearchSteps => _vehicleSpawnSearchSteps;
+        public LayerMask GhostSpawnBlockingMask => _ghostSpawnBlockingMask;
+        
         public LayerMask GroundMask => _groundMask;
         public LayerMask GhostBoundaryMask => _ghostBoundaryMask;
         public LayerMask PlacementBlockingMask => _placementBlockingMask;

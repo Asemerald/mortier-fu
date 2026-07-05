@@ -63,6 +63,7 @@ namespace MortierFu
         public ControllerCharacterComponent Controller { get; private set; }
         public AspectCharacterComponent Aspect { get; private set; }
         public MortarCharacterComponent Mortar { get; private set; }
+        public SafeGroundCharacterComponent SafeGround { get; private set; }
 
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
@@ -101,7 +102,8 @@ namespace MortierFu
             Controller = new ControllerCharacterComponent(this);
             Aspect = new AspectCharacterComponent(this);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
-
+            SafeGround = new SafeGroundCharacterComponent(this);
+            
             // Create a unique instance of CharacterData for this character
             Stats = Instantiate(_characterStatsTemplate);
 
@@ -125,7 +127,8 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
-
+            SafeGround.Initialize();
+            
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
 
@@ -156,7 +159,8 @@ namespace MortierFu
             Controller?.Dispose();
             Aspect?.Dispose();
             Mortar?.Dispose();
-
+            SafeGround?.Dispose();
+            
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
 
@@ -412,7 +416,8 @@ namespace MortierFu
             Controller.Update();
             Aspect.Update();
             Mortar?.Update();
-
+            SafeGround.Update();
+            
             UpdateAnimator();
         }
 
