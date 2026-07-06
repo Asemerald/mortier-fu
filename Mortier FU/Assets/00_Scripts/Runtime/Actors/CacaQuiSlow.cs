@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -33,8 +34,12 @@ namespace MortierFu
         {
             if (player.ExternalSpeedMultiplier > slowMultiplier) return;
 
-            var vfxInstance = Instantiate(vfxCacaQuiSlowPrefab, player.FeetPoint.position,
-                player.FeetPoint.rotation);
+            float randomZRotation = Random.value * 360f;
+
+            Vector3 baseEuler = vfxCacaQuiSlowPrefab.transform.rotation.eulerAngles;
+            Quaternion finalRotationFx = Quaternion.Euler(baseEuler.x, baseEuler.y, baseEuler.z + randomZRotation);
+
+            var vfxInstance = Instantiate(vfxCacaQuiSlowPrefab, player.FeetPoint.position, finalRotationFx);
 
             Destroy(vfxInstance, 10f);
         }
