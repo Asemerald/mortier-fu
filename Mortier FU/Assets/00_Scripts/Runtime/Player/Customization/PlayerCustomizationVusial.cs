@@ -23,7 +23,35 @@ namespace MortierFu
 
         public int SkinCount => _availableSkins?.Length ?? 0;
 
-        private void Awake() => UpdateVisualsAfterRound(false);
+        private GameModeBase _gameModeBase;
+
+        private void Awake()
+        {
+            UpdateVisualsAfterRound(false);
+            _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+        }
+
+        private void OnEnable()
+        {
+            if (_gameModeBase == null)
+            {
+                Logs.LogWarning("No GameModeBase found, reset visuals sub cancel");
+                return;
+            }
+            
+            _gameModeBase.OnGameStarted += ResetVisualsOnGameStart;
+        }
+
+        private void OnDisable()
+        {
+            if (_gameModeBase == null)
+            {
+                Logs.LogWarning("No GameModeBase found, reset visuals sub cancel");
+                return;
+            }
+            
+            _gameModeBase.OnGameStarted -= ResetVisualsOnGameStart;
+        }
 
         private void OnDestroy()
         {
@@ -131,6 +159,8 @@ namespace MortierFu
             Logs.Log(message, this);
         }
 
+        private void ResetVisualsOnGameStart() => UpdateVisualsAfterRound(false);
+        
         public void UpdateVisualsAfterRound(bool isWinningGame)
         {
             //in the futur if fx or more
