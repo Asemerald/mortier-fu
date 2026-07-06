@@ -13,7 +13,6 @@ namespace MortierFu
         private readonly List<PlayerCharacter> _playersCache = new();
 
         protected event Action<PlayerCharacter> OnTickZone; 
-        protected 
 
         #region Unity Lifecycle
 
@@ -23,6 +22,13 @@ namespace MortierFu
 
             if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
 
+            if (!IsPlayerValid(player))
+            {
+                _playersCache.Remove(player);
+                _counters.Remove(player);
+                return;
+            }
+            
             ApplyEffectZoneEnter(player);
         }
 
@@ -32,16 +38,20 @@ namespace MortierFu
 
             if (!player || !_counters.Remove(player)) return;
 
+            if (!IsPlayerValid(player))
+            {
+                _playersCache.Remove(player);
+                _counters.Remove(player);
+                return;
+            }
+            
             ApplyEffectZoneExit(player);
         }
 
         private void Update() => ApplyEffectZoneTick();
 
-        private void OnDisable()
-        {
-            _counters.Clear();
-            _playersCache.Clear();
-        }
+        private void OnDisable() => ClearPlayersCache();
+        private void OnDestroy() => ClearPlayersCache();
 
         private void Reset()
         {
@@ -63,6 +73,14 @@ namespace MortierFu
 
             foreach (var player in _playersCache)
             {
+
+                if (!IsPlayerValid(player))
+                {
+                    _playersCache.Remove(player);
+                    _counters.Remove(player);
+                    return;
+                }
+                
                 if (_counters[player] <= 0f)
                 {
                     OnTickZone?.Invoke(player);
@@ -80,6 +98,19 @@ namespace MortierFu
         protected abstract void ApplyEffectZoneExit(PlayerCharacter player);
 
         protected virtual void PlayFootprintVFX(PlayerCharacter player) {}
+
+        protected virtual bool IsPlayerValid(PlayerCharacter player)
+        {
+            if (!player) return false;
+
+            return player.Health is { IsAlive: true };
+        }
+
+        protected virtual void ClearPlayersCache()
+        {
+            _playersCache.Clear();
+            _counters.Clear();
+        }
 
         #endregion
     }
