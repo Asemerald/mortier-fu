@@ -124,6 +124,9 @@ namespace MortierFu
                 
                 switch (desc.value)
                 {
+                    case TEMP_E_AugmentValue.Empty:
+                        _sb.Append("");
+                        break;
                     case TEMP_E_AugmentValue.MinusThree:
                         _sb.Append(" ---");
                         break;
@@ -132,9 +135,6 @@ namespace MortierFu
                         break;
                     case TEMP_E_AugmentValue.MinusOne:
                         _sb.Append(" -");
-                        break;
-                    case TEMP_E_AugmentValue.MinusOneNumber:
-                        _sb.Append(" -1");
                         break;
                     case TEMP_E_AugmentValue.PlusOne:
                         _sb.Append(" +");
