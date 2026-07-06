@@ -2,26 +2,19 @@ using UnityEngine;
 
 public enum TEMP_E_AugmentVariable
 {
-    MAXHEALTH,
-    HealthThreshold,
-    ThresholdTimer,
+    Health,
     MoveSpeed,
-    BombshellSpeed,
-    BombshellDamage,
-    BombshellImpactRadius,
-    ExtraBombshellBounces,
-    OnBounceUpMinAngle,
-    OnBounceUpMaxAngle,
-    OnBounceUpMinShotRange,
-    OnBounceUpMaxShotRange,
+    BulletSpeed,
+    Damage,
+    ImpactRadius,
     FireRate,
     ShotRange,
-    StrikePushForce,
+    Bounces,
+    ForEachBounceRandomTarget,
+    ForEachBounceBulletSize,
+    StrikeForce,
     DashCooldown,
     DashForce,
-    ExtraDashes,
-    KnockbackStunDuration,
-    ImpactRadiusScale,
-    MaxStacksTempo,
-    MaxStacksOver
+    ExtraDash,
+    KnockbackStunDuration
 }
