@@ -1,3 +1,4 @@
+using System;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace MortierFu
         [Header("Skins / Hats")]
         [SerializeField] private GameObject[] _availableSkins;
         [SerializeField] private GameObject[] _availableSkinOutlines;
+        [SerializeField] private GameObject _crownInstance;
 
         [Header("Face")]
         [SerializeField] private SkinnedMeshRenderer _faceMeshRenderer;
@@ -20,6 +22,8 @@ namespace MortierFu
         private Material _faceMaterialInstance;
 
         public int SkinCount => _availableSkins?.Length ?? 0;
+
+        private void Awake() => UpdateVisualsAfterRound(false);
 
         private void OnDestroy()
         {
@@ -125,6 +129,12 @@ namespace MortierFu
                 return;
 
             Logs.Log(message, this);
+        }
+
+        public void UpdateVisualsAfterRound(bool isWinningGame)
+        {
+            //in the futur if fx or more
+            _crownInstance?.SetActive(isWinningGame);
         }
     }
 }
