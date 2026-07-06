@@ -158,20 +158,38 @@ namespace MortierFu
             return TakeDamage(_currentHealth, source, isLethal: true, ignoreInvincibility: ignoreInvincibility);
         }
 
-        public void Heal(float amount)
+        public bool Heal(float amount, object source = null, bool allowRevive = false)
         {
+            if (amount <= 0f)
+                return false;
+
+            if (!IsAlive && !allowRevive)
+                return false;
+
             float previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth + amount, 0f, _maxHealth);
+
+            if (Mathf.Approximately(previousHealth, _currentHealth))
+                return false;
+
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
 
-            EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
+            EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged
             {
-                Instigator = null,
+                Instigator = source as PlayerCharacter,
                 Character = Character,
                 PreviousHealth = previousHealth,
                 NewHealth = _currentHealth,
-                Delta = amount
+                MaxHealth = _maxHealth,
+                Delta = _currentHealth - previousHealth
             });
+
+            return true;
+        }
+        
+        public bool Revive(float healthAmount, object source = null)
+        {
+            return !IsAlive && Heal(healthAmount, source, allowRevive: true);
         }
 
         public override void Reset()

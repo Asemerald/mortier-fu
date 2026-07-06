@@ -100,20 +100,19 @@ namespace MortierFu
             if (evt.Character == null || evt.Character.Owner == null)
                 return;
 
-            var victimPlayer = evt.Character.Owner;
+            if (!_alivePlayers.Remove(evt.Character))
+                return;
+
+            PlayerManager victimPlayer = evt.Character.Owner;
 
             victimPlayer.Metrics.TotalDeaths++;
-
-            _alivePlayers.Remove(evt.Character);
 
             OnPlayerDied?.Invoke(evt.Character);
 
             if (evt.Context.Killer != null)
-            {
                 HandlePlayerKill(evt);
-            }
 
-            var victimTeam = FindTeamOf(victimPlayer);
+            PlayerTeam victimTeam = FindTeamOf(victimPlayer);
 
             if (victimTeam == null)
             {
@@ -123,6 +122,11 @@ namespace MortierFu
 
             TryAssignEliminatedTeamRank(victimTeam);
             TryResolveWinningTeam();
+        }
+        
+        private bool IsAliveInCurrentRound(PlayerManager member)
+        {
+            return member && member.Character && _alivePlayers.Contains(member.Character);
         }
 
         private void HandlePlayerKill(EventPlayerDeath evt)
@@ -148,11 +152,7 @@ namespace MortierFu
 
         private void TryAssignEliminatedTeamRank(PlayerTeam victimTeam)
         {
-            bool isTeamEliminated = victimTeam.Members.All(member =>
-                member.Character == null ||
-                member.Character.Health == null ||
-                !member.Character.Health.IsAlive
-            );
+            bool isTeamEliminated = victimTeam.Members.All(member => !IsAliveInCurrentRound(member));
 
             if (!isTeamEliminated)
                 return;
@@ -167,25 +167,15 @@ namespace MortierFu
         {
             PlayerTeam aliveTeam = null;
 
-            foreach (var team in _teams)
+            foreach (PlayerTeam team in _teams)
             {
-                bool hasAliveMember = team.Members.Any(member =>
-                    member.Character != null &&
-                    member.Character.Health != null &&
-                    member.Character.Health.IsAlive
-                );
+                bool hasAliveMember = team.Members.Any(IsAliveInCurrentRound);
 
                 if (!hasAliveMember)
                     continue;
 
-                if (aliveTeam == null)
-                {
-                    aliveTeam = team;
-                }
-                else
-                {
-                    return;
-                }
+                if (aliveTeam != null) return;
+                aliveTeam = team;
             }
 
             if (aliveTeam == null)
