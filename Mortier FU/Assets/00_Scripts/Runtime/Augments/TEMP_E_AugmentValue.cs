@@ -2,12 +2,12 @@ using UnityEngine;
 
 public enum TEMP_E_AugmentValue
 {
+    Empty,
+    PlusOneNumber,
     MinusThree,
     MinusTwo,
     MinusOne,
-    MinusOneNumber,
     PlusOne,
-    PlusOneNumber,
     PlusTwo,
     PlusThree
 }
