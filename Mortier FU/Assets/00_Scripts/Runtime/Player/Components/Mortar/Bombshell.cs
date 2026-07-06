@@ -204,7 +204,11 @@ namespace MortierFu
                 float moveDistance = displacement.magnitude;
 
                 if (moveDistance <= 0.0001f)
+                {
+                    _velocity = nextVelocity;
+                    remainingSimulationTime = 0f;
                     break;
+                }
 
                 Vector3 moveDir = displacement / moveDistance;
 
@@ -283,10 +287,17 @@ namespace MortierFu
 
         private static bool TryComputeStep(Vector3 velocity, Vector3 acceleration, float deltaTime, out Vector3 displacement, out Vector3 nextVelocity)
         {
+            if (deltaTime <= 0f)
+            {
+                displacement = Vector3.zero;
+                nextVelocity = velocity;
+                return false;
+            }
+
             nextVelocity = velocity + acceleration * deltaTime;
             displacement = velocity * deltaTime + acceleration * (0.5f * deltaTime * deltaTime);
 
-            return displacement.sqrMagnitude > 0.000001f;
+            return true;
         }
 
         private void SetPositionImmediate(Vector3 position)
@@ -322,14 +333,43 @@ namespace MortierFu
 
         private void ApplyBounceVelocity(Vector3 hitNormal, BounceContext bounceContext)
         {
+            if (bounceContext != null && bounceContext.ForceInPlaceBounce)
+            {
+                ApplyInPlaceBounceVelocity(hitNormal);
+                return;
+            }
+
             _velocity = Vector3.Reflect(_velocity, hitNormal) * _system.Settings.BounceSpeedDampingFactor;
 
             ApplyBounceRandomYaw(bounceContext);
+        }
+        
+        private void ApplyInPlaceBounceVelocity(Vector3 hitNormal)
+        {
+            Vector3 reflectedVelocity = Vector3.Reflect(_velocity, hitNormal) * _system.Settings.BounceSpeedDampingFactor;
 
-            if (!HasBounceRangeOverride(bounceContext))
+            float verticalSpeed = Mathf.Max(
+                Mathf.Abs(reflectedVelocity.y),
+                reflectedVelocity.magnitude * 0.5f,
+                1.75f
+            );
+
+            _velocity = Vector3.up * verticalSpeed;
+
+            UpdateTravelTimeForVerticalBounce(verticalSpeed);
+        }
+        
+        private void UpdateTravelTimeForVerticalBounce(float verticalSpeed)
+        {
+            float gravity = -Physics.gravity.y * _data.GravityScale;
+
+            if (gravity <= 0.0001f)
+            {
+                _travelTime = 0f;
                 return;
+            }
 
-            ApplyRandomBounceRange(bounceContext);
+            _travelTime = verticalSpeed * 2f / gravity;
         }
 
         private void ApplyBounceRandomYaw(BounceContext bounceContext)
@@ -340,57 +380,6 @@ namespace MortierFu
             float randomAngle = Random.Range(bounceContext.UpRotationMinAngle, bounceContext.RotationMaxAngle);
 
             _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
-        }
-
-        private bool HasBounceRangeOverride(BounceContext bounceContext)
-        {
-            return bounceContext.MinBounceRange != 0f || bounceContext.MaxBounceRange != 0f;
-        }
-
-        private void ApplyRandomBounceRange(BounceContext bounceContext)
-        {
-            float minRange = Mathf.Min(bounceContext.MinBounceRange, bounceContext.MaxBounceRange);
-            float maxRange = Mathf.Max(bounceContext.MinBounceRange, bounceContext.MaxBounceRange);
-
-            if (maxRange <= 0f)
-                return;
-
-            minRange = Mathf.Max(0.1f, minRange);
-
-            float randomBounceRange = Random.Range(minRange, maxRange);
-
-            Vector3 bounceDirection = _velocity.With(y: 0f);
-
-            if (bounceDirection.sqrMagnitude < 0.0001f)
-                return;
-
-            bounceDirection.Normalize();
-
-            RecalculateVelocityForBounceRange(bounceDirection, randomBounceRange);
-        }
-
-        private void RecalculateVelocityForBounceRange(Vector3 bounceDirection, float bounceRange)
-        {
-            Vector3 targetPos = new(bounceRange, 0f, 0f);
-
-            float bombshellHeight = CalculateBombshellHeight(bounceRange);
-
-            ComputePathWithHeight(
-                targetPos,
-                bombshellHeight,
-                _data.GravityScale,
-                out float initialSpeed,
-                out float angle,
-                out _travelTime
-            );
-
-            _velocity = ComputeVelocityAtTime(
-                bounceDirection,
-                angle,
-                initialSpeed,
-                _data.GravityScale,
-                0f
-            );
         }
 
         private void StartImpactPreviewFrom(Vector3 startPos, Vector3 startVelocity)
@@ -482,7 +471,11 @@ namespace MortierFu
                 float moveDistance = displacement.magnitude;
 
                 if (moveDistance <= 0.0001f)
-                    return false;
+                {
+                    currentVelocity = nextVelocity;
+                    realTimeToImpact += realDeltaTime;
+                    continue;
+                }
 
                 Vector3 moveDir = displacement / moveDistance;
 

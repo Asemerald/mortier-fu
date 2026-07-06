@@ -5,16 +5,12 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public float OnBounceUpMinAngle;
-            public float OnBounceUpMaxAngle;
-            public float OnBounceUpMinShotRange;
-            public float OnBounceUpMaxShotRange;
             public int ExtraBombshellBounces;
             public AugmentStatMod ShotRangeMod;
         }
-        
+
         private EventBinding<TriggerBounce> _bounceBinding;
-        
+
         public AGM_ChaoticBounce(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
@@ -22,24 +18,23 @@ namespace MortierFu
         {
             _bounceBinding = new EventBinding<TriggerBounce>(OnBounce);
             EventBus<TriggerBounce>.Register(_bounceBinding);
-            
+
             stats.ShotRange.AddModifier(db.ChaoticBounceParams.ShotRangeMod.ToMod(this));
             stats.BombshellBounces.AddModifier(new StatModifier(db.ChaoticBounceParams.ExtraBombshellBounces, E_StatModType.Flat, this));
         }
-        
+
         private void OnBounce(TriggerBounce evt)
         {
-            if (evt.Context == null) return;
+            if (!evt.Bombshell || evt.Bombshell.Owner != owner || evt.Context == null)
+                return;
 
-            evt.Context.UpRotationMinAngle += db.ChaoticBounceParams.OnBounceUpMinAngle;
-            evt.Context.RotationMaxAngle += db.ChaoticBounceParams.OnBounceUpMaxAngle;
-            evt.Context.MinBounceRange = db.ChaoticBounceParams.OnBounceUpMinShotRange;
-            evt.Context.MaxBounceRange += db.ChaoticBounceParams.OnBounceUpMaxShotRange;
+            evt.Context.ForceInPlaceBounce = true;
         }
 
         public override void Dispose()
         {
-            EventBus<TriggerBounce>.Deregister(_bounceBinding);
+            if (_bounceBinding != null)
+                EventBus<TriggerBounce>.Deregister(_bounceBinding);
 
             stats.BombshellBounces.RemoveAllModifiersFromSource(this);
             stats.ShotRange.RemoveAllModifiersFromSource(this);
