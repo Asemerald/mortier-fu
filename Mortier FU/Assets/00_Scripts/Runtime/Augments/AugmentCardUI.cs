@@ -133,8 +133,14 @@ namespace MortierFu
                     case TEMP_E_AugmentValue.MinusOne:
                         _sb.Append(" -");
                         break;
+                    case TEMP_E_AugmentValue.MinusOneNumber:
+                        _sb.Append(" -1");
+                        break;
                     case TEMP_E_AugmentValue.PlusOne:
                         _sb.Append(" +");
+                        break;
+                    case TEMP_E_AugmentValue.PlusOneNumber:
+                        _sb.Append(" +1");
                         break;
                     case TEMP_E_AugmentValue.PlusTwo:
                         _sb.Append(" ++");
