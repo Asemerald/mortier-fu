@@ -9,6 +9,7 @@ public class GrassInteractable : MonoBehaviour, IInteractable
 {
     [SerializeField] private Renderer grassRenderer;
     [SerializeField] private float duration;
+    [SerializeField] private ParticleSystem particleBurned;
     
     public bool IsDashInteractable { get; } = false;
     public bool IsBombshellInteractable { get; private set; } = true;
@@ -31,6 +32,7 @@ public class GrassInteractable : MonoBehaviour, IInteractable
     {
         if (!IsBombshellInteractable) return;
         IsBombshellInteractable = false; 
+        particleBurned.Play();
         LerpShaderGrass(_cts.Token).Forget();
     }
 
