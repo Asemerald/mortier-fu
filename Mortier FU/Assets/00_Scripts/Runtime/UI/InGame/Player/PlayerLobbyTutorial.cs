@@ -70,6 +70,9 @@ namespace MortierFu
 
         public void Disconnect()
         {
+            if (_tutorialBinding == null)
+                return;
+            
             timer.OnTimerStop -= InitTuto;
             _playerCharacter.PlayerInput.currentActionMap.actionTriggered -= UpdateStepTuto;
             _tutorialSlot.gameObject.SetActive(false);
