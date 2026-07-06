@@ -136,5 +136,17 @@ namespace MortierFu {
                 return 1;
             return 0;
         }
+        
+        public virtual bool ClearModifiers()
+        {
+            if (statModifiers.Count == 0)
+                return false;
+
+            statModifiers.Clear();
+            isDirty = true;
+            OnDirtyUpdated?.Invoke();
+
+            return true;
+        } 
     }
 }

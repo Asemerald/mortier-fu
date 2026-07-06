@@ -136,7 +136,8 @@ namespace MortierFu
 
             _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
 
-            _trailInstance.emitting = false;
+            if (_trailInstance)
+                _trailInstance.emitting = false;
         }
 
         // While dashing, the strike is executed every frame to bump other players or interact with objects.

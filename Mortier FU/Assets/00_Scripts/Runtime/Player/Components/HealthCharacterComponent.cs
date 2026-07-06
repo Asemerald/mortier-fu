@@ -242,5 +242,10 @@ namespace MortierFu
         {
             Stats.MaxHealth.OnDirtyUpdated -= UpdateHealth;
         }
+        
+        public void RefreshFromStats()
+        {
+            UpdateHealth();
+        }
     }
 }
