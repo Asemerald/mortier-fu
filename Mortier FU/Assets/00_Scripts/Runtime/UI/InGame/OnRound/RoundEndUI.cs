@@ -697,12 +697,14 @@ namespace MortierFu
 
             if (!isSameTopPlayer)
                 await Tween.Scale(_playerSlots[currentTopIdx], _originalScale, _topPlayerScaleDuration,
-                    _scaleTweenEase).ToUniTask(cancellationToken: ct);;
+                    _scaleTweenEase).ToUniTask(cancellationToken: ct);
+            ;
 
             _previousTopPlayerIndex = currentTopIdx;
         }
 
-        private async UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease, CancellationToken ct)
+        private async UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease,
+            CancellationToken ct)
         {
             if (!rt)
                 return;
@@ -743,11 +745,44 @@ namespace MortierFu
             if (orderOverride != null)
                 SetPlayersToLeaderboardOrder(orderOverride);
 
-            var topTeam = _gm.Teams.OrderByDescending(t => t.Score).FirstOrDefault();
-            if (topTeam != null && IsValidPlayerIndex(topTeam.Index))
-                _playerIcons[topTeam.Index].sprite = _playerWinnerIcons[topTeam.Index];
+            //var topTeam = _gm.Teams.OrderByDescending(t => t.Score).FirstOrDefault();
+            //Refactoriser cette merde
+            
+            List<PlayerTeam> topTeam = new();
+
+            FindMaxScoresPlayer(topTeam);
+            
+            if (topTeam.Count == 0)
+                return;
+            
+            foreach (var team in topTeam)
+            {
+                if (!IsValidPlayerIndex(team.Index))
+                    continue;
+
+                _playerIcons[team.Index].sprite = _playerWinnerIcons[team.Index];
+            }
         }
 
+        private void FindMaxScoresPlayer(List<PlayerTeam> pTopTeam)
+        {
+            int scoreMax = int.MinValue;
+
+            foreach (var team in _gm.Teams)
+            {
+                if (team.Score > scoreMax)
+                {
+                    pTopTeam.Clear();
+                    pTopTeam.Add(team);
+                    scoreMax = team.Score;
+                }
+                else if (team.Score == scoreMax)
+                {
+                    pTopTeam.Add(team);
+                }
+            }
+        }
+        
         private void ShowRoundWinner(PlayerTeam winningTeam)
         {
             if (winningTeam == null || !IsValidPlayerIndex(winningTeam.Index)) return;
