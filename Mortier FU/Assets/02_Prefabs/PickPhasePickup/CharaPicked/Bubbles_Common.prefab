@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6300099688612384741}
   - component: {fileID: 1640078891502866194}
   - component: {fileID: 6338216230490965608}
+  - component: {fileID: 6314387499710862585}
   m_Layer: 0
   m_Name: Bubbles_Common
   m_TagString: Untagged
@@ -4758,7 +4759,7 @@ ParticleSystem:
     vectorLabel1_3: W
 --- !u!199 &6338216230490965608
 ParticleSystemRenderer:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -4804,6 +4805,7 @@ ParticleSystemRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 45
+  m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -4835,4 +4837,16 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
-  m_MaskInteraction: 0
+--- !u!114 &6314387499710862585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4028080290741468401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44b1cfabeea8e7f44be584789ff8e010, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.AugmentFXPickUp
+  _particleSystem: {fileID: 1640078891502866194}

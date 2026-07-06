@@ -16,7 +16,7 @@ namespace MortierFu
         public event Action OnPressureStop;
         public event Action OnStopShowcase;
 
-        private ParticleSystem cacaProut;
+        private AugmentFXPickUp _particleSystem;
         
         private CancellationTokenSource _pressureTokenSource;
 
@@ -25,8 +25,7 @@ namespace MortierFu
         private List<AugmentState> _augmentBag;
         
         private List<PlayerManager> _pickers;
-
-         private GameModeBase _gm;
+        
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
         private LevelSystem _levelSystem;
@@ -65,8 +64,6 @@ namespace MortierFu
 
         public async UniTask OnInitialize()
         {
-            _gm = GameService.CurrentGameMode as GameModeBase;
-            
             _settingsHandle = await SystemManager.Config.AugmentSelectionSettings.LazyLoadAssetRef();
 
             _pickupParent = new GameObject("AugmentPickups").transform;
@@ -319,11 +316,11 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            GameObject afdkjlhkljasdh = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
                 character.transform);
-            cacaProut = afdkjlhkljasdh.GetComponent<ParticleSystem>();
-            
-            _gm.OnRoundStarted += OnChangeScene;
+            bool particle = particleGO.TryGetComponent<AugmentFXPickUp>(out _particleSystem);
+            if (particle)
+                _particleSystem.Init();
             
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
@@ -332,14 +329,6 @@ namespace MortierFu
             _augmentProviderSys?.ApplyDamping(augment.Augment);
 
             return true;
-        }
-
-        private void OnChangeScene(RoundInfo info)
-        {
-            
-            //TODO REFACTOR cacaPrrout
-            cacaProut.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            Object.Destroy(cacaProut);
         }
 
         private class AugmentState // TODO Better rename
