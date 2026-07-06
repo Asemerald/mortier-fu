@@ -217,7 +217,7 @@ namespace MortierFu
             gameVictor = null;
 
             _gameplayCancellation = new CancellationTokenSource();
-            GameplayLoop(_gameplayCancellation.Token).Forget();
+            GameplayLoop(_gameplayCancellation.Token).Forget();                                            //il me baise
 
             Logs.Log("Starting the game...");
         }
@@ -244,7 +244,9 @@ namespace MortierFu
                 transitionColor,
                 cancellationToken
             );
-
+            
+            ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
+            
             try
             {
                 await _augmentRaceController.PrepareSelectionAsync(
@@ -252,6 +254,8 @@ namespace MortierFu
                     FlowSettings.AugmentStartShowcaseDelay
                 );
 
+                
+                
                 cancellationToken.ThrowIfCancellationRequested();
 
                 audioService.SetPhase(0);
@@ -368,7 +372,7 @@ namespace MortierFu
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var transitionColor = GetTransitionColor();
-
+                
                 await RunAugmentRacePhaseAsync(transitionColor, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 

@@ -81,7 +81,7 @@ namespace MortierFu
 
             await StartCurrentGameModeAsync();
 
-            _sceneService.HideLoadingScreen();
+            //_sceneService.HideLoadingScreen();   
 
             Logs.Log("[GameService] Gameplay pipeline done.");
         }
@@ -113,7 +113,7 @@ namespace MortierFu
 
             await StartCurrentGameModeAsync();
 
-            _sceneService.HideLoadingScreen();
+            //_sceneService.HideLoadingScreen();
 
             _isSceneTransitionInProgress = false;
 
