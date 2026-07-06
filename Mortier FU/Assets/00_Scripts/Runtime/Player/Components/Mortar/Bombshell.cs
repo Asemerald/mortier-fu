@@ -12,17 +12,14 @@ namespace MortierFu
     {
         public struct Data
         {
-            // Meta
             public PlayerCharacter Owner;
 
-            // Movement
             public Vector3 StartPos;
             public Vector3 TargetPos;
             public float Scale;
             public float Speed;
             public float GravityScale;
 
-            // Damage
             public float Damage;
             public float AoeRange;
             public int Bounces;
@@ -34,6 +31,7 @@ namespace MortierFu
         private Vector3 _velocity;
         private Vector3 _toTarget;
         private float _travelTime;
+        private float _bounceRange;
         private int _previewRequestId;
 
         private BombshellSystem _system;
@@ -44,8 +42,6 @@ namespace MortierFu
         private CountdownTimer _impactDebounceTimer;
 
         public PlayerCharacter Owner => _data.Owner;
-
-        #region API // TODO: This can be improved to faciliate alteration of Bombshell behaviours in augments and mods
 
         public float Damage
         {
@@ -73,8 +69,6 @@ namespace MortierFu
 
         public float GetTravelTime() => _travelTime / _data.Speed;
 
-        #endregion
-
         public void Initialize(BombshellSystem system)
         {
             _system = system;
@@ -96,6 +90,8 @@ namespace MortierFu
             transform.localScale = Vector3.one * _data.Scale;
 
             _toTarget = GetTrajectoryTargetPosition() - _data.StartPos;
+            _bounceRange = Mathf.Max(0.1f, _toTarget.With(y: 0f).magnitude);
+
             CalculateTrajectory();
 
             _impactDebounceTimer.Stop();
@@ -251,25 +247,22 @@ namespace MortierFu
                     _data.Bounces--;
 
                     BounceContext bounceContext = new();
-                    EventBus<TriggerBounce>.Raise(new TriggerBounce()
+                    EventBus<TriggerBounce>.Raise(new TriggerBounce
                     {
                         Bombshell = this,
                         Context = bounceContext
                     });
 
-                    ApplyBounceVelocity(hit.normal, bounceContext);
+                    ApplyBounceVelocity(bounceContext);
 
                     _data.Damage *= _system.Settings.BounceDamageDampingFactor;
 
-                    remainingSimulationTime -= Mathf.Max(simulationTimeToHit, 0.0001f);
                     currentPos = centerAtHit;
 
                     StartImpactPreviewFrom(centerAtHit, _velocity);
 
-                    if (_velocity.sqrMagnitude < 0.0001f)
-                        break;
-
-                    continue;
+                    remainingSimulationTime = 0f;
+                    break;
                 }
 
                 currentPos += displacement;
@@ -280,9 +273,7 @@ namespace MortierFu
                 remainingSimulationTime = 0f;
             }
 
-            if (!(_velocity.sqrMagnitude > 0.001f)) return;
-            Quaternion targetRot = Quaternion.LookRotation(_velocity.normalized, Vector3.up);
-            SetRotationImmediate(targetRot);
+            UpdateRotationFromVelocity();
         }
 
         private static bool TryComputeStep(Vector3 velocity, Vector3 acceleration, float deltaTime, out Vector3 displacement, out Vector3 nextVelocity)
@@ -300,65 +291,94 @@ namespace MortierFu
             return true;
         }
 
-        private void SetPositionImmediate(Vector3 position)
-        {
-            transform.position = position;
-
-            if (_rb)
-                _rb.position = position;
-
-            Physics.SyncTransforms();
-        }
-
-        private void SetPositionAndRotationImmediate(Vector3 position, Quaternion rotation)
-        {
-            transform.SetPositionAndRotation(position, rotation);
-
-            if (_rb)
-            {
-                _rb.position = position;
-                _rb.rotation = rotation;
-            }
-
-            Physics.SyncTransforms();
-        }
-
-        private void SetRotationImmediate(Quaternion rotation)
-        {
-            transform.rotation = rotation;
-
-            if (_rb)
-                _rb.rotation = rotation;
-        }
-
-        private void ApplyBounceVelocity(Vector3 hitNormal, BounceContext bounceContext)
+        private void ApplyBounceVelocity(BounceContext bounceContext)
         {
             if (bounceContext != null && bounceContext.ForceInPlaceBounce)
             {
-                ApplyInPlaceBounceVelocity(hitNormal);
+                ApplyInPlaceBounceVelocity();
                 return;
             }
 
-            _velocity = Vector3.Reflect(_velocity, hitNormal) * _system.Settings.BounceSpeedDampingFactor;
+            Vector3 bounceDirection = GetFlatBounceDirection();
 
-            ApplyBounceRandomYaw(bounceContext);
+            if (bounceContext != null &&
+                (bounceContext.UpRotationMinAngle != 0f || bounceContext.RotationMaxAngle != 0f))
+            {
+                float randomAngle = Random.Range(
+                    bounceContext.UpRotationMinAngle,
+                    bounceContext.RotationMaxAngle
+                );
+
+                bounceDirection = Quaternion.AngleAxis(randomAngle, Vector3.up) * bounceDirection;
+            }
+
+            _direction = bounceDirection.normalized;
+
+            RecalculateVelocityForBounceRange(_direction, _bounceRange);
         }
-        
-        private void ApplyInPlaceBounceVelocity(Vector3 hitNormal)
-        {
-            Vector3 reflectedVelocity = Vector3.Reflect(_velocity, hitNormal) * _system.Settings.BounceSpeedDampingFactor;
 
-            float verticalSpeed = Mathf.Max(
-                Mathf.Abs(reflectedVelocity.y),
-                reflectedVelocity.magnitude * 0.5f,
-                1.75f
-            );
+        private Vector3 GetFlatBounceDirection()
+        {
+            Vector3 bounceDirection = _velocity.With(y: 0f);
+
+            if (bounceDirection.sqrMagnitude < 0.0001f)
+                bounceDirection = _direction;
+
+            if (bounceDirection.sqrMagnitude < 0.0001f)
+                bounceDirection = transform.forward.With(y: 0f);
+
+            if (bounceDirection.sqrMagnitude < 0.0001f)
+                bounceDirection = Vector3.forward;
+
+            return bounceDirection.normalized;
+        }
+
+        private void ApplyInPlaceBounceVelocity()
+        {
+            float verticalSpeed = CalculateVerticalSpeedForRange(_bounceRange);
 
             _velocity = Vector3.up * verticalSpeed;
 
             UpdateTravelTimeForVerticalBounce(verticalSpeed);
         }
-        
+
+        private float CalculateVerticalSpeedForRange(float range)
+        {
+            float height = CalculateBombshellHeight(range);
+            float gravity = -Physics.gravity.y * _data.GravityScale;
+
+            if (gravity <= 0.0001f)
+                return 1.75f;
+
+            return Mathf.Sqrt(2f * gravity * Mathf.Max(0.1f, height));
+        }
+
+        private void RecalculateVelocityForBounceRange(Vector3 bounceDirection, float bounceRange)
+        {
+            bounceRange = Mathf.Max(0.1f, bounceRange);
+
+            Vector3 targetPos = new(bounceRange, 0f, 0f);
+
+            float bombshellHeight = CalculateBombshellHeight(bounceRange);
+
+            ComputePathWithHeight(
+                targetPos,
+                bombshellHeight,
+                _data.GravityScale,
+                out float initialSpeed,
+                out float angle,
+                out _travelTime
+            );
+
+            _velocity = ComputeVelocityAtTime(
+                bounceDirection,
+                angle,
+                initialSpeed,
+                _data.GravityScale,
+                0f
+            );
+        }
+
         private void UpdateTravelTimeForVerticalBounce(float verticalSpeed)
         {
             float gravity = -Physics.gravity.y * _data.GravityScale;
@@ -370,16 +390,6 @@ namespace MortierFu
             }
 
             _travelTime = verticalSpeed * 2f / gravity;
-        }
-
-        private void ApplyBounceRandomYaw(BounceContext bounceContext)
-        {
-            if (bounceContext.UpRotationMinAngle == 0f && bounceContext.RotationMaxAngle == 0f)
-                return;
-
-            float randomAngle = Random.Range(bounceContext.UpRotationMinAngle, bounceContext.RotationMaxAngle);
-
-            _velocity = Quaternion.AngleAxis(randomAngle, Vector3.up) * _velocity;
         }
 
         private void StartImpactPreviewFrom(Vector3 startPos, Vector3 startVelocity)
@@ -407,8 +417,12 @@ namespace MortierFu
 
             if (_system.Settings.EnableDebug)
             {
-                Logs.Log($"[Bombshell Preview] Predicted impact on '{hitResult.collider.name}' " + $"layer '{LayerMask.LayerToName(hitResult.collider.gameObject.layer)}' " + 
-                         $"at {hitResult.point}. Aim target was {_data.TargetPos}. " + $"Iterations: {simulationIterations}.");
+                Logs.Log(
+                    $"[Bombshell Preview] Predicted impact on '{hitResult.collider.name}' " +
+                    $"layer '{LayerMask.LayerToName(hitResult.collider.gameObject.layer)}' " +
+                    $"at {hitResult.point}. Aim target was {_data.TargetPos}. " +
+                    $"Iterations: {simulationIterations}."
+                );
             }
 
             float delay = Mathf.Max(0f, realTimeToImpact * _system.Settings.ImpactPreviewDelayFactor);
@@ -510,17 +524,51 @@ namespace MortierFu
 
             return false;
         }
-        
-        /// <summary>
-        /// Calculates the initial velocity, launch angle, and flight time required to reach a target position
-        /// with a specified arc height and gravity scale.
-        /// </summary>
-        /// <param name="targetPos">The target position to reach.</param>
-        /// <param name="height">The desired maximum height of the arc.</param>
-        /// <param name="gravityScale">The scale factor for gravity.</param>
-        /// <param name="v0">Output: The required initial velocity.</param>
-        /// <param name="angle">Output: The launch angle in radians.</param>
-        /// <param name="time">Output: The total flight time.</param>
+
+        private void SetPositionImmediate(Vector3 position)
+        {
+            transform.position = position;
+
+            if (_rb)
+                _rb.position = position;
+
+            Physics.SyncTransforms();
+        }
+
+        private void SetPositionAndRotationImmediate(Vector3 position, Quaternion rotation)
+        {
+            transform.SetPositionAndRotation(position, rotation);
+
+            if (_rb)
+            {
+                _rb.position = position;
+                _rb.rotation = rotation;
+            }
+
+            Physics.SyncTransforms();
+        }
+
+        private void SetRotationImmediate(Quaternion rotation)
+        {
+            transform.rotation = rotation;
+
+            if (_rb)
+                _rb.rotation = rotation;
+        }
+
+        private void UpdateRotationFromVelocity()
+        {
+            if (_velocity.sqrMagnitude <= 0.001f)
+                return;
+
+            Vector3 forward = _velocity.normalized;
+            Vector3 up = Mathf.Abs(Vector3.Dot(forward, Vector3.up)) > 0.98f
+                ? Vector3.forward
+                : Vector3.up;
+
+            SetRotationImmediate(Quaternion.LookRotation(forward, up));
+        }
+
         private static void ComputePathWithHeight(Vector3 targetPos, float height, float gravityScale, out float v0, out float angle, out float time)
         {
             float xt = Mathf.Max(0.001f, targetPos.x);
