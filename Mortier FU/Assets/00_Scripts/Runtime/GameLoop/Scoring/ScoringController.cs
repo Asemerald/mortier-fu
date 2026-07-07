@@ -171,10 +171,19 @@ namespace MortierFu
 
             foreach (PlayerTeam team in teams)
             {
+                if (team?.Members == null)
+                    continue;
+
                 bool isWinningTeam = winnersSet.Contains(team);
 
                 foreach (var player in team.Members)
-                    player.Character.CustomizationVisual.UpdateVisualsAfterRound(isWinningGame: isWinningTeam);
+                {
+                    var customizationVisual = player?.Character?.CustomizationVisual;
+                    if (customizationVisual == null)
+                        continue;
+
+                    customizationVisual.UpdateVisualsAfterRound(isWinningGame: isWinningTeam);
+                }
             }
         }
     }
