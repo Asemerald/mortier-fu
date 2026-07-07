@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.UI;
@@ -42,6 +45,8 @@ namespace MortierFu
         private CancellationTokenSource _cts;
         
         private ShakeService _shakeService;
+
+        private StringBuilder _sb = new StringBuilder();
 
         public void Initialize()
         {
@@ -89,7 +94,72 @@ namespace MortierFu
             _nameTxt.SetText(augment.Name.ToUpper());
             _titleRarityFilter.texture = _raritySpritesFactory.GetTitleRarityFilter(augment.Rarity);
             _nameTxt.color = data.NameColor;
-            _descTxt.SetText(augment.Description);
+            
+            //stoian
+            //mange ma mortichiasse
+
+            Dictionary<TEMP_E_AugmentVariable, string> dict = new Dictionary<TEMP_E_AugmentVariable, string>();
+            
+            List<TEMP_E_AugmentVariable> variableList = Enum.GetValues(typeof(TEMP_E_AugmentVariable)).Cast<TEMP_E_AugmentVariable>().ToList();
+
+            TEMP_LIST_AugmentDescription descriptionList = new TEMP_LIST_AugmentDescription();
+            
+            if (variableList.Count != descriptionList.AugmentDescription.Count) return;
+            
+            for (int len = variableList.Count-1; 0 <= len; len--)
+            {
+                dict.Add(variableList[len], descriptionList.AugmentDescription[len]);
+            }
+            
+            _sb.Append(augment.ConditionText);
+            
+            if (augment.ConditionText != "")
+            {
+                _sb.AppendLine();
+            }
+            
+            foreach (TEMP_STRUCT_AugmentDescription desc in augment.Description)
+            {
+                _sb.Append(dict[desc.variable]);
+                
+                switch (desc.value)
+                {
+                    case TEMP_E_AugmentValue.Empty:
+                        _sb.Append("");
+                        break;
+                    case TEMP_E_AugmentValue.MinusThree:
+                        _sb.Append(" ---");
+                        break;
+                    case TEMP_E_AugmentValue.MinusTwo:
+                        _sb.Append(" --");
+                        break;
+                    case TEMP_E_AugmentValue.MinusOne:
+                        _sb.Append(" -");
+                        break;
+                    case TEMP_E_AugmentValue.PlusOne:
+                        _sb.Append(" +");
+                        break;
+                    case TEMP_E_AugmentValue.PlusOneNumber:
+                        _sb.Append(" +1");
+                        break;
+                    case TEMP_E_AugmentValue.PlusTwo:
+                        _sb.Append(" ++");
+                        break;
+                    case TEMP_E_AugmentValue.PlusThree:
+                        _sb.Append(" +++");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
+                _sb.AppendLine();
+            }
+
+            _descTxt.color = data.DescriptionColor;
+            _descTxt.SetText(_sb.ToString());
+            
+            //stoian
+            
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
             _augmentBack.sprite = _raritySpritesFactory.GetRarityCardBgSpriteFromRarity(augment.Rarity);
             _augmentIcon.sprite = augment.SmallSprite;
@@ -186,6 +256,7 @@ namespace MortierFu
         {
             public E_AugmentRarity Rarity;
             public Color NameColor;
+            public Color DescriptionColor; //stoian
         }
     }
 }
