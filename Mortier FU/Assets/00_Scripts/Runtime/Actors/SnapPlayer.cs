@@ -36,7 +36,7 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.layer.Equals(_ignoreLayers)) return;
+            if (((1 << other.gameObject.layer) & _ignoreLayers.value) != 0) return;
             
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
