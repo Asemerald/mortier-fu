@@ -146,9 +146,9 @@ namespace MortierFu
 
         public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
         {
-            if (teams.Count == 0)
+            if (teams == null || teams.Count == 0)
             {
-                Logs.LogWarning("No player detected, cancel player visuals update");
+                Logs.LogWarning("No teams detected; cancelling player visuals update");
                 return;
             }
 
