@@ -14,11 +14,7 @@ namespace MortierFu
         private readonly Action<PlayerControlContext> _setPlayerControlContext;
         private readonly Action _onRaceStart;
 
-        public AugmentRaceController(
-            IReadOnlyList<PlayerTeam> teams,
-            AugmentSelectionSystem augmentSelectionSystem,
-            PlayerSpawnController playerSpawnController,
-            Action<PlayerControlContext> setPlayerControlContext,
+        public AugmentRaceController(IReadOnlyList<PlayerTeam> teams, AugmentSelectionSystem augmentSelectionSystem, PlayerSpawnController playerSpawnController, Action<PlayerControlContext> setPlayerControlContext,
             Action onRaceStart)
         {
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
@@ -70,9 +66,7 @@ namespace MortierFu
             }
 
             if (pickers.Count == 0)
-            {
                 Logs.LogWarning("[AugmentRaceController] Found no pickers for this augment selection phase.");
-            }
 
             return pickers;
         }
@@ -85,18 +79,12 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(startShowcaseDelay), cancellationToken: cancellationToken);
 
-            await _augmentSelectionSystem.PrepareAugmentSelection(
-                pickers,
-                cancellationToken
-            );
+            await _augmentSelectionSystem.PrepareAugmentSelection(pickers, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        public void StartRaceTimer(float duration)
-        {
-            _augmentSelectionSystem.StartRaceTimer(duration);
-        }
+        public void StartRaceTimer(float duration) => _augmentSelectionSystem.StartRaceTimer(duration);
 
         public async UniTask WaitUntilSelectionOverAsync(CancellationToken cancellationToken)
         {
