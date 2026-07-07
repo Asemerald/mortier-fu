@@ -631,15 +631,9 @@ namespace MortierFu
             slider.value = end;
         }
 
-        private async UniTask AnimateRoundEndSequence(
-            RoundInfo round,
-            CancellationToken cancellationToken
-        )
+        private async UniTask AnimateRoundEndSequence(RoundInfo round, CancellationToken cancellationToken)
         {
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _lifetimeCancellation.Token
-            );
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
 
             var ct = linkedCancellation.Token;
 
@@ -660,10 +654,7 @@ namespace MortierFu
             
             ShowGoldenBombshellIndicator(ct).Forget();
 
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(GetScoreboardMinimumDuration()),
-                cancellationToken: ct
-            );
+            await UniTask.Delay(TimeSpan.FromSeconds(GetScoreboardMinimumDuration()), cancellationToken: ct);
 
             _goldenBombshellCts?.Cancel();
         }
