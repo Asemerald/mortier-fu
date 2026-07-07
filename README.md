@@ -1,5 +1,5 @@
 # Contributions
-![Alt](https://repobeats.axiom.co/api/embed/26b06d452bb2ef9f477569e72c20f7685a3df034.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/3921cae7a8e6d7650da6556434270ed2bcc89567.svg "Repobeats analytics image")
 
 #  Mortier FU Modding Framework
 
