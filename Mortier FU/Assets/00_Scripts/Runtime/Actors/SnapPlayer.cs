@@ -42,8 +42,8 @@ namespace MortierFu
 
             if (!player)
             {
-                other.transform.SetParent(transform);
-                Logs.Log($"Enter Element : {other.gameObject.name}",this);
+                var t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
+                t.SetParent(transform, true);
                 return;
             }
 
