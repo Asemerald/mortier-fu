@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MortierFu.Analytics;
+using MortierFu.Shared;
 
 namespace MortierFu
 {
@@ -141,6 +142,49 @@ namespace MortierFu
                 return;
 
             _analyticsSystem.OnScoreChanged(firstMember.Character, team.Score);
+        }
+
+        public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
+        {
+            if (teams == null || teams.Count == 0)
+            {
+                Logs.LogWarning("No teams detected; cancelling player visuals update");
+                return;
+            }
+
+            int scoreWinner = Int32.MinValue;
+            List<PlayerTeam> winners = new();
+
+            foreach (PlayerTeam team in teams)
+            {
+                if (team.Score > scoreWinner)
+                {
+                    scoreWinner = team.Score;
+                    winners.Clear();
+                    winners.Add(team);
+                }
+                else if (team.Score == scoreWinner)
+                    winners.Add(team);
+            }
+
+            HashSet<PlayerTeam> winnersSet = new(winners);
+
+            foreach (PlayerTeam team in teams)
+            {
+                if (team?.Members == null)
+                    continue;
+
+                bool isWinningTeam = winnersSet.Contains(team);
+
+                foreach (var player in team.Members)
+                {
+                    var customizationVisual = player?.Character?.CustomizationVisual;
+                    if (customizationVisual == null)
+                        continue;
+
+                    customizationVisual.UpdateVisualsAfterRound(isWinningGame: isWinningTeam);
+                }
+            }
         }
     }
 }

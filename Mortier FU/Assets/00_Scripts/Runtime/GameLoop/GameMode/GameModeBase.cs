@@ -495,6 +495,8 @@ namespace MortierFu
             _currentRound.WinningTeam = _roundController.WinningTeam;
 
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
+            
+            _scoreController?.UpdatePlayerVisualsAfterRound(teams);
 
             OnRoundEnded?.Invoke(_currentRound);
         }

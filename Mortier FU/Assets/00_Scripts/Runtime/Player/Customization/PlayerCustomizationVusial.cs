@@ -1,3 +1,4 @@
+using System;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace MortierFu
         [Header("Skins / Hats")]
         [SerializeField] private GameObject[] _availableSkins;
         [SerializeField] private GameObject[] _availableSkinOutlines;
+        [SerializeField] private GameObject _crownInstance;
 
         [Header("Face")]
         [SerializeField] private SkinnedMeshRenderer _faceMeshRenderer;
@@ -20,6 +22,34 @@ namespace MortierFu
         private Material _faceMaterialInstance;
 
         public int SkinCount => _availableSkins?.Length ?? 0;
+
+        private GameModeBase _gameModeBase;
+
+        private void Awake()
+        {
+            UpdateVisualsAfterRound(false);
+            _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+        }
+
+        private void OnEnable()
+        {
+            _gameModeBase ??= GameService.CurrentGameMode as GameModeBase;
+            if (_gameModeBase == null)
+            {
+                Logs.LogWarning("No GameModeBase found; skipping visuals reset subscription.", this);
+                return;
+            }
+
+            _gameModeBase.OnGameStarted += ResetVisualsOnGameStart;
+        }
+
+        private void OnDisable()
+        {
+            if (_gameModeBase == null)
+                return;
+
+            _gameModeBase.OnGameStarted -= ResetVisualsOnGameStart;
+        }
 
         private void OnDestroy()
         {
@@ -125,6 +155,14 @@ namespace MortierFu
                 return;
 
             Logs.Log(message, this);
+        }
+
+        private void ResetVisualsOnGameStart() => UpdateVisualsAfterRound(false);
+        
+        public void UpdateVisualsAfterRound(bool isWinningGame)
+        {
+            // In the future, add VFX or other win feedback here.
+            _crownInstance?.SetActive(isWinningGame);
         }
     }
 }
