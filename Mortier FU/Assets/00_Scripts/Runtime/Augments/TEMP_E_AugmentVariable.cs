@@ -3,6 +3,7 @@ using UnityEngine;
 public enum TEMP_E_AugmentVariable
 {
     Health,
+    LifeSteal,
     MoveSpeed,
     BulletSpeed,
     Damage,
