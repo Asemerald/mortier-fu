@@ -58,7 +58,8 @@ namespace MortierFu
 
             if (!player)
             {
-                other.transform.SetParent(null);
+                var t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
+                t.SetParent(null, true);
                 return;
             }
 
