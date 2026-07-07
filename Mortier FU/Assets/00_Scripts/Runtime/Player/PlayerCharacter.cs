@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -66,6 +67,7 @@ namespace MortierFu
         public SO_CharacterStats Stats { get; private set; }
 
         public Image TutorialImage;
+        public TextMeshProUGUI TutorialText;
 
         private readonly List<SO_Augment> _ownedAugments = new();
         private readonly List<IAugment> _activeAugments = new();
