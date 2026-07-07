@@ -4,9 +4,6 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    /// <summary>
-    /// Too much computes for a simple widget, but it will do for now.
-    /// </summary>
     public class AimWidget : MonoBehaviour
     {
         [Header("Settings")]
@@ -16,11 +13,14 @@ namespace MortierFu
         [SerializeField] private float _resolvedHeightOffset = 0.05f;
 
         [Space]
-
         [ReadOnly] public Vector3 Origin;
         [ReadOnly] public Transform Target;
         [ReadOnly] public bool IsActive;
         [ReadOnly] public bool AttachedToTarget;
+
+        [Header("Resolved Positions")]
+        [ReadOnly] public Vector3 ImpactPosition;
+        [ReadOnly] public bool HasImpactPosition;
 
         [SerializeField] private Vector3 _relativePosition;
 
@@ -28,6 +28,9 @@ namespace MortierFu
         private Material _materialInstance;
 
         public Vector3 RelativePosition => _relativePosition;
+
+        public Vector3 ShootTargetPosition =>
+            HasImpactPosition ? ImpactPosition : transform.position;
 
         private static readonly int NormalizedAngleID = Shader.PropertyToID("_NormalizedAngle");
 
@@ -40,6 +43,7 @@ namespace MortierFu
         private void OnDisable()
         {
             IsActive = false;
+            HasImpactPosition = false;
         }
 
         private void Update()
@@ -49,20 +53,18 @@ namespace MortierFu
 
         private bool EnsureMaterialInstance()
         {
-            if (_materialInstance != null)
+            if (_materialInstance)
                 return true;
 
-            if (_meshRenderer == null)
+            if (!_meshRenderer)
             {
                 _meshRenderer = GetComponent<MeshRenderer>();
 
-                if (_meshRenderer == null)
-                {
+                if (!_meshRenderer)
                     _meshRenderer = GetComponentInChildren<MeshRenderer>(true);
-                }
             }
 
-            if (_meshRenderer == null)
+            if (!_meshRenderer)
             {
                 Logs.LogError("[AimWidget] Missing MeshRenderer on AimWidget or children.", this);
                 return false;
@@ -76,7 +78,12 @@ namespace MortierFu
 
         public void SetRelativePosition(Vector3 relativePos)
         {
-            _relativePosition = relativePos;
+            _relativePosition = relativePos.With(y: 0f);
+            ComputePosition();
+        }
+
+        public void RefreshPosition()
+        {
             ComputePosition();
         }
 
@@ -86,21 +93,25 @@ namespace MortierFu
                 return;
 
             if (AttachedToTarget && Target)
-            {
                 Origin = Target.position;
-            }
 
-            Vector3 newPos = Origin + _relativePosition;
+            Vector3 wantedGroundPosition = Origin + _relativePosition.With(y: 0f);
 
-            var rayStartPos = newPos.With(y: _raycastStartHeight);
-            var ray = new Ray(rayStartPos, Vector3.down);
+            Vector3 rayStartPos = wantedGroundPosition.With(y: _raycastStartHeight);
+            Ray ray = new(rayStartPos, Vector3.down);
 
             if (Physics.Raycast(ray, out RaycastHit hit, _raycastMaxLength, _whatIsGround))
             {
-                _relativePosition = hit.point.Add(y: _resolvedHeightOffset) - Origin;
+                ImpactPosition = hit.point;
+                HasImpactPosition = true;
+
+                transform.position = hit.point.Add(y: _resolvedHeightOffset);
+                return;
             }
 
-            transform.position = Origin + _relativePosition;
+            HasImpactPosition = false;
+            ImpactPosition = wantedGroundPosition;
+            transform.position = wantedGroundPosition;
         }
 
         public void Show()
@@ -113,6 +124,7 @@ namespace MortierFu
         public void Hide()
         {
             IsActive = false;
+            HasImpactPosition = false;
             gameObject.SetActive(false);
         }
 
@@ -134,11 +146,9 @@ namespace MortierFu
 
         private void OnDestroy()
         {
-            if (_materialInstance != null)
-            {
-                Destroy(_materialInstance);
-                _materialInstance = null;
-            }
+            if (_materialInstance == null) return;
+            Destroy(_materialInstance);
+            _materialInstance = null;
         }
     }
 }

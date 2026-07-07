@@ -16,7 +16,6 @@ namespace MortierFu
         public int KillCarCrashBonusScore = 20;
 
         public float AugmentSelectionDuration = 20;
-        public float RoundStartCountdown = 5f;
         public float StopShowScoreBoardDelay = 2f;
         public float ShowRoundWinnerDelay = 1.6f;
         public float StormSpawnTime = 30;

@@ -22,12 +22,11 @@ namespace MortierFu
 
         public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
 
-        public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
+        private float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
 
-        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab, Transform firePoint) :
-            base(character)
+        public MortarCharacterComponent(PlayerCharacter character, AimWidget aimWidgetPrefab, Transform firePoint) : base(character)
         {
             if (character == null) return;
 
@@ -58,8 +57,7 @@ namespace MortierFu
             _bombshellSys = SystemManager.Instance.Get<BombshellSystem>();
             if (_bombshellSys == null)
             {
-                Logs.LogError(
-                    "[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
+                Logs.LogError("[MortarCharacterComponent]: Could not get the bombshell system from the system manager !");
                 return;
             }
 
@@ -163,11 +161,15 @@ namespace MortierFu
             if (_shootCooldownTimer == null || _shootCooldownTimer.IsRunning)
                 return;
 
+            AimWidget.RefreshPosition();
+
+            Vector3 targetPosition = AimWidget.ShootTargetPosition;
+
             Bombshell.Data bombshellData = new Bombshell.Data
             {
                 Owner = character,
                 StartPos = _firePoint.position,
-                TargetPos = AimWidget.transform.position,
+                TargetPos = targetPosition,
                 Speed = Stats.GetBombshellSpeed(),
                 GravityScale = 1.0f,
                 Damage = Math.Max(1, Mathf.RoundToInt(Stats.BombshellDamage.Value)),
@@ -176,10 +178,9 @@ namespace MortierFu
                 Bounces = Mathf.RoundToInt(Stats.BombshellBounces.Value)
             };
 
-            var bombshell = _bombshellSys.RequestBombshell(bombshellData);
+            Bombshell bombshell = _bombshellSys.RequestBombshell(bombshellData);
 
-            AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_Shot, bombshell,
-                character.transform.position);
+            AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_Shot, bombshell, character.transform.position);
 
             EventBus<TriggerShootBombshell>.Raise(new TriggerShootBombshell()
             {
@@ -196,6 +197,9 @@ namespace MortierFu
 
         public void BeginAiming(InputAction.CallbackContext ctx)
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             if (!_isInitialized)
                 return;
 
@@ -215,6 +219,9 @@ namespace MortierFu
 
         public void EndAiming(InputAction.CallbackContext ctx)
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             if (!_isInitialized)
                 return;
 
@@ -227,12 +234,14 @@ namespace MortierFu
         
         public void CancelAiming()
         {
+            if (character.Owner != null && character.Owner.IsControllingGhost)
+                return;
+            
             AimWidget?.Hide();
 
             _shootStrategy?.CancelAiming();
 
-            if (_shootAction != null)
-                _shootAction.Disable();
+            _shootAction?.Disable();
 
             IsShooting = false;
         }

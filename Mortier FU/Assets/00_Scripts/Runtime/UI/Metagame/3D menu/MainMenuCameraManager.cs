@@ -2,12 +2,11 @@ using UnityEngine;
 
 public class MainMenuCameraManager : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private Transform mainCamera;
+    [Header("References")] [SerializeField]
+    private Transform mainCamera;
+
     [SerializeField] private Transform[] cameraPositions;
     [SerializeField] private float transitionDuration = 2f;
-    
-    
 
     [ContextMenu("Initialize Camera")]
     private void Start()
@@ -17,11 +16,11 @@ public class MainMenuCameraManager : MonoBehaviour
             mainCamera.transform.position = cameraPositions[0].position;
             mainCamera.transform.rotation = cameraPositions[0].rotation;
         }
-        
+
         MoveToPosition(1);
     }
-    
-    public void MoveToPosition(int index)
+
+    private void MoveToPosition(int index)
     {
         if (index < 0 || index >= cameraPositions.Length)
             return;
@@ -29,16 +28,7 @@ public class MainMenuCameraManager : MonoBehaviour
         StopAllCoroutines();
         StartCoroutine(CameraTransitionRoutine(cameraPositions[index]));
     }
-    
-    public void TeleportToPosition(int index)
-    {
-        if (index < 0 || index >= cameraPositions.Length)
-            return;
 
-        mainCamera.position = cameraPositions[index].position;
-        mainCamera.rotation = cameraPositions[index].rotation;
-    }
-    
     private System.Collections.IEnumerator CameraTransitionRoutine(Transform targetPosition)
     {
         Vector3 startPos = mainCamera.position;
@@ -48,7 +38,7 @@ public class MainMenuCameraManager : MonoBehaviour
 
         float elapsed = 0f;
 
-        while (elapsed < transitionDuration) 
+        while (elapsed < transitionDuration)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / transitionDuration);

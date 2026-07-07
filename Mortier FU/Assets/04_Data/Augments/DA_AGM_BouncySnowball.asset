@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: def9a98b256a48f0836c178de40dc424, type: 3}
   m_Name: DA_AGM_BouncySnowball
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_Augment
+  ID: 206
   Name: 'Bouncy: Snowball'
-  Description: '<size=150><font="Impact SDF"><color=#F78A4B>BOUNCES <sprite name="orangedesat+1">
-
-    <size=80>For
-    Each <font="Impact SDF"><color=#BA4023> Bounce <sprite name="orangearrow">  bullet
-    size <sprite name="orangeup">'
-  Rarity: 4
+  ConditionText: 
+  Description:
+  - variable: 7
+    value: 1
+  - variable: 9
+    value: 5
+  Rarity: 3
   CardSprite: {fileID: 21300000, guid: dbc593685bb9e7c41bbc69fe5ef80121, type: 3}
   SmallSprite: {fileID: 21300000, guid: 26b120fc76b58e0408886654d4956942, type: 3}
   AugmentType:

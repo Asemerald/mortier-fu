@@ -1,85 +1,28 @@
-name: Build and Release
+name: Unity Build
 
 on:
   push:
     branches:
       - main
-
-permissions:
-  contents: write
+      - develop
+    
+concurrency:
+  group: unity-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  buildForAllSupportedPlatforms:
-    name: Build for ${{ matrix.targetPlatform }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - StandaloneWindows64
-    
+  build:
+    name: Build Windows
+    runs-on:
+      - self-hosted
+      - windows
+
     steps:
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo docker system prune -af
-          df -h
+      - name: Checkout
+        uses: actions/checkout@v4
+        with: 
+          clean: false  
 
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
-
-      - uses: actions/cache@v4
-        with:
-          path: Mortier FU/Library
-          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Mortier FU/**/ProjectVersion.txt') }}
-          restore-keys: |
-            Library-${{ matrix.targetPlatform }}-
-            Library-
-
-      - uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: Mortier FU
-          targetPlatform: ${{ matrix.targetPlatform }}
-      
-      - name: Check disk space
-        run: df -h
-
-      - name: Zip build
-        run: |
-          mkdir -p MortarGame
-          cp -r build/${{ matrix.targetPlatform }}/* MortarGame/
-          zip -r MortarGame.zip MortarGame -x "*.pdb" "*/Logs/*" "*/crash.dmp"
-          ls -lh MortarGame.zip
-
-      - name: Extract PR title for version
-        id: pr_info
-        run: |
-          PR_TITLE=$(git log -1 --pretty=%s)
-          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
-          echo "Version: $PR_TITLE"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.pr_info.outputs.pr_title }}
-          name: ${{ steps.pr_info.outputs.pr_title }}
-          files: MortarGame.zip
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: MortarGame.zip
-          retention-days: 7
+      - name: Build Unity
+        shell: cmd
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'

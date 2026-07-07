@@ -45,6 +45,9 @@ namespace MortierFu
         
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
         public CharacterStat AimWidgetSpeed { get; private set; } = new(7.0f);
+
+        [field: SerializeField, Tooltip("Multiplier applied to aim speed for Keyboard and Mouse while aiming.")]
+        public float KeyboardAndMouseAimWidgetSpeedMultiplier { get; private set; } = 0.5f;
         
         [field: SerializeField, Tooltip("Damage of the Strike attack.")]
         public CharacterStat StrikeDamage { get; private set; } = new(.0f);
@@ -57,6 +60,9 @@ namespace MortierFu
         
         [field: SerializeField, Tooltip("Duration of the Strike attack.")]
         public CharacterStat DashDuration { get; private set; } = new( 0.2f);
+        
+        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
+        public CharacterStat DashForce { get; private set; } = new( 8f);
         
         [field: SerializeField, Tooltip("Radius of the Strike while dashing.")]
         public CharacterStat StrikeRadius { get; private set; } = new( 2.0f);
@@ -71,9 +77,9 @@ namespace MortierFu
         public CharacterStat StrikeKnockbackDuration { get; private set; } = new(0.5f);
         
         [field: SerializeField, Tooltip("Stun duration caused when colliding into an obstacle during knockback.")]
-        public float KnockbackStunDuration { get; private set; } = 0.5f;
+        public CharacterStat KnockbackStunDuration { get; private set; } = new(0.5f);
         
-        [field: Header("Fomrula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
+        [field: Header("Formula Components"), SerializeField, Tooltip("Influence of the max health towards the avatar size.")]
         public float MaxHealthToAvatarSizeFactor { get; private set; } = 0.6f;
         
         [field: SerializeField, Tooltip("Influence of strike push force towards the strike radius.")]
@@ -102,8 +108,36 @@ namespace MortierFu
         public float GetStrikeRadius()   => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
         public float GetKnockbackStunDuration()
         {
-            float factor = KnockbackStunDuration / (StrikePushForce.BaseValue + StrikePushForceOffset);
-            return KnockbackStunDuration + StrikePushForce.Value * factor;
+            float factor = KnockbackStunDuration.Value / (StrikePushForce.BaseValue + StrikePushForceOffset);
+            return KnockbackStunDuration.Value + StrikePushForce.Value * factor;
+        }
+        
+        public void ClearAllModifiers()
+        {
+            MaxHealth.ClearModifiers();
+            MoveSpeed.ClearModifiers();
+            Accel.ClearModifiers();
+            Decel.ClearModifiers();
+            AvatarSize.ClearModifiers();
+
+            BombshellDamage.ClearModifiers();
+            BombshellSize.ClearModifiers();
+            BombshellImpactRadius.ClearModifiers();
+            BombshellBounces.ClearModifiers();
+            FireRate.ClearModifiers();
+            ShotRange.ClearModifiers();
+            BombshellSpeed.ClearModifiers();
+            AimWidgetSpeed.ClearModifiers();
+
+            StrikeDamage.ClearModifiers();
+            DashCharges.ClearModifiers();
+            DashCooldown.ClearModifiers();
+            DashDuration.ClearModifiers();
+            DashForce.ClearModifiers();
+            StrikeRadius.ClearModifiers();
+            StrikePushForce.ClearModifiers();
+            StrikeKnockbackDuration.ClearModifiers();
+            KnockbackStunDuration.ClearModifiers();
         }
     }
 }

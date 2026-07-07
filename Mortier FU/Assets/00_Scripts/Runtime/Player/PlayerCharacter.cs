@@ -1,18 +1,21 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
     public class PlayerCharacter : MonoBehaviour
     {
+        private static readonly object k_controlContextInvincibilitySource = new ControlContextInvincibilitySource();
+        
         /// <summary>
         /// Set by the game mode when gameplay actions are allowed or not.
         /// </summary>
@@ -43,7 +46,10 @@ namespace MortierFu
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
+        [Header("Customization")]
+        [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
+        public PlayerCustomizationVisual CustomizationVisual => _customizationVisual;
         private StateMachine _stateMachine;
 
         private InputAction _dashAction;
@@ -55,12 +61,21 @@ namespace MortierFu
         public ControllerCharacterComponent Controller { get; private set; }
         public AspectCharacterComponent Aspect { get; private set; }
         public MortarCharacterComponent Mortar { get; private set; }
+        public SafeGroundCharacterComponent SafeGround { get; private set; }
 
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
 
-        private List<IAugment> _augments = new();
+        public Image TutorialImage;
+        public TextMeshProUGUI TutorialText;
+
+        private readonly List<SO_Augment> _ownedAugments = new();
+        private readonly List<IAugment> _activeAugments = new();
+
+        public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
+
+        public bool AreAugmentsActive { get; private set; }
 
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
@@ -82,6 +97,7 @@ namespace MortierFu
 
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
+        public Transform FeetPoint => _feetPoint;
 
         void Awake()
         {
@@ -90,14 +106,16 @@ namespace MortierFu
             Controller = new ControllerCharacterComponent(this);
             Aspect = new AspectCharacterComponent(this);
             Mortar = new MortarCharacterComponent(this, _aimWidgetPrefab, _firePoint);
-
+            SafeGround = new SafeGroundCharacterComponent(this);
+            
             // Create a unique instance of CharacterData for this character
             Stats = Instantiate(_characterStatsTemplate);
 
             // Handle augments
-            _augments = new List<IAugment>();
-            Augments = _augments.AsReadOnly();
-
+            OwnedAugments = _ownedAugments.AsReadOnly();
+            Augments = _activeAugments.AsReadOnly();
+            
+            ResolveCustomizationVisual();
             InitStateMachine();
         }
 
@@ -113,7 +131,8 @@ namespace MortierFu
             Controller.Initialize();
             Aspect.Initialize(); // Require to be initialized before the mortar
             Mortar.Initialize();
-
+            SafeGround.Initialize();
+            
             _toggleAimAction.started += Mortar.BeginAiming;
             _toggleAimAction.canceled += Mortar.EndAiming;
 
@@ -123,7 +142,10 @@ namespace MortierFu
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             _dashState.Reset();
-            ExternalSpeedMultiplier = 1f;
+            
+            _speedMultiplier.Reset();
+            _accelMultiplier.Reset();
+            _decelMultiplier.Reset();
         }
 
         private void OnDisable()
@@ -141,7 +163,8 @@ namespace MortierFu
             Controller?.Dispose();
             Aspect?.Dispose();
             Mortar?.Dispose();
-
+            SafeGround?.Dispose();
+            
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
 
@@ -172,11 +195,12 @@ namespace MortierFu
 
             Aspect.SetAspectMaterials(_characterAspectMaterials[owner.PlayerIndex]);
 
-            // Appliquer le skin choisi dans le lobby
-            ApplySkinFromLobby(owner.SkinIndex);
+            ResolveCustomizationVisual();
 
-            // Appliquer le visage choisi dans le lobby
-            ApplyFaceFromLobby(owner.FaceColumn, owner.FaceRow);
+            if (_customizationVisual)
+                _customizationVisual.Apply(owner.Customization);
+            else
+                Logs.LogWarning("[PlayerCharacter] No PlayerCustomizationVisual assigned.", this);
 
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
@@ -187,14 +211,18 @@ namespace MortierFu
             if (!Owner)
                 return;
 
-            ApplySkinFromLobby(Owner.SkinIndex);
-            ApplyFaceFromLobby(Owner.FaceColumn, Owner.FaceRow);
-        }
+            ResolveCustomizationVisual();
 
+            if (_customizationVisual)
+                _customizationVisual.Apply(Owner.Customization);
+        }
+        
         public void SetControlContext(PlayerControlContext context)
         {
             ControlContext = context;
             ActionPermissions = PlayerActionPermissions.FromContext(context);
+
+            UpdateInvincibilityFromControlContext(context);
 
             if (!CanAim)
             {
@@ -209,12 +237,12 @@ namespace MortierFu
 
         public void Reset()
         {
+            gameObject.SetActive(true);
+            
             // Reset the parent if it was held by an actor
             transform.SetParent(null);
             SceneManager.MoveGameObjectToScene(transform.gameObject, SceneManager.GetActiveScene());
-
-            gameObject.SetActive(true);
-
+            
             Health.Reset();
             Controller.Reset();
             Aspect.Reset();
@@ -225,7 +253,11 @@ namespace MortierFu
 
             _stateMachine.SetState(_locomotionState);
 
-            ExternalSpeedMultiplier = 1f;
+            _speedMultiplier.Reset();
+            _accelMultiplier.Reset();
+            _decelMultiplier.Reset();
+            
+            RefreshRuntimeAfterAugmentStateChanged();
         }
 
         public void RespawnAt(Vector3 position, Quaternion rotation)
@@ -326,7 +358,7 @@ namespace MortierFu
             _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
-        private void ReceiveStun(float duration)
+        public void ReceiveStun(float duration)
         {
             _stunState.ReceiveStun(duration);
         }
@@ -349,33 +381,106 @@ namespace MortierFu
 
         public void AddAugment(SO_Augment augmentData)
         {
-            var augmentInstance =
-                AugmentFactory.Create(augmentData, this,
-                    SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
-            augmentInstance.Initialize();
-            _augments.Add(augmentInstance);
+            if (!augmentData)
+                return;
 
-            // Notify Analytics System
+            _ownedAugments.Add(augmentData);
+
+            if (AreAugmentsActive)
+                ActivateAugment(augmentData);
+
             var analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
+        public void ActivateRoundAugments()
+        {
+            if (AreAugmentsActive)
+                return;
+
+            AreAugmentsActive = true;
+
+            for (int i = 0; i < _ownedAugments.Count; i++)
+                ActivateAugment(_ownedAugments[i]);
+
+            RefreshRuntimeAfterAugmentStateChanged();
+        }
+
+        public void DeactivateRoundAugments()
+        {
+            if (!AreAugmentsActive && _activeAugments.Count == 0)
+            {
+                RefreshRuntimeAfterAugmentStateChanged();
+                return;
+            }
+
+            DisposeActiveAugments();
+
+            AreAugmentsActive = false;
+
+            RefreshRuntimeAfterAugmentStateChanged();
+        }
+
         public void ClearAugments()
         {
-            for (int i = _augments.Count - 1; i >= 0; i--)
+            DeactivateRoundAugments();
+            _ownedAugments.Clear();
+        }
+
+        private void ActivateAugment(SO_Augment augmentData)
+        {
+            if (!augmentData)
+                return;
+
+            try
+            {
+                var augmentInstance = AugmentFactory.Create(augmentData, this, SystemManager.Config.AugmentDatabase);
+                augmentInstance.Initialize();
+                _activeAugments.Add(augmentInstance);
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"[PlayerCharacter] Failed to activate augment '{augmentData.name}': {e.Message}", this);
+            }
+        }
+
+        private void DisposeActiveAugments()
+        {
+            for (int i = _activeAugments.Count - 1; i >= 0; i--)
             {
                 try
                 {
-                    _augments[i]?.Dispose();
+                    _activeAugments[i]?.Dispose();
                 }
                 catch (Exception e)
                 {
-                    Logs.LogError(
-                        $"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
+                    Logs.LogError($"[PlayerCharacter] Failed to dispose augment '{_activeAugments[i]?.GetType().Name}': {e.Message}", this);
                 }
             }
 
-            _augments.Clear();
+            _activeAugments.Clear();
+        }
+        
+        public void ResetForRace()
+        {
+            DisposeActiveAugments();
+
+            AreAugmentsActive = false;
+
+            Stats.ClearAllModifiers();
+
+            Reset();
+
+            Logs.Log($"[PlayerCharacter] Reset for race: Player {Owner?.PlayerIndex + 1}.", this);
+        }
+
+        private void RefreshRuntimeAfterAugmentStateChanged()
+        {
+            Health?.RefreshFromStats();
+            Health?.Reset();
+
+            Mortar?.Reset();
+            _dashState?.Reset();
         }
 
         #endregion
@@ -390,7 +495,8 @@ namespace MortierFu
             Controller.Update();
             Aspect.Update();
             Mortar?.Update();
-
+            SafeGround.Update();
+            
             UpdateAnimator();
         }
 
@@ -486,16 +592,36 @@ namespace MortierFu
         {
             _animator.CrossFade("WinRound", 0.1f, 0);
         }
+        
+        private void UpdateInvincibilityFromControlContext(PlayerControlContext context)
+        {
+            if (Health == null)
+                return;
+
+            if (ShouldBeInvincibleInContext(context))
+            {
+                Health.AddInvincibility(k_controlContextInvincibilitySource);
+            }
+            else
+            {
+                Health.RemoveInvincibility(k_controlContextInvincibilitySource);
+            }
+        }
+
+        private static bool ShouldBeInvincibleInContext(PlayerControlContext context)
+        {
+            return context is PlayerControlContext.LobbyCustomization
+                or PlayerControlContext.LobbySettingsOwner
+                or PlayerControlContext.LobbyReturnConfirmationOwner;
+        }
+
+        private sealed class ControlContextInvincibilitySource
+        { }
 
         private void At(IState from, IState to, IPredicate condition) =>
             _stateMachine.AddTransition(from, to, condition);
 
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
-
-#if UNITY_EDITOR
-        // Useful to show only when the stats are initialized per player and prevent thinking we have to assign it in the inspector
-        private bool ShouldShowStats => Stats != null;
-#endif
 
         private void Taunt(InputAction.CallbackContext ctx)
         {
@@ -505,151 +631,41 @@ namespace MortierFu
             _tauntFeedback.Taunt();
         }
 
-        #region SKINS
-
-        [Header("Skins")] [SerializeField] private GameObject[] availableInGameSkins;
-        [SerializeField] private GameObject[] availableInGameSkinsOutline;
-        [SerializeField] private SkinnedMeshRenderer faceInGameMeshRenderer;
-        [SerializeField] private string columnPropertyName = "_Column";
-        [SerializeField] private string rowPropertyName = "_Row";
-
-        private Material _faceInGameMaterial;
-
-        private void ApplySkinFromLobby(int skinIndex)
+        private void ResolveCustomizationVisual()
         {
-            if (availableInGameSkins == null || availableInGameSkins.Length == 0)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No in-game skins available.");
+            if (_customizationVisual)
                 return;
-            }
 
-            // Désactiver tous les skins
-            for (int i = 0; i < availableInGameSkins.Length; i++)
-            {
-                if (availableInGameSkins[i])
-                {
-                    availableInGameSkins[i].SetActive(false);
-                }
-            }
-
-            // Désactiver toutes les outlines
-            for (int i = 0; i < availableInGameSkinsOutline.Length; i++)
-            {
-                if (availableInGameSkinsOutline[i])
-                {
-                    availableInGameSkinsOutline[i].SetActive(false);
-                }
-            }
-
-            // Activer le skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkins.Length)
-            {
-                if (availableInGameSkins[skinIndex])
-                {
-                    availableInGameSkins[skinIndex].SetActive(true);
-                    Logs.Log($"[PlayerCharacter]: Applied skin {skinIndex} for player {Owner.PlayerIndex}");
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin index {skinIndex} is out of range.");
-            }
-
-            // Activer l'outline du skin choisi
-            if (skinIndex >= 0 && skinIndex < availableInGameSkinsOutline.Length)
-            {
-                if (availableInGameSkinsOutline[skinIndex])
-                {
-                    availableInGameSkinsOutline[skinIndex].SetActive(true);
-                }
-                else
-                {
-                    Logs.LogWarning($"[PlayerCharacter]: Skin outline {skinIndex} is null.");
-                }
-            }
-            else
-            {
-                Logs.LogWarning($"[PlayerCharacter]: Skin outline index {skinIndex} is out of range.");
-            }
+            _customizationVisual = GetComponentInChildren<PlayerCustomizationVisual>(true);
         }
-
-        private void ApplyFaceFromLobby(int column, int row)
-        {
-            if (!faceInGameMeshRenderer)
-            {
-                Logs.LogWarning("[PlayerCharacter]: No face mesh renderer assigned.");
-                return;
-            }
-
-            // Récupérer ou créer le material de la face
-            _faceInGameMaterial = faceInGameMeshRenderer.material;
-
-            if (_faceInGameMaterial)
-            {
-                _faceInGameMaterial.SetFloat(columnPropertyName, column);
-                _faceInGameMaterial.SetFloat(rowPropertyName, row);
-                Logs.Log(
-                    $"[PlayerCharacter]: Applied face (Column: {column}, Row: {row}) for player {Owner.PlayerIndex}");
-            }
-            else
-            {
-                Logs.LogWarning("[PlayerCharacter]: Face material is null.");
-            }
-        }
-
-        #endregion
 
         #region Caca Qui Slow
 
-        private Coroutine _speedModifierCoroutine;
-        public float ExternalSpeedMultiplier { get; private set; } = 1f;
+        private readonly SmoothedMultiplier _speedMultiplier = new();
+        private readonly SmoothedMultiplier _accelMultiplier = new();
+        private readonly SmoothedMultiplier _decelMultiplier = new();
 
-        /// <summary>
-        /// Smoothly transitions an external movement speed multiplier on the player.
-        /// Controller components should multiply their base speed by PlayerCharacter.ExternalSpeedMultiplier.
-        /// </summary>
-        public void SetExternalSpeedMultiplier(float targetMultiplier, float transitionDuration)
+        public float ExternalSpeedMultiplier => _speedMultiplier.Value;
+        public float ExternalAccelerationMultiplier => _accelMultiplier.Value;
+        public float ExternalDecelerationMultiplier => _decelMultiplier.Value;
+
+        public void SetExternalSpeedMultiplier(float target, float duration) =>
+            _speedMultiplier.SetTarget(target, duration, this);
+
+        public void SetExternalAccelerationMultiplier(float target, float duration) =>
+            _accelMultiplier.SetTarget(target, duration, this);
+
+        public void SetExternalDecelerationMultiplier(float target, float duration) =>
+            _decelMultiplier.SetTarget(target, duration, this);
+
+        #endregion
+        
+        #region Utils
+
+        public bool CanPlayerInteractWithBombShell()
         {
-            if (_speedModifierCoroutine != null)
-                StopCoroutine(_speedModifierCoroutine);
-            _speedModifierCoroutine =
-                StartCoroutine(SmoothSetExternalSpeedMultiplier(targetMultiplier, transitionDuration));
-        }
-
-        private IEnumerator SmoothSetExternalSpeedMultiplier(float target, float duration)
-        {
-            float start = ExternalSpeedMultiplier;
-            if (duration <= 0f)
-            {
-                ExternalSpeedMultiplier = target;
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                ExternalSpeedMultiplier = Mathf.Lerp(start, target, elapsed / duration);
-                yield return null;
-            }
-
-            ExternalSpeedMultiplier = target;
-            _speedModifierCoroutine = null;
-        }
-
-        public void PlayCacaQuiSlowVFX()
-        {
-            if (ExternalSpeedMultiplier > 0.5f)
-                return;
-
-            // Instantiate and play VFX for Caca Qui Slow effect from Aspect component
-            var caca = Instantiate(Aspect.AspectMaterials.CacaQuiSlowPrefabVfx, _feetPoint.position,
-                _feetPoint.rotation);
-            Destroy(caca, 10f);
+            if (!Health.IsAlive) return false;
+            return ControlContext is not PlayerControlContext.AugmentRaceBully;
         }
 
         #endregion

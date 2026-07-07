@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using UnityEngine.InputSystem;
 using MortierFu.Shared;
@@ -76,6 +77,7 @@ namespace MortierFu
             Vector3 currentVelocity = rigidbody.linearVelocity;
             Vector3 targetVelocity = new (_moveDirection.x, rigidbody.linearVelocity.y, _moveDirection.y);
 
+            
             // -------------------------------
             // 1) APPLICATION DU KNOCKBACK
             // -------------------------------
@@ -94,9 +96,13 @@ namespace MortierFu
 
             // Le contrôle est réduit quand knockback actif
             if (_knockback.sqrMagnitude > 0.01f)
+            {
                 velocityChange *= _moveDuringKnockbackFactor;
-
-            velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
+            }
+            else
+            {
+                velocityChange = Vector3.ClampMagnitude(velocityChange, character.Stats.MoveSpeed.Value);
+            }
 
             rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
         }
@@ -108,7 +114,7 @@ namespace MortierFu
 
             Vector2 input = _moveAction.ReadValue<Vector2>();
             Vector2 targetDirection = input.normalized;
-            float targetForce = Stats.MoveSpeed.Value;
+            float targetForce = Stats.MoveSpeed.BaseValue * Stats.DashForce.Value;
 
             return new Vector3(targetDirection.x, 0f, targetDirection.y) * targetForce;
         }
@@ -131,8 +137,8 @@ namespace MortierFu
             // Choix accel / decel basé sur la distance
             float maxDelta = (
                 targetVelocity.magnitude > _moveDirection.magnitude
-                    ? Stats.Accel.Value
-                    : Stats.Decel.Value
+                    ? Stats.Accel.Value * character.ExternalAccelerationMultiplier
+                    : Stats.Decel.Value * character.ExternalDecelerationMultiplier
             ) * Time.deltaTime;
 
             // Mouvement stable, sans ambiguïté
@@ -162,12 +168,20 @@ namespace MortierFu
             rigidbody.angularVelocity = Vector3.zero;
             _moveDirection = Vector3.zero;
         }
+
+        public void DivideVelocity(float factor = 0.5f)
+        {
+            _knockback = Vector3.zero;
+            rigidbody.linearVelocity *= factor;
+            rigidbody.angularVelocity *= factor;
+            _moveDirection = Vector3.zero;
+        }
         
         public void ApplyKnockback(Vector3 force)
         {
             force.y = 0f;
             
-            rigidbody.AddForce(force, ForceMode.Impulse);
+            rigidbody.AddForce(force * 7f, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
     }

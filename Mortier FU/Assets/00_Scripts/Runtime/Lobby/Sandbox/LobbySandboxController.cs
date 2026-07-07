@@ -11,19 +11,22 @@ namespace MortierFu
         [Header("Player Spawns")]
         [SerializeField] private Transform[] _playerSpawnPoints = new Transform[4];
 
-        [Header("State")]
-        [SerializeField] private LobbySandboxStateController _stateController;
-
         [Header("Startup")]
         [SerializeField] private bool _spawnPlayersOnStart;
+        
+        [Header("Tutorial")]
+        [SerializeField] private List<SO_Tutorial> _tutorials;
 
         private LobbyService _lobbyService;
         private readonly List<PlayerManager> _spawnedPlayers = new();
+        
+        private static readonly List<PlayerManager> _playerFirstJoin = new();
 
-        private bool _isInitialized;
         private int _lastKnownPlayerCount = -1;
 
-        public bool IsGlobalLockActive { get; private set; }
+        private bool _isGlobalLockActive;
+
+        private List<PlayerLobbyTutorial> _playerLobbyTutorial = new List<PlayerLobbyTutorial>();
 
         public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
@@ -41,14 +44,9 @@ namespace MortierFu
             OnGlobalLockEnded = null;
 
             _spawnedPlayers.Clear();
-        }
-
-        private void Update()
-        {
-          //  if (!_isInitialized)
-          //      return;
-
-         //   SyncLobbyPlayers();
+            
+            foreach (PlayerLobbyTutorial tuto in _playerLobbyTutorial)
+                tuto?.Disconnect();
         }
 
         private async UniTaskVoid InitializeAsync()
@@ -56,8 +54,6 @@ namespace MortierFu
             await EnsureLobbySandboxSystemsAsync();
 
             ResolveDependencies();
-
-            _isInitialized = true;
 
             if (_spawnPlayersOnStart)
             {
@@ -118,7 +114,7 @@ namespace MortierFu
             if (players.Count == 0)
                 return;
 
-            for (int i = 0; i < players.Count; i++)
+            for (var i = 0; i < players.Count; i++)
             {
                 var player = players[i];
 
@@ -163,7 +159,7 @@ namespace MortierFu
             if (!player)
                 return;
 
-            Transform spawnPoint = GetSpawnPoint(playerIndex);
+            var spawnPoint = GetSpawnPoint(playerIndex);
 
             if (!spawnPoint)
             {
@@ -173,7 +169,7 @@ namespace MortierFu
 
             player.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
 
-            if (IsGlobalLockActive)
+            if (_isGlobalLockActive)
             {
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
             }
@@ -189,18 +185,27 @@ namespace MortierFu
 
             OnPlayerSpawned?.Invoke(player);
 
+            if (!_playerFirstJoin.Contains(player))
+            {
+                _playerFirstJoin.Add(player);
+
+
+                PlayerLobbyTutorial tempTuto = new PlayerLobbyTutorial(_tutorials, player);
+                _playerLobbyTutorial.Add(tempTuto);
+            }
+            
             Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
         }
 
         public void LockAllPlayers()
         {
-            if (!IsGlobalLockActive)
+            if (!_isGlobalLockActive)
             {
-                IsGlobalLockActive = true;
+                _isGlobalLockActive = true;
                 OnGlobalLockStarted?.Invoke();
             }
 
-            for (int i = 0; i < _spawnedPlayers.Count; i++)
+            for (var i = 0; i < _spawnedPlayers.Count; i++)
             {
                 var player = _spawnedPlayers[i];
 
@@ -213,12 +218,12 @@ namespace MortierFu
 
         public void UnlockAllPlayers()
         {
-            if (!IsGlobalLockActive)
+            if (!_isGlobalLockActive)
                 return;
 
-            IsGlobalLockActive = false;
+            _isGlobalLockActive = false;
 
-            for (int i = 0; i < _spawnedPlayers.Count; i++)
+            for (var i = 0; i < _spawnedPlayers.Count; i++)
             {
                 ApplyCurrentContextToPlayer(_spawnedPlayers[i]);
             }
@@ -237,7 +242,7 @@ namespace MortierFu
             return spawnPoint;
         }
 
-        public PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
+        private PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
         {
             return PlayerControlContext.LobbySandbox;
         }
@@ -259,6 +264,11 @@ namespace MortierFu
                 return null;
 
             return _playerSpawnPoints[playerIndex];
+        }
+
+        private void OnApplicationQuit()
+        {
+            _playerFirstJoin.Clear();
         }
     }
 }

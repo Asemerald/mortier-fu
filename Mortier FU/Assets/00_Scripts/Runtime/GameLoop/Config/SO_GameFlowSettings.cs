@@ -30,6 +30,10 @@ namespace MortierFu
         [Tooltip("Durée minimale du résumé des augments après la race, avant de passer au round.")]
         public float AugmentSummaryDuration = 4f;
 
+        [Header("Round Start")]
+        [Tooltip("Durée avant de rendre les inputs utilisables.")]
+        public float RoundStartCountdown = 5f;
+        
         [Header("Round End")]
         [Tooltip("Durée minimale du scoreboard. Il pourra durer plus longtemps si ses animations ne sont pas finies.")]
         public float ScoreboardMinimumDuration = 3f;
@@ -37,6 +41,14 @@ namespace MortierFu
         [Header("End Game")]
         [Tooltip("Durée minimale de l'écran de fin de partie avant autorisation d'action joueur.")]
         public float EndGameMinimumDuration = 2f;
+        
+        [Header("Previous Winner Race Size")]
+        [Tooltip("Si true, le gagnant du round aura une taille différente pendant la race.")]
+        public bool EnablePreviousRoundWinnerRaceGiant = true;
+
+        [Min(0.1f)]
+        [Tooltip("La taille pendant la race du gagnant du round précédent.")]
+        public float PreviousRoundWinnerRaceTargetSize = 3.5f;
 
         [Header("Loading Mask Strategy")]
         [Tooltip("Si true, le scoreboard sert à cacher le chargement de la prochaine map race.")]
@@ -45,7 +57,7 @@ namespace MortierFu
         [Tooltip("Si true, le résumé d'augments sert à cacher le chargement de la prochaine map arena.")]
         public bool UseAugmentSummaryAsArenaMapLoadCover = true;
 
-        [Tooltip("Ancien système : transitions vidéo. À terme, on le désactivera.")]
+        [Tooltip("Ancien système, à terme, on le désactivera.")]
         public bool UseVideoTransitions;
     }
 }

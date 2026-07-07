@@ -43,6 +43,8 @@ namespace MortierFu
     {
         public float UpRotationMinAngle;
         public float RotationMaxAngle;
+
+        public bool ForceInPlaceBounce;
     }
     
     public struct TriggerBounce : ITrigger
@@ -97,4 +99,9 @@ namespace MortierFu
     
     public struct TriggerEndRound : ITrigger // Check
     { }
+
+    public struct TriggerEndDash : ITrigger
+    {
+        public PlayerCharacter Character;
+    }
 }

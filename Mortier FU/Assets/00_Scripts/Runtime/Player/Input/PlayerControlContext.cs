@@ -14,11 +14,13 @@ namespace MortierFu
 
         AugmentShowcase,
         AugmentRace,
+        AugmentRaceBully,
 
         RoundCountdown,
         RoundGameplay,
+        RoundGhost,
         RoundEnded,
-
+        
         Scoreboard,
         EndGame
     }

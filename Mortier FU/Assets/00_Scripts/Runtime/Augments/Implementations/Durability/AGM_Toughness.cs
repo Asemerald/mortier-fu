@@ -5,7 +5,8 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod MaxHealthMod;
+            public AugmentStatMod MaxHealthMult;
+            public AugmentStatMod MaxHealthFlat;
             public AugmentStatMod FireRateMod;
         }
         
@@ -14,7 +15,8 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.MaxHealth.AddModifier(db.ToughnessParams.MaxHealthMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.ToughnessParams.MaxHealthMult.ToMod(this));
+            stats.MaxHealth.AddModifier(db.ToughnessParams.MaxHealthFlat.ToMod(this));
             stats.FireRate.AddModifier(db.ToughnessParams.FireRateMod.ToMod(this));
         }
         

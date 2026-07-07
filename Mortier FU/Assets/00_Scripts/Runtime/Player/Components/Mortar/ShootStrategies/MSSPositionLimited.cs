@@ -44,10 +44,18 @@ namespace MortierFu
             
             if (aimInput.sqrMagnitude < k_minAimInputLength)
                 return;
-            
-            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * CharacterStats.AimWidgetSpeed.Value);
+
+            float aimSpeed = CharacterStats.AimWidgetSpeed.Value;
+            if (IsKeyboardAndMouseControlScheme())
+            {
+                aimSpeed *= CharacterStats.KeyboardAndMouseAimWidgetSpeedMultiplier;
+            }
+            Vector3 offset = new Vector3(aimInput.x, 0.0f, aimInput.y) * (Time.deltaTime * aimSpeed);
             Vector3 newPos = aimWidget.RelativePosition + offset;
+
+            newPos = newPos.With(y: 0f);
             newPos = Vector3.ClampMagnitude(newPos, CharacterStats.GetShotRange());
+
             aimWidget.SetRelativePosition(newPos);
         }
         
@@ -72,14 +80,25 @@ namespace MortierFu
             
             Vector2 aimInput = aimAction.ReadValue<Vector2>();
             float shotRange = CharacterStats.GetShotRange();
-            
-            Vector3 newPos = Vector3.ClampMagnitude(new Vector3(aimInput.x, 0.0f, aimInput.y) * shotRange, shotRange);
+
+            Vector3 newPos = new Vector3(aimInput.x, 0.0f, aimInput.y) * shotRange;
+            newPos = Vector3.ClampMagnitude(newPos.With(y: 0f), shotRange);
+
             aimWidget.SetRelativePosition(newPos);
         }
         
         public override void CancelAiming()
         {
             _enableShoot = false;
+        }
+
+        private bool IsKeyboardAndMouseControlScheme()
+        {
+            return mortar.Character?.PlayerInput != null
+                && string.Equals(
+                    mortar.Character.PlayerInput.currentControlScheme,
+                    "Keyboard and Mouse",
+                    System.StringComparison.Ordinal);
         }
     }
 }

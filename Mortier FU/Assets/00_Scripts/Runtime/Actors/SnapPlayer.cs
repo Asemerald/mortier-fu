@@ -1,23 +1,66 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MortierFu
 {
     public class SnapPlayer : MonoBehaviour
     {
-        private void OnTriggerEnter(Collider other)
+        #region Variables
+
+        private Vector3 _lastPosition;
+        private Vector3 _oldPivot;
+
+        private readonly HashSet<PlayerCharacter> _playersOnPlatform = new();
+
+        #endregion
+
+        #region Unity LifeCycle
+
+        void Awake()
         {
-            if (other.TryGetComponent(out PlayerCharacter character))
+            _lastPosition = transform.position;
+        }
+
+        void FixedUpdate()
+        {
+            CalculDeltaPlatform();
+
+            foreach (var player in _playersOnPlatform)
             {
-                character.gameObject.transform.SetParent(gameObject.transform.parent.gameObject.transform);
+                ApplyPlatformDelta(player.Controller);
             }
         }
-    
-        private void OnTriggerExit(Collider other)
+
+        void OnTriggerEnter(Collider other)
         {
-            if (other.TryGetComponent(out PlayerCharacter character))
-            {
-                character.gameObject.transform.SetParent(null);
-            }
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+
+            if (!player) return;
+
+            _playersOnPlatform.Add(player);
         }
-    }   
+
+        void OnTriggerExit(Collider other)
+        {
+            PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
+
+            if (!player) return;
+
+            _playersOnPlatform.Remove(player);
+        }
+
+        #endregion
+
+        private void CalculDeltaPlatform()
+        {
+            _oldPivot = _lastPosition;
+            _lastPosition = transform.position;
+        }
+
+        private void ApplyPlatformDelta(ControllerCharacterComponent controller)
+        {
+            Vector3 newPos = controller.rigidbody.position + (transform.position - _oldPivot);
+            controller.rigidbody.MovePosition(newPos);
+        }
+    }
 }

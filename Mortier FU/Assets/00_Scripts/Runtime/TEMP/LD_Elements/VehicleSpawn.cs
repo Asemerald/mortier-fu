@@ -1,201 +1,410 @@
-using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using MortierFu;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
-public class VehiculeSpawn : MonoBehaviour
+namespace MortierFu
 {
-    [Header("References")]
-    [SerializeField] private VehicleModel[] _carPrototypes;
-    [Space]
-    [SerializeField] private Transform _startPoint;
-    [SerializeField] private Transform _endPoint;
-    [Space]
-    [SerializeField] private GameObject _greenLight;
-    [SerializeField] private GameObject _redLight;
-
-    [Header("Parameters")]
-    [SerializeField] private float _greenTimeDuration = 10f;
-    [SerializeField] private float _redTimeDuration = 10f;
-    [Space]
-    [SerializeField] private float _vehicleSpawnCooldown = 2f;
-    [SerializeField] private float _vehicleSpawnVariance = 0.3f;
-    [Space]
-    [SerializeField] private float _vehicleSpeed = 100f;
-    
-    //Commenté parce que pas utilisé et le warning me cassait les couilles
-    //[SerializeField] private float _vehicleSpeedVariance = 0.2f;
-    private bool _isRed;
-
-    [Header("Pooling")]
-    [SerializeField] private bool _collectionCheck = true;
-    [SerializeField] private int _defaultCapacity = 10;
-    [SerializeField] private int _maxSize = 1000;
-    
-    private ObjectPool<VehicleModel> _vehiclePool;
-    private List<VehicleModel> _activeVehicles;
-    private FrequencyTimer _vehicleSpawnTimer;
-    private CountdownTimer _trafficLightTimer;
-    private Transform _carParent;
-
-    void Start()
+    public class VehiculeSpawn : MonoBehaviour
     {
-        _carParent = new GameObject("Cars").transform;
-        _carParent.parent = transform;
+        [Header("References")]
+        [SerializeField] private VehicleModel[] _carPrototypes;
+        [SerializeField] private Transform _startPoint;
+        [SerializeField] private Transform _endPoint;
         
-        _vehiclePool = new ObjectPool<VehicleModel>(
-            OnCreateVehicle,
-            OnGetVehicle,
-            OnReleaseVehicle,
-            OnDestroyVehicle,
-            _collectionCheck,
-            _defaultCapacity,
-            _maxSize
-        );
+        [SerializeField] private GameObject _greenLight;
+        [SerializeField] private GameObject _redLight;
 
-        _activeVehicles = new List<VehicleModel>();
+        [Header("Traffic Light")]
+        [SerializeField] private bool _startWithRedLight = true;
+        [SerializeField] private float _greenTimeDuration = 10f;
+        [SerializeField] private float _redTimeDuration = 4.5f;
 
-        _vehicleSpawnTimer = new FrequencyTimer(0f);
-        _vehicleSpawnTimer.OnTick += SpawnVehicle;
-        
-        _trafficLightTimer = new CountdownTimer(0f);
-        _trafficLightTimer.OnTimerStop += ToggleTrafficLight;
-        
-        _isRed = false;
-        ToggleTrafficLight();
-    }
-    
-    private void ToggleTrafficLight()
-    {
-        // Toggle
-        _isRed ^= true;
-        
-        _redLight.SetActive(_isRed);
-        _greenLight.SetActive(!_isRed);
+        [Header("Spawn")]
+        [SerializeField] private float _vehicleSpawnCooldown = 0.9f;
+        [SerializeField] private float _vehicleSpawnVariance = 0.5f;
 
-        if (_isRed)
+        [Header("Movement")]
+        [SerializeField] private float _vehicleSpeed = 2200f;
+        [SerializeField] private float _vehicleSpeedVariance = 0.02f;
+        [SerializeField] private float _vehicleSpeedScale = 0.01f;
+        [SerializeField] private float _minimumVehicleGap = 1.5f;
+        [SerializeField] private float _arrivalDistance = 0.15f;
+
+        [Header("Pooling")]
+        [SerializeField] private int _prewarmCount = 10;
+        [SerializeField] private bool _collectionCheck = false;
+        [SerializeField] private int _defaultCapacity = 10;
+        [SerializeField] private int _maxSize = 64;
+
+        private readonly List<VehicleModel> _activeVehicles = new();
+        private readonly List<VehicleModel> _validPrototypes = new();
+        private readonly List<VehicleModel> _prewarmBuffer = new();
+
+        private ObjectPool<VehicleModel> _vehiclePool;
+        private VehicleModel _basePrototype;
+        private Transform _carParent;
+
+        private Vector3 _routeDirection;
+        private Quaternion _routeRotation;
+        private float _routeLength;
+
+        private float _vehicleSpawnTimer;
+        private float _trafficLightTimer;
+        private bool _isRed;
+        private bool _isInitialized;
+
+        private void Awake()
         {
-            _vehicleSpawnTimer.Stop();
+            InitializeRoute();
+            InitializePrototypes();
+            InitializePool();
         }
-        else
+
+        private void Start()
         {
-            RandomizeSpawnCooldown();
-            _vehicleSpawnTimer.Start();
+            if (!_isInitialized)
+                return;
+
+            SetTrafficLight(_startWithRedLight);
         }
-        
-        _trafficLightTimer.Reset(_isRed ? _redTimeDuration : _greenTimeDuration);
-        _trafficLightTimer.Start();
-    }
 
-    void SpawnVehicle()
-    {
-        RandomizeSpawnCooldown();
-        _vehiclePool.Get();
-    }
-
-    void UpdateActiveCars()
-    {
-        for (int i = _activeVehicles.Count - 1; i >= 0; i--)
+        private void Update()
         {
-            VehicleModel vehicle = _activeVehicles[i];
-            Vector3 currentPosition = vehicle.Rigidbody.position;
-            Vector3 endPosition = _endPoint.position;
-            Vector3 newPosition = Vector3.MoveTowards(currentPosition, endPosition,
-                                                      vehicle.Speed * Time.deltaTime);
+            if (!_isInitialized)
+                return;
 
-            float sqrDist = (endPosition - newPosition).sqrMagnitude;
-            if (sqrDist > 0.1)
+            UpdateTrafficLight();
+
+            if (_isRed)
+                return;
+
+            UpdateSpawnTimer();
+        }
+
+        private void FixedUpdate()
+        {
+            if (!_isInitialized)
+                return;
+
+            UpdateActiveVehicles();
+        }
+
+        private void OnDestroy()
+        {
+            _vehiclePool?.Clear();
+
+            _activeVehicles.Clear();
+            _validPrototypes.Clear();
+            _prewarmBuffer.Clear();
+        }
+
+        private void InitializeRoute()
+        {
+            if (!_startPoint || !_endPoint)
             {
-                vehicle.Rigidbody.MovePosition(newPosition);
+                Logs.LogError("[VehiculeSpawn] Missing start or end point.", this);
+                return;
             }
-            else
+
+            Vector3 route = _endPoint.position - _startPoint.position;
+            _routeLength = route.magnitude;
+
+            if (_routeLength <= 0.001f)
             {
-                DelayRelease(vehicle).Forget();
+                Logs.LogError("[VehiculeSpawn] Start point and end point are too close.", this);
+                return;
+            }
+
+            _routeDirection = route / _routeLength;
+            _routeRotation = Quaternion.LookRotation(_routeDirection, Vector3.up);
+        }
+
+        private void InitializePrototypes()
+        {
+            _validPrototypes.Clear();
+
+            if (_carPrototypes == null || _carPrototypes.Length == 0)
+            {
+                Logs.LogError("[VehiculeSpawn] No car prototype assigned.", this);
+                return;
+            }
+
+            for (int i = 0; i < _carPrototypes.Length; i++)
+            {
+                VehicleModel prototype = _carPrototypes[i];
+
+                if (!prototype)
+                {
+                    Logs.LogWarning("[VehiculeSpawn] Null vehicle prototype in list.", this);
+                    continue;
+                }
+
+                _validPrototypes.Add(prototype);
+            }
+
+            if (_validPrototypes.Count == 0)
+            {
+                Logs.LogError("[VehiculeSpawn] No valid vehicle prototype found.", this);
+                return;
+            }
+
+            _basePrototype = _validPrototypes[0];
+        }
+
+        private void InitializePool()
+        {
+            if (!_startPoint || !_endPoint || !_basePrototype)
+                return;
+
+            _carParent = new GameObject("Cars").transform;
+            _carParent.SetParent(transform);
+
+            _vehiclePool = new ObjectPool<VehicleModel>(
+                OnCreateVehicle,
+                OnGetVehicle,
+                OnReleaseVehicle,
+                OnDestroyVehicle,
+                _collectionCheck,
+                _defaultCapacity,
+                _maxSize
+            );
+
+            PrewarmPool();
+
+            _isInitialized = true;
+        }
+
+        private void PrewarmPool()
+        {
+            if (_prewarmCount <= 0)
+                return;
+
+            _prewarmBuffer.Clear();
+
+            for (int i = 0; i < _prewarmCount; i++)
+                _prewarmBuffer.Add(_vehiclePool.Get());
+
+            for (int i = 0; i < _prewarmBuffer.Count; i++)
+                _vehiclePool.Release(_prewarmBuffer[i]);
+
+            _prewarmBuffer.Clear();
+        }
+
+        private void UpdateTrafficLight()
+        {
+            _trafficLightTimer -= Time.deltaTime;
+
+            if (_trafficLightTimer > 0f)
+                return;
+
+            SetTrafficLight(!_isRed);
+        }
+
+        private void SetTrafficLight(bool red)
+        {
+            _isRed = red;
+
+            if (_redLight)
+                _redLight.SetActive(_isRed);
+
+            if (_greenLight)
+                _greenLight.SetActive(!_isRed);
+
+            _trafficLightTimer = _isRed ? _redTimeDuration : _greenTimeDuration;
+
+            if (!_isRed)
+                ResetVehicleSpawnTimer();
+        }
+
+        private void UpdateSpawnTimer()
+        {
+            _vehicleSpawnTimer -= Time.deltaTime;
+
+            if (_vehicleSpawnTimer > 0f)
+                return;
+
+            TrySpawnVehicle();
+            ResetVehicleSpawnTimer();
+        }
+
+        private void ResetVehicleSpawnTimer()
+        {
+            float variance = Random.Range(-_vehicleSpawnVariance, _vehicleSpawnVariance);
+            _vehicleSpawnTimer = Mathf.Max(0.05f, _vehicleSpawnCooldown * (1f + variance));
+        }
+
+        private void TrySpawnVehicle()
+        {
+            VehicleModel prototype = GetRandomPrototype();
+
+            if (!prototype)
+                return;
+
+            VehicleModel vehicle = _vehiclePool.Get();
+
+            vehicle.ConfigureAsClone(prototype);
+            vehicle.Progress = 0f;
+            vehicle.Speed = GetRandomVehicleSpeed();
+
+            if (!HasSpawnRoom(vehicle))
+            {
+                _vehiclePool.Release(vehicle);
+                return;
+            }
+
+            vehicle.transform.SetPositionAndRotation(_startPoint.position, _routeRotation);
+            vehicle.gameObject.SetActive(true);
+
+            _activeVehicles.Add(vehicle);
+        }
+
+        private bool HasSpawnRoom(VehicleModel candidate)
+        {
+            if (_activeVehicles.Count == 0)
+                return true;
+
+            VehicleModel lastVehicle = _activeVehicles[^1];
+
+            if (!lastVehicle)
+                return true;
+
+            float requiredGap = GetRequiredGap(candidate, lastVehicle);
+            return lastVehicle.Progress >= requiredGap;
+        }
+
+        private float GetRandomVehicleSpeed()
+        {
+            float variance = Random.Range(-_vehicleSpeedVariance, _vehicleSpeedVariance);
+            return Mathf.Max(0f, _vehicleSpeed * (1f + variance) * _vehicleSpeedScale);
+        }
+
+        private VehicleModel GetRandomPrototype() => _validPrototypes.Count == 0 ? null : _validPrototypes[Random.Range(0, _validPrototypes.Count)];
+
+        private void UpdateActiveVehicles()
+        {
+            float deltaTime = Time.fixedDeltaTime;
+
+            for (int i = 0; i < _activeVehicles.Count; i++)
+            {
+                VehicleModel vehicle = _activeVehicles[i];
+
+                if (!vehicle)
+                {
+                    _activeVehicles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                float nextProgress = vehicle.Progress + vehicle.Speed * deltaTime;
+
+                if (i > 0)
+                {
+                    VehicleModel frontVehicle = _activeVehicles[i - 1];
+
+                    if (frontVehicle)
+                    {
+                        float maxProgress = frontVehicle.Progress - GetRequiredGap(vehicle, frontVehicle);
+                        nextProgress = Mathf.Min(nextProgress, maxProgress);
+                    }
+                }
+
+                nextProgress = Mathf.Clamp(nextProgress, vehicle.Progress, _routeLength);
+
+                vehicle.Progress = nextProgress;
+
+                Vector3 nextPosition = _startPoint.position + _routeDirection * nextProgress;
+                vehicle.Rigidbody.MovePosition(nextPosition);
+
+                if (_routeLength - nextProgress > _arrivalDistance)
+                    continue;
+
+                ReleaseActiveVehicleAt(i);
+                i--;
             }
         }
-    }
 
-    private async UniTaskVoid DelayRelease(VehicleModel vehicle)
-    {
-        _activeVehicles.Remove(vehicle);
-        
-        await UniTask.Delay(TimeSpan.FromSeconds(5f));
+        private float GetRequiredGap(VehicleModel backVehicle, VehicleModel frontVehicle) => backVehicle.HalfLength + frontVehicle.HalfLength + _minimumVehicleGap;
 
-        if (vehicle)
+        private void ReleaseActiveVehicleAt(int index)
         {
-            _vehiclePool?.Release(vehicle);
-        }
-    }
-    
-    private void RandomizeSpawnCooldown()
-    {
-        float spawnCooldown = _vehicleSpawnCooldown * (1 + Random.Range(-_vehicleSpawnVariance, _vehicleSpawnVariance));
-        _vehicleSpawnTimer.Reset(1f / spawnCooldown);
-    }
-    
-    #region Pool Callbacks
-    VehicleModel OnCreateVehicle()
-    {
-        if (_carPrototypes.Length <= 0)
-        {
-            Logs.LogWarning("No car prototype !");
-            return null;
+            VehicleModel vehicle = _activeVehicles[index];
+            _activeVehicles.RemoveAt(index);
+
+            if (vehicle)
+                _vehiclePool.Release(vehicle);
         }
 
-        var vehicle = Instantiate(_carPrototypes[0], _carParent);
-        if (!vehicle)
+        private VehicleModel OnCreateVehicle()
         {
-            Logs.LogError("Failed instantiating a new car prototype !");
-            return null;
+            VehicleModel vehicle = Instantiate(_basePrototype, _carParent);
+
+            if (!vehicle)
+            {
+                Logs.LogError("[VehiculeSpawn] Failed instantiating a vehicle.", this);
+                return null;
+            }
+
+            vehicle.gameObject.SetActive(false);
+            return vehicle;
         }
 
-        vehicle.gameObject.SetActive(false);
-        
-        return vehicle;
-    }
+        private void OnGetVehicle(VehicleModel vehicle)
+        { }
 
-    void OnGetVehicle(VehicleModel vehicle)
-    {
-        vehicle.transform.position = _startPoint.position;
-        vehicle.transform.rotation = Quaternion.LookRotation((_endPoint.position - _startPoint.position).normalized);
-        
-        vehicle.Speed = _vehicleSpeed * (1f + Random.Range(-_vehicleSpawnVariance, _vehicleSpawnVariance)) * 0.01f;
+        private void OnReleaseVehicle(VehicleModel vehicle)
+        {
+            if (!vehicle)
+                return;
 
-        var prototype = _carPrototypes[Random.Range(0, _carPrototypes.Length)];
-        vehicle.ConfigureAsClone(prototype);
-        
-        vehicle.gameObject.SetActive(true);
-        _activeVehicles.Add(vehicle);
-    }
+            vehicle.ResetRuntime();
+            vehicle.gameObject.SetActive(false);
+        }
 
-    void OnReleaseVehicle(VehicleModel vehicle)
-    {
-        vehicle.gameObject.SetActive(false);
-    }
+        private void OnDestroyVehicle(VehicleModel vehicle)
+        {
+            if (vehicle)
+                Destroy(vehicle.gameObject);
+        }
 
-    void OnDestroyVehicle(VehicleModel vehicle)
-    {
-        if(vehicle)
-            Destroy(vehicle.gameObject);
-    }
-    #endregion
-    
-    void FixedUpdate() => UpdateActiveCars();
+        private void OnValidate()
+        {
+            if (_greenTimeDuration < 0.1f)
+                _greenTimeDuration = 0.1f;
 
-    void OnDestroy()
-    {
-        _vehiclePool.Clear();
-        _activeVehicles.Clear();
-        
-        _trafficLightTimer.OnTimerStop -= ToggleTrafficLight;
-        _vehicleSpawnTimer.OnTick -= SpawnVehicle;
+            if (_redTimeDuration < 0.1f)
+                _redTimeDuration = 0.1f;
 
-        _trafficLightTimer.Dispose();
-        _vehicleSpawnTimer.Dispose();
+            if (_vehicleSpawnCooldown < 0.05f)
+                _vehicleSpawnCooldown = 0.05f;
+
+            if (_vehicleSpawnVariance < 0f)
+                _vehicleSpawnVariance = 0f;
+
+            if (_vehicleSpeed < 0f)
+                _vehicleSpeed = 0f;
+
+            if (_vehicleSpeedVariance < 0f)
+                _vehicleSpeedVariance = 0f;
+
+            if (_vehicleSpeedScale < 0f)
+                _vehicleSpeedScale = 0f;
+
+            if (_minimumVehicleGap < 0f)
+                _minimumVehicleGap = 0f;
+
+            if (_arrivalDistance < 0.01f)
+                _arrivalDistance = 0.01f;
+
+            if (_prewarmCount < 0)
+                _prewarmCount = 0;
+
+            if (_defaultCapacity < 1)
+                _defaultCapacity = 1;
+
+            if (_maxSize < _defaultCapacity)
+                _maxSize = _defaultCapacity;
+        }
     }
 }
-        

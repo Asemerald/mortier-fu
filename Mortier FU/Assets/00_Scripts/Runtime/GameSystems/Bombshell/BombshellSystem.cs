@@ -22,15 +22,15 @@ namespace MortierFu
         // Track active bombshells
         private HashSet<Bombshell> _active;
         private Transform _bombshellParent;
-        
+
         private Collider[] _impactResults;
         private const int k_maxImpactTargets = 50;
-        
+
         private AsyncOperationHandle<SO_BombshellSettings> _settingsHandle;
         public SO_BombshellSettings Settings => _settingsHandle.Result;
-        
+
         private AsyncOperationHandle<GameObject> _bombshellPrefabHandle;
-        
+
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
@@ -42,7 +42,7 @@ namespace MortierFu
 
         public void ReleaseBombshell(Bombshell bombshell)
         {
-            if (bombshell == null)
+            if (!bombshell)
                 return;
 
             if (_pool == null)
@@ -57,79 +57,100 @@ namespace MortierFu
         // Can be improved with a IDamageable interface which seems to be similar to IInteractable as interaction happens on impact or contact.
         public void NotifyImpact(Bombshell bombshell, RaycastHit hit)
         {
+            Vector3 impactPoint = hit.point;
+
             var hitCharacters = new HashSet<PlayerCharacter>();
             var hits = new HashSet<GameObject>();
-            
-            int numHits = Physics.OverlapSphereNonAlloc(bombshell.transform.position, bombshell.AoeRange, _impactResults, Settings.WhatIsCollidable);
+
+            int numHits = Physics.OverlapSphereNonAlloc(
+                impactPoint,
+                bombshell.AoeRange,
+                _impactResults,
+                Settings.WhatIsCollidable
+            );
+
             for (int i = 0; i < numHits; i++)
             {
                 Collider hitCollider = _impactResults[i];
                 hits.Add(hitCollider.gameObject);
 
-                var rb = hitCollider.attachedRigidbody;
-                if (rb == null) continue;
-                
+                Rigidbody rb = hitCollider.attachedRigidbody;
+                if (!rb)
+                    continue;
+
                 if (rb.TryGetComponent(out PlayerCharacter character))
                 {
-                    // Prevent self-damage
                     if (!Settings.AllowSelfDamage && character == bombshell.Owner)
                         continue;
 
-                    if (!character.Health.IsAlive)
+                    if (!character.CanPlayerInteractWithBombShell()) continue;
+
+                    if (character.ControlContext is PlayerControlContext.AugmentRace)
+                    {
+                        character.ReceiveStun(character.Stats.GetKnockbackStunDuration());
+                        continue;
+                    }
+
+                    bool damageApplied = character.Health.TakeDamage(
+                        bombshell.Damage,
+                        bombshell.Owner
+                    );
+
+                    if (!damageApplied)
                         continue;
 
                     hitCharacters.Add(character);
 
-                    character.Health.TakeDamage(bombshell.Damage, bombshell.Owner);
-
                     if (Settings.EnableDebug)
                     {
-                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " + character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
+                        Logs.Log($"Bombshell from Player {bombshell.Owner.Owner.PlayerIndex} hit Player " +
+                                 character.Owner.PlayerIndex + " for " + bombshell.Damage + " damage.");
                     }
                 }
-                // temp check for breakable object
-                else if (rb.TryGetComponent(out IInteractable interactable) &&
-                         interactable.IsBombshellInteractable)
+                else if (rb.TryGetComponent(out IInteractable interactable) && interactable.IsBombshellInteractable)
                 {
-                    Vector3 point = bombshell.transform.position;
-                    Vector3 contactPoint = Physics.ClosestPoint(point, hitCollider, 
+                    Vector3 contactPoint = Physics.ClosestPoint(impactPoint, hitCollider,
                         hitCollider.transform.position, hitCollider.transform.rotation);
-                    
+
                     interactable.Interact(contactPoint);
                 }
 
                 if (bombshell.Bounces > 0)
                 {
-                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, hit.point);
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, impactPoint);
                 }
             }
 
-            //GAMEFEEL CALLS
             if (_fxService != null)
             {
-                var character = bombshell.Owner;
-                _fxService.PlayBombshellExplosion(hit.point, bombshell.AoeRange, character.Owner.PlayerIndex);
+                PlayerCharacter character = bombshell.Owner;
+                _fxService.PlayBombshellExplosion(impactPoint, bombshell.AoeRange, character.Owner.PlayerIndex);
             }
-            else Logs.LogWarning("No FX Handler");
+            else
+            {
+                Logs.LogWarning("No FX Handler");
+            }
 
-            _cameraSystem.Controller.Shake(bombshell.AoeRange, 20 + bombshell.Damage * 10,
-                bombshell.GetTravelTime());
-            
-            // ---------------- SFX CALLS ----------------
+            _cameraSystem.Controller.Shake(
+                bombshell.AoeRange,
+                20 + bombshell.Damage * 10,
+                bombshell.GetTravelTime()
+            );
 
             if (hitCharacters.Count > 0)
             {
-                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell, hit.point);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactPlayer, bombshell,
+                    impactPoint);
             }
             else if (hits.Count > 0)
             {
-                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactProps, bombshell, hit.point);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactProps, bombshell, impactPoint);
             }
-            else 
+            else
             {
-                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactNone, bombshell, hit.point);
+                AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactNone, bombshell, impactPoint);
             }
-            
+
             if (hitCharacters.Count > 0)
             {
                 EventBus<TriggerHit>.Raise(new TriggerHit()
@@ -141,13 +162,13 @@ namespace MortierFu
             }
 
             bool isGround = hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground");
-            
+
             if (hits.Count > 0)
             {
                 EventBus<TriggerBombshellImpact>.Raise(new TriggerBombshellImpact()
                 {
                     Bombshell = bombshell,
-                    HitPoint = hit.point,
+                    HitPoint = impactPoint,
                     HitNormal = hit.normal,
                     HitGround = isGround,
                     HitObject = hit.collider.gameObject
@@ -172,8 +193,8 @@ namespace MortierFu
 
         private Bombshell OnCreateBombshell()
         {
-            var bombshellGo = Object.Instantiate(_bombshellPrefabHandle.Result, _bombshellParent);
-            var bombshell = bombshellGo.GetComponent<Bombshell>();
+            GameObject bombshellGo = Object.Instantiate(_bombshellPrefabHandle.Result, _bombshellParent);
+            Bombshell bombshell = bombshellGo.GetComponent<Bombshell>();
 
             bombshell.Initialize(this);
             bombshellGo.SetActive(false);
@@ -188,7 +209,7 @@ namespace MortierFu
 
         private void OnReleaseBombshell(Bombshell bombshell)
         {
-            if (bombshell == null)
+            if (!bombshell)
                 return;
 
             _active.Remove(bombshell);
@@ -212,12 +233,12 @@ namespace MortierFu
             _settingsHandle = await SystemManager.Config.BombshellSettings.LazyLoadAssetRef();
 
             _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
-            
+
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _fxService = ServiceManager.Instance.Get<FXService>();
-            
+
             if (_cameraSystem == null || _fxService == null) return;
-            
+
             _bombshellParent = new GameObject("Bombshells").transform;
 
             _active = new HashSet<Bombshell>();
@@ -238,7 +259,7 @@ namespace MortierFu
         {
             Addressables.Release(_bombshellPrefabHandle);
             Addressables.Release(_settingsHandle);
-            
+
             _pool.Clear();
             _active.Clear();
         }

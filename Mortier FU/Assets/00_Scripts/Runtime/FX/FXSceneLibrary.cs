@@ -12,11 +12,13 @@ namespace MortierFu
 
         [Header("Player")]
         [SerializeField] private ParticleSystem _dash;
+        [SerializeField] private ParticleSystem _stun;
 
         public ParticleSystem BombshellPreview => _bombshellPreview;
         public ParticleSystem[] BombshellExplosionColors => _bombshellExplosionColors;
         public ParticleSystem BombshellWaterExplosion => _bombshellWaterExplosion;
         public ParticleSystem Dash => _dash;
+        public ParticleSystem Stun => _stun;
 
         private void Awake()
         {

@@ -48,7 +48,28 @@ MonoBehaviour:
   _collider: {fileID: 2550390888820479535}
   _renderer: {fileID: 4047351584701514758}
   _filter: {fileID: 3590395574836449728}
-  _trailRenderers: []
+  _modelScaler: {fileID: 0}
+  _engineShakeAnimation: 0
+  _engineShakeSettings:
+    strength: {x: 0.1, y: 0.1, z: 0.1}
+    duration: 0
+    frequency: 0
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
   Speed: 0
 --- !u!1001 &8419671349942691596
 PrefabInstance:
@@ -61,6 +82,10 @@ PrefabInstance:
     - target: {fileID: 1699698903484244834, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 1699698903484244834, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2747432334651903783, guid: 086c8cdc250f1c6449b3ea13d6a2081a, type: 3}
       propertyPath: m_LocalScale.x

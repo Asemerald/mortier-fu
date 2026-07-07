@@ -3,13 +3,13 @@ using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
     public sealed class FXService : IGameService
     {
+        private const float k_surfaceFxOffset = 0.03f;
+
         private FXSceneLibrary _library;
 
         public bool IsInitialized { get; set; }
@@ -22,7 +22,7 @@ namespace MortierFu
 
         public void RegisterLibrary(FXSceneLibrary library)
         {
-            if (library == null)
+            if (!library)
             {
                 Logs.LogWarning("[FXService] Tried to register a null FXSceneLibrary.");
                 return;
@@ -43,46 +43,46 @@ namespace MortierFu
             Logs.Log("[FXService] Unregistered FX library.");
         }
 
-        public void PlayBombshellPreview(Vector3 position, float travelTime, float range)
+        public void PlayBombshellPreview(Vector3 position, Vector3 normal, float travelTime, float range)
         {
             if (!TryGetLibrary(out var library))
                 return;
 
-            if (library.BombshellPreview == null)
+            if (!library.BombshellPreview)
             {
                 Logs.LogWarning("[FXService] Bombshell preview prefab is missing.");
                 return;
             }
 
-            var preview = Object.Instantiate(
-                library.BombshellPreview,
-                position + new Vector3(0f, 0.1f, 0f),
-                Quaternion.identity
-            );
+            Vector3 surfaceNormal = GetSafeNormal(normal);
+            Vector3 spawnPosition = position + surfaceNormal * k_surfaceFxOffset;
+            Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellPreview, surfaceNormal);
 
-            preview.transform.localScale = Vector3.zero;
+            ParticleSystem preview = Object.Instantiate(library.BombshellPreview, spawnPosition, spawnRotation);
+
+            preview.transform.localScale = Vector3.one * 0.001f;
+
+            float safeTravelTime = Mathf.Max(0.01f, travelTime);
 
             Tween.Scale(
                 preview.transform,
                 Vector3.one * (range * 2f),
-                duration: travelTime * 0.9f,
+                duration: Mathf.Max(0.01f, safeTravelTime * 0.9f),
                 ease: Ease.OutQuad
             );
 
-            var main = preview.main;
+            ParticleSystem.MainModule main = preview.main;
+            main.simulationSpeed = 1f / safeTravelTime;
 
-            if (travelTime > 0f)
-            {
-                main.simulationSpeed = 1f / travelTime;
-                Object.Destroy(preview.gameObject, travelTime + 1f);
-            }
-            else
-            {
-                Object.Destroy(preview.gameObject, main.duration + 1f);
-            }
+            Object.Destroy(preview.gameObject, safeTravelTime + 1f);
         }
 
         public void PlayBombshellExplosion(Vector3 position, float range, int playerIndex)
+        {
+            PlayBombshellExplosion(position, Vector3.up, range, playerIndex);
+        }
+
+        private void PlayBombshellExplosion(Vector3 position, Vector3 normal, float range, int playerIndex)
         {
             if (!TryGetLibrary(out var library))
                 return;
@@ -101,63 +101,100 @@ namespace MortierFu
                 return;
             }
 
-            if (colors[playerIndex] == null)
+            ParticleSystem explosionPrefab = colors[playerIndex];
+
+            if (!explosionPrefab)
             {
                 Logs.LogWarning($"[FXService] Bombshell explosion prefab for Player {playerIndex + 1} is missing.");
                 return;
             }
 
-            var ps = Object.Instantiate(
-                colors[playerIndex],
-                position,
-                Quaternion.identity
+            Vector3 surfaceNormal = GetSafeNormal(normal);
+            Vector3 spawnPosition = position + surfaceNormal * k_surfaceFxOffset;
+            Quaternion spawnRotation = GetSurfaceAlignedRotation(explosionPrefab, surfaceNormal);
+
+            ParticleSystem ps = Object.Instantiate(
+                explosionPrefab,
+                spawnPosition,
+                spawnRotation
             );
 
             ps.transform.localScale = Vector3.one * (range * 0.5f);
 
-            var main = ps.main;
+            ParticleSystem.MainModule main = ps.main;
             Object.Destroy(ps.gameObject, main.duration + main.startLifetime.constantMax + 1f);
         }
 
         public void PlayDashFX(Transform strikePoint, float size)
         {
-            if (strikePoint == null)
+            if (!strikePoint)
                 return;
 
             if (!TryGetLibrary(out var library))
                 return;
 
-            if (library.Dash == null)
+            if (!library.Dash)
             {
                 Logs.LogWarning("[FXService] Dash prefab is missing.");
                 return;
             }
 
-            var strikeFX = Object.Instantiate(library.Dash, strikePoint);
+            ParticleSystem strikeFX = Object.Instantiate(library.Dash, strikePoint);
             strikeFX.transform.localScale = Vector3.one * size;
 
-            var main = strikeFX.main;
+            ParticleSystem.MainModule main = strikeFX.main;
             Object.Destroy(strikeFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
+        }
+
+        public void PlayStunFX(GameObject stunnedPlayer)
+        {
+            if (!stunnedPlayer)
+                return;
+
+            if (!TryGetLibrary(out FXSceneLibrary library))
+                return;
+
+            if (!library.Stun)
+            {
+                Logs.LogWarning("[FXService] Stun prefab is missing.");
+                return;
+            }
+
+            ParticleSystem stunFX = Object.Instantiate(library.Stun, stunnedPlayer.transform);
+            stunFX.transform.localPosition = new Vector3(0f, 3f, 0f);
+            stunFX.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+
+            ParticleSystem.MainModule main = stunFX.main;
+            Object.Destroy(stunFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
         }
 
         public void PlayWaterExplosionFX(Vector3 hitPoint)
         {
+            PlayWaterExplosionFX(hitPoint, Vector3.up);
+        }
+
+        private void PlayWaterExplosionFX(Vector3 hitPoint, Vector3 normal)
+        {
             if (!TryGetLibrary(out var library))
                 return;
 
-            if (library.BombshellWaterExplosion == null)
+            if (!library.BombshellWaterExplosion)
             {
                 Logs.LogWarning("[FXService] Water explosion prefab is missing.");
                 return;
             }
 
-            var ps = Object.Instantiate(
+            Vector3 surfaceNormal = GetSafeNormal(normal);
+            Vector3 spawnPosition = hitPoint + surfaceNormal * k_surfaceFxOffset;
+            Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellWaterExplosion, surfaceNormal);
+
+            ParticleSystem ps = Object.Instantiate(
                 library.BombshellWaterExplosion,
-                hitPoint,
-                library.BombshellWaterExplosion.transform.rotation
+                spawnPosition,
+                spawnRotation
             );
 
-            var main = ps.main;
+            ParticleSystem.MainModule main = ps.main;
             Object.Destroy(ps.gameObject, main.duration + main.startLifetime.constantMax + 1f);
         }
 
@@ -165,11 +202,25 @@ namespace MortierFu
         {
             library = _library;
 
-            if (library != null)
+            if (library)
                 return true;
 
             Logs.LogWarning("[FXService] No FXSceneLibrary registered in the current scene.");
             return false;
+        }
+
+        private static Vector3 GetSafeNormal(Vector3 normal)
+        {
+            return normal.sqrMagnitude > 0.0001f
+                ? normal.normalized
+                : Vector3.up;
+        }
+
+        private static Quaternion GetSurfaceAlignedRotation(ParticleSystem prefab, Vector3 normal)
+        {
+            Quaternion surfaceRotation = Quaternion.FromToRotation(Vector3.up, normal);
+
+            return surfaceRotation * prefab.transform.rotation;
         }
 
         public void Dispose()

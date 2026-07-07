@@ -1,56 +1,47 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
-    public class CacaQuiSlow : MonoBehaviour
+    public class CacaQuiSlow : BaseZone
     {
         [SerializeField] private float slowMultiplier = 0.5f;
         [SerializeField] private float transitionDuration = 0.5f;
+        [SerializeField] private GameObject vfxCacaQuiSlowPrefab;
 
-        // Track how many slow zones are affecting each player
-        private readonly Dictionary<PlayerCharacter, int> _counters = new();
-
-        private void Reset()
+        protected override void ApplyEffectZoneEnter(PlayerCharacter player)
         {
-            var col = GetComponent<Collider>();
-            if (col != null) col.isTrigger = true;
+            player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
         }
 
-        private void OnTriggerEnter(Collider other)
+        protected override void ApplyEffectZoneExit(PlayerCharacter player)
         {
-            var player = other.GetComponentInParent<PlayerCharacter>();
-            if (player == null) return;
-
-            if (!_counters.TryGetValue(player, out var count))
-                count = 0;
-
-            count++;
-            _counters[player] = count;
-
-            if (count == 1)
-            {
-                player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
-            }
+            player.SetExternalSpeedMultiplier(1f, transitionDuration);
         }
 
-        private void OnTriggerExit(Collider other)
+        private void OnEnable()
         {
-            var player = other.GetComponentInParent<PlayerCharacter>();
-            if (player == null) return;
+            OnTickZone += PlayFootprintVFX;
+        }
 
-            if (!_counters.TryGetValue(player, out var count)) return;
+        private void OnDisable()
+        {
+            OnTickZone -= PlayFootprintVFX;
+        }
 
-            count--;
-            if (count <= 0)
-            {
-                _counters.Remove(player);
-                player.SetExternalSpeedMultiplier(1f, transitionDuration);
-            }
-            else
-            {
-                _counters[player] = count;
-            }
+        protected override void PlayFootprintVFX(PlayerCharacter player)
+        {
+            if (player.ExternalSpeedMultiplier > slowMultiplier) return;
+
+            float randomZRotation = Random.value * 360f;
+
+            Vector3 baseEuler = vfxCacaQuiSlowPrefab.transform.rotation.eulerAngles;
+            Quaternion finalRotationFx = Quaternion.Euler(baseEuler.x, baseEuler.y, baseEuler.z + randomZRotation);
+
+            var vfxInstance = Instantiate(vfxCacaQuiSlowPrefab, player.FeetPoint.position, finalRotationFx);
+
+            Destroy(vfxInstance, 10f);
         }
     }
 }

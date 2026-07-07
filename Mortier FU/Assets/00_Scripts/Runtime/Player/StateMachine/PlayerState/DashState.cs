@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -60,7 +61,7 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            character.Mortar.CancelAiming();
+            //character.Mortar.CancelAiming();
 
             _availableCharges -= 1;
             
@@ -77,17 +78,15 @@ namespace MortierFu
             {
                 Character = character,
             });
-
-            _fxService.PlayDashFX(character.GetStrikePoint(),
-                character.Stats.GetStrikeRadius() * 0.5f);
+            
             if (debug)
                 Logs.Log("Entering Dash State");
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Dash, character.transform.position);
-            character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+            //character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
             Vector3 dashDir = character.Controller.GetDashDirection();
-            character.Controller.rigidbody.AddForce(dashDir * 8f, ForceMode.Impulse);
+            character.Controller.rigidbody.AddForce(dashDir, ForceMode.Impulse);
 
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();
@@ -119,6 +118,11 @@ namespace MortierFu
 
             if (debug)
                 Logs.Log("Exiting Dash State");
+            
+            EventBus<TriggerEndDash>.Raise(new TriggerEndDash()
+            {
+                Character = character,
+            });
         }
 
         public void Reset()
@@ -132,7 +136,8 @@ namespace MortierFu
 
             _availableCharges = Mathf.RoundToInt(character.Stats.DashCharges.Value);
 
-            _trailInstance.emitting = false;
+            if (_trailInstance)
+                _trailInstance.emitting = false;
         }
 
         // While dashing, the strike is executed every frame to bump other players or interact with objects.
@@ -163,6 +168,10 @@ namespace MortierFu
                         hit.transform.position, hit.transform.rotation);
 
                     interactable.Interact(contactPoint);
+
+                    _fxService.PlayDashFX(character.GetStrikePoint(),
+                        character.Stats.GetStrikeRadius() * 0.5f);
+                    
                     continue;
                 }
 
@@ -170,9 +179,13 @@ namespace MortierFu
                 if (other == null) continue;
                 if (other == character) continue;
 
+                _fxService.PlayDashFX(character.GetStrikePoint(),
+                    character.Stats.GetStrikeRadius() * 0.5f);
+                
                 _hitCharacters.Add(other);
 
                 int dashDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
+                
                 if (dashDamage > 0 && other.Health.IsAlive)
                 {
                     other.Health.TakeDamage(dashDamage, character);
@@ -185,6 +198,7 @@ namespace MortierFu
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
                 other.ReceiveKnockback(knockbackDuration, knockbackForce, stunDuration, character);
+                character.Controller.DivideVelocity(0.33f);
             }
 
             if (_hitCharacters.Count > 0)

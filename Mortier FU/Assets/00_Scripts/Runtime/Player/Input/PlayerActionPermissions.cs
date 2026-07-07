@@ -172,6 +172,19 @@ namespace MortierFu
                     canConfirmUI: false,
                     canCancelUI: true
                 ),
+                
+                PlayerControlContext.AugmentRaceBully => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: true,
+                    canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
 
                 PlayerControlContext.RoundCountdown => new PlayerActionPermissions(
                     canMove: false,
@@ -197,6 +210,19 @@ namespace MortierFu
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: true
+                ),
+
+                PlayerControlContext.RoundGhost => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: false,
+                    canTaunt: false,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: false
                 ),
 
                 PlayerControlContext.RoundEnded => new PlayerActionPermissions(
