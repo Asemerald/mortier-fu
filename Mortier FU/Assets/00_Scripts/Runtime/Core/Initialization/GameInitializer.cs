@@ -35,7 +35,7 @@ namespace MortierFu
         private LobbyService _lobbyService;
         private PlayerUIInputService _playerUIInputService;
         private PlayerInteractionService _playerInteractionService;
-        private DiscordService _discordService;
+        //private DiscordService _discordService;
         private SceneService _sceneService;
         private SaveService _saveService;
         private ShakeService _shakeService;
@@ -129,7 +129,7 @@ namespace MortierFu
             _lobbyService = new LobbyService();
             _playerUIInputService = new PlayerUIInputService();
             _playerInteractionService = new PlayerInteractionService();
-            _discordService = new DiscordService();
+            //_discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
             _saveService = new SaveService();
@@ -146,7 +146,7 @@ namespace MortierFu
             _serviceManager.Register(_lobbyService);
             _serviceManager.Register(_playerUIInputService);
             _serviceManager.Register(_playerInteractionService);
-            _serviceManager.Register(_discordService);
+            //_serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
             _serviceManager.Register(_sceneService);
             _serviceManager.Register(_saveService);

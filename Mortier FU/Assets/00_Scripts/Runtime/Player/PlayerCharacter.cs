@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
@@ -70,8 +67,13 @@ namespace MortierFu
 
         public Image TutorialImage;
 
-        private List<IAugment> _augments = new();
+        private readonly List<SO_Augment> _ownedAugments = new();
+        private readonly List<IAugment> _activeAugments = new();
+
+        public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
+
+        public bool AreAugmentsActive { get; private set; }
 
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
@@ -108,8 +110,8 @@ namespace MortierFu
             Stats = Instantiate(_characterStatsTemplate);
 
             // Handle augments
-            _augments = new List<IAugment>();
-            Augments = _augments.AsReadOnly();
+            OwnedAugments = _ownedAugments.AsReadOnly();
+            Augments = _activeAugments.AsReadOnly();
             
             ResolveCustomizationVisual();
             InitStateMachine();
@@ -233,12 +235,12 @@ namespace MortierFu
 
         public void Reset()
         {
+            gameObject.SetActive(true);
+            
             // Reset the parent if it was held by an actor
             transform.SetParent(null);
             SceneManager.MoveGameObjectToScene(transform.gameObject, SceneManager.GetActiveScene());
-
-            gameObject.SetActive(true);
-
+            
             Health.Reset();
             Controller.Reset();
             Aspect.Reset();
@@ -252,6 +254,8 @@ namespace MortierFu
             _speedMultiplier.Reset();
             _accelMultiplier.Reset();
             _decelMultiplier.Reset();
+            
+            RefreshRuntimeAfterAugmentStateChanged();
         }
 
         public void RespawnAt(Vector3 position, Quaternion rotation)
@@ -375,33 +379,106 @@ namespace MortierFu
 
         public void AddAugment(SO_Augment augmentData)
         {
-            var augmentInstance =
-                AugmentFactory.Create(augmentData, this,
-                    SystemManager.Config.AugmentDatabase); // TODO: DB Access can be improved
-            augmentInstance.Initialize();
-            _augments.Add(augmentInstance);
+            if (!augmentData)
+                return;
 
-            // Notify Analytics System
+            _ownedAugments.Add(augmentData);
+
+            if (AreAugmentsActive)
+                ActivateAugment(augmentData);
+
             var analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
+        public void ActivateRoundAugments()
+        {
+            if (AreAugmentsActive)
+                return;
+
+            AreAugmentsActive = true;
+
+            for (int i = 0; i < _ownedAugments.Count; i++)
+                ActivateAugment(_ownedAugments[i]);
+
+            RefreshRuntimeAfterAugmentStateChanged();
+        }
+
+        public void DeactivateRoundAugments()
+        {
+            if (!AreAugmentsActive && _activeAugments.Count == 0)
+            {
+                RefreshRuntimeAfterAugmentStateChanged();
+                return;
+            }
+
+            DisposeActiveAugments();
+
+            AreAugmentsActive = false;
+
+            RefreshRuntimeAfterAugmentStateChanged();
+        }
+
         public void ClearAugments()
         {
-            for (int i = _augments.Count - 1; i >= 0; i--)
+            DeactivateRoundAugments();
+            _ownedAugments.Clear();
+        }
+
+        private void ActivateAugment(SO_Augment augmentData)
+        {
+            if (!augmentData)
+                return;
+
+            try
+            {
+                var augmentInstance = AugmentFactory.Create(augmentData, this, SystemManager.Config.AugmentDatabase);
+                augmentInstance.Initialize();
+                _activeAugments.Add(augmentInstance);
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"[PlayerCharacter] Failed to activate augment '{augmentData.name}': {e.Message}", this);
+            }
+        }
+
+        private void DisposeActiveAugments()
+        {
+            for (int i = _activeAugments.Count - 1; i >= 0; i--)
             {
                 try
                 {
-                    _augments[i]?.Dispose();
+                    _activeAugments[i]?.Dispose();
                 }
                 catch (Exception e)
                 {
-                    Logs.LogError(
-                        $"[PlayerCharacter] Failed to dispose augment '{_augments[i]?.GetType().Name}': {e.Message}");
+                    Logs.LogError($"[PlayerCharacter] Failed to dispose augment '{_activeAugments[i]?.GetType().Name}': {e.Message}", this);
                 }
             }
 
-            _augments.Clear();
+            _activeAugments.Clear();
+        }
+        
+        public void ResetForRace()
+        {
+            DisposeActiveAugments();
+
+            AreAugmentsActive = false;
+
+            Stats.ClearAllModifiers();
+
+            Reset();
+
+            Logs.Log($"[PlayerCharacter] Reset for race: Player {Owner?.PlayerIndex + 1}.", this);
+        }
+
+        private void RefreshRuntimeAfterAugmentStateChanged()
+        {
+            Health?.RefreshFromStats();
+            Health?.Reset();
+
+            Mortar?.Reset();
+            _dashState?.Reset();
         }
 
         #endregion

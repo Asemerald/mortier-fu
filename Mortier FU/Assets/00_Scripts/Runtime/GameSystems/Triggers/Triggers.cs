@@ -39,12 +39,12 @@ namespace MortierFu
         public PlayerCharacter[] HitCharacters;
     }
 
-    public class BounceContext // Check
+    public class BounceContext
     {
         public float UpRotationMinAngle;
         public float RotationMaxAngle;
-        public float MinBounceRange;
-        public float MaxBounceRange;
+
+        public bool ForceInPlaceBounce;
     }
     
     public struct TriggerBounce : ITrigger

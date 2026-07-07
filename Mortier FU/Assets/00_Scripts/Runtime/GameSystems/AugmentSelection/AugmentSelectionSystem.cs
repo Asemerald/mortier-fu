@@ -16,13 +16,16 @@ namespace MortierFu
         public event Action OnPressureStop;
         public event Action OnStopShowcase;
 
+        private AugmentFXPickUp _particleSystem;
+        
         private CancellationTokenSource _pressureTokenSource;
 
         private List<AugmentCardUI> _pickups;
         private List<AugmentPickup> _pickupsVFX;
         private List<AugmentState> _augmentBag;
+        
         private List<PlayerManager> _pickers;
-
+        
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
         private LevelSystem _levelSystem;
@@ -313,9 +316,12 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
                 character.transform);
-
+            bool particle = particleGO.TryGetComponent<AugmentFXPickUp>(out _particleSystem);
+            if (particle)
+                _particleSystem.Init();
+            
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
             _pickedAugments[character].Add(augment.Augment);

@@ -1,6 +1,4 @@
-using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace MortierFu
 {
@@ -14,41 +12,72 @@ namespace MortierFu
             public AugmentStatMod DashCooldownMod;
         }
         
+        private const float k_maxBuffDurationToCooldownRatio = 0.85f;
+        
         private CountdownTimer _epicDashTimer;
         private EventBinding<TriggerEndDash> _endDashBinding;
-        
+
         public AGM_EpicDash(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
         {
             stats.DashCooldown.AddModifier(db.EpicDashParams.DashCooldownMod.ToMod(this));
-            
-            _epicDashTimer = new CountdownTimer(Mathf.Clamp(db.EpicDashParams.EpicDashDuration,0,stats.GetDashCooldown()));
-            _endDashBinding = new EventBinding<TriggerEndDash>(StartEndDashTimer);
+
+            _epicDashTimer = new CountdownTimer(GetBuffDuration());
+            _epicDashTimer.OnTimerStop += OnEpicDashTimerStop;
+
+            _endDashBinding = new EventBinding<TriggerEndDash>(OnEndDash);
             EventBus<TriggerEndDash>.Register(_endDashBinding);
-            _epicDashTimer.OnTimerStop += () =>
-            {
-                stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-                //stats.BombshellSpeed.RemoveAllModifiersFromSource(this);
-                //stats.BombshellDamage.RemoveAllModifiersFromSource(this);
-            };
-        }
-        
-        private void StartEndDashTimer()
-        {
-            _epicDashTimer.Start();
-            stats.MoveSpeed.AddModifier(db.EpicDashParams.MoveSpeedMod.ToMod(this));
         }
 
-        
+        private void OnEndDash(TriggerEndDash evt)
+        {
+            if (evt.Character != owner)
+                return;
+
+            RefreshMoveSpeedBuff();
+        }
+
+        private void RefreshMoveSpeedBuff()
+        {
+            stats.MoveSpeed.RemoveAllModifiersFromSource(this);
+            stats.MoveSpeed.AddModifier(db.EpicDashParams.MoveSpeedMod.ToMod(this));
+
+            _epicDashTimer.Stop();
+            _epicDashTimer.Reset();
+            _epicDashTimer.DynamicUpdate(GetBuffDuration());
+            _epicDashTimer.Start();
+        }
+
+        private void OnEpicDashTimerStop()
+        {
+            stats.MoveSpeed.RemoveAllModifiersFromSource(this);
+        }
+
+        private float GetBuffDuration()
+        {
+            float dashCooldown = stats.GetDashCooldown();
+            float maxDuration = dashCooldown * k_maxBuffDurationToCooldownRatio;
+
+            return Mathf.Clamp(db.EpicDashParams.EpicDashDuration, 0f, maxDuration);
+        }
+
         public override void Dispose()
         {
+            if (_endDashBinding != null)
+                EventBus<TriggerEndDash>.Deregister(_endDashBinding);
+
+            if (_epicDashTimer != null)
+            {
+                _epicDashTimer.OnTimerStop -= OnEpicDashTimerStop;
+                _epicDashTimer.Stop();
+                _epicDashTimer.Dispose();
+                _epicDashTimer = null;
+            }
+
             stats.DashCooldown.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-            _epicDashTimer.Stop();
-            _epicDashTimer.Dispose();
-            EventBus<TriggerEndDash>.Deregister(_endDashBinding);
         }
     }
 }

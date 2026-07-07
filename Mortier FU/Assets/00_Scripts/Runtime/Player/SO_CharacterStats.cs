@@ -111,5 +111,33 @@ namespace MortierFu
             float factor = KnockbackStunDuration.Value / (StrikePushForce.BaseValue + StrikePushForceOffset);
             return KnockbackStunDuration.Value + StrikePushForce.Value * factor;
         }
+        
+        public void ClearAllModifiers()
+        {
+            MaxHealth.ClearModifiers();
+            MoveSpeed.ClearModifiers();
+            Accel.ClearModifiers();
+            Decel.ClearModifiers();
+            AvatarSize.ClearModifiers();
+
+            BombshellDamage.ClearModifiers();
+            BombshellSize.ClearModifiers();
+            BombshellImpactRadius.ClearModifiers();
+            BombshellBounces.ClearModifiers();
+            FireRate.ClearModifiers();
+            ShotRange.ClearModifiers();
+            BombshellSpeed.ClearModifiers();
+            AimWidgetSpeed.ClearModifiers();
+
+            StrikeDamage.ClearModifiers();
+            DashCharges.ClearModifiers();
+            DashCooldown.ClearModifiers();
+            DashDuration.ClearModifiers();
+            DashForce.ClearModifiers();
+            StrikeRadius.ClearModifiers();
+            StrikePushForce.ClearModifiers();
+            StrikeKnockbackDuration.ClearModifiers();
+            KnockbackStunDuration.ClearModifiers();
+        }
     }
 }

@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &7130867490239584640
 SphereCollider:
@@ -200,6 +201,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &6501279260226576916
 SphereCollider:
@@ -276,12 +278,17 @@ MonoBehaviour:
   _endPoint: {fileID: 308013138943271183}
   _greenLight: {fileID: 0}
   _redLight: {fileID: 0}
+  _startWithRedLight: 1
   _greenTimeDuration: 10
   _redTimeDuration: 10
   _vehicleSpawnCooldown: 2
-  _spawnVariance: 0.3
+  _vehicleSpawnVariance: 0.5
   _vehicleSpeed: 100
   _vehicleSpeedVariance: 0.2
-  _collectionCheck: 1
+  _vehicleSpeedScale: 0.01
+  _minimumVehicleGap: 1.5
+  _arrivalDistance: 0.15
+  _prewarmCount: 10
+  _collectionCheck: 0
   _defaultCapacity: 10
   _maxSize: 1000

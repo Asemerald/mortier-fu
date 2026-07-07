@@ -217,7 +217,7 @@ namespace MortierFu
             gameVictor = null;
 
             _gameplayCancellation = new CancellationTokenSource();
-            GameplayLoop(_gameplayCancellation.Token).Forget();                                            //il me baise
+            GameplayLoop(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
         }
@@ -239,7 +239,7 @@ namespace MortierFu
         protected virtual async UniTask RunAugmentRacePhaseAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
+            
             await EnsureRaceScenePreparedAsync(
                 transitionColor,
                 cancellationToken
@@ -253,8 +253,6 @@ namespace MortierFu
                     cancellationToken,
                     FlowSettings.AugmentStartShowcaseDelay
                 );
-
-                
                 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -469,6 +467,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            ActivatePlayerAugmentsForRound();
             EnablePlayerGravity();
 
             SetPlayersControlContext(PlayerControlContext.RoundCountdown);
@@ -526,8 +525,9 @@ namespace MortierFu
         protected virtual void StartRace()
         {
             _augmentRaceController.BeginRace(_currentRound.RoundIndex);
+            ResetPlayersForRace();
         }
-
+        
         protected virtual void EndRace()
         {
             UpdateGameState(GameState.EndAugmentRace);
@@ -906,6 +906,35 @@ namespace MortierFu
                 return null;
 
             return winnerManager.Character;
+        }
+        
+        private void ActivatePlayerAugmentsForRound()
+        {
+            ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());
+        }
+
+        private void ResetPlayersForRace()
+        {
+            ForEachCurrentPlayerCharacter(character => character.ResetForRace());
+        }
+        
+        private void ForEachCurrentPlayerCharacter(Action<PlayerCharacter> action)
+        {
+            if (action == null)
+                return;
+
+            var players = lobbyService?.GetPlayers();
+
+            if (players == null)
+                return;
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerCharacter character = players[i].Character;
+
+                if (character)
+                    action.Invoke(character);
+            }
         }
     }
 }
