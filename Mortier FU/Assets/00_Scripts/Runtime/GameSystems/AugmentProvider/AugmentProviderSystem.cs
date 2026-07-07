@@ -10,9 +10,6 @@ namespace MortierFu
 {
     public class AugmentProviderSystem : IGameSystem
     {
-        /// <summary>
-        /// Contains all the rarity and their drop rate, can be increased with new relative rarity by calling PopulateLootBag.
-        /// </summary>
         private LootTable<E_AugmentRarity> _rarityTable;
 
         private Dictionary<E_AugmentRarity, List<SO_Augment>> _augmentsPerRarity;
@@ -27,6 +24,21 @@ namespace MortierFu
 
         private const string k_augmentLibLabel = "AugmentLib";
 
+        // TODO: PLACEHOLDER - brancher sur le vrai système de progression de round (event, OnRoundStart, etc.)
+        private int _currentRound = 1;
+
+        public void SetCurrentRound(int round)
+        {
+            int roundsPassed = round - _currentRound;
+
+            for (int r = 0; r < roundsPassed; r++)
+            {
+                RecoverChances();
+            }
+
+            _currentRound = round;
+        }
+
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
             int length = outAugments.Length;
@@ -35,7 +47,8 @@ namespace MortierFu
 
             for (int i = 0; i < length; i++)
             {
-                E_AugmentRarity rarity = rarities[i];
+                E_AugmentRarity rarity = ResolveAllowedRarity(rarities[i]);
+
                 if (!_augmentsPerRarity.TryGetValue(rarity, out var augments))
                 {
                     Logs.LogError($"No augment found of rarity {rarity} !");
@@ -88,42 +101,50 @@ namespace MortierFu
                 }
             }
         }
+        
+        private E_AugmentRarity ResolveAllowedRarity(E_AugmentRarity pulledRarity)
+        {
+            if (!IsRarityLocked(pulledRarity))
+                return pulledRarity;
+
+            E_AugmentRarity fallback = pulledRarity;
+            while (IsRarityLocked(fallback) && fallback > E_AugmentRarity.Common)
+            {
+                fallback--;
+            }
+            return fallback;
+        }
+
+        private bool IsRarityLocked(E_AugmentRarity rarity)
+        {
+            var lockEntry = Settings.RarityRoundLocks?.Find(l => l.Rarity == rarity);
+            return lockEntry != null && _currentRound < lockEntry.MinRound;
+        }
 
         public async UniTask OnInitialize()
         {
-            // Load the system settings
             _settingsHandle = await SystemManager.Config.AugmentProviderSettings.LazyLoadAssetRef();
 
-            // Create the loot table
+          
             LootTableConfig config = new LootTableConfig()
             {
                 AllowDuplicates = false,
                 RemoveOnPull = false
             };
             _rarityTable = new LootTable<E_AugmentRarity>(config);
-
-            // Load all the rarity drop rates into the rarity loot table
             _rarityTable.PopulateLootBag(Settings.RarityDropRates);
-            if (Settings.EnableDebug)
-                Logs.Log($"Successfully populate the augment rarity loot table with {_rarityTable.TotalWeight} total weight.");
-
+            
             await PopulateAugmentDictionary();
         }
 
         private async UniTask PopulateAugmentDictionary()
         {
-            if (Settings.EnableDebug)
-                Logs.Log("Loading Augment Libraries...");
+            if (Settings.EnableDebug) ;
 
             _augmentLibHandle = Addressables.LoadAssetsAsync<SO_AugmentLibrary>(k_augmentLibLabel);
             await _augmentLibHandle;
 
-            if (_augmentLibHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Logs.LogWarning($"Error occurred while loading Augment libs: {_augmentLibHandle.OperationException.Message}");
-                return;
-            }
-
+            
             _augmentsPerRarity = new Dictionary<E_AugmentRarity, List<SO_Augment>>();
             AugmentsPerRarity = new ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>>(_augmentsPerRarity);
 
@@ -134,9 +155,6 @@ namespace MortierFu
                     AddAugmentInDictionary(augment);
                     _augmentChances[augment] = 1f;
                 }
-
-                if (Settings.EnableDebug)
-                    Logs.Log($"Successfully included augments from the following augment library: {lib.name}");
             }
         }
 
@@ -165,7 +183,7 @@ namespace MortierFu
 
             if (totalWeight <= 0f)
             {
-                Logs.LogWarning("[AugmentProviderSystem] All augment weights are zero. Falling back to uniform random.");
+                Logs.LogWarning("[AugmentProviderSystem] Le poid est à 0");
                 return Random.Range(0, augments.Count);
             }
 
@@ -195,25 +213,45 @@ namespace MortierFu
         {
             if (!augment)
             {
-                Logs.LogWarning("[AugmentProviderSystem] Cannot apply damping to a null augment.");
-                return false;
             }
 
             if (!_augmentChances.TryGetValue(augment, out float previousChance))
             {
-                Logs.LogWarning($"[AugmentProviderSystem] Cannot apply damping to '{augment.name}' because it is not registered.");
-                return false;
             }
 
-            float damping = Mathf.Clamp01(Settings.DropRateDamping);
+            float damping = GetDampingForAugment(augment);
             float newChance = Mathf.Max(0f, previousChance * (1f - damping));
 
             _augmentChances[augment] = newChance;
-
-            if (Settings.EnableDebug)
-                Logs.Log($"[AugmentProviderSystem] Damping applied to '{augment.name}': " + $"{previousChance:0.###} -> {newChance:0.###} " + $"with damping {damping:0.###}.");
-
+            
             return true;
+        }
+        
+        private float GetDampingForAugment(SO_Augment augment)
+        {
+            var rarityEntry = Settings.RarityDropRateDamping?.Find(e => e.Rarity == augment.Rarity);
+            return Mathf.Clamp01(rarityEntry != null ? rarityEntry.DampingFactor : Settings.DropRateDamping);
+        }
+        
+        private void RecoverChances()
+        {
+            float recovery = Mathf.Clamp01(Settings.DampingRecoveryRate);
+            if (recovery <= 0f)
+                return;
+
+            var keys = new List<SO_Augment>(_augmentChances.Keys);
+            foreach (var key in keys)
+            {
+                float current = _augmentChances[key];
+                _augmentChances[key] = Mathf.Min(1f, current + recovery);
+            }
+        }
+        
+        public void ResetChances()
+        {
+            var keys = new List<SO_Augment>(_augmentChances.Keys);
+            foreach (var key in keys)
+                _augmentChances[key] = 1f;
         }
 
         public void Dispose()

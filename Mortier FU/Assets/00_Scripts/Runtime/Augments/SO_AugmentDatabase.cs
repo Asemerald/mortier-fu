@@ -16,7 +16,6 @@ namespace MortierFu
         public AGM_Ascension.Params AscensionParams;
         public AGM_BigBullets.Params BigBulletsParams;
         public AGM_Bouncy.Params BouncyParams;
-        public AGM_ChaoticBounce.Params ChaoticBounceParams;
         public AGM_BouncySnowball.Params BouncySnowballParams;
         public AGM_Confidence.Params ConfidenceParams;
         public AGM_ExtentedRange.Params ExtentedRangeParams;
@@ -27,6 +26,7 @@ namespace MortierFu
         public AGM_MaximumVelocity.Params MaximumVelocityParams;
         public AGM_Overheating.Params OverheatingParams;
         public AGM_RealSniper.Params RealSniperParams;
+        public AGM_SelfBounce.Params SelfBounceParams;
         public AGM_SharperBullets.Params SharperBulletsParams;
         public AGM_Surprise.Params SurpriseParams;
         public AGM_TakeTheTempo.Params TakeTheTempoParams;
