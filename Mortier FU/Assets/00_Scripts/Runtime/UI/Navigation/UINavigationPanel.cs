@@ -17,7 +17,9 @@ namespace MortierFu
 
         private PlayerManager _activePlayer;
         private UINavigationRepeater _navigationRepeater;
+
         private Action<PlayerManager> _onCancelled;
+        private Action<PlayerManager> _onSubmitted;
 
         private int _selectedIndex;
         private bool _isOpen;
@@ -27,8 +29,7 @@ namespace MortierFu
 
         private void Awake()
         {
-            _navigationRepeater = new UINavigationRepeater(_navigationThreshold, _navigationCooldown);
-
+            EnsureInitialized();
             RefreshSelection();
         }
 
@@ -36,21 +37,30 @@ namespace MortierFu
 
         private void OnDestroy() => Close();
 
-        public void Open(PlayerManager player, Action<PlayerManager> onCancelled = null)
+        public void Open(PlayerManager player, Action<PlayerManager> onCancelled = null, Action<PlayerManager> onSubmitted = null)
         {
             if (!player)
                 return;
+
+            EnsureInitialized();
 
             Close();
 
             _activePlayer = player;
             _onCancelled = onCancelled;
+            _onSubmitted = onSubmitted;
             _isOpen = true;
             _canNavigate = true;
             _selectedIndex = GetFirstAvailableIndex();
+
             _navigationRepeater.Reset();
 
-            UIInputService?.Push(_activePlayer, this);
+            PlayerUIInputService inputService = UIInputService;
+
+            if (inputService == null)
+                Logs.LogError("[UINavigationPanel] PlayerUIInputService is missing.", this);
+            else
+                inputService.Push(_activePlayer, this);
 
             RefreshSelection();
 
@@ -59,21 +69,40 @@ namespace MortierFu
 
         public void Close()
         {
+            EnsureInitialized();
+
             if (!_isOpen && !_activePlayer)
                 return;
 
-            if (_activePlayer)
-                UIInputService?.Remove(_activePlayer, this);
-            else
-                UIInputService?.RemoveFromAll(this);
+            PlayerUIInputService inputService = UIInputService;
+
+            if (inputService != null)
+            {
+                if (_activePlayer)
+                    inputService.Remove(_activePlayer, this);
+                else
+                    inputService.RemoveFromAll(this);
+            }
 
             _activePlayer = null;
             _onCancelled = null;
+            _onSubmitted = null;
             _isOpen = false;
             _canNavigate = false;
-            _navigationRepeater?.Reset();
+
+            _navigationRepeater.Reset();
 
             ClearSelection();
+        }
+
+        public void SetCanNavigate(bool canNavigate)
+        {
+            EnsureInitialized();
+
+            _canNavigate = canNavigate;
+
+            if (!canNavigate)
+                _navigationRepeater.Reset();
         }
 
         public bool CanHandleUIInput(PlayerManager player) => _isOpen && _activePlayer && ReferenceEquals(_activePlayer, player);
@@ -86,6 +115,8 @@ namespace MortierFu
             if (!_canNavigate)
                 return true;
 
+            EnsureInitialized();
+
             if (!_navigationRepeater.TryGetNavigation(direction, out UINavigationInput navigation))
                 return true;
 
@@ -97,7 +128,19 @@ namespace MortierFu
             return true;
         }
 
-        public bool HandleSubmit(PlayerManager player) => CanHandleUIInput(player);
+        public bool HandleSubmit(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return false;
+
+            UINavigationItem item = GetSelectedItem();
+
+            if (item && item.HandleSubmit())
+                return true;
+
+            _onSubmitted?.Invoke(player);
+            return true;
+        }
 
         public bool HandleCancel(PlayerManager player)
         {
@@ -111,6 +154,13 @@ namespace MortierFu
 
             _onCancelled?.Invoke(player);
             return true;
+        }
+
+        private void EnsureInitialized()
+        {
+            _navigationRepeater ??= new UINavigationRepeater(_navigationThreshold, _navigationCooldown);
+
+            _items ??= new List<UINavigationItem>();
         }
 
         private void MoveSelection(int direction)
@@ -170,6 +220,9 @@ namespace MortierFu
 
         private void RefreshSelection()
         {
+            if (_items == null)
+                return;
+
             for (int i = 0; i < _items.Count; i++)
             {
                 if (_items[i])
@@ -179,6 +232,9 @@ namespace MortierFu
 
         private void ClearSelection()
         {
+            if (_items == null)
+                return;
+
             for (int i = 0; i < _items.Count; i++)
             {
                 if (_items[i])

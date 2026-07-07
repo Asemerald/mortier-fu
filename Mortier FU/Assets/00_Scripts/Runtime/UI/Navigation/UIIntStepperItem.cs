@@ -112,6 +112,22 @@ namespace MortierFu
 
             arrow.color = _selected ? _selectedArrowColor : _normalArrowColor;
         }
+        
+        public void ResetUsageFeedback()
+        {
+            _lastDirection = 0;
+            UpdateVisuals();
+        }
+        
+        public void ConfigureRange(int minValue, int maxValue, int step, bool wrapValue)
+        {
+            _minValue = minValue;
+            _maxValue = Mathf.Max(minValue, maxValue);
+            _step = Mathf.Max(1, step);
+            _wrapValue = wrapValue;
+
+            SetValue(_currentValue, notify: false);
+        }
 
         private int WrapValue(int value)
         {

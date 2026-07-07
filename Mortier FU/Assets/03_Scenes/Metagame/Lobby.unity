@@ -1199,17 +1199,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPanel
   _root: {fileID: 431122756}
   _preview: {fileID: 360518841}
-  _faceLeftArrow: {fileID: 360518840}
-  _faceRightArrow: {fileID: 360518839}
-  _hatLeftArrow: {fileID: 360518838}
-  _hatRightArrow: {fileID: 360518837}
-  _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _highlightArrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _navigationPanel: {fileID: 360518837}
+  _faceItem: {fileID: 360518839}
+  _hatItem: {fileID: 360518838}
   _skinCount: 5
   _faceColumnCount: 4
   _faceRowCount: 3
-  _navigationThreshold: 0.3
-  _navigationCooldown: 0.2
 --- !u!1001 &100117642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13941,48 +13936,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPreview
 --- !u!114 &339135409 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5219108441605046817, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8448576984106043570, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 339135406}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f04530fa7b968c4aa0019e2c69aad03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UINavigationPanel
 --- !u!114 &339135410 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2602925171271801932, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7774995715230778356, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 339135406}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!114 &339135411 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6501853984616130019, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1503636316829631314, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 339135406}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &339135412 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4161024017653212329, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
-  m_PrefabInstance: {fileID: 339135406}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!1001 &339613994
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14191,48 +14175,37 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &360518837 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5219108441605046817, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8448576984106043570, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 360518835}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f04530fa7b968c4aa0019e2c69aad03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UINavigationPanel
 --- !u!114 &360518838 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2602925171271801932, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7774995715230778356, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 360518835}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!114 &360518839 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6501853984616130019, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1503636316829631314, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 360518835}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &360518840 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4161024017653212329, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
-  m_PrefabInstance: {fileID: 360518835}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!114 &360518841 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2984828235087880591, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
@@ -16249,48 +16222,37 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &439531440 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5219108441605046817, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8448576984106043570, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 439531438}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f04530fa7b968c4aa0019e2c69aad03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UINavigationPanel
 --- !u!114 &439531441 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2602925171271801932, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7774995715230778356, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 439531438}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!114 &439531442 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6501853984616130019, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1503636316829631314, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 439531438}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &439531443 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4161024017653212329, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
-  m_PrefabInstance: {fileID: 439531438}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!1001 &454907398
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17268,17 +17230,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPanel
   _root: {fileID: 1168154254}
   _preview: {fileID: 1609515265}
-  _faceLeftArrow: {fileID: 439531443}
-  _faceRightArrow: {fileID: 439531442}
-  _hatLeftArrow: {fileID: 439531441}
-  _hatRightArrow: {fileID: 439531440}
-  _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _highlightArrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _navigationPanel: {fileID: 439531440}
+  _faceItem: {fileID: 439531442}
+  _hatItem: {fileID: 439531441}
   _skinCount: 5
   _faceColumnCount: 4
   _faceRowCount: 3
-  _navigationThreshold: 0.3
-  _navigationCooldown: 0.2
 --- !u!1 &512070278
 GameObject:
   m_ObjectHideFlags: 0
@@ -28240,17 +28197,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPanel
   _root: {fileID: 1187247862}
   _preview: {fileID: 1187247863}
-  _faceLeftArrow: {fileID: 1187247861}
-  _faceRightArrow: {fileID: 1187247860}
-  _hatLeftArrow: {fileID: 1187247859}
-  _hatRightArrow: {fileID: 1187247858}
-  _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _highlightArrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _navigationPanel: {fileID: 1187247858}
+  _faceItem: {fileID: 1187247860}
+  _hatItem: {fileID: 1187247859}
   _skinCount: 5
   _faceColumnCount: 4
   _faceRowCount: 3
-  _navigationThreshold: 0.3
-  _navigationCooldown: 0.2
 --- !u!1 &814736324
 GameObject:
   m_ObjectHideFlags: 0
@@ -35007,17 +34959,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPanel
   _root: {fileID: 1502817314}
   _preview: {fileID: 339135408}
-  _faceLeftArrow: {fileID: 339135412}
-  _faceRightArrow: {fileID: 339135411}
-  _hatLeftArrow: {fileID: 339135410}
-  _hatRightArrow: {fileID: 339135409}
-  _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _highlightArrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _navigationPanel: {fileID: 339135409}
+  _faceItem: {fileID: 339135411}
+  _hatItem: {fileID: 339135410}
   _skinCount: 5
   _faceColumnCount: 4
   _faceRowCount: 3
-  _navigationThreshold: 0.3
-  _navigationCooldown: 0.2
 --- !u!1 &1168154254 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8887413936584953537, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
@@ -35217,48 +35164,37 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1187247858 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5219108441605046817, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8448576984106043570, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 1187247856}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f04530fa7b968c4aa0019e2c69aad03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UINavigationPanel
 --- !u!114 &1187247859 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2602925171271801932, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7774995715230778356, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 1187247856}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!114 &1187247860 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6501853984616130019, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1503636316829631314, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
   m_PrefabInstance: {fileID: 1187247856}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &1187247861 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4161024017653212329, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
-  m_PrefabInstance: {fileID: 1187247856}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
 --- !u!1 &1187247862 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8887413936584953537, guid: 3bdb2336c6d4b15479b18ac7fa5471d4, type: 3}
