@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -7,6 +8,8 @@ namespace MortierFu
     {
         #region Variables
 
+        [SerializeField] private LayerMask _ignoreLayers;
+        
         private Vector3 _lastPosition;
         private Vector3 _oldPivot;
 
@@ -33,18 +36,31 @@ namespace MortierFu
 
         void OnTriggerEnter(Collider other)
         {
+            if (other.gameObject.layer.Equals(_ignoreLayers)) return;
+            
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            if (!player) return;
+            if (!player)
+            {
+                other.transform.SetParent(transform);
+                Logs.Log($"Enter Element : {other.gameObject.name}",this);
+                return;
+            }
 
             _playersOnPlatform.Add(player);
         }
 
         void OnTriggerExit(Collider other)
         {
+            if (other.gameObject.layer.Equals(_ignoreLayers)) return;
+            
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            if (!player) return;
+            if (!player)
+            {
+                other.transform.SetParent(null);
+                return;
+            }
 
             _playersOnPlatform.Remove(player);
         }
