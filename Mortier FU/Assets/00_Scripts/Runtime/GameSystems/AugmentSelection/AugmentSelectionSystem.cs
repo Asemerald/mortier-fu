@@ -45,7 +45,7 @@ namespace MortierFu
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
 
-        private Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
+        private readonly Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
 
         public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
 
@@ -59,7 +59,7 @@ namespace MortierFu
                 if (_pickers is null || _pickers.Count <= 0)
                     return true;
 
-                return _augmentTimer != null && _augmentTimer.IsFinished;
+                return _augmentTimer is { IsFinished: true };
             }
         }
         
@@ -90,7 +90,7 @@ namespace MortierFu
             _pickups = new List<AugmentCardUI>(_augmentCount);
             _pickupsVFX = new List<AugmentPickup>(_lobbyService.CurrentPlayerCount);
 
-            for (int i = 0; i < _augmentCount; i++)
+            for (var i = 0; i < _augmentCount; i++)
             {
                 var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
                 var pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
@@ -113,10 +113,8 @@ namespace MortierFu
 
         public void Dispose()
         {
-            for (int i = _pickups.Count - 1; i >= 0; i--)
-            {
+            for (var i = _pickups.Count - 1; i >= 0; i--)
                 Addressables.ReleaseInstance(_pickups[i].gameObject);
-            }
 
             Addressables.Release(_settingsHandle);
 
@@ -208,21 +206,17 @@ namespace MortierFu
         {
             try
             {
-                float pressureStartTime = 5f;
-                float delay = Mathf.Max(0f, duration - pressureStartTime);
+                var pressureStartTime = 5f;
+                var delay = Mathf.Max(0f, duration - pressureStartTime);
 
-                await UniTask.Delay(
-                    TimeSpan.FromSeconds(delay),
-                    cancellationToken: cancellationToken
-                );
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 OnPressureStart?.Invoke(pressureStartTime);
             }
             catch (OperationCanceledException)
-            {
-            }
+            { }
         }
 
         public void EndRace()
@@ -267,8 +261,7 @@ namespace MortierFu
 
                 remainingAugments.Remove(randomAugment);
 
-                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
-                         " to player " + picker.PlayerIndex);
+                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
             }
 
             foreach (var pickup in _pickupsVFX)
@@ -286,7 +279,7 @@ namespace MortierFu
 
         public void RestorePickupParent()
         {
-            for (int i = 0; i < _pickups.Count; i++)
+            for (var i = 0; i < _pickups.Count; i++)
             {
                 var pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
@@ -316,9 +309,9 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+            var particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
                 character.transform);
-            bool particle = particleGO.TryGetComponent<AugmentFXPickUp>(out _particleSystem);
+            var particle = particleGO.TryGetComponent(out _particleSystem);
             if (particle)
                 _particleSystem.Init();
             
