@@ -225,31 +225,17 @@ public class PlayerGameplayUI : MonoBehaviour
         _characterIcon.sprite = _characterIcons[_character.Owner.PlayerIndex];
     }
 
-    private void OnRoundEnded(RoundInfo roundInfo)
-    {
-        HidePlayerHUD().Forget();
-    }
+    private void OnRoundEnded(RoundInfo roundInfo) => HidePlayerHUD().Forget();
     
-    private void OnRaceStart()
-    {
-        ShowPlayerHUD().Forget();
-    }
+    private void OnRaceStart() => ShowPlayerHUD().Forget();
 
-    private async UniTask HidePlayerHUD()
-    {
-        await Tween.Scale(
-            _playerHUD.transform,
-            Vector3.zero,
-            _tweenDuration,
-            _healthBarEase
-        );
-    }
+    private async UniTask HidePlayerHUD() => await Tween.Scale(_playerHUD.transform, Vector3.zero, _tweenDuration, _healthBarEase);
 
     private void OnHealthChanged(float oldHealth, float newHealth)
     {
-        float fillAmount = _character.Health.HealthRatio;
+        var fillAmount = _character.Health.HealthRatio;
 
-        if (_healthTween.isAlive && _healthTween.progress < 1f)
+        if (_healthTween is { isAlive: true, progress: < 1f })
             _healthTween.Stop();
 
         _healthTween = Tween.Custom(_healthFillImg.fillAmount, fillAmount, _healthTweenDuration, newFillAmount =>
