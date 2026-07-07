@@ -167,7 +167,7 @@ namespace MortierFu
                 () => _roundStartController.StopCountdown(),
                 () => OnScoreDisplayOver?.Invoke()
             );
-
+            
             _augmentRaceController = new AugmentRaceController(
                 teams,
                 augmentSelectionSys,
@@ -247,6 +247,8 @@ namespace MortierFu
             
             try
             {
+                augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
+                Logs.Log($"Current Race Index {GetCurrentAugmentRaceNumber()}");
                 await _augmentRaceController.PrepareSelectionAsync(
                     cancellationToken,
                     FlowSettings.AugmentStartShowcaseDelay
@@ -936,5 +938,7 @@ namespace MortierFu
                     action.Invoke(character);
             }
         }
+        
+        private int GetCurrentAugmentRaceNumber() => _currentRound.RoundIndex + 1;
     }
 }

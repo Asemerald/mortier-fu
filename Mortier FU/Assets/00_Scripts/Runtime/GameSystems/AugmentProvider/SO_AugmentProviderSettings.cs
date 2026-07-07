@@ -1,7 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
+
 namespace MortierFu
 {
+    [System.Serializable]
+    public struct AugmentRarityRaceUnlock
+    {
+        public E_AugmentRarity Rarity;
+
+        [Min(1)] public int UnlockFromRace;
+    }
+
     [CreateAssetMenu(fileName = "DA_AugmentProviderSettings", menuName = "Mortier Fu/Settings/Augment Provider")]
     public class SO_AugmentProviderSettings : SO_SystemSettings
     {

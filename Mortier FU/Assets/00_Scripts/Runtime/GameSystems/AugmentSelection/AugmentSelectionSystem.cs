@@ -37,7 +37,8 @@ namespace MortierFu
         private int _playerCount;
         private int _augmentCount;
         private bool _raceInProgress;
-
+        private int _currentRaceNumber = 1;
+        
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
 
@@ -61,6 +62,8 @@ namespace MortierFu
                 return _augmentTimer != null && _augmentTimer.IsFinished;
             }
         }
+        
+        public void SetCurrentRaceNumber(int raceNumber) => _currentRaceNumber = Mathf.Max(1, raceNumber);
 
         public async UniTask OnInitialize()
         {
@@ -123,10 +126,7 @@ namespace MortierFu
             _augmentTimer?.Dispose();
         }
 
-        public async UniTask PrepareAugmentSelection(
-            List<PlayerManager> pickers,
-            CancellationToken cancellationToken
-        )
+        public async UniTask PrepareAugmentSelection(List<PlayerManager> pickers, CancellationToken cancellationToken)
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -144,7 +144,7 @@ namespace MortierFu
             _pressureTokenSource?.Dispose();
             _pressureTokenSource = null;
 
-            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments);
+            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber);
             _augmentBag.Clear();
 
             for (var i = 0; i < _selectedAugments.Length; i++)

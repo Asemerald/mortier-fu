@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
@@ -13,7 +12,6 @@ namespace MortierFu
         private LootTable<E_AugmentRarity> _rarityTable;
 
         private Dictionary<E_AugmentRarity, List<SO_Augment>> _augmentsPerRarity;
-        public ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>> AugmentsPerRarity;
 
         private AsyncOperationHandle<SO_AugmentProviderSettings> _settingsHandle;
         public SO_AugmentProviderSettings Settings => _settingsHandle.Result;
@@ -21,6 +19,8 @@ namespace MortierFu
         private AsyncOperationHandle<IList<SO_AugmentLibrary>> _augmentLibHandle;
 
         private readonly Dictionary<SO_Augment, float> _augmentChances = new();
+        private readonly List<(E_AugmentRarity rarity, SO_Augment augment)> _removedAugments = new();
+        private readonly List<E_AugmentRarity> _availableUnlockedRarities = new();
 
         private const string k_augmentLibLabel = "AugmentLib";
 
@@ -41,35 +41,26 @@ namespace MortierFu
 
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments)
         {
-            int length = outAugments.Length;
-            var rarities = _rarityTable.BatchPull(length);
-            var removedAugments = new List<(E_AugmentRarity rarity, SO_Augment augment)>();
+            if (outAugments == null || outAugments.Length == 0)
+                return;
 
-            for (int i = 0; i < length; i++)
+            var length = outAugments.Length;
+            IReadOnlyList<E_AugmentRarity> normalRarities = _rarityTable.BatchPull(length);
+            var useRaceUnlocks = ShouldUseRarityUnlocksByRace(raceNumber);
+
+            _removedAugments.Clear();
+
+            for (var i = 0; i < length; i++)
             {
                 E_AugmentRarity rarity = ResolveAllowedRarity(rarities[i]);
 
                 if (!_augmentsPerRarity.TryGetValue(rarity, out var augments))
                 {
-                    Logs.LogError($"No augment found of rarity {rarity} !");
                     outAugments[i] = null;
                     continue;
                 }
 
-                // TODO: SHOULD BE REMOVED WHEN SUFFICIENT AMOUNT OF AUGMENTS
-                // Hard fix for empty augment lists
-                if (augments.Count == 0)
-                {
-                    rarity = E_AugmentRarity.Rare;
-                    if (!_augmentsPerRarity.TryGetValue(rarity, out augments))
-                    {
-                        Logs.LogError($"No augment found of rarity {rarity} !");
-                        outAugments[i] = null;
-                        continue;
-                    }
-                }
-
-                int randIndex = WeightedRandomIndex(augments);
+                var randIndex = WeightedRandomIndex(augments);
 
                 if (randIndex < 0)
                 {
@@ -77,29 +68,59 @@ namespace MortierFu
                     continue;
                 }
 
-                SO_Augment pulledAugment = augments[randIndex];
+                var pulledAugment = augments[randIndex];
 
                 if (!Settings.AllowCopiesInBatch)
                 {
-                    int lastIndex = augments.Count - 1;
+                    var lastIndex = augments.Count - 1;
                     augments[randIndex] = augments[lastIndex];
                     augments.RemoveAt(lastIndex);
-                    removedAugments.Add((rarity, pulledAugment));
+                    _removedAugments.Add((rarity, pulledAugment));
                 }
 
                 outAugments[i] = pulledAugment;
             }
 
-            if (!Settings.AllowCopiesInBatch)
+            RestoreRemovedAugments();
+
+            if (Settings.EnableDebug && useRaceUnlocks)
+                LogUnlockedRarities(raceNumber);
+        }
+
+        private bool ShouldUseRarityUnlocksByRace(int raceNumber)
+        {
+            if (raceNumber <= 0)
+                return false;
+
+            if (!Settings.UseRarityUnlocksByRace)
+                return false;
+
+            return Settings.RarityUnlocksByRace != null && Settings.RarityUnlocksByRace.Count > 0;
+        }
+
+        private bool TryResolveRarityForSlot(int slotIndex, IReadOnlyList<E_AugmentRarity> normalRarities, int raceNumber, bool useRaceUnlocks, out E_AugmentRarity rarity)
+        {
+            if (!useRaceUnlocks)
+                return TryResolveNormalRarityForSlot(slotIndex, normalRarities, out rarity);
+
+            var normalRarity = normalRarities[slotIndex];
+
+            if (IsRarityUnlockedForRace(normalRarity, raceNumber) && TryGetAugmentsForRarity(normalRarity, out _))
             {
-                foreach ((E_AugmentRarity rarity, SO_Augment augment) in removedAugments)
-                {
-                    if (_augmentsPerRarity.TryGetValue(rarity, out var augmentsList))
-                    {
-                        augmentsList.Add(augment);
-                    }
-                }
+                rarity = normalRarity;
+                return true;
             }
+
+            if (TryGetRandomAvailableUnlockedRarity(raceNumber, out rarity))
+                return true;
+
+            if (Settings.FallbackToNormalRarityTableIfNoUnlockedRarity)
+                return TryResolveNormalRarityForSlot(slotIndex, normalRarities, out rarity);
+            
+            rarity = default;
+            Logs.LogWarning($"[AugmentProviderSystem] No unlocked rarity available for race {raceNumber}.");
+            return false;
+
         }
         
         private E_AugmentRarity ResolveAllowedRarity(E_AugmentRarity pulledRarity)
@@ -131,6 +152,7 @@ namespace MortierFu
                 AllowDuplicates = false,
                 RemoveOnPull = false
             };
+
             _rarityTable = new LootTable<E_AugmentRarity>(config);
             _rarityTable.PopulateLootBag(Settings.RarityDropRates);
             
@@ -146,11 +168,10 @@ namespace MortierFu
 
             
             _augmentsPerRarity = new Dictionary<E_AugmentRarity, List<SO_Augment>>();
-            AugmentsPerRarity = new ReadOnlyDictionary<E_AugmentRarity, List<SO_Augment>>(_augmentsPerRarity);
 
-            foreach (SO_AugmentLibrary lib in _augmentLibHandle.Result)
+            foreach (var lib in _augmentLibHandle.Result)
             {
-                foreach (SO_Augment augment in lib.Augments)
+                foreach (var augment in lib.Augments)
                 {
                     AddAugmentInDictionary(augment);
                     _augmentChances[augment] = 1f;
@@ -160,26 +181,26 @@ namespace MortierFu
 
         private void AddAugmentInDictionary(SO_Augment augment)
         {
+            if (!augment)
+                return;
+
             E_AugmentRarity augmentRarity = augment.Rarity;
 
             if (!_augmentsPerRarity.ContainsKey(augmentRarity))
                 _augmentsPerRarity.Add(augmentRarity, new List<SO_Augment>());
 
-            // Then add this augment
             _augmentsPerRarity[augmentRarity].Add(augment);
         }
 
         private int WeightedRandomIndex(List<SO_Augment> augments)
         {
-            if (augments is null || augments.Count == 0)
+            if (augments == null || augments.Count == 0)
                 return -1;
 
-            float totalWeight = 0f;
+            var totalWeight = 0f;
 
-            for (int i = 0; i < augments.Count; i++)
-            {
+            for (var i = 0; i < augments.Count; i++)
                 totalWeight += GetAugmentWeight(augments[i]);
-            }
 
             if (totalWeight <= 0f)
             {
@@ -187,10 +208,10 @@ namespace MortierFu
                 return Random.Range(0, augments.Count);
             }
 
-            float rand = Random.Range(0f, totalWeight);
-            float current = 0f;
+            var rand = Random.Range(0f, totalWeight);
+            var current = 0f;
 
-            for (int i = 0; i < augments.Count; i++)
+            for (var i = 0; i < augments.Count; i++)
             {
                 current += GetAugmentWeight(augments[i]);
 
@@ -215,7 +236,7 @@ namespace MortierFu
             {
             }
 
-            if (!_augmentChances.TryGetValue(augment, out float previousChance))
+            if (!_augmentChances.TryGetValue(augment, out var previousChance))
             {
             }
 
@@ -256,10 +277,14 @@ namespace MortierFu
 
         public void Dispose()
         {
-            _rarityTable.Dispose();
-            _augmentsPerRarity.Clear();
+            _rarityTable?.Dispose();
+            _augmentsPerRarity?.Clear();
+            _augmentChances.Clear();
+            _removedAugments.Clear();
+            _availableUnlockedRarities.Clear();
 
-            Addressables.Release(_settingsHandle);
+            if (_settingsHandle.IsValid())
+                Addressables.Release(_settingsHandle);
 
             if (_augmentLibHandle.IsValid())
                 Addressables.Release(_augmentLibHandle);
