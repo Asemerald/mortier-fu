@@ -208,6 +208,9 @@ namespace MortierFu
             gameVictor = null;
 
             _gameplayCancellation = new CancellationTokenSource();
+            
+            ForEachCurrentPlayerCharacter(character => character.ClearAugments());
+            
             GameplayLoop(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
