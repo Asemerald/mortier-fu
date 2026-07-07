@@ -167,7 +167,7 @@ namespace MortierFu
                 () => _roundStartController.StopCountdown(),
                 () => OnScoreDisplayOver?.Invoke()
             );
-
+            
             _augmentRaceController = new AugmentRaceController(
                 teams,
                 augmentSelectionSys,
@@ -247,6 +247,8 @@ namespace MortierFu
             
             try
             {
+                augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
+                Logs.Log($"Current Race Index {GetCurrentAugmentRaceNumber()}");
                 await _augmentRaceController.PrepareSelectionAsync(
                     cancellationToken,
                     FlowSettings.AugmentStartShowcaseDelay
@@ -834,23 +836,18 @@ namespace MortierFu
             _isRaceScenePrepared = true;
         }
 
-        private async UniTask EnsureRaceScenePreparedAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask EnsureRaceScenePreparedAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await EnsureRaceMapLoadedAsync(
-                transitionColor,
-                cancellationToken
-            );
+            await EnsureRaceMapLoadedAsync(transitionColor, cancellationToken);
 
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask PrepareRaceSceneUnderScoreboardCoverAsync(TransitionColor transitionColor,
-            bool shouldPrepare, CancellationToken cancellationToken)
+        private async UniTask PrepareRaceSceneUnderScoreboardCoverAsync(TransitionColor transitionColor, bool shouldPrepare, CancellationToken cancellationToken)
         {
             if (!shouldPrepare)
                 return;
@@ -860,10 +857,7 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await levelSystem.LoadRaceMap(
-                useTransition: false,
-                color: transitionColor
-            );
+            await levelSystem.LoadRaceMap(useTransition: false, color: transitionColor);
 
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
@@ -884,10 +878,7 @@ namespace MortierFu
             if (!previousRoundWinner)
                 return;
 
-            _previousRoundWinnerRaceSizeController?.Apply(
-                previousRoundWinner,
-                FlowSettings.PreviousRoundWinnerRaceTargetSize
-            );
+            _previousRoundWinnerRaceSizeController?.Apply(previousRoundWinner, FlowSettings.PreviousRoundWinnerRaceTargetSize);
         }
 
         private PlayerCharacter GetPreviousRoundWinnerCharacterForRace()
@@ -897,7 +888,7 @@ namespace MortierFu
 
             var winningTeam = _currentRound.WinningTeam;
 
-            if (winningTeam == null || winningTeam.Members == null || winningTeam.Members.Count <= 0)
+            if (winningTeam?.Members is not { Count: > 0 })
                 return null;
 
             var winnerManager = winningTeam.Members[0];
@@ -908,15 +899,9 @@ namespace MortierFu
             return winnerManager.Character;
         }
         
-        private void ActivatePlayerAugmentsForRound()
-        {
-            ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());
-        }
+        private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());
 
-        private void ResetPlayersForRace()
-        {
-            ForEachCurrentPlayerCharacter(character => character.ResetForRace());
-        }
+        private void ResetPlayersForRace() => ForEachCurrentPlayerCharacter(character => character.ResetForRace());
         
         private void ForEachCurrentPlayerCharacter(Action<PlayerCharacter> action)
         {
@@ -928,13 +913,15 @@ namespace MortierFu
             if (players == null)
                 return;
 
-            for (int i = 0; i < players.Count; i++)
+            for (var i = 0; i < players.Count; i++)
             {
-                PlayerCharacter character = players[i].Character;
+                var character = players[i].Character;
 
                 if (character)
                     action.Invoke(character);
             }
         }
+        
+        private int GetCurrentAugmentRaceNumber() => _currentRound.RoundIndex + 1;
     }
 }
