@@ -67,8 +67,6 @@ namespace MortierFu
 
         public void ResetForPool()
         {
-            DetachPlayerChildren();
-
             _target = null;
             _startingPoint = Vector3.zero;
             _targetPoint = Vector3.zero;
@@ -79,35 +77,6 @@ namespace MortierFu
         {
             _startingPoint = transform.position;
             _targetPoint = _target.position;
-        }
-
-        private void OnCollisionEnter(Collision other)
-        {
-            if (!other.gameObject.TryGetComponent(out PlayerCharacter character))
-                return;
-
-            character.transform.SetParent(gameObject.transform);
-        }
-
-        private void OnCollisionExit(Collision other)
-        {
-            if (!other.gameObject.TryGetComponent(out PlayerCharacter character))
-                return;
-
-            character.transform.SetParent(null);
-        }
-
-        private void DetachPlayerChildren()
-        {
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = transform.GetChild(i);
-
-                if (!child.TryGetComponent(out PlayerCharacter character))
-                    continue;
-
-                character.transform.SetParent(null);
-            }
         }
 
         public void Interact(Vector3 contactPoint)
