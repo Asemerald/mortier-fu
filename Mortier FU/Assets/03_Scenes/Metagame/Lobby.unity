@@ -461,6 +461,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1719457020}
   - {fileID: 1806277577}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -19171,9 +19172,8 @@ GameObject:
   - component: {fileID: 609050230}
   - component: {fileID: 609050233}
   - component: {fileID: 609050232}
-  - component: {fileID: 609050231}
   m_Layer: 5
-  m_Name: AddScoreButton
+  m_Name: RightArrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19198,50 +19198,6 @@ RectTransform:
   m_AnchoredPosition: {x: 177, y: -324.8}
   m_SizeDelta: {x: 121, y: 105}
   m_Pivot: {x: 1, y: 0.5}
---- !u!114 &609050231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 609050229}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
-  m_Navigation:
-    m_Mode: 4
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 921801842}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 609050232}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &609050232
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30398,9 +30354,8 @@ GameObject:
   - component: {fileID: 921801841}
   - component: {fileID: 921801844}
   - component: {fileID: 921801843}
-  - component: {fileID: 921801842}
   m_Layer: 5
-  m_Name: RemoveScoreButton
+  m_Name: LeftArrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30425,50 +30380,6 @@ RectTransform:
   m_AnchoredPosition: {x: -181.5, y: -324.8}
   m_SizeDelta: {x: 121, y: 105}
   m_Pivot: {x: 1, y: 0.5}
---- !u!114 &921801842
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 921801840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
-  m_Navigation:
-    m_Mode: 4
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 609050231}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 921801843}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &921801843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46214,12 +46125,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbySettingsPanel
   _root: {fileID: 36478014}
-  _addScoreButton: {fileID: 609050231}
-  _removeScoreButton: {fileID: 921801842}
-  _defaultSelectedButton: {fileID: 609050231}
-  _settingsData: {fileID: 1547654677}
-  _scoreSteps: 64000000c80000002c010000e8030000b80b0000
-  _scoreStepIndicator: {fileID: 400413752}
+  _matchSettingsData: {fileID: 1547654677}
+  _navigationPanel: {fileID: 1719457021}
+  _scoreToWinItem: {fileID: 1640350943}
 --- !u!114 &1547654684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48227,8 +48135,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1640350942}
+  - component: {fileID: 1640350943}
   m_Layer: 5
-  m_Name: GameScoreParent
+  m_Name: ScoreToWinItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48246,10 +48155,10 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 400413751}
-  - {fileID: 2008455474}
   - {fileID: 609050230}
   - {fileID: 921801841}
+  - {fileID: 400413751}
+  - {fileID: 2008455474}
   m_Father: {fileID: 70923229}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
@@ -48257,6 +48166,35 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1640350943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640350941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75ecab72d00a1374f9938e9a94b730ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
+  _selectionGraphic: {fileID: 400413752}
+  _normalColor: {r: 1, g: 1, b: 1, a: 1}
+  _selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _minValue: 100
+  _maxValue: 5000
+  _step: 100
+  _currentValue: 1000
+  _wrapValue: 0
+  _valueText: {fileID: 400413752}
+  _leftArrow: {fileID: 921801843}
+  _rightArrow: {fileID: 609050232}
+  _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
+  _selectedArrowColor: {r: 1, g: 0.17007568, b: 0.015686274, a: 1}
+  _usedArrowColor: {r: 0, g: 1, b: 0, a: 1}
+  _onValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!43 &1643632074
 Mesh:
   m_ObjectHideFlags: 0
@@ -49388,6 +49326,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1714366128}
   m_CullTransparentMesh: 1
+--- !u!1 &1719457019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1719457020}
+  - component: {fileID: 1719457021}
+  m_Layer: 5
+  m_Name: UINavigationPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1719457020
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1719457019}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 36478018}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1719457021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1719457019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f04530fa7b968c4aa0019e2c69aad03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UINavigationPanel
+  _items:
+  - {fileID: 1640350943}
+  _navigationThreshold: 0.3
+  _navigationCooldown: 0.2
+  _wrapVerticalNavigation: 1
 --- !u!1 &1730726340
 GameObject:
   m_ObjectHideFlags: 0

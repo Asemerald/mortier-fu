@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -11,10 +10,7 @@ namespace MortierFu
 
         public bool IsInitialized { get; set; }
 
-        public UniTask OnInitialize()
-        {
-            return UniTask.CompletedTask;
-        }
+        public UniTask OnInitialize() => UniTask.CompletedTask;
 
         public void Register(PlayerManager player, IPlayerInteractionHandler handler)
         {
@@ -42,34 +38,7 @@ namespace MortierFu
             RemoveFromList(handlers, handler);
 
             if (handlers.Count == 0)
-            {
                 _handlersByPlayer.Remove(player);
-            }
-        }
-
-        public void UnregisterFromAll(IPlayerInteractionHandler handler)
-        {
-            if (handler is null)
-                return;
-
-            var playersToRemove = new List<PlayerManager>();
-
-            foreach (var pair in _handlersByPlayer)
-            {
-                var handlers = pair.Value;
-
-                RemoveFromList(handlers, handler);
-
-                if (handlers.Count == 0)
-                {
-                    playersToRemove.Add(pair.Key);
-                }
-            }
-
-            for (int i = 0; i < playersToRemove.Count; i++)
-            {
-                _handlersByPlayer.Remove(playersToRemove[i]);
-            }
         }
 
         public bool TryInteract(PlayerManager player)
@@ -82,7 +51,7 @@ namespace MortierFu
 
             for (int i = handlers.Count - 1; i >= 0; i--)
             {
-                var handler = handlers[i];
+                IPlayerInteractionHandler handler = handlers[i];
 
                 if (IsInvalidHandler(handler))
                 {
@@ -99,16 +68,7 @@ namespace MortierFu
             return false;
         }
 
-        private static bool IsInvalidHandler(IPlayerInteractionHandler handler)
-        {
-            if (handler is null)
-                return true;
-
-            if (handler is Object unityObject && !unityObject)
-                return true;
-
-            return false;
-        }
+        private static bool IsInvalidHandler(IPlayerInteractionHandler handler) =>  handler is null || handler is Object unityObject && !unityObject;
 
         private static void RemoveFromList(List<IPlayerInteractionHandler> handlers, IPlayerInteractionHandler handler)
         {
@@ -124,9 +84,6 @@ namespace MortierFu
             }
         }
 
-        public void Dispose()
-        {
-            _handlersByPlayer.Clear();
-        }
+        public void Dispose() => _handlersByPlayer.Clear();
     }
 }

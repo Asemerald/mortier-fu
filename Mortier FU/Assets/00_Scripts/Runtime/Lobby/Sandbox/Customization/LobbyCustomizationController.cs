@@ -158,14 +158,10 @@ namespace MortierFu
                 _canNavigate = true;
             }
             catch (OperationCanceledException)
-            {
-            }
+            { }
         }
         
-        public void Close()
-        {
-            CloseAsync(CancellationToken.None).Forget();
-        }
+        public void Close() => CloseAsync(CancellationToken.None).Forget();
         
         public async UniTask CloseAsync(CancellationToken cancellationToken)
         {
@@ -199,8 +195,7 @@ namespace MortierFu
                     await preview.HideAsync(ct);
             }
             catch (OperationCanceledException)
-            {
-            }
+            { }
 
             if (root)
                 root.SetActive(false);
