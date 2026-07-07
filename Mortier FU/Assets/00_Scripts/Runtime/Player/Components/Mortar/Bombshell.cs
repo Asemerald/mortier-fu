@@ -17,9 +17,9 @@ namespace MortierFu
             public Vector3 StartPos;
             public Vector3 TargetPos;
             public float Scale;
-            public float Speed;
             public float GravityScale;
 
+            public float Speed;
             public float Damage;
             public float AoeRange;
             public int Bounces;
@@ -53,6 +53,12 @@ namespace MortierFu
         {
             get => _data.AoeRange;
             set => _data.AoeRange = value;
+        }
+
+        public float Speed
+        {
+            get => _data.Speed;
+            set => _data.Speed = value;
         }
 
         public int Bounces

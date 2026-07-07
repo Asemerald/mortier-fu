@@ -12,7 +12,6 @@ namespace MortierFu
         public Sprite CardSprite;
         public Sprite SmallSprite;
         
-        [Tooltip("The type of augment this is. Must implement IAugment interface.")]
         [TypeFilter(typeof(IAugment))]
         public SerializableType AugmentType;
 
