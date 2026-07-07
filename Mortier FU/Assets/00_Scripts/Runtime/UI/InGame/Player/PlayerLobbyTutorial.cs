@@ -65,23 +65,26 @@ namespace MortierFu
 
         private void UpdateStepTuto(InputAction.CallbackContext ctx)
         {
-            HoldCheck(ctx);
-            
-            if (ctx.action.name != _currentInputToPress.action.name)
-                return;
-            
-            if (index != _tutorialBinding.Count - 1 )
+            if (ctx.performed)
             {
-                
-                index++;
-                UpdateVisual();
-                
+                if (ctx.action.name != _currentInputToPress.action.name)
+                    return;
+            
+                if (index != _tutorialBinding.Count - 1 )
+                {
+                    index++;
+                    UpdateVisual();
+                }
+                else
+                {
+                    _playerCharacter.PlayerInput.currentActionMap.actionTriggered -= UpdateStepTuto;
+                    _tutorialSlot.gameObject.SetActive(false);
+                    _tutorialText.gameObject.SetActive(false);
+                }
             }
-            else
+            else if (ctx.canceled)
             {
-                _playerCharacter.PlayerInput.currentActionMap.actionTriggered -= UpdateStepTuto;
-                _tutorialSlot.gameObject.SetActive(false);
-                _tutorialText.gameObject.SetActive(false);
+                HoldCheck(ctx);
             }
             
         }
@@ -91,13 +94,11 @@ namespace MortierFu
             _currentInputToPress = _tutorialBinding[index].inputAction;
             _tutorialSlot.sprite = _tutorialBinding[index].image;
             _tutorialText.text = _tutorialBinding[index].explanationText;
-            
-            Debug.Log(index + " " +_tutorialBinding[index].inputAction);
         }
 
         private void HoldCheck(InputAction.CallbackContext ctx)
         {
-            if (ctx.action.name == _aimToggleInputReference.action.name && ctx.canceled && index !=0)
+            if (ctx.action.name == _aimToggleInputReference.action.name && index !=0)
             {
                 index = 1;
                 UpdateVisual();
