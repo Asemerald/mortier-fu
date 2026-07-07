@@ -10,9 +10,7 @@ namespace MortierFu
     public sealed class RoundStartController : IDisposable
     {
         private readonly CountdownTimer _timer;
-        private readonly SO_GameModeData _data;
-        private readonly Action<PlayerControlContext> _setPlayerControlContext;
-        private readonly Action<GameState> _updateGameState;
+        private readonly SO_GameFlowSettings _data;
         private readonly Action<RoundInfo> _onRoundStarted;
 
         private RoundInfo _currentRound;
@@ -21,15 +19,11 @@ namespace MortierFu
 
         public RoundStartController(
             CountdownTimer timer,
-            SO_GameModeData data,
-            Action<PlayerControlContext> setPlayerControlContext,
-            Action<GameState> updateGameState,
+            SO_GameFlowSettings data,
             Action<RoundInfo> onRoundStarted)
         {
             _timer = timer ?? throw new ArgumentNullException(nameof(timer));
             _data = data ?? throw new ArgumentNullException(nameof(data));
-            _setPlayerControlContext = setPlayerControlContext ?? throw new ArgumentNullException(nameof(setPlayerControlContext));
-            _updateGameState = updateGameState ?? throw new ArgumentNullException(nameof(updateGameState));
             _onRoundStarted = onRoundStarted;
         }
 
@@ -101,9 +95,6 @@ namespace MortierFu
                 return;
 
             UnbindTimerEvents();
-
-            _updateGameState(GameState.Round);
-            _setPlayerControlContext(PlayerControlContext.RoundGameplay);
 
             Logs.Log($"Round #{_currentRound.RoundIndex} is starting...");
         }

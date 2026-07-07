@@ -119,9 +119,7 @@ namespace MortierFu
 
             _roundStartController = new RoundStartController(
                 timer,
-                Data,
-                SetPlayersControlContext,
-                UpdateGameState,
+                FlowSettings,
                 roundInfo => OnRoundStarted?.Invoke(roundInfo)
             );
 

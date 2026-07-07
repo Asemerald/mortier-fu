@@ -30,6 +30,10 @@ namespace MortierFu
         [Tooltip("Durée minimale du résumé des augments après la race, avant de passer au round.")]
         public float AugmentSummaryDuration = 4f;
 
+        [Header("Round Start")]
+        [Tooltip("Durée avant de rendre les inputs utilisables.")]
+        public float RoundStartCountdown = 5f;
+        
         [Header("Round End")]
         [Tooltip("Durée minimale du scoreboard. Il pourra durer plus longtemps si ses animations ne sont pas finies.")]
         public float ScoreboardMinimumDuration = 3f;
