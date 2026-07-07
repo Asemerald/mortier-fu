@@ -33,23 +33,21 @@ namespace MortierFu
 
         private void OnEnable()
         {
+            _gameModeBase ??= GameService.CurrentGameMode as GameModeBase;
             if (_gameModeBase == null)
             {
-                Logs.LogWarning("No GameModeBase found, reset visuals sub cancel");
+                Logs.LogWarning("No GameModeBase found; skipping visuals reset subscription.", this);
                 return;
             }
-            
+
             _gameModeBase.OnGameStarted += ResetVisualsOnGameStart;
         }
 
         private void OnDisable()
         {
             if (_gameModeBase == null)
-            {
-                Logs.LogWarning("No GameModeBase found, reset visuals sub cancel");
                 return;
-            }
-            
+
             _gameModeBase.OnGameStarted -= ResetVisualsOnGameStart;
         }
 
