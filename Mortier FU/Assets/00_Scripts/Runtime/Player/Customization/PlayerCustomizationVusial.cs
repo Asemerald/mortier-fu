@@ -161,7 +161,7 @@ namespace MortierFu
         
         public void UpdateVisualsAfterRound(bool isWinningGame)
         {
-            //in the futur if fx or more
+            // In the future, add VFX or other win feedback here.
             _crownInstance?.SetActive(isWinningGame);
         }
     }
