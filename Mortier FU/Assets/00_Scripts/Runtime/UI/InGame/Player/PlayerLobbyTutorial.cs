@@ -27,6 +27,8 @@ namespace MortierFu
         
         private int index = 0;
         
+        private InputActionMap _currentInputMap;
+        
         
         
         
@@ -58,7 +60,8 @@ namespace MortierFu
             _currentInputToPress = _tutorialBinding[index].inputAction;
             _tutorialSlot.sprite = _tutorialBinding[index].image;
             _tutorialText.text = _tutorialBinding[index].explanationText;
-
+            
+            _currentInputMap = _playerCharacter.PlayerInput.currentActionMap;
             _playerCharacter.PlayerInput.currentActionMap.actionTriggered += UpdateStepTuto;
             
         }
@@ -111,7 +114,7 @@ namespace MortierFu
                 return;
             
             timer.OnTimerStop -= InitTuto;
-            _playerCharacter.PlayerInput.currentActionMap.actionTriggered -= UpdateStepTuto;
+            _currentInputMap.actionTriggered -= UpdateStepTuto;
             _tutorialSlot.gameObject.SetActive(false);
             _tutorialText.gameObject.SetActive(false);
         }
