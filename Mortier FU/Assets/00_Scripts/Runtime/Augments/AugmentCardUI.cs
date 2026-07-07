@@ -110,6 +110,8 @@ namespace MortierFu
             {
                 dict.Add(variableList[len], descriptionList.AugmentDescription[len]);
             }
+
+            _sb.Clear();
             
             _sb.Append(augment.ConditionText);
             
