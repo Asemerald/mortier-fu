@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace MortierFu
 
         [Header("Feedback")]
         [SerializeField] private GameObject[] _playerReadyIndicators;
+        [SerializeField] private float delayIndicators;
 
         [Header("Rules")]
         [SerializeField] private float _toggleCooldown = 0.3f;
@@ -165,14 +167,21 @@ namespace MortierFu
             {
                 _readyPlayers.Remove(player);
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is no longer ready.");
+                
             }
             else
             {
+                _startTarget.DongAnimation();
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is ready.");
             }
-
-            RefreshFeedback();
-            TryLaunchIfAllReady();
+            
+            
+            UpdateFeedbackAnimation(player.PlayerIndex);
+            
+            
+            //RefreshFeedback();
+            //TryLaunchIfAllReady(); 
+            //C'est pas super propre vu que le tryLauchIfAllReady est déclenché par la fin de l'anim dans les prefabs de la target
         }
 
         private bool IsPlayerInSandbox(PlayerManager player)
@@ -229,10 +238,9 @@ namespace MortierFu
             }
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
-
-            //stoian
-            
-            if (!_character) return;
+           
+            if (!_character) 
+                return;
             
             var shooterCharacter = _character;
             
@@ -240,24 +248,56 @@ namespace MortierFu
                 return;
             
             _matchLauncher.LaunchMatch(shooterCharacter.Owner);
-            
-            //stoian
         }
+
+        public void StartMatch()
+        {
+            TryLaunchIfAllReady();
+        }
+        
 
         private void RefreshFeedback()
         {
             if (_playerReadyIndicators is null)
                 return;
+            
+            StartCoroutine(UpdateAllVisual(_registeredPlayers.Count-1)) ;
+            
+        }
 
-            for (var i = 0; i < _playerReadyIndicators.Length; i++)
+        private void UpdateFeedbackAnimation(int index)
+        {
+            Animator animator = _playerReadyIndicators[index].GetComponent<Animator>();
+            
+            if (animator)
             {
-                var indicator = _playerReadyIndicators[i];
-
-                if (!indicator)
-                    continue;
-
-                indicator.SetActive(IsPlayerIndexReady(i));
+                if (!IsPlayerIndexReady(index))
+                {
+                    animator.SetBool("IsReady", false);
+                    animator.SetBool("IsCanceled",true);
+                    
+                }
+                
+                else if (IsPlayerIndexReady(index))
+                {
+                    animator.SetBool("IsCanceled",false);
+                    animator.SetBool("IsReady", true);
+                }
             }
+            
+        }
+        
+        private IEnumerator UpdateAllVisual(int index)
+        {
+            UpdateFeedbackAnimation(index);
+            
+            int newIndex = index-1;
+           
+            if (index ==0)
+                yield break;
+            
+            yield return new WaitForSeconds(delayIndicators);
+            StartCoroutine(UpdateAllVisual(newIndex));
         }
 
         private bool IsPlayerIndexReady(int playerIndex)
