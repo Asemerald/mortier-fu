@@ -13,7 +13,6 @@ namespace MortierFu
     {
         [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
-        [SerializeField] private Image _background;
         [SerializeField] private Image _winnerBackgroundColorImage;
 
         [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
@@ -781,7 +780,6 @@ namespace MortierFu
             _winnerBackgroundImage.sprite = _winnerBackgrounds[winningTeam.Index];
             _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[winningTeam.Index];
 
-            _background.gameObject.SetActive(true);
             _winnerTitleImage.gameObject.SetActive(true);
             _winnerBackgroundImage.gameObject.SetActive(true);
             _winnerBackgroundColorImage.gameObject.SetActive(true);
@@ -826,7 +824,6 @@ namespace MortierFu
         {
             _goldenBombshellCts?.Cancel();
 
-            _background.gameObject.SetActive(false);
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
             _winnerBackgroundColorImage.gameObject.SetActive(false);

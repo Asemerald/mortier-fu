@@ -26,6 +26,8 @@ namespace MortierFu
         
         [SerializeField] private BoxCollider _boundbox;
         [SerializeField] private float _dampingBound;
+        
+        [SerializeField] private Vector3 _offset = new(3.5f, -1.2f, 0f);
 
         private float _currentOrthoSize;
         private float _maxArenaOrthoSize;
@@ -367,7 +369,7 @@ namespace MortierFu
         {
             InitEndFightTarget();
 
-            _endFightTarget.position = playerWin.position;
+            _endFightTarget.position = playerWin.position + _offset;
 
             zoomCineCam.Target.TrackingTarget = _endFightTarget;
             zoomCineCam.gameObject.SetActive(true);
