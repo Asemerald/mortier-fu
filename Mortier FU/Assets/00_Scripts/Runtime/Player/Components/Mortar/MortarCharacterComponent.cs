@@ -22,7 +22,7 @@ namespace MortierFu
 
         public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
 
-        private float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
+        public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
 

@@ -24,7 +24,6 @@ namespace MortierFu
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
         public SkinnedMeshRenderer[] CosmeticsOutlineMeshes;
         public GameObject SpawnVFXPrefab;
-        public GameObject ReloadVFXPrefab;
         public Material DashTrailMaterial;
     }
 
@@ -39,7 +38,6 @@ namespace MortierFu
         private ParticleSystem _particleSystemInstance;
 
         private GameObject _spawnVFXInstance;
-        private GameObject _reloadVFXInstance;
         private Color _startingColor;
 
         private Color _startingOutlineColor;
@@ -50,7 +48,6 @@ namespace MortierFu
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
-        private GameObject ReloadVFXPrefab => AspectMaterials.ReloadVFXPrefab;
         public Material GetDashTrailMaterial() => AspectMaterials.DashTrailMaterial;
 
         public CharacterAspectMaterials AspectMaterials { get; private set; }
@@ -141,22 +138,16 @@ namespace MortierFu
 
         public async UniTask ReloadCompleteFeedback()
         {
-            if (ReloadVFXPrefab == null)
-                return;
-            
-            _reloadVFXInstance = Object.Instantiate(ReloadVFXPrefab, Character.TailPoint);
-            _reloadVFXInstance.transform.localRotation = Quaternion.Euler(0, 180, 0); 
-
             if (_reloadWidgetTween.isAlive)
                 _reloadWidgetTween.Stop();
 
-            Color startColor = Character.Mortar.AimWidget.ColorInstance.color;
+            Color startColor = Character.Mortar.AimWidget.MaterialInstance.color;
             Color finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
 
             _reloadWidgetTween = Sequence.Create()
                 .Group(
                     Tween.MaterialColor(
-                        Character.Mortar.AimWidget.ColorInstance,
+                        Character.Mortar.AimWidget.MaterialInstance,
                         finalColor, 
                         0.08f,
                         ease: Ease.InOutSine,
@@ -166,7 +157,7 @@ namespace MortierFu
                 )
                 .OnComplete(() =>
                 {
-                    Character.Mortar.AimWidget.ColorInstance.color = startColor;
+                    Character.Mortar.AimWidget.MaterialInstance.color = startColor;
                 });
         }
 
