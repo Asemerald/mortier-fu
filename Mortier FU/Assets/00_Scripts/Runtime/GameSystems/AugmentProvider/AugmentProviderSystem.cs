@@ -24,10 +24,15 @@ namespace MortierFu
 
         private const string k_augmentLibLabel = "AugmentLib";
 
+        // Sert à détecter les changements de round (recovery progressif) .
+        private int _lastKnownRaceNumber = 1;
+
         public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments, int raceNumber)
         {
             if (outAugments == null || outAugments.Length == 0)
                 return;
+
+            SyncRoundRecovery(raceNumber);
 
             var length = outAugments.Length;
             IReadOnlyList<E_AugmentRarity> normalRarities = _rarityTable.BatchPull(length);
@@ -69,6 +74,25 @@ namespace MortierFu
             if (Settings.EnableDebug && useRaceUnlocks)
                 LogUnlockedRarities(raceNumber);
         }
+        
+        private void SyncRoundRecovery(int raceNumber)
+        {
+            if (raceNumber <= _lastKnownRaceNumber && !(raceNumber == 1 && _lastKnownRaceNumber == 1))
+            {
+                ResetChances();
+                _lastKnownRaceNumber = raceNumber;
+                return;
+            }
+
+            var roundsPassed = raceNumber - _lastKnownRaceNumber;
+
+            for (var r = 0; r < roundsPassed; r++)
+            {
+                RecoverChances();
+            }
+
+            _lastKnownRaceNumber = raceNumber;
+        }
 
         private bool ShouldUseRarityUnlocksByRace(int raceNumber)
         {
@@ -100,11 +124,10 @@ namespace MortierFu
 
             if (Settings.FallbackToNormalRarityTableIfNoUnlockedRarity)
                 return TryResolveNormalRarityForSlot(slotIndex, normalRarities, out rarity);
-            
-            rarity = default;
-            Logs.LogWarning($"[AugmentProviderSystem] No unlocked rarity available for race {raceNumber}.");
-            return false;
 
+            rarity = default;
+            Logs.LogWarning($"[AugmentProviderSystem] Pas de rareté disponible pour {raceNumber}.");
+            return false;
         }
 
         private bool TryResolveNormalRarityForSlot(int slotIndex, IReadOnlyList<E_AugmentRarity> normalRarities, out E_AugmentRarity rarity)
@@ -207,10 +230,7 @@ namespace MortierFu
 
             _rarityTable = new LootTable<E_AugmentRarity>(config);
             _rarityTable.PopulateLootBag(Settings.RarityDropRates);
-
-            if (Settings.EnableDebug)
-                Logs.Log($"Successfully populate the augment rarity loot table with {_rarityTable.TotalWeight} total weight.");
-
+            
             await PopulateAugmentDictionary();
         }
 
@@ -224,7 +244,7 @@ namespace MortierFu
 
             if (_augmentLibHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogWarning($"Error occurred while loading Augment libs: {_augmentLibHandle.OperationException.Message}");
+                Logs.LogWarning($"Error: {_augmentLibHandle.OperationException.Message}");
                 return;
             }
 
@@ -308,7 +328,7 @@ namespace MortierFu
                 return false;
             }
 
-            var damping = Mathf.Clamp01(Settings.DropRateDamping);
+            var damping = GetDampingForAugment(augment);
             var newChance = Mathf.Max(0f, previousChance * (1f - damping));
 
             _augmentChances[augment] = newChance;
@@ -317,6 +337,46 @@ namespace MortierFu
                 Logs.Log($"[AugmentProviderSystem] Damping applied to '{augment.name}': " + $"{previousChance:0.###} -> {newChance:0.###} " + $"with damping {damping:0.###}.");
 
             return true;
+        }
+        
+        private float GetDampingForAugment(SO_Augment augment)
+        {
+            var rarityDamping = Settings.RarityDropRateDamping;
+
+            if (rarityDamping != null)
+            {
+                for (var i = 0; i < rarityDamping.Count; i++)
+                {
+                    if (rarityDamping[i].Rarity == augment.Rarity)
+                        return Mathf.Clamp01(rarityDamping[i].DampingFactor);
+                }
+            }
+
+            return Mathf.Clamp01(Settings.DropRateDamping);
+        }
+        
+        private void RecoverChances()
+        {
+            var recovery = Mathf.Clamp01(Settings.DampingRecoveryRate);
+            if (recovery <= 0f)
+                return;
+
+            var keys = new List<SO_Augment>(_augmentChances.Keys);
+            foreach (var key in keys)
+            {
+                var current = _augmentChances[key];
+                _augmentChances[key] = Mathf.Min(1f, current + recovery);
+            }
+        }
+        
+        public void ResetChances()
+        {
+            var keys = new List<SO_Augment>(_augmentChances.Keys);
+            foreach (var key in keys)
+                _augmentChances[key] = 1f;
+
+            if (Settings.EnableDebug)
+                Logs.Log("[AugmentProviderSystem] Augment chances reset to default.");
         }
 
         private void LogUnlockedRarities(int raceNumber)

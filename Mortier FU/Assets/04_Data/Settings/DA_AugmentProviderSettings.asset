@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_AugmentProviderSettings
   EnableDebug: 0
   AllowCopiesInBatch: 0
-  DropRateDamping: 0.45
+  DropRateDamping: 0.12
   RarityDropRates:
   - Item: 0
     Weight: 37
@@ -26,6 +26,18 @@ MonoBehaviour:
     Weight: 12
   - Item: 4
     Weight: 8
+  RarityDropRateDamping:
+  - Rarity: 0
+    DampingFactor: 0.05
+  - Rarity: 1
+    DampingFactor: 0.08
+  - Rarity: 2
+    DampingFactor: 0.12
+  - Rarity: 3
+    DampingFactor: 0.18
+  - Rarity: 4
+    DampingFactor: 0.25
+  DampingRecoveryRate: 0.02
   UseRarityUnlocksByRace: 1
   RarityUnlocksByRace:
   - Rarity: 0
@@ -33,7 +45,7 @@ MonoBehaviour:
   - Rarity: 1
     UnlockFromRace: 1
   - Rarity: 2
-    UnlockFromRace: 2
+    UnlockFromRace: 1
   - Rarity: 3
     UnlockFromRace: 3
   - Rarity: 4
