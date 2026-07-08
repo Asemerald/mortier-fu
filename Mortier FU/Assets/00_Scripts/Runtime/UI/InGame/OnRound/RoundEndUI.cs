@@ -647,7 +647,8 @@ namespace MortierFu
             await AnimatePlacementText(ct);
             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay), cancellationToken: ct);
 
-            var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
+            var sortedTeams = _gm.GetPlayerTeamsWinnersOrder();
+            
             await AnimateLeaderboardPositions(sortedTeams, ct);
 
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();

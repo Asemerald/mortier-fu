@@ -825,5 +825,8 @@ namespace MortierFu
         }
         
         private int GetCurrentAugmentRaceNumber() => _currentRound.RoundIndex + 1;
+
+        //en sah c'est un peu villain mais c'est appelé une fois donc en perf osef
+        public List<PlayerTeam> GetPlayerTeamsWinnersOrder() => _scoreController.GetOrderWinners(Teams.ToList()); 
     }
 }
