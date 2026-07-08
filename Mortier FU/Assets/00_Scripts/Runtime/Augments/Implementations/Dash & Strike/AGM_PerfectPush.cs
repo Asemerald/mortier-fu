@@ -42,6 +42,7 @@ namespace MortierFu
             
             stats.MaxHealth.AddModifier(db.PerfectPushParams.MaxHealthMod.ToMod(this));
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
+            Debug.Log("C'est touché");
         }
 
         private void OnTriggerEndRound(TriggerEndRound evt)
