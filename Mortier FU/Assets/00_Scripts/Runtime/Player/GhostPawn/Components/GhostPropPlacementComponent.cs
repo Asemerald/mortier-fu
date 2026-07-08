@@ -411,9 +411,13 @@ namespace MortierFu
                 Settings.PlacementBlockingMask,
                 QueryTriggerInteraction.Collide
             );
-
+            
+            
             if (IsWaterOnTop())
+            {
                 return false;
+            }
+                
 
             if (hitCount >= _overlapResults.Length)
             {
@@ -443,17 +447,19 @@ namespace MortierFu
         private bool IsWaterOnTop()
         {
             RaycastHit hit;
+            
             if (Physics.Raycast(
                     _currentSpawnPosition + Vector3.up * Settings.WaterRaycastHeightMargin,
                     Vector3.down, out hit, Settings.WaterRaycastLength))
             {
-                if ((Settings.WaterLayerMask & 1 << hit.collider.gameObject.layer) == 1 << hit.collider.gameObject.layer)
+                if ((Settings.WaterLayerMask.value & (1 << hit.collider.gameObject.layer)) != 0)
                 {
                     return true;
                 }
                     
                 return false;
             }
+            
             return true;
         }
 

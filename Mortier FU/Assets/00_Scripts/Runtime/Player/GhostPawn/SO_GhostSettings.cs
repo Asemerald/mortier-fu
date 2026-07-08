@@ -69,7 +69,7 @@ namespace MortierFu
         public float CollisionRadius => _collisionRadius;
         public float GroundRaycastStartHeight => _groundRaycastStartHeight;
         public float GroundRaycastLength => _groundRaycastLength;
-        public float WaterRaycastLength => _waterLayerMask;
+        public float WaterRaycastLength => _waterRaycastLenght;
         public float WaterRaycastHeightMargin => _waterRaycastHeightMargin;
         
         public float SpawnCheckRadius => _spawnCheckRadius;
