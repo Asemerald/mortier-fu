@@ -24,7 +24,7 @@ namespace MortierFu
         [Header("Customization Limits")]
         [SerializeField] private int _skinCount = 4;
         [SerializeField] private int _faceColumnCount = 4;
-        [SerializeField] private int _faceRowCount = 3;
+        [SerializeField] private int _faceRowCount = 4;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onConfirmed;
@@ -82,8 +82,8 @@ namespace MortierFu
             _isOpen = true;
 
             _currentSkinIndex = player.SkinIndex;
-            _currentFaceColumn = player.FaceColumn;
-            _currentFaceRow = player.FaceRow;
+            _currentFaceColumn = Mathf.Clamp(player.FaceColumn, 1, _faceColumnCount);
+            _currentFaceRow = Mathf.Clamp(player.FaceRow, 1, _faceRowCount);
 
             ConfigureItems();
             RefreshItemsFromCurrentCustomization();
@@ -232,15 +232,24 @@ namespace MortierFu
                 _hatItem.OnValueChanged -= SetSkin;
         }
 
-        private int GetCurrentFaceLinearIndex() => _currentFaceRow * _faceColumnCount + _currentFaceColumn;
+        private int GetCurrentFaceLinearIndex()
+        {
+            int column = Mathf.Clamp(_currentFaceColumn, 1, _faceColumnCount) - 1;
+            int row = Mathf.Clamp(_currentFaceRow, 1, _faceRowCount) - 1;
+
+            return row * _faceColumnCount + column;
+        }
 
         private void SetFaceLinearIndex(int faceIndex)
         {
             int faceCount = Mathf.Max(1, _faceColumnCount * _faceRowCount);
             faceIndex = WrapIndex(faceIndex, faceCount);
 
-            _currentFaceColumn = faceIndex % _faceColumnCount;
-            _currentFaceRow = faceIndex / _faceColumnCount;
+            int zeroBasedColumn = faceIndex % _faceColumnCount;
+            int zeroBasedRow = faceIndex / _faceColumnCount;
+
+            _currentFaceColumn = zeroBasedColumn + 1;
+            _currentFaceRow = zeroBasedRow + 1;
 
             ApplyCurrentCustomization();
         }
