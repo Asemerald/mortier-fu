@@ -177,8 +177,11 @@ namespace MortierFu
             
             
             UpdateFeedbackAnimation(player.PlayerIndex);
+            
+            
             //RefreshFeedback();
-            TryLaunchIfAllReady(player);
+            //TryLaunchIfAllReady(); 
+            //C'est pas super propre vu que le tryLauchIfAllReady est déclenché par la fin de l'anim dans les prefabs de la target
         }
 
         private bool IsPlayerInSandbox(PlayerManager player)
@@ -200,7 +203,7 @@ namespace MortierFu
             return false;
         }
 
-        private void TryLaunchIfAllReady(PlayerManager indexPlayer)
+        private void TryLaunchIfAllReady()
         {
             if (!_sandboxController)
                 return;
@@ -235,10 +238,7 @@ namespace MortierFu
             }
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
-        }
-
-        public void StartMatch()
-        {
+           
             if (!_character) 
                 return;
             
@@ -249,6 +249,12 @@ namespace MortierFu
             
             _matchLauncher.LaunchMatch(shooterCharacter.Owner);
         }
+
+        public void StartMatch()
+        {
+            TryLaunchIfAllReady();
+        }
+        
 
         private void RefreshFeedback()
         {
@@ -262,6 +268,7 @@ namespace MortierFu
         private void UpdateFeedbackAnimation(int index)
         {
             Animator animator = _playerReadyIndicators[index].GetComponent<Animator>();
+            
             if (animator)
             {
                 if (!IsPlayerIndexReady(index))
