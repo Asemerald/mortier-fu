@@ -203,7 +203,7 @@ namespace MortierFu
             if (!_isInitialized)
                 return;
 
-            if (!Character.CanAim && character.ControlContext is not PlayerControlContext.AugmentRace)
+            if (!Character.CanAim && character.ControlContext is not PlayerControlContext.AugmentRace) //stoian
                 return;
 
             if (!Character.Health.IsAlive)
