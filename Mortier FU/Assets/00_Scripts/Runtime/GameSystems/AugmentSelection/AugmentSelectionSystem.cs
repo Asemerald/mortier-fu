@@ -100,11 +100,10 @@ namespace MortierFu
                 var pickup = pickupGo.GetComponent<AugmentCardUI>();
 
                 pickup.Initialize();
-                pickup.Hide();
                 
                 var pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
-                pickupNewAugment.Reset();
+                //pickupNewAugment.Reset();
 
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupNewAugment);
