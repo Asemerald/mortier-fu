@@ -776,6 +776,7 @@ MonoBehaviour:
     - {fileID: 4419387932538712321}
     - {fileID: 3959792999334263318}
     SpawnVFXPrefab: {fileID: 688233631026927870, guid: dcfbe80c162ff894fbc5d0cbcaa5fd74, type: 3}
+    ReloadVFXPrefab: {fileID: 4113627217184505612, guid: e413fa39a3b54c341b1beae6e6cac830, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: afc67180802c5ad4493a3d3e3e6d0c3d, type: 2}
   - WhiteSpike00: {fileID: 2100000, guid: 3060a87206f268d47ac35fa9be47cab4, type: 2}
     WhiteSpike01: {fileID: 2100000, guid: 96e8209ca5038d84cbdaadc9e3251527, type: 2}
@@ -870,6 +871,7 @@ MonoBehaviour:
     - {fileID: 4419387932538712321}
     - {fileID: 3959792999334263318}
     SpawnVFXPrefab: {fileID: 1612055708514398196, guid: 8d526819b3493384597dc0fa6c4c1f55, type: 3}
+    ReloadVFXPrefab: {fileID: 7316825070430472194, guid: ba7036f7f90213e42ae596dedd092c60, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 0d31027d3b2a467448f3d9b846bd0721, type: 2}
   - WhiteSpike00: {fileID: 2100000, guid: 3060a87206f268d47ac35fa9be47cab4, type: 2}
     WhiteSpike01: {fileID: 2100000, guid: 96e8209ca5038d84cbdaadc9e3251527, type: 2}
@@ -964,6 +966,7 @@ MonoBehaviour:
     - {fileID: 4419387932538712321}
     - {fileID: 3959792999334263318}
     SpawnVFXPrefab: {fileID: 8671296310660779095, guid: 2fa2048cd66d04c42ac493c1225a15b9, type: 3}
+    ReloadVFXPrefab: {fileID: 7316825070430472194, guid: c9b625f6bd51cf149808f23bf15058b3, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: 2ffedcde71ac33d40a374c128a051386, type: 2}
   - WhiteSpike00: {fileID: 2100000, guid: 3060a87206f268d47ac35fa9be47cab4, type: 2}
     WhiteSpike01: {fileID: 2100000, guid: 96e8209ca5038d84cbdaadc9e3251527, type: 2}
@@ -1058,11 +1061,13 @@ MonoBehaviour:
     - {fileID: 4419387932538712321}
     - {fileID: 3959792999334263318}
     SpawnVFXPrefab: {fileID: 145384326513769077, guid: 826cb40b4efd13b43833fd787127c772, type: 3}
+    ReloadVFXPrefab: {fileID: 7316825070430472194, guid: 1c5d9490888d4af4a96c6420e2f8296f, type: 3}
     DashTrailMaterial: {fileID: 2100000, guid: fb59539a77743c542a67aa9687a34907, type: 2}
   _animator: {fileID: 7582028062639496719}
   _characterStatsTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
   _strikePoint: {fileID: 3774432769024524082}
   _feetPoint: {fileID: 7136404212544225045}
+  _tailPoint: {fileID: 8689125497523620362}
   _customizationVisual: {fileID: 6139260222370270294}
   <Stats>k__BackingField: {fileID: 0}
   TutorialImage: {fileID: 2882676395004836494}
@@ -4028,6 +4033,11 @@ GameObject:
 --- !u!137 &8452620086836292743 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: -5410126143491848979, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
+  m_PrefabInstance: {fileID: 4730718875093051498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8689125497523620362 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5101704975767608736, guid: b333d944b2d13ed4f8b02d457ab49d1f, type: 3}
   m_PrefabInstance: {fileID: 4730718875093051498}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8720793465372568431 stripped

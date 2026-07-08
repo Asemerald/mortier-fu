@@ -42,6 +42,7 @@ namespace MortierFu
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
+        [SerializeField] private Transform _tailPoint;
         
         [Header("Customization")]
         [SerializeField] private PlayerCustomizationVisual _customizationVisual;
@@ -95,6 +96,7 @@ namespace MortierFu
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;
+        public Transform TailPoint => _tailPoint;
 
         void Awake()
         {

@@ -24,12 +24,14 @@ namespace MortierFu
         public SkinnedMeshRenderer[] PlayerOutlineMeshes;
         public SkinnedMeshRenderer[] CosmeticsOutlineMeshes;
         public GameObject SpawnVFXPrefab;
+        public GameObject ReloadVFXPrefab;
         public Material DashTrailMaterial;
     }
 
     public class AspectCharacterComponent : CharacterComponent
     {
         private Sequence _blinkTween;
+        private Sequence _reloadWidgetTween;
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
@@ -37,6 +39,7 @@ namespace MortierFu
         private ParticleSystem _particleSystemInstance;
 
         private GameObject _spawnVFXInstance;
+        private GameObject _reloadVFXInstance;
         private Color _startingColor;
 
         private Color _startingOutlineColor;
@@ -47,6 +50,7 @@ namespace MortierFu
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
+        private GameObject ReloadVFXPrefab => AspectMaterials.ReloadVFXPrefab;
         public Material GetDashTrailMaterial() => AspectMaterials.DashTrailMaterial;
 
         public CharacterAspectMaterials AspectMaterials { get; private set; }
@@ -132,6 +136,37 @@ namespace MortierFu
                 {
                     _materialInstance.color = _startingColor;
                     _outlineMaterialInstance.color = _startingOutlineColor;
+                });
+        }
+
+        public async UniTask ReloadCompleteFeedback()
+        {
+            if (ReloadVFXPrefab == null)
+                return;
+            
+            _reloadVFXInstance = Object.Instantiate(ReloadVFXPrefab, Character.TailPoint);
+            _reloadVFXInstance.transform.localRotation = Quaternion.Euler(0, 180, 0); 
+
+            if (_reloadWidgetTween.isAlive)
+                _reloadWidgetTween.Stop();
+
+            Color startColor = Character.Mortar.AimWidget.ColorInstance.color;
+            Color finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
+
+            _reloadWidgetTween = Sequence.Create()
+                .Group(
+                    Tween.MaterialColor(
+                        Character.Mortar.AimWidget.ColorInstance,
+                        finalColor, 
+                        0.08f,
+                        ease: Ease.InOutSine,
+                        cycles: 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .OnComplete(() =>
+                {
+                    Character.Mortar.AimWidget.ColorInstance.color = startColor;
                 });
         }
 
