@@ -47,7 +47,7 @@ namespace MortierFu
             _stationCancellation?.Dispose();
             _stationCancellation = null;
         }
-
+        
         protected override bool CanInteract(PlayerManager player)
         {
             if (!base.CanInteract(player))
@@ -69,6 +69,12 @@ namespace MortierFu
         }
 
         protected override void Interact(PlayerManager player)
+        {
+            throw new NotImplementedException();
+        }
+
+        //ENTRE DANS LA CUSTO
+        protected override void OnPlayerEntered(PlayerManager player)
         {
             if (!player)
                 return;
@@ -93,6 +99,9 @@ namespace MortierFu
             _activePanels[player] = panel;
 
             Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} entered customization.");
+            
+            Debug.Log(player.Character.transform.GetChild(0).name);
+            player.Character.gameObject.SetActive(false);
 
             player.SetControlContext(PlayerControlContext.LobbyCustomization);
 
@@ -103,7 +112,6 @@ namespace MortierFu
         {
             if (!player)
                 return;
-
             ForceCloseCustomizationAsync(
                 player,
                 restoreSandboxControl: true,
@@ -148,6 +156,7 @@ namespace MortierFu
             ).Forget();
         }
         
+        //SORT DE LA CUSTOMISATION
         private async UniTaskVoid ForceCloseCustomizationAsync(PlayerManager player, bool restoreSandboxControl, bool exitState, bool waitForExitAnimation)
         {
             if (!player)
@@ -188,8 +197,10 @@ namespace MortierFu
                 {
                     player.SetControlContext(PlayerControlContext.LobbyLocked);
                 }
-
+               
                 Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
+                
+                player.Character.gameObject.SetActive(true);
             }
             catch (OperationCanceledException)
             {
@@ -211,6 +222,7 @@ namespace MortierFu
 
         private void RestorePlayerLobbyContext(PlayerManager player)
         {
+            
             if (!player)
                 return;
 

@@ -32,7 +32,8 @@ namespace MortierFu
 
             return true;
         }
-
+        
+        
         public bool TryExitCustomization(PlayerManager player)
         {
             if (!player)
@@ -42,6 +43,7 @@ namespace MortierFu
                 return false;
 
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited customization.");
+            
 
             return true;
         }
