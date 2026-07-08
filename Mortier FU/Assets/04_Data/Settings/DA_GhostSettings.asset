@@ -21,6 +21,8 @@ MonoBehaviour:
   _collisionRadius: 0.35
   _groundRaycastStartHeight: 3
   _groundRaycastLength: 8
+  _waterRaycastLenght: 3
+  _waterRaycastHeightMargin: 0.3
   _spawnCheckRadius: 0.45
   _vehicleSpawnSearchRadius: 4
   _vehicleSpawnSearchSteps: 16
@@ -36,6 +38,9 @@ MonoBehaviour:
   _placementBlockingMask:
     serializedVersion: 2
     m_Bits: 81589
+  _waterLayerMask:
+    serializedVersion: 2
+    m_Bits: 16
   _propSpawnCooldown: 6
   _placeableProps:
   - {fileID: 11400000, guid: 8e11f89fc72f1b946ac0af309efcc994, type: 2}
