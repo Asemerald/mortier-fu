@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace MortierFu
 {
@@ -7,12 +9,16 @@ namespace MortierFu
     {
         public int ID;
         public string Name;
-        [TextArea] public string Description;
+        
+        //stoian
+        public string ConditionText;
+        public TEMP_STRUCT_AugmentDescription[] Description;
+        //stoian
+        
         public E_AugmentRarity Rarity;
         public Sprite CardSprite;
         public Sprite SmallSprite;
         
-        [Tooltip("The type of augment this is. Must implement IAugment interface.")]
         [TypeFilter(typeof(IAugment))]
         public SerializableType AugmentType;
 

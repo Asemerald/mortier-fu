@@ -228,6 +228,8 @@ namespace MortierFu
 
             RefreshJoinAvailability();
             NotifyPromptStateChanged();
+            
+            player.Character.ActivateRoundAugments();
         }
 
         private void HandlePlayerLeft(PlayerManager player)

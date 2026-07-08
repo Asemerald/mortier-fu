@@ -26,7 +26,7 @@ namespace MortierFu
         [SerializeField] private Sprite[] _playerWinnerIcons;
         [SerializeField] private Sprite[] _winnerTitleSprites;
         [SerializeField] private Sprite[] _winnerBackgrounds;
-        [SerializeField] private Sprite[] _winnerBackgroundColors;
+        [SerializeField] private Sprite[] _winnerBackgroundColors; 
 
         [Header("Animation Settings")] [SerializeField]
         private float _sliderAnimationDuration = 0.3f;
@@ -631,15 +631,9 @@ namespace MortierFu
             slider.value = end;
         }
 
-        private async UniTask AnimateRoundEndSequence(
-            RoundInfo round,
-            CancellationToken cancellationToken
-        )
+        private async UniTask AnimateRoundEndSequence(RoundInfo round, CancellationToken cancellationToken)
         {
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _lifetimeCancellation.Token
-            );
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
 
             var ct = linkedCancellation.Token;
 
@@ -647,7 +641,6 @@ namespace MortierFu
 
             InitializePlayerPanels(_leaderboardOrder);
             ShowRoundWinner(round.WinningTeam);
-            ShowGoldenBombshellIndicator(ct).Forget();
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
 
@@ -658,11 +651,10 @@ namespace MortierFu
             await AnimateLeaderboardPositions(sortedTeams, ct);
 
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
+            
+            ShowGoldenBombshellIndicator(ct).Forget();
 
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(GetScoreboardMinimumDuration()),
-                cancellationToken: ct
-            );
+            await UniTask.Delay(TimeSpan.FromSeconds(GetScoreboardMinimumDuration()), cancellationToken: ct);
 
             _goldenBombshellCts?.Cancel();
         }

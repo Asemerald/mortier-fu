@@ -16,19 +16,15 @@ namespace MortierFu
     {
         private static readonly object k_controlContextInvincibilitySource = new ControlContextInvincibilitySource();
         
-        /// <summary>
-        /// Set by the game mode when gameplay actions are allowed or not.
-        /// </summary>
         public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
 
-        public PlayerActionPermissions ActionPermissions { get; private set; } =
-            PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
+        public PlayerActionPermissions ActionPermissions { get; private set; } = PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
 
-        public bool CanMove => ActionPermissions.CanMove && Health != null && Health.IsAlive;
-        public bool CanAim => ActionPermissions.CanAim && Health != null && Health.IsAlive;
-        public bool CanShoot => ActionPermissions.CanShoot && Health != null && Health.IsAlive;
-        public bool CanDash => ActionPermissions.CanDash && Health != null && Health.IsAlive;
-        public bool CanTaunt => ActionPermissions.CanTaunt && Health != null && Health.IsAlive;
+        public bool CanMove => ActionPermissions.CanMove && Health is { IsAlive: true };
+        public bool CanAim => ActionPermissions.CanAim && Health is { IsAlive: true };
+        public bool CanShoot => ActionPermissions.CanShoot && Health is { IsAlive: true };
+        public bool CanDash => ActionPermissions.CanDash && Health is { IsAlive: true };
+        private bool CanTaunt => ActionPermissions.CanTaunt && Health is { IsAlive: true };
 
         [SerializeField] private PlayerTauntFeedback _tauntFeedback;
 
@@ -46,6 +42,7 @@ namespace MortierFu
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
+        
         [Header("Customization")]
         [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
@@ -148,10 +145,7 @@ namespace MortierFu
             _decelMultiplier.Reset();
         }
 
-        private void OnDisable()
-        {
-            Mortar?.CancelAiming();
-        }
+        private void OnDisable() => Mortar?.CancelAiming();
 
         private void OnDestroy()
         {
@@ -186,7 +180,7 @@ namespace MortierFu
 
             Owner = owner;
 
-            var playerIndex = owner.PlayerIndex;
+            int playerIndex = owner.PlayerIndex;
             if (playerIndex < 0 || playerIndex >= _characterAspectMaterials.Length)
             {
                 Logs.LogError($"Player index {playerIndex} is out of bounds for character aspect materials.");
@@ -288,65 +282,38 @@ namespace MortierFu
 
             // Define transitions
 
-            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive
-            ));
+            At(_knockbackState, _locomotionState, new FuncPredicate(() => !_knockbackState.IsActive));
 
-            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive
-            ));
+            At(_stunState, _locomotionState, new FuncPredicate(() => !_stunState.IsActive));
 
-            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished
-            ));
+            At(_dashState, _locomotionState, new FuncPredicate(() => _dashState.IsFinished));
 
             // Locomotion -> Dash
-            At(_locomotionState, _dashState, new PlayerActionPredicate(
-                this,
-                permissions => permissions.CanDash,
-                () => _dashAction.triggered
-                      && _dashState.AvailableCharges > 0
-                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
-            ));
+            At(_locomotionState, _dashState, new PlayerActionPredicate(this, permissions => permissions.CanDash, () => _dashAction.triggered 
+                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
 
             // Locomotion -> Aim
-            At(_locomotionState, aimState, new PlayerActionPredicate(
-                this,
-                permissions => permissions.CanAim,
-                () => _toggleAimAction.IsPressed()
-            ));
+            At(_locomotionState, aimState, new PlayerActionPredicate(this, permissions => permissions.CanAim, () => _toggleAimAction.IsPressed()));
 
             // Aim -> Locomotion
-            At(aimState, _locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed() || !CanAim
-            ));
+            At(aimState, _locomotionState, new FuncPredicate(() => !_toggleAimAction.IsPressed() || !CanAim));
 
             // Aim -> Dash
-            At(aimState, _dashState, new PlayerActionPredicate(
-                this,
-                permissions => permissions.CanDash,
-                () => _dashAction.triggered
-                      && _dashState.AvailableCharges > 0
-                      && Controller.GetDashDirection().sqrMagnitude > 0.01f
-            ));
+            At(aimState, _dashState, new PlayerActionPredicate(this, permissions => permissions.CanDash, () => _dashAction.triggered
+                && _dashState.AvailableCharges > 0 && Controller.GetDashDirection().sqrMagnitude > 0.01f));
 
             // Aim -> Shoot
-            At(aimState, shootState, new PlayerActionPredicate(
-                this,
-                permissions => permissions.CanShoot,
-                () => Mortar.IsShooting
-            ));
+            At(aimState, shootState, new PlayerActionPredicate(this, permissions => permissions.CanShoot, () => Mortar.IsShooting));
 
             // Shoot -> Aim
-            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished || !CanShoot
-            ));
+            At(shootState, aimState, new FuncPredicate(() => shootState.IsClipFinished || !CanShoot));
 
             // Transitions globales prioritaires
-            Any(deathState, new FuncPredicate(() => !Health.IsAlive
-            ));
+            Any(deathState, new FuncPredicate(() => !Health.IsAlive));
 
-            Any(_knockbackState,
-                new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive
-                ));
+            Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
 
-            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive
-            ));
+            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
 
             // Set initial state
             _stateMachine.SetState(_locomotionState);
@@ -358,10 +325,7 @@ namespace MortierFu
             _knockbackState.ReceiveKnockback(duration, force, stunDuration, source);
         }
 
-        public void ReceiveStun(float duration)
-        {
-            _stunState.ReceiveStun(duration);
-        }
+        public void ReceiveStun(float duration) => _stunState.ReceiveStun(duration);
 
         public void FindInputAction(string actionName, out InputAction action)
         {
@@ -372,9 +336,7 @@ namespace MortierFu
 #endif
             action = PlayerInput.actions.FindAction(actionName, isEditor);
             if (action == null)
-            {
                 Logs.LogError($"[PlayerCharacter]: Input Action '{actionName}' not found in PlayerInput actions.");
-            }
         }
 
         #region Augments
@@ -389,7 +351,7 @@ namespace MortierFu
             if (AreAugmentsActive)
                 ActivateAugment(augmentData);
 
-            var analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
+            AnalyticsSystem analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentSelected(this, augmentData);
         }
 
@@ -406,7 +368,7 @@ namespace MortierFu
             RefreshRuntimeAfterAugmentStateChanged();
         }
 
-        public void DeactivateRoundAugments()
+        private void DeactivateRoundAugments()
         {
             if (!AreAugmentsActive && _activeAugments.Count == 0)
             {
@@ -434,7 +396,7 @@ namespace MortierFu
 
             try
             {
-                var augmentInstance = AugmentFactory.Create(augmentData, this, SystemManager.Config.AugmentDatabase);
+                IAugment augmentInstance = AugmentFactory.Create(augmentData, this, SystemManager.Config.AugmentDatabase);
                 augmentInstance.Initialize();
                 _activeAugments.Add(augmentInstance);
             }
@@ -524,16 +486,15 @@ namespace MortierFu
                     breakable.Interact(other.GetContact(0).point);
                 }
 
-                if (_knockbackState.LastBumpSource != null)
+                if (_knockbackState.LastBumpSource == null) return;
+                
+                EventBus<TriggerSuccessfulPush>.Raise(new TriggerSuccessfulPush()
                 {
-                    EventBus<TriggerSuccessfulPush>.Raise(new TriggerSuccessfulPush()
-                    {
-                        Character = this,
-                        Source = _knockbackState.LastBumpSource,
-                    });
+                    Character = this,
+                    Source = _knockbackState.LastBumpSource,
+                });
 
-                    _knockbackState.ClearLastBumpSource();
-                }
+                _knockbackState.ClearLastBumpSource();
             }
         }
 
@@ -545,12 +506,10 @@ namespace MortierFu
             Aspect?.OnDrawGizmos();
             Mortar?.OnDrawGizmos();
 
-            if (Owner)
-            {
-                Gizmos.color = Color.white;
-                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
-                    $"Player {Owner.PlayerIndex + 1}");
-            }
+            if (!Owner) return;
+            
+            Gizmos.color = Color.white;
+            UnityEditor.Handles.Label(transform.position + Vector3.up * 2, $"Player {Owner.PlayerIndex + 1}");
         }
 
         private void OnDrawGizmosSelected()
@@ -560,22 +519,17 @@ namespace MortierFu
             Aspect?.OnDrawGizmosSelected();
             Mortar?.OnDrawGizmosSelected();
 
-            if (Owner)
-            {
-                Gizmos.color = Color.white;
-                UnityEditor.Handles.Label(transform.position + Vector3.up * 2,
-                    $"Player {Owner.PlayerIndex + 1}");
-            }
+            if (!Owner) return;
+            
+            Gizmos.color = Color.white;
+            UnityEditor.Handles.Label(transform.position + Vector3.up * 2, $"Player {Owner.PlayerIndex + 1}");
         }
 
 #endif
 
         #endregion
 
-        private void UpdateAnimator()
-        {
-            _animator.SetFloat(_speedHash, Controller.SpeedRatio);
-        }
+        private void UpdateAnimator() => _animator.SetFloat(_speedHash, Controller.SpeedRatio);
 
         private void PlayDashSFX(InputAction.CallbackContext context)
         {
@@ -583,15 +537,10 @@ namespace MortierFu
                 return;
 
             if (_dashState.DashCooldownProgress > 0f)
-            {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
-            }
         }
 
-        public void WinRoundDance()
-        {
-            _animator.CrossFade("WinRound", 0.1f, 0);
-        }
+        public void WinRoundDance() => _animator.CrossFade("WinRound", 0.1f, 0);
         
         private void UpdateInvincibilityFromControlContext(PlayerControlContext context)
         {
@@ -599,13 +548,9 @@ namespace MortierFu
                 return;
 
             if (ShouldBeInvincibleInContext(context))
-            {
                 Health.AddInvincibility(k_controlContextInvincibilitySource);
-            }
             else
-            {
                 Health.RemoveInvincibility(k_controlContextInvincibilitySource);
-            }
         }
 
         private static bool ShouldBeInvincibleInContext(PlayerControlContext context)
@@ -618,8 +563,7 @@ namespace MortierFu
         private sealed class ControlContextInvincibilitySource
         { }
 
-        private void At(IState from, IState to, IPredicate condition) =>
-            _stateMachine.AddTransition(from, to, condition);
+        private void At(IState from, IState to, IPredicate condition) => _stateMachine.AddTransition(from, to, condition);
 
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
 
@@ -639,8 +583,6 @@ namespace MortierFu
             _customizationVisual = GetComponentInChildren<PlayerCustomizationVisual>(true);
         }
 
-        #region Caca Qui Slow
-
         private readonly SmoothedMultiplier _speedMultiplier = new();
         private readonly SmoothedMultiplier _accelMultiplier = new();
         private readonly SmoothedMultiplier _decelMultiplier = new();
@@ -649,25 +591,16 @@ namespace MortierFu
         public float ExternalAccelerationMultiplier => _accelMultiplier.Value;
         public float ExternalDecelerationMultiplier => _decelMultiplier.Value;
 
-        public void SetExternalSpeedMultiplier(float target, float duration) =>
-            _speedMultiplier.SetTarget(target, duration, this);
+        public void SetExternalSpeedMultiplier(float target, float duration) => _speedMultiplier.SetTarget(target, duration, this);
 
-        public void SetExternalAccelerationMultiplier(float target, float duration) =>
-            _accelMultiplier.SetTarget(target, duration, this);
+        public void SetExternalAccelerationMultiplier(float target, float duration) => _accelMultiplier.SetTarget(target, duration, this);
 
-        public void SetExternalDecelerationMultiplier(float target, float duration) =>
-            _decelMultiplier.SetTarget(target, duration, this);
-
-        #endregion
-        
-        #region Utils
+        public void SetExternalDecelerationMultiplier(float target, float duration) => _decelMultiplier.SetTarget(target, duration, this);
 
         public bool CanPlayerInteractWithBombShell()
         {
             if (!Health.IsAlive) return false;
             return ControlContext is not PlayerControlContext.AugmentRaceBully;
         }
-
-        #endregion
     }
 }
