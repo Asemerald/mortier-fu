@@ -67,5 +67,10 @@ namespace MortierFu
         {
             _DongAnimation.Play();
         }
+
+        public void ConfirmAnimationEnd()
+        {
+            lobbyStartReadyController.StartMatch();
+        }
     }
 }

@@ -235,26 +235,17 @@ namespace MortierFu
             }
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
-
-            //stoian
-
-            StartCoroutine(LauchMatch(indexPlayer));
-
-            //stoian
         }
 
-        private IEnumerator LauchMatch(PlayerManager indexPlayer)
+        public void StartMatch()
         {
-            
-            yield return new WaitForSeconds(_playerReadyIndicators[indexPlayer.PlayerIndex].GetComponent<Animator>()
-                .GetCurrentAnimatorStateInfo(0).length);
             if (!_character) 
-                yield break;
+                return;
             
             var shooterCharacter = _character;
             
             if (!shooterCharacter || !shooterCharacter.Owner)
-                yield break;
+                return;
             
             _matchLauncher.LaunchMatch(shooterCharacter.Owner);
         }
