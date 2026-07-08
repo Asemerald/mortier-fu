@@ -203,7 +203,7 @@ namespace MortierFu
             if (!_isInitialized)
                 return;
 
-            if (!Character.CanAim)
+            if (!Character.CanAim && character.ControlContext is not PlayerControlContext.AugmentRace)
                 return;
 
             if (!Character.Health.IsAlive)
@@ -211,6 +211,13 @@ namespace MortierFu
 
             if (AimWidget == null || _shootAction == null)
                 return;
+
+            if (character.ControlContext is PlayerControlContext.AugmentRace)
+            {
+                // stoian added for Race when trying to aim : feedback
+                ServiceManager.Instance.Get<ShakeService>()?.ShakeController(character.Owner, ShakeService.ShakeType.LITTLE);
+                return;
+            }
 
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
