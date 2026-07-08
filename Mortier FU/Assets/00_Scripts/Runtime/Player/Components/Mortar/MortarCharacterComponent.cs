@@ -69,7 +69,9 @@ namespace MortierFu
             }
 
             Color playerColor = character.Aspect.PlayerColor;
+            
             AimWidget.Colorize(playerColor);
+            
             ResetAimWidget();
 
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
@@ -116,6 +118,8 @@ namespace MortierFu
 
         private void ResetAimWidget()
         {
+            if (!AimWidget) return;
+            
             AimWidget.transform.localScale = Vector3.one * (Stats.BombshellImpactRadius.Value * 2f);
             AimWidget.SetRelativePosition(Vector3.zero);
             AimWidget.Hide();
@@ -203,7 +207,7 @@ namespace MortierFu
             if (!_isInitialized)
                 return;
 
-            if (!Character.CanAim && character.ControlContext is not PlayerControlContext.AugmentRace) //stoian
+            if (!Character.CanAim)
                 return;
 
             if (!Character.Health.IsAlive)
@@ -211,13 +215,6 @@ namespace MortierFu
 
             if (AimWidget == null || _shootAction == null)
                 return;
-
-            if (character.ControlContext is PlayerControlContext.AugmentRace)
-            {
-                // stoian added for Race when trying to aim : feedback
-                ServiceManager.Instance.Get<ShakeService>()?.ShakeController(character.Owner, ShakeService.ShakeType.LITTLE);
-                return;
-            }
 
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
@@ -232,7 +229,9 @@ namespace MortierFu
             if (!_isInitialized)
                 return;
 
-            AimWidget?.Hide();
+            if (AimWidget)
+                AimWidget.Hide();
+            
             _shootStrategy?.EndAiming();
 
             if (_shootAction != null)
@@ -243,8 +242,10 @@ namespace MortierFu
         {
             if (character.Owner != null && character.Owner.IsControllingGhost)
                 return;
+
+            if (AimWidget)
+                AimWidget.Hide();
             
-            AimWidget?.Hide();
 
             _shootStrategy?.CancelAiming();
 

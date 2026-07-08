@@ -124,8 +124,7 @@ namespace MortierFu
         public void Hide()
         {
             IsActive = false;
-            HasImpactPosition = false;
-            gameObject.SetActive(false);
+            HasImpactPosition = false; gameObject.SetActive(false);
         }
 
         public void UpdateFireRateProgress(float progress)
