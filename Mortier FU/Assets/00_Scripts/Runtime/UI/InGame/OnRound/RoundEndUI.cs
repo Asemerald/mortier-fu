@@ -47,7 +47,6 @@ namespace MortierFu
         [SerializeField] private Sprite[] _placeSprites;
         [SerializeField] private Sprite[] _scoreSprites;
         [SerializeField] private Sprite[] _goldenBombshellSprites;
-        [SerializeField] private Sprite[] _goldenBombshellBgdSprites;
 
         [SerializeField] private Image[] _goldenBombshellImg;
         [SerializeField] private Image[] _goldenBombshellBgdImg;
@@ -205,8 +204,6 @@ namespace MortierFu
 
                 if (!IsValidPlayerIndex(idx))
                     continue;
-
-                _goldenBombshellBgdImg[idx].sprite = _goldenBombshellBgdSprites[_gm.GetWinnerPlayerIndex()];
 
                 bool isTeamAtMatchPoint = team.Score >= _gm.ScoreToWin - 1;
 
