@@ -37,15 +37,14 @@ namespace MortierFu
         private int _playerCount;
         private int _augmentCount;
         private bool _raceInProgress;
-        private int _currentRaceNumber = 1;
-        
+
         private CountdownTimer _augmentTimer;
         private SO_Augment[] _selectedAugments;
 
         private AsyncOperationHandle<SO_AugmentSelectionSettings> _settingsHandle;
         public SO_AugmentSelectionSettings Settings => _settingsHandle.Result;
 
-        private readonly Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
+        private Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
 
         public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
 
@@ -59,11 +58,9 @@ namespace MortierFu
                 if (_pickers is null || _pickers.Count <= 0)
                     return true;
 
-                return _augmentTimer is { IsFinished: true };
+                return _augmentTimer != null && _augmentTimer.IsFinished;
             }
         }
-        
-        public void SetCurrentRaceNumber(int raceNumber) => _currentRaceNumber = Mathf.Max(1, raceNumber);
 
         public async UniTask OnInitialize()
         {
@@ -90,7 +87,7 @@ namespace MortierFu
             _pickups = new List<AugmentCardUI>(_augmentCount);
             _pickupsVFX = new List<AugmentPickup>(_lobbyService.CurrentPlayerCount);
 
-            for (var i = 0; i < _augmentCount; i++)
+            for (int i = 0; i < _augmentCount; i++)
             {
                 var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
                 var pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
@@ -113,8 +110,10 @@ namespace MortierFu
 
         public void Dispose()
         {
-            for (var i = _pickups.Count - 1; i >= 0; i--)
+            for (int i = _pickups.Count - 1; i >= 0; i--)
+            {
                 Addressables.ReleaseInstance(_pickups[i].gameObject);
+            }
 
             Addressables.Release(_settingsHandle);
 
@@ -124,7 +123,10 @@ namespace MortierFu
             _augmentTimer?.Dispose();
         }
 
-        public async UniTask PrepareAugmentSelection(List<PlayerManager> pickers, CancellationToken cancellationToken)
+        public async UniTask PrepareAugmentSelection(
+            List<PlayerManager> pickers,
+            CancellationToken cancellationToken
+        )
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -142,7 +144,7 @@ namespace MortierFu
             _pressureTokenSource?.Dispose();
             _pressureTokenSource = null;
 
-            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber);
+            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments);
             _augmentBag.Clear();
 
             for (var i = 0; i < _selectedAugments.Length; i++)
@@ -206,17 +208,21 @@ namespace MortierFu
         {
             try
             {
-                var pressureStartTime = 5f;
-                var delay = Mathf.Max(0f, duration - pressureStartTime);
+                float pressureStartTime = 5f;
+                float delay = Mathf.Max(0f, duration - pressureStartTime);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: cancellationToken);
+                await UniTask.Delay(
+                    TimeSpan.FromSeconds(delay),
+                    cancellationToken: cancellationToken
+                );
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 OnPressureStart?.Invoke(pressureStartTime);
             }
             catch (OperationCanceledException)
-            { }
+            {
+            }
         }
 
         public void EndRace()
@@ -261,7 +267,8 @@ namespace MortierFu
 
                 remainingAugments.Remove(randomAugment);
 
-                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
+                Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name +
+                         " to player " + picker.PlayerIndex);
             }
 
             foreach (var pickup in _pickupsVFX)
@@ -279,7 +286,7 @@ namespace MortierFu
 
         public void RestorePickupParent()
         {
-            for (var i = 0; i < _pickups.Count; i++)
+            for (int i = 0; i < _pickups.Count; i++)
             {
                 var pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
@@ -309,9 +316,9 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            var particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
                 character.transform);
-            var particle = particleGO.TryGetComponent(out _particleSystem);
+            bool particle = particleGO.TryGetComponent<AugmentFXPickUp>(out _particleSystem);
             if (particle)
                 _particleSystem.Init();
             
