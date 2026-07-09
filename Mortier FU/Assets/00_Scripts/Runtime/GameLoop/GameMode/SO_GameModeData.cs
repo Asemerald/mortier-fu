@@ -8,9 +8,10 @@ namespace MortierFu
         public int MinPlayerCount = 1;
         public int MaxPlayerCount = 4;
         
-        public int FirstRankBonusScore = 100;
-        public int SecondRankBonusScore = 30;   
-        public int ThirdRankBonusScore = 10;
+        // Per-player-count placement bonuses. Index = player count.
+        public int[] FirstRankBonusByPlayerCount  = new int[] { 0, 100, 75, 100 };
+        public int[] SecondRankBonusByPlayerCount = new int[] { 0, 30, 20, 30 };
+        public int[] ThirdRankBonusByPlayerCount  = new int[] { 0, 0, 10, 10 };
         public int KillBonusScore = 30;
         public int KillPushBonusScore = 10;
         public int KillCarCrashBonusScore = 20;
