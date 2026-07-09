@@ -86,17 +86,24 @@ namespace MortierFu
                 pickup.ResetUI();
                 pickup.SetFaceCameraEnabled(true);
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
+                
+               
+                var pickupVFX = _pickupsVFX[i];
+                
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
 
-                var pickupVFX = _pickupsVFX[i];
-                pickupVFX.transform.localPosition = pickup.transform.position;
-                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+                
+                //pickupVFX.transform.localPosition = pickup.transform.position;
+                pickupVFX.transform.localScale = new Vector3(2, 2, 2);
                 // TODO : Atroce hack to fix VFX rotation
                 pickupVFX.transform.rotation *= Quaternion.Euler(0f, 15f, 0f);
+                
+                await GrowPickup(pickup, cardScale, ct);
 
-                GrowPickup(pickup, cardScale, ct).Forget();
-
+                pickupVFX.transform.position = pickup.AnchorIncon.position;
+                
+                
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
                 await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);
             }
@@ -204,7 +211,7 @@ namespace MortierFu
             }
         }
 
-        private async UniTaskVoid GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
+        private async UniTask GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
             _shakeService.ShakeControllers(ShakeService.ShakeType.LITTLE);
