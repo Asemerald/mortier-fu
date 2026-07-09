@@ -8,9 +8,10 @@ namespace MortierFu
         public int MinPlayerCount = 1;
         public int MaxPlayerCount = 4;
         
-        public int FirstRankBonusScore = 100;
-        public int SecondRankBonusScore = 30;   
-        public int ThirdRankBonusScore = 10;
+        // Per-player-count placement bonuses. Index = player count.
+        public int[] FirstRankBonusByPlayerCount  = new int[] {};
+        public int[] SecondRankBonusByPlayerCount = new int[] {};
+        public int[] ThirdRankBonusByPlayerCount  = new int[] {};
         public int KillBonusScore = 30;
         public int KillPushBonusScore = 10;
         public int KillCarCrashBonusScore = 20;
@@ -18,6 +19,5 @@ namespace MortierFu
         public float AugmentSelectionDuration = 20;
         public float StopShowScoreBoardDelay = 2f;
         public float ShowRoundWinnerDelay = 1.6f;
-        public float StormSpawnTime = 30;
     }
 }

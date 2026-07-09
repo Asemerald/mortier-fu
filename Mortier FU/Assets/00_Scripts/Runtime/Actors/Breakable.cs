@@ -95,7 +95,7 @@ namespace MortierFu
 
             foreach (Rigidbody rb in _shatteredRbChildren)
             {
-                rb.isKinematic = true;
+                 rb.isKinematic = true;
                 rb.detectCollisions = false;
             }
 

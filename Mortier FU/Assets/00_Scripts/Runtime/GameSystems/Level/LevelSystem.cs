@@ -43,48 +43,35 @@ namespace MortierFu
 
         public bool IsInitialized { get; set; }
 
-        public UniTask LoadRaceMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
+        public UniTask LoadRaceMap()
         {
             return LoadMapAsync(
                 _raceMapLocations,
                 _raceMapCooldowns,
                 arenaMode: false,
                 editorOverrideKey: k_editorOverrideRaceMapAddress,
-                debugMapTypeName: "race",
-                useTransition,
-                color
+                debugMapTypeName: "race"
             );
         }
 
-        public UniTask LoadArenaMap(bool useTransition = false, TransitionColor color = TransitionColor.Blue)
+        public UniTask LoadArenaMap()
         {
             return LoadMapAsync(
                 _arenaMapLocations,
                 _arenaMapCooldowns,
                 arenaMode: true,
                 editorOverrideKey: k_editorOverrideArenaMapAddress,
-                debugMapTypeName: "arena",
-                useTransition,
-                color
+                debugMapTypeName: "arena"
             );
         }
 
         private async UniTask LoadMapAsync(List<IResourceLocation> mapLocations, Dictionary<string, int> mapCooldowns,
-            bool arenaMode, string editorOverrideKey, string debugMapTypeName, bool useTransition,
-            TransitionColor color)
+            bool arenaMode, string editorOverrideKey, string debugMapTypeName)
         {
             await FinishUnfinishedBusiness();
 
-            bool transitionStarted = false;
-
             try
             {
-                if (useTransition)
-                {
-                    await StartTransitionAsync(color);
-                    transitionStarted = true;
-                }
-
                 await UnloadCurrentMap();
 
                 SetCameraArenaMode(arenaMode);
@@ -117,12 +104,7 @@ namespace MortierFu
                 ApplyLoadedMapData();
             }
             finally
-            {
-                if (transitionStarted)
-                {
-                    EndTransition();
-                }
-            }
+            { }
         }
 
         private async UniTask<bool> TryLoadEditorOverrideMapAsync(string editorOverrideKey, string debugMapTypeName)
@@ -630,28 +612,6 @@ namespace MortierFu
                     Addressables.Release(handle);
                 }
             }
-        }
-
-        private async UniTask StartTransitionAsync(TransitionColor color)
-        {
-            if (TransitionManager.Instance == null)
-            {
-                Logs.LogWarning("[LevelSystem] TransitionManager is missing. Cannot start transition.");
-                return;
-            }
-
-            await TransitionManager.Instance.StartTransitionAsync(color);
-        }
-
-        private void EndTransition()
-        {
-            if (TransitionManager.Instance == null)
-            {
-                Logs.LogWarning("[LevelSystem] TransitionManager is missing. Cannot end transition.");
-                return;
-            }
-
-            TransitionManager.Instance.EndTransition().Forget();
         }
 
         private void SetCameraArenaMode(bool arenaMode)

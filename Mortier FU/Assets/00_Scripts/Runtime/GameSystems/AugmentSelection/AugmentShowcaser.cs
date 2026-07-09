@@ -23,7 +23,7 @@ namespace MortierFu
         private readonly ShakeService _shakeService;
         private readonly SO_GameFlowSettings _flowSettings;
         private CancellationTokenSource _cts;
-        
+
         private Transform[] _augmentPoints;
 
         public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
@@ -63,7 +63,7 @@ namespace MortierFu
                 alpha);
 
             const int k_referenceOrthoSize = 20;
-            cardScale *= _cam.orthographicSize  / k_referenceOrthoSize;
+            cardScale *= _cam.orthographicSize / k_referenceOrthoSize;
 
             float step = cardScale * 2f + cardSpace;
             Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f -
@@ -101,17 +101,14 @@ namespace MortierFu
 
             await WaitBeforePlayerConfirmationAsync(ct);
 
-            if (ShouldWaitForPlayerConfirmation())
-            {
-                _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
+            _confirmationService.ShowConfirmation(_lobbyService.GetPlayers().Count);
 
-                bool confirmed = await _confirmationService.WaitUntilAllConfirmed();
+            bool confirmed = await _confirmationService.WaitUntilAllConfirmed();
 
-                ct.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
 
-                if (!confirmed)
-                    return;
-            }
+            if (!confirmed)
+                return;
 
             var flipTasks = new UniTask[_pickups.Count];
             UniTaskCompletionSource previousMidFlip = null;
@@ -142,8 +139,8 @@ namespace MortierFu
             }
 
             await UniTask.WhenAll(flipTasks);
-            
-            await UniTask.Delay(TimeSpan.FromSeconds( _system.Settings.RevealDelay), cancellationToken: ct);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.RevealDelay), cancellationToken: ct);
             int[] shuffled = GetShuffledIndices(_pickups.Count);
             int j = -1;
             foreach (int idx in shuffled)
@@ -158,14 +155,13 @@ namespace MortierFu
                 pickup.PlayRevealSequence(pickupVFX).Forget();
 
                 float t = (shuffled.Length - j) / (float)shuffled.Length;
-                
+
                 await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger),
                     cancellationToken: ct);
-               
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.BoonDelay), cancellationToken: ct);
-            
+
             if (_pickups.Count != augmentPoints.Length)
             {
                 Logs.LogWarning("[AugmentShowcaser] Number of pickups and positions do not match.");
@@ -173,7 +169,7 @@ namespace MortierFu
             }
 
             _augmentPoints = new Transform[_pickups.Count];
-            
+
             for (var i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -186,7 +182,7 @@ namespace MortierFu
                 augmentPoint.SetParent(pivot);
                 augmentPoint.position = augmentPoints[i].Add(y: 1f);
                 _augmentPoints[i] = augmentPoint;
-                
+
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
 
                 MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct)
@@ -216,10 +212,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
             await Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack)
                 .Group(Tween.Position(pickup.transform, translatedPos, duration, Ease.InOutQuad))
-                .OnComplete(() =>
-                {
-                    pickup.AttachToPoint(_augmentPoints[i]);
-                })
+                .OnComplete(() => { pickup.AttachToPoint(_augmentPoints[i]); })
                 .ToUniTask(cancellationToken: ct);
         }
 
@@ -254,7 +247,7 @@ namespace MortierFu
                 Ease.OutQuad
             ).ToUniTask(cancellationToken: ct);
         }
-        
+
         private async UniTask WaitBeforePlayerConfirmationAsync(CancellationToken ct)
         {
             if (!_flowSettings)
@@ -269,12 +262,6 @@ namespace MortierFu
                 TimeSpan.FromSeconds(delay),
                 cancellationToken: ct
             );
-        }
-
-        private bool ShouldWaitForPlayerConfirmation()
-        {
-            return !_flowSettings ||
-                   _flowSettings.RequireAllPlayersConfirmationBeforeAugmentReveal;
         }
 
         public void StopShowcase()

@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -30,6 +31,7 @@ namespace MortierFu
     public class AspectCharacterComponent : CharacterComponent
     {
         private Sequence _blinkTween;
+        private Sequence _reloadWidgetTween;
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
@@ -40,6 +42,8 @@ namespace MortierFu
         private Color _startingColor;
 
         private Color _startingOutlineColor;
+        
+        private ShakeService  _shakeService;
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
         {
@@ -91,6 +95,11 @@ namespace MortierFu
 
                 _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
             }
+            
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
+            if (character.ControlContext == PlayerControlContext.LobbySandbox)
+                Character.Aspect.PlayVFXSequential(new []{Character}).Forget();
         }
 
         public void PlayDamageBlink(Color blinkColor, int blinkCount = 5, float blinkDuration = 0.08f)
@@ -135,23 +144,48 @@ namespace MortierFu
                 });
         }
 
+        public async UniTask ReloadCompleteFeedback()
+        {
+            if (_reloadWidgetTween.isAlive)
+                _reloadWidgetTween.Stop();
+
+            Color startColor = Character.Mortar.AimWidget.MaterialInstance.color;
+            Color finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
+
+            _reloadWidgetTween = Sequence.Create()
+                .Group(
+                    Tween.MaterialColor(
+                        Character.Mortar.AimWidget.MaterialInstance,
+                        finalColor, 
+                        0.08f,
+                        ease: Ease.InOutSine,
+                        cycles: 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .OnComplete(() =>
+                {
+                    Character.Mortar.AimWidget.MaterialInstance.color = startColor;
+                });
+        }
+
         public async UniTask PlayVFXSequential(PlayerCharacter[] characters,
             Action<PlayerCharacter> onVFXCompleted = null)
         {
-            foreach (var character in characters)
+            foreach (var playerCharacter in characters)
             {
-                if (_spawnVFXInstance == null)
+                if (!_spawnVFXInstance)
                 {
-                    onVFXCompleted?.Invoke(character);
+                    onVFXCompleted?.Invoke(playerCharacter);
                     continue;
                 }
 
-                _spawnVFXInstance.transform.position = character.transform.position;
+                _spawnVFXInstance.transform.position = playerCharacter.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Summon, character.transform.position);
-
-                character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Summon, playerCharacter.transform.position);
+                
+                _shakeService?.ShakeController(playerCharacter.Owner, ShakeService.ShakeType.MID);
 
                 _particleSystemInstance?.Play();
 
@@ -161,11 +195,11 @@ namespace MortierFu
                 _ = UniTask.Delay(TimeSpan.FromSeconds(totalDuration)).ContinueWith(() =>
                 {
                     _spawnVFXInstance.SetActive(false);
-                    _particleSystemInstance.Stop();
+                    _particleSystemInstance?.Stop();
                 });
 
                 await UniTask.Delay(TimeSpan.FromSeconds(onCompleteDelay));
-                onVFXCompleted?.Invoke(character);
+                onVFXCompleted?.Invoke(playerCharacter);
             }
         }
 

@@ -26,9 +26,7 @@ namespace MortierFu
 
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
 
-        public RoundController(
-            IReadOnlyList<PlayerTeam> teams,
-            List<PlayerCharacter> alivePlayers)
+        public RoundController(IReadOnlyList<PlayerTeam> teams, List<PlayerCharacter> alivePlayers)
         {
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
             _alivePlayers = alivePlayers ?? throw new ArgumentNullException(nameof(alivePlayers));

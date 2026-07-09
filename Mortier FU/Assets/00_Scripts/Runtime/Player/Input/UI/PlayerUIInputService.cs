@@ -85,7 +85,7 @@ namespace MortierFu
         {
             if (!player || !player.CurrentPermissions.CanConfirmUI)
                 return false;
-
+            
             return TryHandle(player, handler => handler.HandleSubmit(player));
         }
 
@@ -98,13 +98,18 @@ namespace MortierFu
         }
 
         private bool TryHandle(PlayerManager player, Func<IPlayerUIInputHandler, bool> dispatch)
-        {
+         {
             if (!player || dispatch is null)
                 return false;
-
+            
             if (!_handlersByPlayer.TryGetValue(player, out var handlers))
+            {
+                // stoian added for Race when spamming A when already accept : feedback
+                ServiceManager.Instance.Get<ShakeService>()?.ShakeController(player, ShakeService.ShakeType.LITTLE);
+                
                 return false;
-
+            }
+            
             for (int i = handlers.Count - 1; i >= 0; i--)
             {
                 var handler = handlers[i];

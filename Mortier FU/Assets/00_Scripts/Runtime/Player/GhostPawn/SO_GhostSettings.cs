@@ -27,6 +27,11 @@ namespace MortierFu
         [Min(0.01f)] [SerializeField] private float _groundRaycastStartHeight = 3f;
 
         [Min(0.01f)] [SerializeField] private float _groundRaycastLength = 8f;
+        
+        [Min(0.01f)] [SerializeField] private float _waterRaycastLenght = 3f;
+        [Min(0.01f)] [SerializeField] private float _waterRaycastHeightMargin = .3f;
+
+
 
         [Header("Spawn Resolving")]
         [Min(0.05f)]
@@ -43,6 +48,7 @@ namespace MortierFu
         [Header("Layers")] [SerializeField] private LayerMask _groundMask;
         [SerializeField] private LayerMask _ghostBoundaryMask;
         [SerializeField] private LayerMask _placementBlockingMask;
+        [SerializeField] private LayerMask _waterLayerMask;
 
         [Header("Prop Placement")] [Min(0f)] [SerializeField]
         private float _propSpawnCooldown = 1f;
@@ -63,7 +69,9 @@ namespace MortierFu
         public float CollisionRadius => _collisionRadius;
         public float GroundRaycastStartHeight => _groundRaycastStartHeight;
         public float GroundRaycastLength => _groundRaycastLength;
-
+        public float WaterRaycastLength => _waterRaycastLenght;
+        public float WaterRaycastHeightMargin => _waterRaycastHeightMargin;
+        
         public float SpawnCheckRadius => _spawnCheckRadius;
         public float VehicleSpawnSearchRadius => _vehicleSpawnSearchRadius;
         public int VehicleSpawnSearchSteps => _vehicleSpawnSearchSteps;
@@ -72,6 +80,7 @@ namespace MortierFu
         public LayerMask GroundMask => _groundMask;
         public LayerMask GhostBoundaryMask => _ghostBoundaryMask;
         public LayerMask PlacementBlockingMask => _placementBlockingMask;
+        public LayerMask WaterLayerMask  => _waterLayerMask;
 
         public float PropSpawnCooldown => _propSpawnCooldown;
         public SO_GhostPlaceableProp[] PlaceableProps => _placeableProps;

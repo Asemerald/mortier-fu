@@ -142,7 +142,7 @@ namespace MortierFu
             _pressureTokenSource?.Dispose();
             _pressureTokenSource = null;
 
-            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber);
+            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber, _playerCount);
             _augmentBag.Clear();
 
             for (var i = 0; i < _selectedAugments.Length; i++)

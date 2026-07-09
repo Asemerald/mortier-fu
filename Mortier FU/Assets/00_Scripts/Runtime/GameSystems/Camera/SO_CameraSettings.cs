@@ -16,8 +16,11 @@ namespace MortierFu
         public float ArenaStopFollowExtent = 30f;
         public float ArenaResumeFollowExtent = 22f; 
 
-        [Header("Smoothing")] public float PositionLerpSpeed = 5f;
+        [Header("Smoothing")] public float MaxPositionLerpSpeed = 5f;
+        public float MinPositionLerpSpeed = 2f;
+        public float LerpSpeed = 2f;
         public float ZoomLerpSpeed = 5f;
+        
 
         [Header("References")] public AssetReferenceGameObject CameraPrefab;
     }

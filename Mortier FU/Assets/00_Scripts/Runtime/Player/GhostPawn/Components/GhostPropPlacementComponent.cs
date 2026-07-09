@@ -29,7 +29,7 @@ namespace MortierFu
         private Vector3 _currentSpawnPosition;
         private Quaternion _currentSpawnRotation = Quaternion.identity;
         private Quaternion _currentAimRotation = Quaternion.identity;
-        
+
         private InputAction _aimAction;
         private InputAction _toggleAimAction;
         private InputAction _shootAction;
@@ -38,7 +38,8 @@ namespace MortierFu
         private bool _didWarnOverlapCapacity;
 
         public GhostPropPlacementComponent(PlayerGhostPawn pawn) : base(pawn)
-        { }
+        {
+        }
 
         public override void Initialize()
         {
@@ -66,10 +67,10 @@ namespace MortierFu
 
             if (_shootAction == null)
                 Logs.LogError("[GhostPropPlacementComponent] Shoot action not found.", pawn);
-            
+
             SelectNextProp();
         }
-        
+
         public override void OnEnterPawn()
         {
             _aimAction?.Enable();
@@ -101,10 +102,12 @@ namespace MortierFu
         }
 
         public void ShootPressed()
-        { }
-        
+        {
+        }
+
         public void ShootReleased()
-        { }
+        {
+        }
 
         private void TrySpawnCurrentPreview()
         {
@@ -177,7 +180,7 @@ namespace MortierFu
                 TrySpawnCurrentPreview();
             }
         }
-        
+
         private void ReadInputState()
         {
             _isAimHeld = _toggleAimAction != null && _toggleAimAction.IsPressed();
@@ -251,7 +254,7 @@ namespace MortierFu
                     SO_GhostPlaceableProp candidate = _validProps[Random.Range(0, _validProps.Count)];
 
                     if (candidate == previousProp) continue;
-                    
+
                     _currentProp = candidate;
                     break;
                 }
@@ -386,7 +389,9 @@ namespace MortierFu
                 out RaycastHit hit,
                 Settings.GroundRaycastLength,
                 Settings.GroundMask,
-                QueryTriggerInteraction.Ignore) ? hit.point : origin;
+                QueryTriggerInteraction.Ignore)
+                ? hit.point
+                : origin;
         }
 
         private bool ComputePlacementValidity()
@@ -403,14 +408,23 @@ namespace MortierFu
                 _overlapResults,
                 _currentSpawnRotation,
                 Settings.PlacementBlockingMask,
-                QueryTriggerInteraction.Ignore
+                QueryTriggerInteraction.Collide
             );
+            
+            
+            if (IsWaterOnTop())
+            {
+                return false;
+            }
+                
 
             if (hitCount >= _overlapResults.Length)
             {
                 if (_didWarnOverlapCapacity) return false;
-                
-                Logs.LogWarning("[GhostPropPlacementComponent] Placement overlap buffer is full. Placement is considered invalid.", pawn);
+
+                Logs.LogWarning(
+                    "[GhostPropPlacementComponent] Placement overlap buffer is full. Placement is considered invalid.",
+                    pawn);
                 _didWarnOverlapCapacity = true;
 
                 return false;
@@ -426,6 +440,25 @@ namespace MortierFu
                 return false;
             }
 
+            return true;
+        }
+
+        private bool IsWaterOnTop()
+        {
+            RaycastHit hit;
+            
+            if (Physics.Raycast(
+                    _currentSpawnPosition + Vector3.up * Settings.WaterRaycastHeightMargin,
+                    Vector3.down, out hit, Settings.WaterRaycastLength))
+            {
+                if ((Settings.WaterLayerMask.value & (1 << hit.collider.gameObject.layer)) != 0)
+                {
+                    return true;
+                }
+                    
+                return false;
+            }
+            
             return true;
         }
 
@@ -523,13 +556,16 @@ namespace MortierFu
             if (!_currentProp || !_currentProp.RealPrefab)
                 return;
 
-            GameObject spawnedProp = Object.Instantiate(_currentProp.RealPrefab, _currentSpawnPosition, _currentSpawnRotation);
+            GameObject spawnedProp =
+                Object.Instantiate(_currentProp.RealPrefab, _currentSpawnPosition, _currentSpawnRotation);
 
             GhostSystem ghostSystem = SystemManager.Instance?.Get<GhostSystem>();
 
             if (ghostSystem == null)
             {
-                Logs.LogWarning("[GhostPropPlacementComponent] Spawned prop but GhostSystem was not found. Prop will not be auto-cleaned.", pawn);
+                Logs.LogWarning(
+                    "[GhostPropPlacementComponent] Spawned prop but GhostSystem was not found. Prop will not be auto-cleaned.",
+                    pawn);
                 return;
             }
 

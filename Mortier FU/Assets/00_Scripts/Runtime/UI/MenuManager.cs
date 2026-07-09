@@ -48,7 +48,8 @@ namespace MortierFu
         [SerializeField] private float _creditsButtonEaseDuration = 0.7f;
         [SerializeField] private float _settingsButtonEaseDuration = 0.7f;
         [SerializeField] private float _quitButtonEaseDuration = 0.7f;
-
+        [SerializeField] private float _circleTransitionDuration = 1f;
+        
         [field: Header("Settings References")]
         [field: SerializeField]
         public SettingsPanel SettingsPanel { get; private set; }
@@ -85,7 +86,7 @@ namespace MortierFu
             }
 
             Instance = this;
-
+            
             CheckReferences();
             CheckActivePanels();
 
@@ -107,6 +108,8 @@ namespace MortierFu
             BindGlobalCancelAction();
             BindButtons();
 
+            CircleTransition.Instance.OpenAsync(_circleTransitionDuration).Forget();
+            
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
 
             if (PlayerInputBridge.Instance)

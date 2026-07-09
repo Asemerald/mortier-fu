@@ -40,7 +40,7 @@ namespace MortierFu
                 return;
             }
 
-            _gameModeBase.OnGameStarted += ResetVisualsOnGameStart;
+            _gameModeBase.OnGameStarted += ResetVisualAfterRound;
         }
 
         private void OnDisable()
@@ -48,7 +48,7 @@ namespace MortierFu
             if (_gameModeBase == null)
                 return;
 
-            _gameModeBase.OnGameStarted -= ResetVisualsOnGameStart;
+            _gameModeBase.OnGameStarted -= ResetVisualAfterRound;
         }
 
         private void OnDestroy()
@@ -157,7 +157,7 @@ namespace MortierFu
             Logs.Log(message, this);
         }
 
-        private void ResetVisualsOnGameStart() => UpdateVisualsAfterRound(false);
+        public void ResetVisualAfterRound() => UpdateVisualsAfterRound(false);
         
         public void UpdateVisualsAfterRound(bool isWinningGame)
         {

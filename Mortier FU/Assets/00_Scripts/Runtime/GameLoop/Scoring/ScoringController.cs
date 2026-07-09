@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 
@@ -87,16 +88,27 @@ namespace MortierFu
             if (teamRank <= 0)
                 return 0;
 
-            if (teamRank >= _teams.Count)
-                return 0;
+            int playerCount = _teams?.Count ?? 0;
 
-            return teamRank switch
+            if (playerCount > 0)
             {
-                1 => _data.FirstRankBonusScore,
-                2 => _data.SecondRankBonusScore,
-                3 => _data.ThirdRankBonusScore,
-                _ => 0
-            };
+                if (teamRank == 1 && _data.FirstRankBonusByPlayerCount != null && playerCount < _data.FirstRankBonusByPlayerCount.Length)
+                {
+                    return _data.FirstRankBonusByPlayerCount[playerCount-1];
+                }
+
+                if (teamRank == 2 && _data.SecondRankBonusByPlayerCount != null && playerCount < _data.SecondRankBonusByPlayerCount.Length)
+                {
+                    return _data.SecondRankBonusByPlayerCount[playerCount-1];
+                }
+
+                if (teamRank == 3 && _data.ThirdRankBonusByPlayerCount != null && playerCount < _data.ThirdRankBonusByPlayerCount.Length)
+                {
+                    return _data.ThirdRankBonusByPlayerCount[playerCount-1];
+                }
+            }
+
+            return 0;
         }
 
         private int CalculateKillBonus(PlayerTeam team)
@@ -144,6 +156,11 @@ namespace MortierFu
             _analyticsSystem.OnScoreChanged(firstMember.Character, team.Score);
         }
 
+        public List<PlayerTeam> GetOrderWinners(List<PlayerTeam> teams)
+        {
+            return teams.OrderByDescending(t => t.Score).ToList();
+        }
+
         public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
         {
             if (teams == null || teams.Count == 0)
@@ -151,39 +168,38 @@ namespace MortierFu
                 Logs.LogWarning("No teams detected; cancelling player visuals update");
                 return;
             }
-
-            int scoreWinner = Int32.MinValue;
-            List<PlayerTeam> winners = new();
-
-            foreach (PlayerTeam team in teams)
+            
+            int count = teams.Count;
+            
+            //reset visuals
+            for (int i = 0; i < count; i++)
             {
-                if (team.Score > scoreWinner)
+                foreach (var member in teams[i].Members)
                 {
-                    scoreWinner = team.Score;
-                    winners.Clear();
-                    winners.Add(team);
+                    if (!member || !member.Character || !member.Character.CustomizationVisual)
+                        return;
+                    
+                    member.Character.CustomizationVisual.ResetVisualAfterRound();
                 }
-                else if (team.Score == scoreWinner)
-                    winners.Add(team);
             }
 
-            HashSet<PlayerTeam> winnersSet = new(winners);
+            List<PlayerTeam> winners = GetOrderWinners(teams);
 
-            foreach (PlayerTeam team in teams)
+            if (winners.Count == 0 || winners[0] == null)
             {
-                if (team?.Members == null)
-                    continue;
+                Logs.LogWarning("No winners detected; cancelling player visuals update");
+                return;
+            }
+            
+            PlayerTeam winner = winners[0];
 
-                bool isWinningTeam = winnersSet.Contains(team);
-
-                foreach (var player in team.Members)
-                {
-                    var customizationVisual = player?.Character?.CustomizationVisual;
-                    if (customizationVisual == null)
-                        continue;
-
-                    customizationVisual.UpdateVisualsAfterRound(isWinningGame: isWinningTeam);
-                }
+            //apply visuals to winner team
+            foreach (var playerWin in winner.Members)
+            {
+                if (!playerWin || !playerWin.Character || !playerWin.Character.CustomizationVisual)
+                    return;
+                
+                playerWin.Character.CustomizationVisual.UpdateVisualsAfterRound(isWinningGame: true);
             }
         }
     }

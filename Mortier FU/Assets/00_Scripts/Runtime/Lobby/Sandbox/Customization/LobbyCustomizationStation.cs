@@ -13,14 +13,19 @@ namespace MortierFu
         [SerializeField] private LobbySandboxController _sandboxController;
         [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbyCustomizationController[] _playerPanels = new LobbyCustomizationController[4];
+        [SerializeField] private GameObject _cosmeticBuilding;
 
         private readonly Dictionary<PlayerManager, LobbyCustomizationController> _activePanels = new();
         private readonly HashSet<PlayerManager> _closingPlayers = new();
         private CancellationTokenSource _stationCancellation;
+        private Animator _animator;
 
         private void Awake()
         {
             _stationCancellation = new CancellationTokenSource();
+            _animator = _cosmeticBuilding.GetComponent<Animator>();
+            if (!_animator)
+                Logs.LogError("[Animator Custo Building] reference is missing.");
         }
         
         private void OnEnable()
@@ -47,7 +52,7 @@ namespace MortierFu
             _stationCancellation?.Dispose();
             _stationCancellation = null;
         }
-
+        
         protected override bool CanInteract(PlayerManager player)
         {
             if (!base.CanInteract(player))
@@ -69,6 +74,12 @@ namespace MortierFu
         }
 
         protected override void Interact(PlayerManager player)
+        {
+            throw new NotImplementedException();
+        }
+
+        //ENTRE DANS LA CUSTO
+        protected override void OnPlayerEntered(PlayerManager player)
         {
             if (!player)
                 return;
@@ -93,6 +104,9 @@ namespace MortierFu
             _activePanels[player] = panel;
 
             Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} entered customization.");
+            
+            _animator.SetTrigger("PlayerHasEnter");
+            player.Character.gameObject.SetActive(false);
 
             player.SetControlContext(PlayerControlContext.LobbyCustomization);
 
@@ -103,7 +117,6 @@ namespace MortierFu
         {
             if (!player)
                 return;
-
             ForceCloseCustomizationAsync(
                 player,
                 restoreSandboxControl: true,
@@ -148,6 +161,7 @@ namespace MortierFu
             ).Forget();
         }
         
+        //SORT DE LA CUSTOMISATION
         private async UniTaskVoid ForceCloseCustomizationAsync(PlayerManager player, bool restoreSandboxControl, bool exitState, bool waitForExitAnimation)
         {
             if (!player)
@@ -162,7 +176,7 @@ namespace MortierFu
             try
             {
                 player.SetControlContext(PlayerControlContext.LobbyCustomization);
-
+                _animator.SetTrigger("PlayerHasEnter");
                 if (panel)
                 {
                     if (waitForExitAnimation && _stationCancellation != null)
@@ -188,8 +202,10 @@ namespace MortierFu
                 {
                     player.SetControlContext(PlayerControlContext.LobbyLocked);
                 }
-
+               
                 Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
+                
+                player.Character.gameObject.SetActive(true);
             }
             catch (OperationCanceledException)
             {
@@ -211,6 +227,7 @@ namespace MortierFu
 
         private void RestorePlayerLobbyContext(PlayerManager player)
         {
+            
             if (!player)
                 return;
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -9,7 +8,7 @@ namespace MortierFu
         #region Variables
 
         [SerializeField] private LayerMask _ignoreLayers;
-        
+
         private Vector3 _lastPosition;
         private Vector3 _oldPivot;
 
@@ -28,21 +27,30 @@ namespace MortierFu
         {
             CalculDeltaPlatform();
 
-            foreach (var player in _playersOnPlatform)
+            foreach (PlayerCharacter player in _playersOnPlatform)
             {
+                if (player == null || player.Controller == null || player.Controller.rigidbody == null) continue;
+
                 ApplyPlatformDelta(player.Controller);
             }
         }
 
         void OnTriggerEnter(Collider other)
         {
+            if (other == null) return;
             if (((1 << other.gameObject.layer) & _ignoreLayers.value) != 0) return;
-            
+
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
             if (!player)
             {
-                var t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
+                Transform t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
+
+                if (t == null) return;
+
+                if (t.parent != null && t.parent != transform && t.parent.GetComponent<SnapPlayer>() != null)
+                    return;
+
                 t.SetParent(transform, true);
                 return;
             }
@@ -52,14 +60,20 @@ namespace MortierFu
 
         void OnTriggerExit(Collider other)
         {
+            if (other == null) return;
             if (((1 << other.gameObject.layer) & _ignoreLayers.value) != 0) return;
-            
+
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
             if (!player)
             {
-                var t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
-                t.SetParent(null, true);
+                Transform t = other.attachedRigidbody ? other.attachedRigidbody.transform : other.transform;
+
+                if (t == null) return;
+
+                if (t.parent == transform)
+                    t.SetParent(null, true);
+
                 return;
             }
 
@@ -76,6 +90,8 @@ namespace MortierFu
 
         private void ApplyPlatformDelta(ControllerCharacterComponent controller)
         {
+            if (controller == null || controller.rigidbody == null) return;
+
             Vector3 newPos = controller.rigidbody.position + (transform.position - _oldPivot);
             controller.rigidbody.MovePosition(newPos);
         }

@@ -1,6 +1,10 @@
+using System.Numerics;
 using Cysharp.Threading.Tasks;
 using Unity.Cinemachine;
 using UnityEngine;
+using System.Threading;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 namespace MortierFu
 {
@@ -25,9 +29,10 @@ namespace MortierFu
         
         [SerializeField] private BoxCollider _boundbox;
         [SerializeField] private float _dampingBound;
-
+        
         [SerializeField] private Vector3 _offset = new(3.5f, -1.2f, 0f);
 
+        private float _actualLerpSpeed;
         private float _currentOrthoSize;
         private float _maxArenaOrthoSize;
         private Transform _endFightTarget;
@@ -49,6 +54,8 @@ namespace MortierFu
             
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
+            
             
         }
 
@@ -113,10 +120,12 @@ namespace MortierFu
             if (_isArenaMap)
             {
                 HandleArenaFallback(bounds.center, extent);
+                
                 return;
             }
 
             FollowPlayers(bounds.center, extent);
+            
         }
 
         private void HandleArenaFallback(Vector3 center, float extent)
@@ -125,10 +134,12 @@ namespace MortierFu
                 extent > _cameraSettings.ArenaStopFollowExtent)
             {
                 _arenaMode = ArenaCameraMode.StaticMapView;
+                _virtualTarget.position = Camera.transform.position - _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
             }
             else if (_arenaMode == ArenaCameraMode.StaticMapView &&
                      extent < _cameraSettings.ArenaResumeFollowExtent)
             {
+                _actualLerpSpeed = _cameraSettings.MinPositionLerpSpeed;
                 _arenaMode = ArenaCameraMode.FollowingPlayers;
             }
             
@@ -136,10 +147,11 @@ namespace MortierFu
             
             if (_arenaMode == ArenaCameraMode.StaticMapView)
             {
+                
                 _virtualTarget.position = Vector3.Lerp(
                     _virtualTarget.position,
                     _levelSystem.CurrentCameraMapConfig.PositionForMap,
-                    Time.deltaTime * _cameraSettings.PositionLerpSpeed
+                    Time.deltaTime *  _cameraSettings.MinPositionLerpSpeed
                 );
 
                 _currentOrthoSize = Mathf.Lerp(
@@ -163,11 +175,14 @@ namespace MortierFu
 
         private void FollowPlayers(Vector3 center, float extent)
         {
+            _actualLerpSpeed = Mathf.Lerp(_actualLerpSpeed, _cameraSettings.MaxPositionLerpSpeed, Time.deltaTime * _cameraSettings.LerpSpeed);
+            
             _virtualTarget.position = Vector3.Lerp(
                 _virtualTarget.position,
                 center,
-                Time.deltaTime * _cameraSettings.PositionLerpSpeed
+                Time.deltaTime * _actualLerpSpeed
             );
+            
 
             float clampedExtent = Mathf.Clamp(
                 extent,

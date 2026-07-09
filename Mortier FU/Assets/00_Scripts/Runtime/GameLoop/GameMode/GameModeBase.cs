@@ -126,10 +126,7 @@ namespace MortierFu
             Logs.Log("Game mode initialized successfully.");
         }
 
-        protected virtual List<PlayerTeam> CreateTeamsForMatch(IReadOnlyList<PlayerManager> players)
-        {
-            return _teamSetupController.CreateFreeForAllTeams(players);
-        }
+        protected virtual List<PlayerTeam> CreateTeamsForMatch(IReadOnlyList<PlayerManager> players) => _teamSetupController.CreateFreeForAllTeams(players);
 
         protected virtual void ResolveGameplayDependencies()
         {
@@ -161,9 +158,6 @@ namespace MortierFu
             _roundWinnerPresentationController = new RoundWinnerPresentationController();
 
             _scorePhaseController = new ScorePhaseController(
-                teams,
-                cameraSystem,
-                UpdateGameState,
                 () => _roundStartController.StopCountdown(),
                 () => OnScoreDisplayOver?.Invoke()
             );
@@ -202,12 +196,11 @@ namespace MortierFu
 
             if (!IsReady)
             {
-                Logs.LogWarning(
-                    "Not enough players or too many players for this gamemode ! Falling back to playground.");
+                Logs.LogWarning("Not enough players or too many players for this gamemode ! Falling back to playground.");
 
                 await levelSystem.LoadArenaMap();
 
-                StartRound();
+                InitializeRound();
                 return;
             }
 
@@ -215,44 +208,27 @@ namespace MortierFu
             gameVictor = null;
 
             _gameplayCancellation = new CancellationTokenSource();
+            
+            ForEachCurrentPlayerCharacter(character => character.ClearAugments());
+            
             GameplayLoop(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
         }
 
-        private TransitionColor GetTransitionColor()
-        {
-            if (_currentRound.WinningTeam == null || _currentRound.WinningTeam.Members.Count <= 0)
-                return (TransitionColor)Random.Range(0, Enum.GetNames(typeof(TransitionColor)).Length);
-
-            return _currentRound.WinningTeam.Members[0].PlayerIndex switch
-            {
-                0 => TransitionColor.Blue,
-                1 => TransitionColor.Red,
-                2 => TransitionColor.Green,
-                _ => TransitionColor.Yellow
-            };
-        }
-
-        protected virtual async UniTask RunAugmentRacePhaseAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
+        protected virtual async UniTask RunAugmentRacePhaseAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
-            await EnsureRaceScenePreparedAsync(
-                transitionColor,
-                cancellationToken
-            );
+            await EnsureRaceScenePreparedAsync(cancellationToken);
             
             ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
             
             try
             {
                 augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
-                Logs.Log($"Current Race Index {GetCurrentAugmentRaceNumber()}");
-                await _augmentRaceController.PrepareSelectionAsync(
-                    cancellationToken,
-                    FlowSettings.AugmentStartShowcaseDelay
-                );
+                
+                await _augmentRaceController.PrepareSelectionAsync(cancellationToken, FlowSettings.AugmentStartShowcaseDelay);
                 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -280,10 +256,7 @@ namespace MortierFu
 
                 EnablePlayerGravity(false);
 
-                await RunAugmentSummaryAndOptionalArenaPreloadAsync(
-                    transitionColor,
-                    cancellationToken
-                );
+                await RunAugmentSummaryAndOptionalArenaPreloadAsync(cancellationToken);
             }
             finally
             {
@@ -293,7 +266,7 @@ namespace MortierFu
 
         protected virtual async UniTask WaitUntilRoundOverAsync(CancellationToken cancellationToken)
         {
-            while (_roundController != null && !_roundController.OneTeamStanding)
+            while (_roundController is { OneTeamStanding: false })
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -319,24 +292,14 @@ namespace MortierFu
             }
         }
 
-        protected virtual UniTask RunScorePhaseAsync()
-        {
-            DisplayScores();
-
-            HideScores();
-
-            return UniTask.CompletedTask;
-        }
-
-        protected virtual async UniTask RunRoundPhaseAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        protected virtual async UniTask RunRoundPhaseAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await EnsureArenaMapLoadedAsync(transitionColor, cancellationToken);
+            await EnsureArenaMapLoadedAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            StartRound();
+            InitializeRound();
 
             await RunRoundStartPresentationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
@@ -348,18 +311,16 @@ namespace MortierFu
 
             UpdateGameState(GameState.EndRound);
 
-            EndRound();
+            InitializeEndRound();
 
-            bool matchWillEnd = IsGameOver(out gameVictor);
-            TransitionColor nextRaceTransitionColor = GetTransitionColor();
+            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.CameraZoomOnWinnerDuration + 0.5f), cancellationToken: cancellationToken);
+            
+            var matchWillEnd = IsGameOver(out gameVictor);
 
-            await RunRoundEndPresentationAndOptionalRacePreloadAsync(
-                nextRaceTransitionColor,
-                shouldPreloadNextRace: !matchWillEnd,
-                cancellationToken
-            );
+            await RunRoundEndPresentationAndOptionalRacePreloadAsync(cancellationToken);
 
-            await RunScorePhaseAsync();
+            await PrepareRaceSceneUnderScoreboardCoverAsync(!matchWillEnd, cancellationToken);
+            
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -369,26 +330,23 @@ namespace MortierFu
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var transitionColor = GetTransitionColor();
-                
-                await RunAugmentRacePhaseAsync(transitionColor, cancellationToken);
+                await RunAugmentRacePhaseAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (currentState == GameState.EndGame)
                     break;
 
-                await RunRoundPhaseAsync(transitionColor, cancellationToken);
+                await RunRoundPhaseAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (IsGameOver(out gameVictor))
-                {
-                    Logs.Log($"Game Over! Team {gameVictor.Index} wins!");
-                    UpdateGameState(GameState.EndGame);
-                }
+                if (!IsGameOver(out gameVictor)) continue;
+                
+                Logs.Log($"Game Over! Team {gameVictor.Index} wins!");
+                UpdateGameState(GameState.EndGame);
             }
         }
 
-        protected async UniTaskVoid GameplayLoop(CancellationToken cancellationToken)
+        private async UniTaskVoid GameplayLoop(CancellationToken cancellationToken)
         {
             try
             {
@@ -397,9 +355,7 @@ namespace MortierFu
                 UpdateGameState(GameState.StartGame);
                 OnGameStarted?.Invoke();
 
-                audioService
-                    .StartMusic(AudioService.FMODEvents.MUS_Gameplay)
-                    .Forget();
+                audioService.StartMusic(AudioService.FMODEvents.MUS_Gameplay).Forget();
 
                 await RunMatchLoopAsync(cancellationToken);
 
@@ -420,15 +376,9 @@ namespace MortierFu
             return false;
         }
 
-        private void EnablePlayerGravity(bool enabled = true)
-        {
-            _playerSpawnController?.SetPlayerGravity(enabled);
-        }
+        private void EnablePlayerGravity(bool enabled = true) => _playerSpawnController?.SetPlayerGravity(enabled);
 
-        private void SpawnPlayers()
-        {
-            _playerSpawnController?.SpawnPlayers(_currentRound.RoundIndex);
-        }
+        private void SpawnPlayers() => _playerSpawnController?.SpawnPlayers(_currentRound.RoundIndex);
 
         private void SetPlayersControlContext(PlayerControlContext context)
         {
@@ -448,12 +398,9 @@ namespace MortierFu
 #endif
         }
 
-        protected virtual void ResetPlayers()
-        {
-            _playerSpawnController?.ResetPlayers();
-        }
+        protected virtual void ResetPlayers() => _playerSpawnController?.ResetPlayers();
 
-        protected virtual void StartRound()
+        protected virtual void InitializeRound()
         {
             UpdateGameState(GameState.RoundCountdown);
 
@@ -480,10 +427,9 @@ namespace MortierFu
             _roundStartController.StartCountdown(_currentRound);
         }
 
-        protected virtual void EndRound()
+        protected virtual void InitializeEndRound()
         {
             _roundStartController.StopCountdown();
-
             _roundController.EndRound();
 
             bombshellSys.ClearActiveBombshells();
@@ -495,7 +441,9 @@ namespace MortierFu
             EvaluateScores();
 
             _currentRound.WinningTeam = _roundController.WinningTeam;
-
+            
+            cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform, FlowSettings.CameraZoomOnWinnerDuration);
+            
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
             
             _scoreController?.UpdatePlayerVisualsAfterRound(teams);
@@ -514,15 +462,7 @@ namespace MortierFu
             gameVictor = _scoreController.EvaluateScores();
         }
 
-        protected virtual void DisplayScores()
-        {
-            _scorePhaseController?.DisplayScores();
-        }
-
-        protected virtual void HideScores()
-        {
-            _scorePhaseController?.HideScores();
-        }
+        protected virtual void HideScores() => _scorePhaseController?.HideScores();
 
         protected virtual void StartRace()
         {
@@ -609,10 +549,7 @@ namespace MortierFu
             _scoreController?.SetScoreToWin(config.ScoreToWin);
         }
 
-        public void SetScoreToWin(int score)
-        {
-            SetMatchConfig(new MatchConfig(score));
-        }
+        public void SetScoreToWin(int score) => SetMatchConfig(new MatchConfig(score));
 
         public virtual void Update()
         { }
@@ -671,28 +608,16 @@ namespace MortierFu
             cameraSystem?.Controller?.RemoveTarget(character.transform);
         }
 
-        private void HandleRoundPlayerKilled(PlayerManager killer, PlayerManager victim)
-        {
-            OnPlayerKilled?.Invoke(killer, victim);
-        }
+        private void HandleRoundPlayerKilled(PlayerManager killer, PlayerManager victim) => OnPlayerKilled?.Invoke(killer, victim);
 
-        private bool ShouldUseVideoTransitions()
-        {
-            return FlowSettings && FlowSettings.UseVideoTransitions;
-        }
-
-        private async UniTask EnsureRaceMapLoadedAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask EnsureRaceMapLoadedAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (_isRaceMapLoaded && levelSystem.IsRaceMap())
                 return;
 
-            await levelSystem.LoadRaceMap(
-                ShouldUseVideoTransitions(),
-                transitionColor
-            );
+            await levelSystem.LoadRaceMap();
 
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
@@ -701,18 +626,14 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask EnsureArenaMapLoadedAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask EnsureArenaMapLoadedAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (_isArenaMapLoaded)
                 return;
 
-            await levelSystem.LoadArenaMap(
-                ShouldUseVideoTransitions(),
-                transitionColor
-            );
+            await levelSystem.LoadArenaMap();
 
             _isArenaMapLoaded = true;
             _isRaceMapLoaded = false;
@@ -721,23 +642,16 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private float GetAugmentSummaryMinimumDuration()
-        {
-            return FlowSettings ? Mathf.Max(0f, FlowSettings.AugmentSummaryDuration) : 4f;
-        }
+        private float GetAugmentSummaryMinimumDuration() => FlowSettings ? Mathf.Max(0f, FlowSettings.AugmentSummaryDuration) : 4f;
 
-        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(CancellationToken cancellationToken)
         {
-            if (!FlowSettings || !FlowSettings.UseAugmentSummaryAsArenaMapLoadCover)
+            if (!FlowSettings)
                 return;
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await levelSystem.LoadArenaMap(
-                useTransition: false,
-                color: transitionColor
-            );
+            await levelSystem.LoadArenaMap();
 
             _isArenaMapLoaded = true;
             _isRaceMapLoaded = false;
@@ -767,8 +681,7 @@ namespace MortierFu
             }
         }
 
-        private async UniTask RunAugmentSummaryAndOptionalArenaPreloadAsync(TransitionColor transitionColor,
-            CancellationToken cancellationToken)
+        private async UniTask RunAugmentSummaryAndOptionalArenaPreloadAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -777,10 +690,7 @@ namespace MortierFu
                 cancellationToken: cancellationToken
             );
 
-            var loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(
-                transitionColor,
-                cancellationToken
-            );
+            var loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
 
             var canHideSummaryTask = UniTask.WhenAll(
                 minimumDurationTask,
@@ -797,23 +707,13 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(
-            TransitionColor nextRaceTransitionColor, bool shouldPreloadNextRace, CancellationToken cancellationToken)
+        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var presentationTask = RunRoundEndPresentationAsync(cancellationToken);
 
-            var preloadTask = PrepareRaceSceneUnderScoreboardCoverAsync(
-                nextRaceTransitionColor,
-                shouldPreloadNextRace,
-                cancellationToken
-            );
-
-            await UniTask.WhenAll(
-                presentationTask,
-                preloadTask
-            );
+            await presentationTask;
 
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -832,32 +732,35 @@ namespace MortierFu
             StartRace();
 
             cameraSystem.Controller.ApplyRaceCameraMapConfigInstant();
+            cameraSystem.Controller?.ResetToMainCamera();
 
             _isRaceScenePrepared = true;
         }
 
-        private async UniTask EnsureRaceScenePreparedAsync(TransitionColor transitionColor, CancellationToken cancellationToken)
+        private async UniTask EnsureRaceScenePreparedAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await EnsureRaceMapLoadedAsync(transitionColor, cancellationToken);
+            await EnsureRaceMapLoadedAsync(cancellationToken);
 
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask PrepareRaceSceneUnderScoreboardCoverAsync(TransitionColor transitionColor, bool shouldPrepare, CancellationToken cancellationToken)
+        private async UniTask PrepareRaceSceneUnderScoreboardCoverAsync(bool shouldPrepare, CancellationToken cancellationToken)
         {
             if (!shouldPrepare)
                 return;
 
-            if (!FlowSettings || !FlowSettings.UseScoreboardAsRaceMapLoadCover)
+            if (!FlowSettings)
                 return;
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await levelSystem.LoadRaceMap(useTransition: false, color: transitionColor);
+            await CircleTransition.Instance.CloseAsync(0.5f);
+            
+            await levelSystem.LoadRaceMap();
 
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
@@ -866,6 +769,12 @@ namespace MortierFu
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
+            
+            HideScores();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: cancellationToken);
+            
+            await CircleTransition.Instance.OpenAsync(0.5f);
         }
 
         private void ApplyPreviousRoundWinnerRaceGiant()
@@ -923,5 +832,8 @@ namespace MortierFu
         }
         
         private int GetCurrentAugmentRaceNumber() => _currentRound.RoundIndex + 1;
+
+        //en sah c'est un peu villain mais c'est appelé une fois donc en perf osef
+        public List<PlayerTeam> GetPlayerTeamsWinnersOrder() => _scoreController.GetOrderWinners(Teams.ToList()); 
     }
 }

@@ -13,7 +13,6 @@ namespace MortierFu
     {
         [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
-        [SerializeField] private Image _background;
         [SerializeField] private Image _winnerBackgroundColorImage;
 
         [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
@@ -47,7 +46,6 @@ namespace MortierFu
         [SerializeField] private Sprite[] _placeSprites;
         [SerializeField] private Sprite[] _scoreSprites;
         [SerializeField] private Sprite[] _goldenBombshellSprites;
-        [SerializeField] private Sprite[] _goldenBombshellBgdSprites;
 
         [SerializeField] private Image[] _goldenBombshellImg;
         [SerializeField] private Image[] _goldenBombshellBgdImg;
@@ -205,8 +203,6 @@ namespace MortierFu
 
                 if (!IsValidPlayerIndex(idx))
                     continue;
-
-                _goldenBombshellBgdImg[idx].sprite = _goldenBombshellBgdSprites[_gm.GetWinnerPlayerIndex()];
 
                 bool isTeamAtMatchPoint = team.Score >= _gm.ScoreToWin - 1;
 
@@ -631,15 +627,9 @@ namespace MortierFu
             slider.value = end;
         }
 
-        private async UniTask AnimateRoundEndSequence(
-            RoundInfo round,
-            CancellationToken cancellationToken
-        )
+        private async UniTask AnimateRoundEndSequence(RoundInfo round, CancellationToken cancellationToken)
         {
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _lifetimeCancellation.Token
-            );
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
 
             var ct = linkedCancellation.Token;
 
@@ -653,17 +643,15 @@ namespace MortierFu
             await AnimatePlacementText(ct);
             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay), cancellationToken: ct);
 
-            var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
+            var sortedTeams = _gm.GetPlayerTeamsWinnersOrder();
+            
             await AnimateLeaderboardPositions(sortedTeams, ct);
 
             _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
             
             ShowGoldenBombshellIndicator(ct).Forget();
 
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(GetScoreboardMinimumDuration()),
-                cancellationToken: ct
-            );
+            await UniTask.Delay(TimeSpan.FromSeconds(GetScoreboardMinimumDuration()), cancellationToken: ct);
 
             _goldenBombshellCts?.Cancel();
         }
@@ -792,7 +780,6 @@ namespace MortierFu
             _winnerBackgroundImage.sprite = _winnerBackgrounds[winningTeam.Index];
             _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[winningTeam.Index];
 
-            _background.gameObject.SetActive(true);
             _winnerTitleImage.gameObject.SetActive(true);
             _winnerBackgroundImage.gameObject.SetActive(true);
             _winnerBackgroundColorImage.gameObject.SetActive(true);
@@ -800,11 +787,14 @@ namespace MortierFu
 
         private int GetPlacementBonus(PlayerTeam team)
         {
+            int playerCount = _gm?.Teams?.Count ?? 0;
+            if (playerCount <= 0) return 0;
+
             return team.Rank switch
             {
-                1 => _gm.Data.FirstRankBonusScore,
-                2 => _gm.Data.SecondRankBonusScore,
-                3 => _gm.Data.ThirdRankBonusScore,
+                1 => (_gm.Data.FirstRankBonusByPlayerCount != null && playerCount < _gm.Data.FirstRankBonusByPlayerCount.Length) ? _gm.Data.FirstRankBonusByPlayerCount[playerCount] : 0,
+                2 => (_gm.Data.SecondRankBonusByPlayerCount != null && playerCount < _gm.Data.SecondRankBonusByPlayerCount.Length) ? _gm.Data.SecondRankBonusByPlayerCount[playerCount] : 0,
+                3 => (_gm.Data.ThirdRankBonusByPlayerCount != null && playerCount < _gm.Data.ThirdRankBonusByPlayerCount.Length) ? _gm.Data.ThirdRankBonusByPlayerCount[playerCount] : 0,
                 _ => 0
             };
         }
@@ -837,7 +827,6 @@ namespace MortierFu
         {
             _goldenBombshellCts?.Cancel();
 
-            _background.gameObject.SetActive(false);
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
             _winnerBackgroundColorImage.gameObject.SetActive(false);

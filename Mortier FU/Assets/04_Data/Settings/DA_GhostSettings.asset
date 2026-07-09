@@ -14,19 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_GhostSettings
   _spawnDelay: 0.15
   _ghostPawnPrefab: {fileID: 2789086858105716611, guid: bc4c5a716ce5f674c94f1718db5aec8e, type: 3}
-  _moveSpeed: 7
+  _moveSpeed: 8.5
   _acceleration: 120
   _deceleration: 60
   _floatHeight: 0.45
   _collisionRadius: 0.35
   _groundRaycastStartHeight: 3
   _groundRaycastLength: 8
+  _waterRaycastLenght: 3
+  _waterRaycastHeightMargin: 0.3
   _spawnCheckRadius: 0.45
   _vehicleSpawnSearchRadius: 4
   _vehicleSpawnSearchSteps: 16
   _ghostSpawnBlockingMask:
     serializedVersion: 2
-    m_Bits: 61119
+    m_Bits: 126655
   _groundMask:
     serializedVersion: 2
     m_Bits: 64
@@ -35,8 +37,11 @@ MonoBehaviour:
     m_Bits: 128
   _placementBlockingMask:
     serializedVersion: 2
-    m_Bits: 16055
-  _propSpawnCooldown: 7
+    m_Bits: 81589
+  _waterLayerMask:
+    serializedVersion: 2
+    m_Bits: 16
+  _propSpawnCooldown: 6
   _placeableProps:
   - {fileID: 11400000, guid: 8e11f89fc72f1b946ac0af309efcc994, type: 2}
   - {fileID: 11400000, guid: 10422bd4cb66cf14087f83944fac53d9, type: 2}
