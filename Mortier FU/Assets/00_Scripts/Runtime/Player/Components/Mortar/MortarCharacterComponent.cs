@@ -22,7 +22,7 @@ namespace MortierFu
 
         public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
 
-        private float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
+        public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
 
@@ -108,6 +108,7 @@ namespace MortierFu
         private void OnShootCooldownComplete()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ReloadComplete, character.transform.position);
+            Character.Aspect.ReloadCompleteFeedback();
         }
 
         private void UpdateFireRate()

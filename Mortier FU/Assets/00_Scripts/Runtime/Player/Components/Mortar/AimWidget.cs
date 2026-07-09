@@ -31,6 +31,8 @@ namespace MortierFu
 
         public Vector3 ShootTargetPosition =>
             HasImpactPosition ? ImpactPosition : transform.position;
+        
+        public Material MaterialInstance => _materialInstance;
 
         private static readonly int NormalizedAngleID = Shader.PropertyToID("_NormalizedAngle");
 

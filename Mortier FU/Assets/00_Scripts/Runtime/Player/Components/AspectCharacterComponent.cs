@@ -31,6 +31,7 @@ namespace MortierFu
     public class AspectCharacterComponent : CharacterComponent
     {
         private Sequence _blinkTween;
+        private Sequence _reloadWidgetTween;
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
@@ -140,6 +141,31 @@ namespace MortierFu
                 {
                     _materialInstance.color = _startingColor;
                     _outlineMaterialInstance.color = _startingOutlineColor;
+                });
+        }
+
+        public async UniTask ReloadCompleteFeedback()
+        {
+            if (_reloadWidgetTween.isAlive)
+                _reloadWidgetTween.Stop();
+
+            Color startColor = Character.Mortar.AimWidget.MaterialInstance.color;
+            Color finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
+
+            _reloadWidgetTween = Sequence.Create()
+                .Group(
+                    Tween.MaterialColor(
+                        Character.Mortar.AimWidget.MaterialInstance,
+                        finalColor, 
+                        0.08f,
+                        ease: Ease.InOutSine,
+                        cycles: 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .OnComplete(() =>
+                {
+                    Character.Mortar.AimWidget.MaterialInstance.color = startColor;
                 });
         }
 
