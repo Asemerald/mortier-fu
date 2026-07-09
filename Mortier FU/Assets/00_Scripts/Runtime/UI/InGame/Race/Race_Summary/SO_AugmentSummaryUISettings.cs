@@ -9,6 +9,7 @@ namespace MortierFu
         [Header("Prefabs")]
         public GameObject PlayerImage;
         public GameObject RarityIcon;
+        public GameObject Card;
         public int RarityIconCount = 9;
 
         [Header("Player Animation Settings")]
@@ -17,13 +18,18 @@ namespace MortierFu
         public float PlayerAnimDelay = 0.3f;
         public Ease PlayerScaleEase = Ease.OutBack;
 
-        [Header("Child / Augment Icon Animation")]
+        [Header("Augment Icon Animation")]
         public float AugmentIconRadius = 225f;
         public float ChildAnimDelay = 0.3f;
         public float AugmentIconAnimDuration = 0.8f;
         public Ease AugmentIconScaleEase = Ease.OutBack;
         public Ease AugmentIconMoveEase = Ease.OutCubic;
         public float ChildAnimationExponentFactor = 1.2f;
+
+        [Header("Card Icon Animation")] 
+        public float CardDurationScale = 0.4f;
+        public Ease CardScaleEase = Ease.OutBack;
+        public float CardScaleMultiplier = 1f;
         
         [Header("Player Icon Visuals")]
         [Tooltip("Order : Blue, Red, Green, Yellow")] public Sprite[] PlayerIcons;

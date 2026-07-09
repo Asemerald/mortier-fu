@@ -174,7 +174,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 690275015468337672}
   - component: {fileID: 2066423067148541794}
   m_Layer: 5
-  m_Name: Layout
+  m_Name: LayoutAugmentsPlayers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -224,7 +224,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -153}
+  m_AnchoredPosition: {x: 0, y: 46}
   m_SizeDelta: {x: 1500, y: 306}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &2066423067148541794
@@ -376,6 +376,68 @@ MonoBehaviour:
   _playerConfirmationUI: {fileID: 1473333901195932150}
   _racePressureUI: {fileID: 4269925025928966329}
   _augmentSummaryUI: {fileID: 4775132437692249825}
+--- !u!1 &4574428488910346998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2571724035683308815}
+  - component: {fileID: 7329265326096112529}
+  m_Layer: 5
+  m_Name: LayoutCardPlayers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2571724035683308815
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4574428488910346998}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 14114000674990391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -379}
+  m_SizeDelta: {x: 1500, y: 306}
+  m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &7329265326096112529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4574428488910346998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 125
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &4925621674508005980
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,6 +469,7 @@ RectTransform:
   m_Children:
   - {fileID: 1720906841933365188}
   - {fileID: 690275015468337672}
+  - {fileID: 2571724035683308815}
   m_Father: {fileID: 6234623695037688770}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -426,22 +489,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d66f8ff0018cc446843b88177aa52c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.AugmentSummaryUI
+  _raritySpritesFactory: {fileID: 11400000, guid: 15dd99e61f44be9449d6017014686d90, type: 2}
+  _settings: {fileID: 11400000, guid: 391412896a795c449bf6a1a66fe3d29f, type: 2}
+  _layoutRectTAugments: {fileID: 690275015468337672}
+  _layoutRectTCard: {fileID: 2571724035683308815}
   _background: {fileID: 1265683590070354320}
-  _soRaritySpritesFactory: {fileID: 11400000, guid: 15dd99e61f44be9449d6017014686d90, type: 2}
-  _playerScaleDuration: 0.4
-  _playerTargetScale: 0.65
-  _playerAnimDelay: 0.3
-  _playerScaleEase: 27
-  _augmentIconRadius: 225
-  _childAnimDelay: 0.3
-  _augmentIconAnimDuration: 0.8
-  _augmentIconScaleEase: 27
-  _augmentIconMoveEase: 9
-  _childAnimationExponentFactor: 1.2
-  playerImage: {fileID: 3583475852160745042, guid: d613dcf016dc7e347bae29fb5f47f9ec, type: 3}
-  rarityIcon: {fileID: 5997500669672590919, guid: cfdcb09cd700dbf43b79c4f8d602573a, type: 3}
-  rarityIconCount: 9
-  layoutRectT: {fileID: 690275015468337672}
 --- !u!1 &5815363038789616186
 GameObject:
   m_ObjectHideFlags: 0
