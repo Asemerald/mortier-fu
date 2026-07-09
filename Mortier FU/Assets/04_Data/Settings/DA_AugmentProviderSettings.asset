@@ -39,15 +39,41 @@ MonoBehaviour:
     DampingFactor: 0.25
   DampingRecoveryRate: 0.02
   UseRarityUnlocksByRace: 1
-  RarityUnlocksByRace:
-  - Rarity: 0
-    UnlockFromRace: 1
-  - Rarity: 1
-    UnlockFromRace: 1
-  - Rarity: 2
-    UnlockFromRace: 1
-  - Rarity: 3
-    UnlockFromRace: 3
-  - Rarity: 4
-    UnlockFromRace: 4
+  RarityUnlocksByPlayerCount:
+  - PlayerCount: 4
+    Unlocks:
+    - Rarity: 0
+      UnlockFromRace: 1
+    - Rarity: 1
+      UnlockFromRace: 1
+    - Rarity: 2
+      UnlockFromRace: 1
+    - Rarity: 3
+      UnlockFromRace: 3
+    - Rarity: 4
+      UnlockFromRace: 4
+  - PlayerCount: 3
+    Unlocks:
+    - Rarity: 0
+      UnlockFromRace: 1
+    - Rarity: 1
+      UnlockFromRace: 1
+    - Rarity: 2
+      UnlockFromRace: 1
+    - Rarity: 3
+      UnlockFromRace: 3
+    - Rarity: 4
+      UnlockFromRace: 4
+  - PlayerCount: 2
+    Unlocks:
+    - Rarity: 0
+      UnlockFromRace: 1
+    - Rarity: 1
+      UnlockFromRace: 1
+    - Rarity: 2
+      UnlockFromRace: 1
+    - Rarity: 3
+      UnlockFromRace: 2
+    - Rarity: 4
+      UnlockFromRace: 3
   FallbackToNormalRarityTableIfNoUnlockedRarity: 0

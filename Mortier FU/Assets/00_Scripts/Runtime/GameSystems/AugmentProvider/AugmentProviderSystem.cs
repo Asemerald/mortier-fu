@@ -23,11 +23,10 @@ namespace MortierFu
         private readonly List<E_AugmentRarity> _availableUnlockedRarities = new();
 
         private const string k_augmentLibLabel = "AugmentLib";
-
-        // Sert à détecter les changements de round (recovery progressif) .
+        
         private int _lastKnownRaceNumber = 1;
 
-        public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments, int raceNumber)
+        public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments, int raceNumber, int playerCount)
         {
             if (outAugments == null || outAugments.Length == 0)
                 return;
@@ -42,7 +41,7 @@ namespace MortierFu
 
             for (var i = 0; i < length; i++)
             {
-                if (!TryResolveRarityForSlot(i, normalRarities, raceNumber, useRaceUnlocks, out var rarity) || !TryGetAugmentsForRarity(rarity, out var augments))
+                if (!TryResolveRarityForSlot(i, normalRarities, raceNumber, playerCount, useRaceUnlocks, out var rarity) || !TryGetAugmentsForRarity(rarity, out var augments))
                 {
                     outAugments[i] = null;
                     continue;
@@ -72,7 +71,7 @@ namespace MortierFu
             RestoreRemovedAugments();
 
             if (Settings.EnableDebug && useRaceUnlocks)
-                LogUnlockedRarities(raceNumber);
+                LogUnlockedRarities(raceNumber, playerCount);
         }
         
         private void SyncRoundRecovery(int raceNumber)
@@ -102,31 +101,31 @@ namespace MortierFu
             if (!Settings.UseRarityUnlocksByRace)
                 return false;
 
-            return Settings.RarityUnlocksByRace is { Count: > 0 };
+            return Settings.RarityUnlocksByPlayerCount is { Count: > 0 };
         }
 
-        private bool TryResolveRarityForSlot(int slotIndex, IReadOnlyList<E_AugmentRarity> normalRarities, int raceNumber, bool useRaceUnlocks, out E_AugmentRarity rarity)
+        private bool TryResolveRarityForSlot(int slotIndex, IReadOnlyList<E_AugmentRarity> normalRarities, int raceNumber, int playerCount, bool useRaceUnlocks, out E_AugmentRarity rarity)
         {
             if (!useRaceUnlocks)
                 return TryResolveNormalRarityForSlot(slotIndex, normalRarities, out rarity);
 
             var normalRarity = normalRarities[slotIndex];
 
-            if (IsRarityUnlockedForRace(normalRarity, raceNumber) &&
+            if (IsRarityUnlockedForRace(normalRarity, raceNumber, playerCount) &&
                 TryGetAugmentsForRarity(normalRarity, out _))
             {
                 rarity = normalRarity;
                 return true;
             }
 
-            if (TryGetRandomAvailableUnlockedRarity(raceNumber, out rarity))
+            if (TryGetRandomAvailableUnlockedRarity(raceNumber, playerCount, out rarity))
                 return true;
 
             if (Settings.FallbackToNormalRarityTableIfNoUnlockedRarity)
                 return TryResolveNormalRarityForSlot(slotIndex, normalRarities, out rarity);
 
             rarity = default;
-            Logs.LogWarning($"[AugmentProviderSystem] Pas de rareté disponible pour {raceNumber}.");
+            Logs.LogWarning($"[AugmentProviderSystem] Pas de rareté disponible pour la race {raceNumber} ({playerCount} joueurs).");
             return false;
         }
 
@@ -140,25 +139,46 @@ namespace MortierFu
             rarity = E_AugmentRarity.Rare;
             return TryGetAugmentsForRarity(rarity, out _);
         }
+        
+        private List<AugmentRarityRaceUnlock> GetUnlocksForPlayerCount(int playerCount)
+        {
+            var groups = Settings.RarityUnlocksByPlayerCount;
 
-        private bool TryGetRandomAvailableUnlockedRarity(int raceNumber, out E_AugmentRarity rarity)
+            if (groups == null)
+                return null;
+
+            for (var i = 0; i < groups.Count; i++)
+            {
+                if (groups[i].PlayerCount == playerCount)
+                    return groups[i].Unlocks;
+            }
+
+            return null;
+        }
+
+        private bool TryGetRandomAvailableUnlockedRarity(int raceNumber, int playerCount, out E_AugmentRarity rarity)
         {
             _availableUnlockedRarities.Clear();
 
-            for (var i = 0; i < Settings.RarityUnlocksByRace.Count; i++)
+            var unlocks = GetUnlocksForPlayerCount(playerCount);
+
+            if (unlocks != null)
             {
-                var unlock = Settings.RarityUnlocksByRace[i];
+                for (var i = 0; i < unlocks.Count; i++)
+                {
+                    var unlock = unlocks[i];
 
-                if (!IsRarityUnlockedForRace(unlock.Rarity, raceNumber))
-                    continue;
+                    if (!IsRarityUnlockedForRace(unlock.Rarity, raceNumber, playerCount))
+                        continue;
 
-                if (!TryGetAugmentsForRarity(unlock.Rarity, out _))
-                    continue;
+                    if (!TryGetAugmentsForRarity(unlock.Rarity, out _))
+                        continue;
 
-                if (_availableUnlockedRarities.Contains(unlock.Rarity))
-                    continue;
+                    if (_availableUnlockedRarities.Contains(unlock.Rarity))
+                        continue;
 
-                _availableUnlockedRarities.Add(unlock.Rarity);
+                    _availableUnlockedRarities.Add(unlock.Rarity);
+                }
             }
 
             if (_availableUnlockedRarities.Count == 0)
@@ -170,18 +190,20 @@ namespace MortierFu
             rarity = _availableUnlockedRarities[Random.Range(0, _availableUnlockedRarities.Count)];
             return true;
         }
-
-        private bool IsRarityUnlockedForRace(E_AugmentRarity rarity, int raceNumber)
+        
+        private bool IsRarityUnlockedForRace(E_AugmentRarity rarity, int raceNumber, int playerCount)
         {
             if (!Settings.UseRarityUnlocksByRace)
                 return true;
 
-            if (Settings.RarityUnlocksByRace == null || Settings.RarityUnlocksByRace.Count == 0)
+            var unlocks = GetUnlocksForPlayerCount(playerCount);
+
+            if (unlocks == null || unlocks.Count == 0)
                 return true;
 
-            for (var i = 0; i < Settings.RarityUnlocksByRace.Count; i++)
+            for (var i = 0; i < unlocks.Count; i++)
             {
-                var unlock = Settings.RarityUnlocksByRace[i];
+                var unlock = unlocks[i];
 
                 if (unlock.Rarity != rarity)
                     continue;
@@ -230,7 +252,10 @@ namespace MortierFu
 
             _rarityTable = new LootTable<E_AugmentRarity>(config);
             _rarityTable.PopulateLootBag(Settings.RarityDropRates);
-            
+
+            if (Settings.EnableDebug)
+                Logs.Log($"Successfully populate the augment rarity loot table with {_rarityTable.TotalWeight} total weight.");
+
             await PopulateAugmentDictionary();
         }
 
@@ -244,7 +269,7 @@ namespace MortierFu
 
             if (_augmentLibHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                Logs.LogWarning($"Error: {_augmentLibHandle.OperationException.Message}");
+                Logs.LogWarning($"Error occurred while loading Augment libs: {_augmentLibHandle.OperationException.Message}");
                 return;
             }
 
@@ -338,7 +363,7 @@ namespace MortierFu
 
             return true;
         }
-        
+
         private float GetDampingForAugment(SO_Augment augment)
         {
             var rarityDamping = Settings.RarityDropRateDamping;
@@ -354,7 +379,7 @@ namespace MortierFu
 
             return Mathf.Clamp01(Settings.DropRateDamping);
         }
-        
+
         private void RecoverChances()
         {
             var recovery = Mathf.Clamp01(Settings.DampingRecoveryRate);
@@ -368,7 +393,7 @@ namespace MortierFu
                 _augmentChances[key] = Mathf.Min(1f, current + recovery);
             }
         }
-        
+
         public void ResetChances()
         {
             var keys = new List<SO_Augment>(_augmentChances.Keys);
@@ -376,22 +401,27 @@ namespace MortierFu
                 _augmentChances[key] = 1f;
 
             if (Settings.EnableDebug)
-                Logs.Log("[AugmentProviderSystem] Augment chances reset to default.");
+                Logs.Log("[AugmentProviderSystem] Augment chances reset to default");
         }
 
-        private void LogUnlockedRarities(int raceNumber)
+        private void LogUnlockedRarities(int raceNumber, int playerCount)
         {
             _availableUnlockedRarities.Clear();
 
-            for (var i = 0; i < Settings.RarityUnlocksByRace.Count; i++)
-            {
-                var unlock = Settings.RarityUnlocksByRace[i];
+            var unlocks = GetUnlocksForPlayerCount(playerCount);
 
-                if (IsRarityUnlockedForRace(unlock.Rarity, raceNumber))
-                    _availableUnlockedRarities.Add(unlock.Rarity);
+            if (unlocks != null)
+            {
+                for (var i = 0; i < unlocks.Count; i++)
+                {
+                    var unlock = unlocks[i];
+
+                    if (IsRarityUnlockedForRace(unlock.Rarity, raceNumber, playerCount))
+                        _availableUnlockedRarities.Add(unlock.Rarity);
+                }
             }
 
-            Logs.Log($"[AugmentProviderSystem] Race {raceNumber} unlocked rarities: " + $"{string.Join(", ", _availableUnlockedRarities)}.");
+            Logs.Log($"[AugmentProviderSystem] Race {raceNumber} ({playerCount} players) unlocked rarities: {string.Join(", ", _availableUnlockedRarities)}.");
         }
 
         public void Dispose()

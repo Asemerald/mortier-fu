@@ -16,6 +16,7 @@ namespace MortierFu
 
         [Header("Settings Items")]
         [SerializeField] private UIIntStepperItem _scoreToWinItem;
+        [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
@@ -52,6 +53,8 @@ namespace MortierFu
 
             if (_scoreToWinItem && _matchSettingsData)
                 _scoreToWinItem.SetValue(_matchSettingsData.ScoreToWin, notify: false);
+
+            _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
 
             if (_navigationPanel)
                 _navigationPanel.Open(player, CloseFromNavigation);
@@ -91,6 +94,8 @@ namespace MortierFu
                 return;
 
             _matchSettingsData.SetScoreToWin(score);
+
+            _recommendedScoreDisplay?.Refresh(score);
         }
     }
 }
