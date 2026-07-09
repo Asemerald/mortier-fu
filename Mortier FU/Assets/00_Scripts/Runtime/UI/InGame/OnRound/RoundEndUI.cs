@@ -789,11 +789,14 @@ namespace MortierFu
 
         private int GetPlacementBonus(PlayerTeam team)
         {
+            int playerCount = _gm?.Teams?.Count ?? 0;
+            if (playerCount <= 0) return 0;
+
             return team.Rank switch
             {
-                1 => _gm.Data.FirstRankBonusScore,
-                2 => _gm.Data.SecondRankBonusScore,
-                3 => _gm.Data.ThirdRankBonusScore,
+                1 => (_gm.Data.FirstRankBonusByPlayerCount != null && playerCount < _gm.Data.FirstRankBonusByPlayerCount.Length) ? _gm.Data.FirstRankBonusByPlayerCount[playerCount] : 0,
+                2 => (_gm.Data.SecondRankBonusByPlayerCount != null && playerCount < _gm.Data.SecondRankBonusByPlayerCount.Length) ? _gm.Data.SecondRankBonusByPlayerCount[playerCount] : 0,
+                3 => (_gm.Data.ThirdRankBonusByPlayerCount != null && playerCount < _gm.Data.ThirdRankBonusByPlayerCount.Length) ? _gm.Data.ThirdRankBonusByPlayerCount[playerCount] : 0,
                 _ => 0
             };
         }

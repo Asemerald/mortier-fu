@@ -88,16 +88,27 @@ namespace MortierFu
             if (teamRank <= 0)
                 return 0;
 
-            if (teamRank >= _teams.Count)
-                return 0;
+            int playerCount = _teams?.Count ?? 0;
 
-            return teamRank switch
+            if (playerCount > 0)
             {
-                1 => _data.FirstRankBonusScore,
-                2 => _data.SecondRankBonusScore,
-                3 => _data.ThirdRankBonusScore,
-                _ => 0
-            };
+                if (teamRank == 1 && _data.FirstRankBonusByPlayerCount != null && playerCount < _data.FirstRankBonusByPlayerCount.Length)
+                {
+                    return _data.FirstRankBonusByPlayerCount[playerCount-1];
+                }
+
+                if (teamRank == 2 && _data.SecondRankBonusByPlayerCount != null && playerCount < _data.SecondRankBonusByPlayerCount.Length)
+                {
+                    return _data.SecondRankBonusByPlayerCount[playerCount-1];
+                }
+
+                if (teamRank == 3 && _data.ThirdRankBonusByPlayerCount != null && playerCount < _data.ThirdRankBonusByPlayerCount.Length)
+                {
+                    return _data.ThirdRankBonusByPlayerCount[playerCount-1];
+                }
+            }
+
+            return 0;
         }
 
         private int CalculateKillBonus(PlayerTeam team)
