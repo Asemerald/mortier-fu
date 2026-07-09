@@ -1,4 +1,4 @@
-using System;
+    using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -175,7 +175,7 @@ namespace MortierFu
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
 
-        private async UniTask PlayBoonDropTransition(AugmentPickup pickupVFX)
+        private async UniTask PlayBoonDropTransition()
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
@@ -194,7 +194,6 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
-            pickupVFX.gameObject.SetActive(true);
         }
 
         public void DisableObjectsOnFlip()
@@ -217,9 +216,9 @@ namespace MortierFu
             _augmentBorder.gameObject.SetActive(false);
         }
 
-        public async UniTask PlayRevealSequence(AugmentPickup pickupVFX)
+        public async UniTask PlayRevealSequence()
         {
-            await PlayBoonDropTransition(pickupVFX);
+            await PlayBoonDropTransition();
         }
 
         public void Show() => gameObject.SetActive(true);

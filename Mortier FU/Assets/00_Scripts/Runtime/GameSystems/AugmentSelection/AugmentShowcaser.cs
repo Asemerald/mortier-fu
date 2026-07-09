@@ -80,7 +80,8 @@ namespace MortierFu
                 
                
                 var pickupVFX = _pickupsVFX[i];
-                
+
+                pickupVFX.gameObject.SetActive(false);
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
 
@@ -93,7 +94,8 @@ namespace MortierFu
                 await GrowPickup(pickup, cardScale, ct);
 
                 pickupVFX.transform.position = pickup.AnchorIncon.position;
-                
+                pickupVFX.gameObject.SetActive(true);
+                pickupVFX.visual.HideVfx();
                 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
                 await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);
@@ -126,6 +128,7 @@ namespace MortierFu
             {
                 ct.ThrowIfCancellationRequested();
 
+                _pickupsVFX[i].gameObject.SetActive(false);
                 var pickup = _pickups[i];
                 var midFlipSignal = new UniTaskCompletionSource();
 
@@ -133,7 +136,7 @@ namespace MortierFu
                 {
                     if (previousMidFlip != null)
                         await previousMidFlip.Task;
-
+                    
                     await FlipPickupStair(
                         pickup,
                         ct,
@@ -159,12 +162,17 @@ namespace MortierFu
                 var pickup = _pickups[idx];
                 var pickupVFX = _pickupsVFX[idx];
 
-                pickup.PlayRevealSequence(pickupVFX).Forget();
+                pickup.PlayRevealSequence().Forget();
 
                 float t = (shuffled.Length - j) / (float)shuffled.Length;
 
                 await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger),
                     cancellationToken: ct);
+                
+                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+                pickupVFX.transform.position = pickup.transform.position;  
+                pickupVFX.gameObject.SetActive(true);
+                pickupVFX.visual.SetVfx();
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.BoonDelay), cancellationToken: ct);
@@ -239,7 +247,7 @@ namespace MortierFu
                 t,
                 midRot,
                 duration * 0.5f,
-                Ease.InQuad
+                Ease.InQuad  
             ).ToUniTask(cancellationToken: ct);
 
             ct.ThrowIfCancellationRequested();
