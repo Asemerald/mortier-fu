@@ -103,11 +103,12 @@ namespace MortierFu
                 pickup.Hide();
                 
                 var pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
-                pickupNewAugment.Initialize(this, i, pickup);
-                //pickupNewAugment.Reset();
+                pickupNewAugment.Initialize(this, i);
+                pickupNewAugment.Reset();
 
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupNewAugment);
+                pickupVFX.SetActive(false);
             }
         }
 
