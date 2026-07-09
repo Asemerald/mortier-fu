@@ -51,7 +51,11 @@ namespace MortierFu
 
         private InputAction _dashAction;
         private InputAction _toggleAimAction;
-        private InputAction _tauntAction;
+        
+        private InputAction _tauntAction1;
+        private InputAction _tauntAction2;
+        private InputAction _tauntAction3;
+        private InputAction _tauntAction4;
 
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
@@ -121,7 +125,11 @@ namespace MortierFu
             // Find and cache Input Actions
             FindInputAction("Dash", out _dashAction);
             FindInputAction("ToggleAim", out _toggleAimAction);
-            FindInputAction("Taunt", out _tauntAction);
+            
+            FindInputAction("Taunt1", out _tauntAction1);
+            FindInputAction("Taunt2", out _tauntAction2);
+            FindInputAction("Taunt3", out _tauntAction3);
+            FindInputAction("Taunt4", out _tauntAction4);
 
             // Initialize character components
             Health.Initialize();
@@ -134,7 +142,11 @@ namespace MortierFu
             _toggleAimAction.canceled += Mortar.EndAiming;
 
             _dashAction.started += PlayDashSFX;
-            _tauntAction.started += Taunt;
+            _tauntAction1.started += Taunt1;
+            _tauntAction2.started += Taunt2;
+            _tauntAction3.started += Taunt3;
+            _tauntAction4.started += Taunt4;
+            
 
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
@@ -162,8 +174,14 @@ namespace MortierFu
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
 
-            if (_tauntAction != null)
-                _tauntAction.started -= Taunt;
+            if (_tauntAction1 != null)
+                _tauntAction1.started -= Taunt1;
+            if (_tauntAction2 != null)
+                _tauntAction2.started -= Taunt2;
+            if (_tauntAction3 != null)
+                _tauntAction3.started -= Taunt3;
+            if (_tauntAction4 != null)
+                _tauntAction4.started -= Taunt4;
 
             if (_toggleAimAction == null || Mortar == null) return;
             _toggleAimAction.started -= Mortar.BeginAiming;
@@ -567,12 +585,36 @@ namespace MortierFu
 
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
 
-        private void Taunt(InputAction.CallbackContext ctx)
+        private void Taunt1(InputAction.CallbackContext ctx)
         {
             if (!CanTaunt)
                 return;
 
-            _tauntFeedback.Taunt();
+            _tauntFeedback.Taunt(1);
+        }
+        
+        private void Taunt2(InputAction.CallbackContext ctx)
+        {
+            if (!CanTaunt)
+                return;
+
+            _tauntFeedback.Taunt(2);
+        }
+        
+        private void Taunt3(InputAction.CallbackContext ctx)
+        {
+            if (!CanTaunt)
+                return;
+
+            _tauntFeedback.Taunt(3);
+        }
+        
+        private void Taunt4(InputAction.CallbackContext ctx)
+        {
+            if (!CanTaunt)
+                return;
+
+            _tauntFeedback.Taunt(4);
         }
 
         private void ResolveCustomizationVisual()
