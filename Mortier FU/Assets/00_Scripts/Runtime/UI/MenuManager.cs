@@ -20,10 +20,15 @@ namespace MortierFu
         public MainMenuPanel MainMenuPanel { get; private set; }
 
         [field: SerializeField] public Button PlayButton { get; private set; }
-        [field: SerializeField] public Button SettingsButton { get; private set; }
+        
         [field: SerializeField] public Button CreditsButton { get; private set; }
+        [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
 
+        [field: SerializeField] public Button DiscordButton { get; private set; }
+        
+        [field: SerializeField] public Button MailButton { get; private set; }
+        
         [SerializeField] private GameObject _animatedCharacter;
         [SerializeField] private GameObject _animatedOutlineCharacter;
 
@@ -52,6 +57,9 @@ namespace MortierFu
         [field: SerializeField]
         public CreditsPanel CreditsPanel { get; private set; }
 
+        [field: Header("Discord References")] 
+        [SerializeField] private string discordURL = "Salam";
+            
         [Header("Utils")] [SerializeField] private MainMenuCameraManager _cameraManager;
         [SerializeField] private float _delayBeforeMainMenuShow = 2f;
 
@@ -169,6 +177,9 @@ namespace MortierFu
 
             if (QuitButton)
                 QuitButton.onClick.RemoveListener(QuitGame);
+            
+            if(DiscordButton)
+                DiscordButton.onClick.RemoveListener(OpenDiscordInvit);
         }
 
         private void EnableUiInputModule()
@@ -335,10 +346,16 @@ namespace MortierFu
             Logs.Log("[MenuManager] Quitting game.");
             
             Application.Quit();
+            
 
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
 #endif
+        }
+
+        private void OpenDiscordInvit()
+        {
+           Application.OpenURL(discordURL); 
         }
 
         private void SetCharactersVisible(bool visible)
