@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using PrimeTween;
@@ -20,12 +21,18 @@ namespace MortierFu
         public MainMenuPanel MainMenuPanel { get; private set; }
 
         [field: SerializeField] public Button PlayButton { get; private set; }
-        [field: SerializeField] public Button SettingsButton { get; private set; }
+        
         [field: SerializeField] public Button CreditsButton { get; private set; }
+        [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
 
+        [field: SerializeField] public Button DiscordButton { get; private set; }
+        [field: SerializeField] public Button SteamButton { get; private set; }
+        [field: SerializeField] public Button MailButton { get; private set; }
+        
         [SerializeField] private GameObject _animatedCharacter;
         [SerializeField] private GameObject _animatedOutlineCharacter;
+        [SerializeField] private GameObject BetaTest;
 
         [Header("Animation")] [SerializeField] private Image _background;
         [SerializeField] private Image _logo;
@@ -36,6 +43,7 @@ namespace MortierFu
         [SerializeField] private Ease _creditsButtonEase = Ease.OutQuad;
         [SerializeField] private Ease _settingsButtonEase = Ease.OutQuad;
         [SerializeField] private Ease _quitButtonEase = Ease.OutQuad;
+        [SerializeField] private Ease _contactEase = Ease.OutQuad;
 
         [SerializeField] private float _backgroundEaseDuration = 1.5f;
         [SerializeField] private float _logoEaseDuration = 1.5f;
@@ -44,6 +52,11 @@ namespace MortierFu
         [SerializeField] private float _settingsButtonEaseDuration = 0.7f;
         [SerializeField] private float _quitButtonEaseDuration = 0.7f;
         [SerializeField] private float _circleTransitionDuration = 1f;
+        [SerializeField] private float _contactEaseDuration = 0.7f;
+
+        [SerializeField] private float _discordLogoScale = 1.25f;
+        [SerializeField] private float _mailLogoScale = 1.1f;
+        [SerializeField] private float _steamScale = 1.1f;
         
         [field: Header("Settings References")]
         [field: SerializeField]
@@ -53,6 +66,11 @@ namespace MortierFu
         [field: SerializeField]
         public CreditsPanel CreditsPanel { get; private set; }
 
+        [field: Header("Contact References")] 
+        [SerializeField] private string discordURL = "Salam";
+        [SerializeField] private string steamMagasinPage = "Salam";
+        [SerializeField] private string mailURL = "Salam";
+            
         [Header("Utils")] [SerializeField] private MainMenuCameraManager _cameraManager;
         [SerializeField] private float _delayBeforeMainMenuShow = 2f;
 
@@ -131,6 +149,10 @@ namespace MortierFu
             CreditsButton.transform.localScale = Vector3.zero;
             SettingsButton.transform.localScale = Vector3.zero;
             QuitButton.transform.localScale = Vector3.zero;
+            DiscordButton.transform.localScale = Vector3.zero;
+            SteamButton.transform.localScale = Vector3.zero;
+            MailButton.transform.localScale = Vector3.zero;
+            BetaTest.transform.localScale = Vector3.zero;
 
             await Tween.Alpha(_background, 1f, _backgroundEaseDuration, _backgroundEase)
                 .Group(Tween.Alpha(_logo, 1f, _logoEaseDuration, _logoEase));
@@ -139,6 +161,11 @@ namespace MortierFu
                 .Group(Tween.Scale(CreditsButton.transform, 1.5f, _creditsButtonEaseDuration, _creditsButtonEase))
                 .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
                 .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
+            
+            await Tween.Scale(DiscordButton.transform, _discordLogoScale, _contactEaseDuration, _contactEase)
+                .Group(Tween.Scale(SteamButton.transform,_steamScale, _contactEaseDuration, _contactEase))
+                .Group(Tween.Scale(MailButton.transform,_mailLogoScale, _contactEaseDuration, _contactEase))
+                .Group(Tween.Scale(BetaTest.transform, 1.1f, _contactEaseDuration - 0.4f, _contactEase)); // BETA-TEST Note  
 
             if (_eventSystem && PlayButton)
                 _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
@@ -157,6 +184,15 @@ namespace MortierFu
 
             if (QuitButton)
                 QuitButton.onClick.AddListener(QuitGame);
+            
+            if (DiscordButton)
+                DiscordButton.onClick.AddListener(OpenDiscordInvit);
+
+            if (SteamButton)
+                SteamButton.onClick.AddListener(OpenSteamPage);
+            
+            if (MailButton)
+                MailButton.onClick.AddListener(OpenMail);
         }
 
         private void UnbindButtons()
@@ -172,6 +208,15 @@ namespace MortierFu
 
             if (QuitButton)
                 QuitButton.onClick.RemoveListener(QuitGame);
+            
+            if(DiscordButton)
+                DiscordButton.onClick.RemoveListener(OpenDiscordInvit);
+            
+            if(SteamButton)
+                SteamButton.onClick.RemoveListener(OpenSteamPage);
+            
+            if(MailButton)
+                MailButton.onClick.RemoveListener(OpenMail);
         }
 
         private void EnableUiInputModule()
@@ -338,12 +383,28 @@ namespace MortierFu
             Logs.Log("[MenuManager] Quitting game.");
             
             Application.Quit();
+            
 
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
 #endif
         }
 
+        private void OpenDiscordInvit()
+        {
+           Application.OpenURL(discordURL); 
+        }
+
+        private void OpenSteamPage()
+        {
+            Application.OpenURL(steamMagasinPage); 
+        }
+        
+        private void OpenMail()
+        {
+            Application.OpenURL(mailURL); 
+        }
+        
         private void SetCharactersVisible(bool visible)
         {
             if (_animatedCharacter)
