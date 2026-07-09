@@ -48,6 +48,8 @@ namespace MortierFu
 
         private StringBuilder _sb = new StringBuilder();
 
+        public Transform AnchorIncon;
+
         public void Initialize()
         {
             _faceCamera = GetComponent<FaceCamera>();
