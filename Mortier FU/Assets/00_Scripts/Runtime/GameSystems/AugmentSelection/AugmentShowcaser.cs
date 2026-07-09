@@ -89,7 +89,8 @@ namespace MortierFu
                 
                
                 var pickupVFX = _pickupsVFX[i];
-                
+
+                pickupVFX.gameObject.SetActive(false);
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
 
@@ -102,7 +103,8 @@ namespace MortierFu
                 await GrowPickup(pickup, cardScale, ct);
 
                 pickupVFX.transform.position = pickup.AnchorIncon.position;
-                
+                pickupVFX.gameObject.SetActive(true);
+                pickupVFX.visual.HideVfx();
                 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
                 await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);

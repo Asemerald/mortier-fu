@@ -26,7 +26,7 @@ namespace MortierFu
 
         private Quaternion _initialRotation;
 
-        public void Initialize(AugmentSelectionSystem system, int augmentIndex, AugmentCardUI augmentCardUI)
+        public void Initialize(AugmentSelectionSystem system, int augmentIndex)
         {
             _system = system;
             _index = augmentIndex;
