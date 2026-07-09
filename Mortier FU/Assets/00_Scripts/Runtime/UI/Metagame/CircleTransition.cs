@@ -2,19 +2,18 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
+using PrimeTween;
 using MortierFu.Shared;
 
 namespace MortierFu
 {
-    public class CircleOpen : MonoBehaviour
+    public class CircleTransition : MonoBehaviour
     {
         [SerializeField] private Image _image;
-        [SerializeField] private float _duration = 1f;
 
         private Material _material;
 
-        public static CircleOpen Instance { get; private set; }
+        public static CircleTransition Instance { get; private set; }
 
         private void Awake()
         {
@@ -31,21 +30,22 @@ namespace MortierFu
             _material.SetFloat("_Progress", 0);
         }
 
-        private void Start()
-        {
-            OpenAsync().Forget();
-        }
-
-        private async UniTask OpenAsync()
+        public async UniTask OpenAsync(float duration)
         {
             _image.gameObject.SetActive(true);
 
-            _material.DOFloat(1f, "_Progress", _duration)
-                .SetEase(Ease.InOutQuad);
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_duration));
-
+            await Tween.MaterialProperty(_material, Shader.PropertyToID("_Progress"), 1f, duration, Ease.InOutQuad);
+            
             _image.gameObject.SetActive(false);
+        }
+
+        public async UniTask CloseAsync(float duration)
+        {
+            _image.gameObject.SetActive(true);
+            
+            _material.SetFloat("_Progress", 1);
+            
+            await Tween.MaterialProperty(_material, Shader.PropertyToID("_Progress"), 0f, duration, Ease.InOutQuad);
         }
     }
 }

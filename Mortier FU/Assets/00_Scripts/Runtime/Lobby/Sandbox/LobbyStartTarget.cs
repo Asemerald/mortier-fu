@@ -1,11 +1,13 @@
 using System;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace MortierFu
 {
     public sealed class LobbyStartTarget : MonoBehaviour
     {
         public event Action<PlayerManager> OnHitByPlayer;
+        [SerializeField] private PlayableDirector _DongAnimation;
         [SerializeField] private LobbyStartReadyController lobbyStartReadyController;
 
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
@@ -59,6 +61,16 @@ namespace MortierFu
                 return true;
 
             return hitObject.transform.IsChildOf(transform);
+        }
+
+        public void DongAnimation()
+        {
+            _DongAnimation.Play();
+        }
+
+        public void ConfirmAnimationEnd()
+        {
+            lobbyStartReadyController.StartMatch();
         }
     }
 }

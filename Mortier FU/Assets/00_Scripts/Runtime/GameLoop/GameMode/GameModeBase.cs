@@ -313,13 +313,14 @@ namespace MortierFu
 
             InitializeEndRound();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.GetShowScoreboardDelay), cancellationToken: cancellationToken);
+            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.CameraZoomOnWinnerDuration + 0.5f), cancellationToken: cancellationToken);
             
             var matchWillEnd = IsGameOver(out gameVictor);
 
-            await RunRoundEndPresentationAndOptionalRacePreloadAsync(shouldPreloadNextRace: !matchWillEnd, cancellationToken);
+            await RunRoundEndPresentationAndOptionalRacePreloadAsync(cancellationToken);
+
+            await PrepareRaceSceneUnderScoreboardCoverAsync(!matchWillEnd, cancellationToken);
             
-            HideScores();
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -706,15 +707,13 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(bool shouldPreloadNextRace, CancellationToken cancellationToken)
+        private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var presentationTask = RunRoundEndPresentationAsync(cancellationToken);
 
-            var preloadTask = PrepareRaceSceneUnderScoreboardCoverAsync(shouldPreloadNextRace, cancellationToken);
-
-            await UniTask.WhenAll(presentationTask, preloadTask);
+            await presentationTask;
 
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -759,6 +758,8 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            await CircleTransition.Instance.CloseAsync(0.5f);
+            
             await levelSystem.LoadRaceMap();
 
             _isRaceMapLoaded = true;
@@ -768,6 +769,12 @@ namespace MortierFu
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
+            
+            HideScores();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: cancellationToken);
+            
+            await CircleTransition.Instance.OpenAsync(0.5f);
         }
 
         private void ApplyPreviousRoundWinnerRaceGiant()
