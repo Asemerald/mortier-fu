@@ -6,7 +6,7 @@ namespace MortierFu
     public sealed class FXSceneLibrary : MonoBehaviour
     {
         [Header("Bombshell")]
-        [SerializeField] private ParticleSystem _bombshellPreview;
+        [SerializeField] private GameObject _bombshellPreview;
         [SerializeField] private ParticleSystem[] _bombshellExplosionColors;
         [SerializeField] private ParticleSystem _bombshellWaterExplosion;
 
@@ -14,7 +14,7 @@ namespace MortierFu
         [SerializeField] private ParticleSystem _dash;
         [SerializeField] private ParticleSystem _stun;
 
-        public ParticleSystem BombshellPreview => _bombshellPreview;
+        public GameObject BombshellPreview => _bombshellPreview;
         public ParticleSystem[] BombshellExplosionColors => _bombshellExplosionColors;
         public ParticleSystem BombshellWaterExplosion => _bombshellWaterExplosion;
         public ParticleSystem Dash => _dash;

@@ -56,25 +56,23 @@ namespace MortierFu
 
             Vector3 surfaceNormal = GetSafeNormal(normal);
             Vector3 spawnPosition = position + surfaceNormal * k_surfaceFxOffset;
-            Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellPreview, surfaceNormal);
+            Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellPreview.transform, surfaceNormal);
 
-            ParticleSystem preview = Object.Instantiate(library.BombshellPreview, spawnPosition, spawnRotation);
+            Transform preview = Object.Instantiate(library.BombshellPreview, spawnPosition, spawnRotation).transform;
 
-            preview.transform.localScale = Vector3.one * 0.001f;
+            float boxHeight = 2f;
+            preview.localScale = new Vector3(0.001f, boxHeight, 0.001f);
 
             float safeTravelTime = Mathf.Max(0.01f, travelTime);
 
-            Tween.Scale(
-                preview.transform,
-                Vector3.one * (range * 2f),
+            Tween.Custom(
+                0f, range * 2f,
                 duration: Mathf.Max(0.01f, safeTravelTime * 0.9f),
+                onValueChange: v => preview.localScale = new Vector3(v, boxHeight, v),
                 ease: Ease.OutQuad
             );
 
-            ParticleSystem.MainModule main = preview.main;
-            main.simulationSpeed = 1f / safeTravelTime;
-
-            Object.Destroy(preview.gameObject, safeTravelTime + 1f);
+            Object.Destroy(preview.gameObject, safeTravelTime);
         }
 
         public void PlayBombshellExplosion(Vector3 position, float range, int playerIndex)
@@ -216,11 +214,15 @@ namespace MortierFu
                 : Vector3.up;
         }
 
-        private static Quaternion GetSurfaceAlignedRotation(ParticleSystem prefab, Vector3 normal)
+        private static Quaternion GetSurfaceAlignedRotation(Transform prefabTransform, Vector3 normal)
         {
             Quaternion surfaceRotation = Quaternion.FromToRotation(Vector3.up, normal);
+            return surfaceRotation * prefabTransform.rotation;
+        }
 
-            return surfaceRotation * prefab.transform.rotation;
+        private static Quaternion GetSurfaceAlignedRotation(ParticleSystem prefab, Vector3 normal)
+        {
+            return GetSurfaceAlignedRotation(prefab.transform, normal);
         }
 
         public void Dispose()
