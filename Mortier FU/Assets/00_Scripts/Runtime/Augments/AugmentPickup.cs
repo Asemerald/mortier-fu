@@ -1,6 +1,7 @@
 using System;
 using MortierFu.Shared;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -16,6 +17,7 @@ namespace MortierFu
         private GameObject _vfxInstance;
         
         public E_AugmentRarity Rarity => _rarity;
+        public AugmentPickupVisual visual;
 
         private int _index;
 
@@ -30,7 +32,7 @@ namespace MortierFu
             _index = augmentIndex;
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
             
-            _initialRotation = transform.rotation;
+            _initialRotation = transform.rotation; 
         }
 
         private void OnTriggerEnter(Collider other)
@@ -80,10 +82,10 @@ namespace MortierFu
             _vfxInstance.transform.localRotation = Quaternion.identity;
             _vfxInstance.transform.localScale = Vector3.one;
 
-            var visualComp = _vfxInstance.GetComponent<AugmentPickupVisual>();
-            if (visualComp != null)
+            visual = _vfxInstance.GetComponent<AugmentPickupVisual>();
+            if (visual != null)
             {
-                visualComp.SetLogoSprite(augment.SmallSprite);
+                visual.SetLogoSprite(augment.SmallSprite);
             }
 
             // Adopt the rarity from the prototype
