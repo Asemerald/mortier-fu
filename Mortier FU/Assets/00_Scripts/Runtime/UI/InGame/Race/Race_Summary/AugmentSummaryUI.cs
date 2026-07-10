@@ -28,10 +28,15 @@ namespace MortierFu
         [SerializeField] private GameObject _background;
         
         private readonly List<Tween> _activeTweens = new();
-        private readonly List<Tween> _loopingTweens = new();
+        
         private CancellationTokenSource _cts;
         private GameModeBase _gameModeBase;
         private Transform[] _playerCards;
+
+        [Header("Settings")] 
+        [SerializeField] private bool bullyPossesCard = true;
+        [SerializeField] private bool bullyPossesIndicator = false;
+        [SerializeField] private bool cardDisplay = true;
         
         #endregion
 
@@ -59,25 +64,6 @@ namespace MortierFu
 
         #endregion
         
-        private void CancelAnimations()
-        {
-            foreach (var tween in _activeTweens)
-                tween.Stop();
-            _activeTweens.Clear();
-            
-            StopLoopingTweens();
-            
-            _cts?.Cancel();
-        }
-        
-        private void StopLoopingTweens()
-        {
-            foreach (var tween in _loopingTweens)
-                tween.Stop();
-
-            _loopingTweens.Clear();
-        }
-
         #region Stacking
 
         private List<AugmentStack> BuildAugmentStacks(List<SO_Augment> augments)
@@ -159,7 +145,7 @@ namespace MortierFu
             {
                 LastAugmentAnimation lastAugmentAnimation = augmentsIcon.gameObject.AddComponent<LastAugmentAnimation>();
                 lastAugmentAnimation.enabled = false;
-
+                
                 InitializeCard(playerIndex, augmentStack);
             }
 
@@ -198,21 +184,25 @@ namespace MortierFu
 
         private void InitializeCard(int playerIndex, AugmentStack augmentStack)
         {
-            GameObject cardObj = Instantiate(_settings.Card, _layoutRectTCard);
-            cardObj.transform.localScale = Vector3.zero;
-
-            Image cardImage = cardObj.GetComponent<Image>();
+            AugmentCardSummaryRaceUI cardObj = Instantiate(_settings.Card, _layoutRectTCard);
             
-            if (cardImage)
-                cardImage.sprite = augmentStack.Augment.CardSprite;
-
+            cardObj.transform.localScale = Vector3.zero;
+            
+            cardObj.Initialize();
+            
+            cardObj.SetAugmentVisual(augmentStack.Augment);
+            
             _playerCards[playerIndex] = cardObj.transform;
 
-            if (cardObj.transform.childCount > 0)
+            if (bullyPossesIndicator)
             {
-                bool indicatorCardActive =
-                    _gameModeBase.GetWinnerPlayerIndex() != playerIndex && cardObj.transform.childCount > 0;
-                cardObj.transform.GetChild(0).gameObject.SetActive(indicatorCardActive);    
+                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_cts.Token);
+            }
+            else
+            {
+                cardObj.EnableIndicatorCard(
+                    _gameModeBase.GetWinnerPlayerIndex() != playerIndex && cardObj.transform.childCount > 0,
+                    _cts.Token);
             }
         }
         
@@ -244,13 +234,10 @@ namespace MortierFu
             
             InitializePlayers(playerAugmentStacks, playerCount);
             
-            AnimateIndicators(playerCount, ct);
-            
             await AnimateSummaryUI(playerCount, ct, playerAugmentStacks);
             
             await HandleAnimationLastAugment(playerCount, ct, canHideTask);
             
-            StopLoopingTweens();
             CleanAugmentSummaryForNextRound();
             
             _background.SetActive(false);
@@ -279,6 +266,9 @@ namespace MortierFu
                 AnimateAugmentIcons(playerTransform, ct, playerAugmentStacks[i]).Forget();
                 
                 await UniTask.Yield();
+                
+                if (!bullyPossesCard && _gameModeBase.GetWinnerPlayerIndex() == i)
+                    continue;
                 
                 await AnimateCard(_playerCards[i],ct);
                 
@@ -392,8 +382,8 @@ namespace MortierFu
 
         private async UniTask AnimateCard(Transform card, CancellationToken ct)
         {
-            if (!card) return;
-
+            if (!card || !cardDisplay) return;
+            
             Tween cardTween = Tween.Scale(
                 card,
                 Vector3.zero,
@@ -403,33 +393,21 @@ namespace MortierFu
             
             await cardTween.ToUniTask(cancellationToken: ct);
         }
+        
+        
+        #endregion
 
-        private void AnimateIndicators(int playerCount,CancellationToken ct)
+        #region Clean
+
+        private void CancelAnimations()
         {
-            for (int i = 0; i < playerCount; i++)
-            {
-                Transform parentCard = _layoutRectTCard.GetChild(i);
-                
-                if (!parentCard || parentCard.childCount <= 0) return;
-
-                Transform indicator = parentCard.GetChild(0);
-
-                float currentIndicatorYPos = indicator.localPosition.y;
-                float offsetY = 10f;
-
-                Tween indicatorTween = Tween.LocalPositionY(
-                    indicator,
-                    currentIndicatorYPos - offsetY,
-                    0.5f,
-                    Ease.OutQuad,
-                    cycles: -1,
-                    CycleMode.Yoyo
-                );
+            foreach (var tween in _activeTweens)
+                tween.Stop();
+            _activeTweens.Clear();
             
-                _loopingTweens.Add(indicatorTween);
-                ct.Register(() => indicatorTween.Stop());
-            }
+            _cts?.Cancel();
         }
+        
         
         private void CleanAugmentSummaryForNextRound() 
         {

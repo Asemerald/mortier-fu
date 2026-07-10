@@ -9,7 +9,7 @@ namespace MortierFu
         [Header("Prefabs")]
         public GameObject PlayerImage;
         public GameObject RarityIcon;
-        public GameObject Card;
+        public AugmentCardSummaryRaceUI Card;
         public int RarityIconCount = 9;
 
         [Header("Player Animation Settings")]
