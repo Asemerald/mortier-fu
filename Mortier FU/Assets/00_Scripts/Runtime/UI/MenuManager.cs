@@ -53,7 +53,6 @@ namespace MortierFu
         [SerializeField] private float _quitButtonEaseDuration = 0.7f;
         [SerializeField] private float _circleTransitionDuration = 1f;
         [SerializeField] private float _contactEaseDuration = 0.7f;
-
         [SerializeField] private float _discordLogoScale = 1.25f;
         [SerializeField] private float _mailLogoScale = 1.1f;
         [SerializeField] private float _steamScale = 1.1f;
@@ -65,11 +64,17 @@ namespace MortierFu
         [field: Header("Credits References")]
         [field: SerializeField]
         public CreditsPanel CreditsPanel { get; private set; }
-
+        [field: SerializeField] public Button YoutubeSoulSoundsButton { get; private set; }
+        [field: SerializeField] public Button SpotifySoulSoundsButton { get; private set; }
+        [field: SerializeField] public Button AppleMusicSoulSoundsButton { get; private set; }
+        
         [field: Header("Contact References")] 
         [SerializeField] private string discordURL = "Salam";
         [SerializeField] private string steamMagasinPage = "Salam";
         [SerializeField] private string mailURL = "Salam";
+        [SerializeField] private string appleMusicSSURL;
+        [SerializeField] private string spotifySSURL;
+        [SerializeField] private string youtubeSSURL;
             
         [Header("Utils")] [SerializeField] private MainMenuCameraManager _cameraManager;
         [SerializeField] private float _delayBeforeMainMenuShow = 2f;
@@ -193,6 +198,16 @@ namespace MortierFu
             
             if (MailButton)
                 MailButton.onClick.AddListener(OpenMail);
+            
+            /// Credits Buttons
+            if (AppleMusicSoulSoundsButton)
+                AppleMusicSoulSoundsButton.onClick.AddListener(AppleMusicSSUrl);
+            
+            if (SpotifySoulSoundsButton)
+                SpotifySoulSoundsButton.onClick.AddListener(SpotifySSUrl);
+            
+            if (YoutubeSoulSoundsButton)
+                YoutubeSoulSoundsButton.onClick.AddListener(YoutubeSSUrl);
         }
 
         private void UnbindButtons()
@@ -209,6 +224,7 @@ namespace MortierFu
             if (QuitButton)
                 QuitButton.onClick.RemoveListener(QuitGame);
             
+            // Contact
             if(DiscordButton)
                 DiscordButton.onClick.RemoveListener(OpenDiscordInvit);
             
@@ -217,6 +233,16 @@ namespace MortierFu
             
             if(MailButton)
                 MailButton.onClick.RemoveListener(OpenMail);
+            
+            // Credits
+            if(SpotifySoulSoundsButton)
+                SpotifySoulSoundsButton.onClick.RemoveListener(SpotifySSUrl);
+            
+            if(AppleMusicSoulSoundsButton)
+                AppleMusicSoulSoundsButton.onClick.RemoveListener(AppleMusicSSUrl);
+            
+            if(YoutubeSoulSoundsButton)
+                YoutubeSoulSoundsButton.onClick.RemoveListener(YoutubeSSUrl);
         }
 
         private void EnableUiInputModule()
@@ -362,6 +388,8 @@ namespace MortierFu
                 CreditsPanel.Show();
 
             SetCharactersVisible(false);
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
         }
 
         private void CloseCreditsPanel()
@@ -373,6 +401,8 @@ namespace MortierFu
                 MainMenuPanel.Show();
 
             SetCharactersVisible(true);
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
 
             if (_eventSystem && CreditsButton)
                 _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
@@ -403,6 +433,23 @@ namespace MortierFu
         private void OpenMail()
         {
             Application.OpenURL(mailURL); 
+        }
+
+        private void AppleMusicSSUrl()
+        {
+            Application.OpenURL(appleMusicSSURL);
+            Debug.Log("Apple");
+        }
+        
+        private void SpotifySSUrl()
+        {
+            Application.OpenURL(spotifySSURL);
+            Debug.Log("Spotify");
+        }
+        private void YoutubeSSUrl()
+        {
+            Application.OpenURL(youtubeSSURL);
+            Debug.Log("Youtube");
         }
         
         private void SetCharactersVisible(bool visible)
