@@ -17,28 +17,5 @@ namespace MortierFu
             Transform racerSpawn = Reporter.GetRacerSpawnPoint(racerIndex);
             return racerSpawn ? racerSpawn : fallback;
         }
-
-        public override RaceAugmentLayout BuildAugmentLayout(int augmentCount)
-        {
-            if (!Reporter || augmentCount <= 0)
-                return base.BuildAugmentLayout(augmentCount);
-
-            Vector3[] points = new Vector3[augmentCount];
-
-            if (MazeDefinition != null && MazeDefinition.UseFixedAugmentPoints)
-            {
-                if (Reporter.TryPopulateFixedAugmentPoints(points))
-                    return new RaceAugmentLayout(Reporter.AugmentPivot, points, parentPointsToPivot: false, useRotatorPrediction: false);
-            }
-
-            PlayerCharacter bullyCharacter = BullyCharacter;
-
-            if (!bullyCharacter)
-                return base.BuildAugmentLayout(augmentCount);
-
-            Reporter.TryPopulateCircleAround(bullyCharacter.transform.position, points);
-
-            return new RaceAugmentLayout(Reporter.AugmentPivot, points, parentPointsToPivot: false, useRotatorPrediction: false);
-        }
     }
 }
