@@ -336,7 +336,7 @@ namespace MortierFu
 
                 for (int i = 0; i < childCount; i++)
                 {
-                    float angle = -i * angleStep;
+                    float angle = _settings.AngleOffsetDeparture - i * angleStep;
                     float rad = angle * Mathf.Deg2Rad;
                     finalPositions[i] = new Vector3(
                         Mathf.Cos(rad) * _settings.AugmentIconRadius,
