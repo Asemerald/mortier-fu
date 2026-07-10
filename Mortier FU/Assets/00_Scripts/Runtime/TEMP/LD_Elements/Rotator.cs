@@ -1,4 +1,5 @@
 using System;
+using MortierFu;
 using UnityEngine;
 
 public class Rotator : MonoBehaviour
@@ -7,6 +8,7 @@ public class Rotator : MonoBehaviour
     [SerializeField] private bool calculatePhysics;
     private Rigidbody _rb;
     [SerializeField] private bool canMoveInLoading;
+    private GameModeBase _gm;
 
     public Vector3 TransposePoint(Vector3 localPoint, float time)
     {
@@ -18,18 +20,23 @@ public class Rotator : MonoBehaviour
         
         return transform.position + rotation * localPoint;
     }
+    private void Awake()
+    {
+        _gm = GameService.CurrentGameMode as GameModeBase;
+        
+    }
 
-    private void Start()
+    private void OnEnable()
     {
         if (calculatePhysics)
         {
             _rb = GetComponent<Rigidbody>();
         }
+        _gm.OnRaceStart += ActivateMovement;
     }
 
     void FixedUpdate()
     {
-        
         if (!canMoveInLoading)
             return;
         
@@ -42,5 +49,10 @@ public class Rotator : MonoBehaviour
             transform.Rotate(0,1 * Time.deltaTime * _speed,0);
         }
         
+    }
+
+    private void ActivateMovement()
+    {
+        canMoveInLoading = true;
     }
 }
