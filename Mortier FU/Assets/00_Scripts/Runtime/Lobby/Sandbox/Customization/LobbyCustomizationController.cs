@@ -75,13 +75,16 @@ namespace MortierFu
             if (!player)
                 return;
             
-            _skinCount = _activePlayer.Character.CustomizationVisual.SkinCount;
+            _skinCount = player.Character.CustomizationVisual.SkinCount;
 
             CancelPanelTasks();
 
             _panelCancellation = new CancellationTokenSource();
 
             _activePlayer = player;
+            
+            
+            
             _onConfirmed = onConfirmed;
             _isOpen = true;
 
