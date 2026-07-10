@@ -44,6 +44,8 @@ namespace MortierFu
                 _root.SetActive(false);
 
             BindItems();
+
+            _skinCount = _activePlayer.Character.CustomizationVisual.SkinCount;
         }
 
         private void OnEnable() => BindItems();
