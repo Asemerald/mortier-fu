@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace MortierFu
@@ -36,6 +37,8 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
+            
+
             if (!player || !_counters.Remove(player)) return;
 
             if (!IsPlayerValid(player))
@@ -45,8 +48,27 @@ namespace MortierFu
                 return;
             }
             
-            ApplyEffectZoneExit(player);
+            ApplyEffectZoneExit(player,other);
         }
+
+        protected virtual bool CheckOtherZone(Collider other, int layerMask)
+        {
+            Vector3 center = other.bounds.center;
+            Vector3 halfExtents = other.bounds.extents;
+            
+            
+            Collider[] hitColliders = Physics.OverlapBox(center, halfExtents,other.transform.rotation);
+            foreach (var hitCollider in hitColliders)
+            {
+                if (hitCollider.isTrigger && hitCollider.gameObject !=  gameObject && hitCollider.gameObject.layer == layerMask)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
 
         private void Update() => ApplyEffectZoneTick();
 
@@ -95,7 +117,7 @@ namespace MortierFu
 
         protected abstract void ApplyEffectZoneEnter(PlayerCharacter player);
 
-        protected abstract void ApplyEffectZoneExit(PlayerCharacter player);
+        protected abstract void ApplyEffectZoneExit(PlayerCharacter player, Collider other);
 
         protected virtual void PlayFootprintVFX(PlayerCharacter player) {}
 

@@ -23,7 +23,7 @@ namespace MortierFu
                 (decelSettingsSpeedMultiplier.speedFactor, decelSettingsSpeedMultiplier.transitionDuration);
         }
 
-        protected override void ApplyEffectZoneExit(PlayerCharacter player)
+        protected override void ApplyEffectZoneExit(PlayerCharacter player,Collider other)
         {
             player.SetExternalSpeedMultiplier
                 (1, speedSettingsSpeedMultiplier.transitionDuration);

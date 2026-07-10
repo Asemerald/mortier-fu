@@ -12,14 +12,18 @@ namespace MortierFu
 
         protected override void ApplyEffectZoneEnter(PlayerCharacter player)
         {
+            
             player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
-            Debug.Log("In");
+            
         }
 
-        protected override void ApplyEffectZoneExit(PlayerCharacter player)
+        protected override void ApplyEffectZoneExit(PlayerCharacter player,Collider other)
         {
+            Debug.Log("out");
+            if (base.CheckOtherZone(player.GetComponentInChildren<CapsuleCollider>(), gameObject.layer))
+                return;
+            Debug.Log("effectRemoved");
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
-            Debug.Log("Out");
         }
 
         private void OnEnable()
