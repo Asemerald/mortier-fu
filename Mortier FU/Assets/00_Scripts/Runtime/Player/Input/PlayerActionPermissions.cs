@@ -186,6 +186,45 @@ namespace MortierFu
                     canCancelUI: true
                 ),
 
+                PlayerControlContext.AugmentRaceRunnerOnly => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: true,
+                    canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.AugmentRaceShooterOnly => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: false,
+                    canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.AugmentRaceLocked => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
                 PlayerControlContext.RoundCountdown => new PlayerActionPermissions(
                     canMove: false,
                     canAim: false,

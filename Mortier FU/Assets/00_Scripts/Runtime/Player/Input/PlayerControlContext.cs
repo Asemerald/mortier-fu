@@ -15,6 +15,9 @@ namespace MortierFu
         AugmentShowcase,
         AugmentRace,
         AugmentRaceBully,
+        AugmentRaceRunnerOnly,
+        AugmentRaceShooterOnly,
+        AugmentRaceLocked,
 
         RoundCountdown,
         RoundGameplay,
