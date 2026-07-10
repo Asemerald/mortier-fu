@@ -130,7 +130,7 @@ namespace MortierFu
             UpdatePlacementPose();
 
             _isPlacementValid = ComputePlacementValidity();
-            ApplyPreviewState(_isPlacementValid);
+            //ApplyPreviewState(_isPlacementValid);
 
             if (!_isPlacementValid)
             {
@@ -171,8 +171,10 @@ namespace MortierFu
             UpdatePlacementPose();
 
             _isPlacementValid = ComputePlacementValidity();
-
-            ApplyPreviewState(_isPlacementValid);
+            float fill = 1 - (_nextAllowedSpawnTime - Time.time)/Settings.PropSpawnCooldown;
+            fill = Mathf.Clamp(fill, 0f, 1f);
+            ApplyPreviewState(_isPlacementValid, fill);
+            
             ShowPreview();
 
             if (_shootAction != null && _shootAction.WasPressedThisFrame())
@@ -484,19 +486,30 @@ namespace MortierFu
             return player.Health == null || !player.Health.IsAlive;
         }
 
-        private void ApplyPreviewState(bool isValid)
+        private void ApplyPreviewState(bool isValid, float fillValue)
         {
-            Material targetMaterial = isValid
-                ? Settings.ValidPreviewMaterial
-                : Settings.InvalidPreviewMaterial;
+            Material currentMat = new Material(Settings.PreviewMaterial);
+            
 
-            if (targetMaterial)
+            if (fillValue < 1)
             {
-                ApplyPreviewMaterial(targetMaterial);
-                return;
+                currentMat.SetInt("_Boolean_Final_Color", 0);
+                currentMat.SetFloat("_Fill", fillValue);
             }
-
-            RestorePreviewMaterials();
+            else
+            {
+                if (isValid)
+                {
+                    currentMat.SetInt("_Boolean_Final_Color", 1);
+                }
+                else
+                {
+                    currentMat.SetInt("_Boolean_Final_Color", 0);
+                    currentMat.SetFloat("_Fill", 1);
+                }
+            }
+            
+            ApplyPreviewMaterial(currentMat);
         }
 
         private void ApplyPreviewMaterial(Material material)
