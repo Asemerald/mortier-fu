@@ -7,9 +7,6 @@ namespace MortierFu
         menuName = "Mortier Fu/Race Modes/Static Bully Maze")]
     public sealed class SO_StaticBullyMazeRaceModeDefinition : SO_RaceModeDefinition
     {
-        [Header("Augments")]
-        public bool UseFixedAugmentPoints;
-
         private void Reset()
         {
             DisplayName = "Static Bully Maze";
