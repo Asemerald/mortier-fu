@@ -45,7 +45,7 @@ namespace MortierFu
 
             BindItems();
 
-            _skinCount = _activePlayer.Character.CustomizationVisual.SkinCount;
+            
         }
 
         private void OnEnable() => BindItems();
@@ -74,6 +74,8 @@ namespace MortierFu
         {
             if (!player)
                 return;
+            
+            _skinCount = _activePlayer.Character.CustomizationVisual.SkinCount;
 
             CancelPanelTasks();
 
