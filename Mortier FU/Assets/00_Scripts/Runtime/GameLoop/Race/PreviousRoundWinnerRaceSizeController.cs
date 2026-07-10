@@ -26,7 +26,7 @@ namespace MortierFu
             character.Stats.AvatarSize.AddModifier(new StatModifier(flatDelta, E_StatModType.Flat, _modifierSource));
 
             if (applyControlContext)
-                character.SetControlContext(PlayerControlContext.AugmentRaceBully);
+                character.SetControlContext(PlayerControlContext.AugmentRaceBullyClassic);
             
             _activeCharacter = character;
         }

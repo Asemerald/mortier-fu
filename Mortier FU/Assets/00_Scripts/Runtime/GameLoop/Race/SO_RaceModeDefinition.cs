@@ -10,7 +10,7 @@ namespace MortierFu
         [Header("Bully")]
         public bool UsePreviousRoundWinnerAsBully = true;
         public bool BullyCanPickAugment = false;
-        public PlayerControlContext BullyContext = PlayerControlContext.AugmentRaceBully;
+        public PlayerControlContext BullyContext = PlayerControlContext.AugmentRaceBullyClassic;
         public PlayerControlContext RacerContext = PlayerControlContext.AugmentRace;
 
         [Header("Duration")]

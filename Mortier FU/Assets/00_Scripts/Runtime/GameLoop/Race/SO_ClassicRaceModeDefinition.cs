@@ -10,7 +10,7 @@ namespace MortierFu
             DisplayName = "Classic";
             UsePreviousRoundWinnerAsBully = true;
             BullyCanPickAugment = false;
-            BullyContext = PlayerControlContext.AugmentRaceBully;
+            BullyContext = PlayerControlContext.AugmentRaceBullyClassic;
             RacerContext = PlayerControlContext.AugmentRace;
             UseGameFlowBullySize = true;
         }

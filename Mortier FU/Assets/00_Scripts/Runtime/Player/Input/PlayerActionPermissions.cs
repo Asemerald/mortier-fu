@@ -173,7 +173,7 @@ namespace MortierFu
                     canCancelUI: true
                 ),
                 
-                PlayerControlContext.AugmentRaceBully => new PlayerActionPermissions(
+                PlayerControlContext.AugmentRaceBullyClassic => new PlayerActionPermissions(
                     canMove: true,
                     canAim: true,
                     canShoot: true,
@@ -186,7 +186,7 @@ namespace MortierFu
                     canCancelUI: true
                 ),
 
-                PlayerControlContext.AugmentRaceRunnerOnly => new PlayerActionPermissions(
+                PlayerControlContext.AugmentRaceBullyMoveOnly => new PlayerActionPermissions(
                     canMove: true,
                     canAim: false,
                     canShoot: false,
@@ -199,7 +199,7 @@ namespace MortierFu
                     canCancelUI: true
                 ),
 
-                PlayerControlContext.AugmentRaceShooterOnly => new PlayerActionPermissions(
+                PlayerControlContext.AugmentRaceBullyShootOnly => new PlayerActionPermissions(
                     canMove: false,
                     canAim: true,
                     canShoot: true,
@@ -212,7 +212,7 @@ namespace MortierFu
                     canCancelUI: true
                 ),
 
-                PlayerControlContext.AugmentRaceLocked => new PlayerActionPermissions(
+                PlayerControlContext.AugmentRaceBullyLocked => new PlayerActionPermissions(
                     canMove: false,
                     canAim: false,
                     canShoot: false,
