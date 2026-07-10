@@ -76,9 +76,9 @@ namespace MortierFu
 
                 if (existingIndex >= 0)
                 {
-                    AugmentStack existing = stacks[existingIndex];
-                    existing.Count++;
-                    stacks[existingIndex] = existing;
+                    int newCount = stacks[existingIndex].Count + 1;
+                    stacks.RemoveAt(existingIndex);
+                    stacks.Add(new AugmentStack(augment, newCount));
                 }
                 else
                 {
