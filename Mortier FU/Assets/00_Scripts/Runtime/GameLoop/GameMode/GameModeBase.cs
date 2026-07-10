@@ -100,6 +100,7 @@ namespace MortierFu
         public event Func<RoundInfo, CancellationToken, UniTask> OnRoundEndedAsync;
         public event Action OnRaceStart;
         public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
+        public event Action OnRacePlayerConfirmation;
         public event Func<UniTask, CancellationToken, UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
@@ -219,6 +220,7 @@ namespace MortierFu
                 cancellationToken.ThrowIfCancellationRequested();
 
                 UpdateGameState(GameState.AugmentRace);
+                OnRacePlayerConfirmation?.Invoke();
                 
                 _raceRuntimeController?.BeginGameplay();
 

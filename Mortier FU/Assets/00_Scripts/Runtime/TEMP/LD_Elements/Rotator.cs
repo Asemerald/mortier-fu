@@ -32,7 +32,13 @@ public class Rotator : MonoBehaviour
         {
             _rb = GetComponent<Rigidbody>();
         }
-        _gm.OnRaceStart += ActivateMovement;
+
+        if (_gm != null)
+        {
+            _gm.OnRacePlayerConfirmation += ActivateMovement;
+            Debug.Log("gm good");
+        }
+        
     }
 
     void FixedUpdate()
@@ -54,5 +60,6 @@ public class Rotator : MonoBehaviour
     private void ActivateMovement()
     {
         canMoveInLoading = true;
+        Debug.Log("can move true");
     }
 }
