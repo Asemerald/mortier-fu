@@ -182,6 +182,12 @@ namespace MortierFu
                 pickupVFX.transform.position = pickup.transform.position;  
                 pickupVFX.gameObject.SetActive(true);
                 pickupVFX.visual.SetVfx();
+                
+                var children = pickupVFX.GetComponentsInChildren<Transform>(true);
+                foreach (var child in children)
+                {
+                    child.gameObject.layer = 0;
+                }
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.BoonDelay), cancellationToken: ct);
