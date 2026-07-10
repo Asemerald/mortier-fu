@@ -87,52 +87,54 @@ namespace MortierFu
 
         private async UniTask ShatterPiecesCleanUp()
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(2f));
+            var token = this.GetCancellationTokenOnDestroy();
 
-            int count = _shatteredRbChildren.Count;
-
-            float elapsedTime = 0f;
-
-            foreach (Rigidbody rb in _shatteredRbChildren)
+            try
             {
-                 rb.isKinematic = true;
-                rb.detectCollisions = false;
-            }
+                await UniTask.Delay(TimeSpan.FromSeconds(2f), cancellationToken: token);
 
-            foreach (Collider col in _shatteredColliderChildren)
-            {
-                col.enabled = false;
-            }
+                int count = _shatteredRbChildren.Count;
+                float elapsedTime = 0f;
 
-            foreach (Rigidbody rb in _shatteredRbChildren)
-            {
-                _shatteredMeshChildren.Add(rb.gameObject);
-                Destroy(rb); // doesnt have any other option because of enabled doesnt exist with rb wtf ?
-            }
-
-            while (elapsedTime < durationCleanUp)
-            {
-                elapsedTime += Time.deltaTime;
-
-                float t = elapsedTime / durationCleanUp;
-
-                for (int i = 0; i < count; i++)
+                foreach (Rigidbody rb in _shatteredRbChildren)
                 {
-                    Vector3 newScale = Vector3.Lerp(
-                        _shatteredMeshChildren[i].transform.localScale,
-                        Vector3.zero,
-                        t);
-
-                    _shatteredMeshChildren[i].transform.localScale = newScale;
+                    rb.isKinematic = true;
+                    rb.detectCollisions = false;
                 }
 
-                await UniTask.Yield(PlayerLoopTiming.Update, _cts.Token);
+                foreach (Collider col in _shatteredColliderChildren)
+                    col.enabled = false;
+
+                foreach (Rigidbody rb in _shatteredRbChildren)
+                {
+                    _shatteredMeshChildren.Add(rb.gameObject);
+                    Destroy(rb);
+                }
+
+                while (elapsedTime < durationCleanUp)
+                {
+                    elapsedTime += Time.deltaTime;
+                    float t = elapsedTime / durationCleanUp;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        var go = _shatteredMeshChildren[i];
+                        if (!go) continue;
+
+                        go.transform.localScale = Vector3.Lerp(go.transform.localScale, Vector3.zero, t);
+                    }
+
+                    await UniTask.Yield(PlayerLoopTiming.Update, token);
+                }
+
+                for (int i = 0; i < count; i++)
+                    if (_shatteredMeshChildren[i])
+                        _shatteredMeshChildren[i].transform.localScale = Vector3.zero;
             }
+            catch (OperationCanceledException)
+            {
 
-            for (int i = 0; i < count; i++)
-                _shatteredMeshChildren[i].transform.localScale = Vector3.zero;
-
-            //for the moment I didnt Destroy the obj for performance issue like GC spike
+            }
         }
 
         private void OnDestroy()
