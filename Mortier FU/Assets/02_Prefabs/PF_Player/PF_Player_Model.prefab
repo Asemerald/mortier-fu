@@ -105,6 +105,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 19a5b98fd6a9a184bb1d5482766e4c41, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9131930033534194231, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
       propertyPath: m_Name
       value: Crown
@@ -119,13 +123,33 @@ PrefabInstance:
     - {fileID: -2287980149930003913, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
     - {fileID: 2155367543037203226, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2951182099914130782}
   m_SourcePrefab: {fileID: 100100000, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
 --- !u!4 &319618473332799223 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
   m_PrefabInstance: {fileID: 280694545184330012}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1091089241000586317 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  m_PrefabInstance: {fileID: 280694545184330012}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2951182099914130782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091089241000586317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b63cf748106924c44aee4ac6829496b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::AnimatorToAudioBridge
 --- !u!1001 &3439588953262200343
 PrefabInstance:
   m_ObjectHideFlags: 0

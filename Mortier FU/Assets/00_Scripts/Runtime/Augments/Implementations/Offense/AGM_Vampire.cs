@@ -8,7 +8,8 @@ namespace MortierFu
         public struct Params
         {
             public AugmentStatMod BombshellDamageMod;
-            [FormerlySerializedAs("AmountHealMod")] public AugmentStatMod MaxHealthMod;
+            public AugmentStatMod MaxHealthMod;
+            [FormerlySerializedAs("AmountHealMod")] public AugmentStatMod HealMod;
         }
 
         private EventBinding<TriggerHit> _hitBinding;
@@ -19,6 +20,7 @@ namespace MortierFu
         public override void Initialize()
         {
             stats.BombshellDamage.AddModifier(db.VampireParams.BombshellDamageMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.VampireParams.MaxHealthMod.ToMod(this));
 
             _hitBinding = new EventBinding<TriggerHit>(OnHit);
             EventBus<TriggerHit>.Register(_hitBinding);
@@ -29,7 +31,7 @@ namespace MortierFu
             if (!CanProc(evt))
                 return;
 
-            bool healed = owner.Health.Heal(db.VampireParams.MaxHealthMod.Value, owner);
+            bool healed = owner.Health.Heal(db.VampireParams.HealMod.Value, owner);
 
             if (healed)
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
@@ -58,6 +60,7 @@ namespace MortierFu
                 EventBus<TriggerHit>.Deregister(_hitBinding);
 
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
+            stats.MaxHealth.RemoveAllModifiersFromSource(this);
         }
     }
 }
