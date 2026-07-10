@@ -13,11 +13,13 @@ namespace MortierFu
         protected override void ApplyEffectZoneEnter(PlayerCharacter player)
         {
             player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
+            Debug.Log("In");
         }
 
         protected override void ApplyEffectZoneExit(PlayerCharacter player)
         {
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
+            Debug.Log("Out");
         }
 
         private void OnEnable()
@@ -29,6 +31,8 @@ namespace MortierFu
         {
             OnTickZone -= PlayFootprintVFX;
         }
+
+        
 
         protected override void PlayFootprintVFX(PlayerCharacter player)
         {
@@ -43,5 +47,7 @@ namespace MortierFu
 
             Destroy(vfxInstance, 10f);
         }
+
+        
     }
 }
