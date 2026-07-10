@@ -7,6 +7,7 @@ namespace MortierFu
 {
     public abstract class BaseZone : MonoBehaviour
     {
+        [SerializeField] protected LayerMask _layerToIgnore;
         [SerializeField] protected float vfxFootPrintDuration;
 
         private readonly Dictionary<PlayerCharacter, float> _counters = new();
@@ -47,26 +48,29 @@ namespace MortierFu
                 _counters.Remove(player);
                 return;
             }
+
+            if (CheckOtherZone(other)) return;
             
             ApplyEffectZoneExit(player,other);
         }
 
-        protected virtual bool CheckOtherZone(Collider other, int layerMask)
+        protected virtual bool CheckOtherZone(Collider other)
         {
             Vector3 center = other.bounds.center;
             Vector3 halfExtents = other.bounds.extents;
             
-            
             Collider[] hitColliders = Physics.OverlapBox(center, halfExtents,other.transform.rotation);
             foreach (var hitCollider in hitColliders)
             {
-                if (hitCollider.isTrigger && hitCollider.gameObject !=  gameObject && hitCollider.gameObject.layer == layerMask)
+                if (hitCollider.isTrigger && hitCollider.gameObject != gameObject && ((1 << hitCollider.gameObject.layer) & _layerToIgnore) != 0)
                 {
                     return true;
                 }
             }
 
             return false;
+            
+            
         }
         
 
