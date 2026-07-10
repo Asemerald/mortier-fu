@@ -173,12 +173,51 @@ namespace MortierFu
                     canCancelUI: true
                 ),
                 
-                PlayerControlContext.AugmentRaceBully => new PlayerActionPermissions(
+                PlayerControlContext.AugmentRaceBullyClassic => new PlayerActionPermissions(
                     canMove: true,
                     canAim: true,
                     canShoot: true,
                     canDash: true,
                     canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.AugmentRaceBullyMoveOnly => new PlayerActionPermissions(
+                    canMove: true,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: true,
+                    canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.AugmentRaceBullyShootOnly => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: true,
+                    canShoot: true,
+                    canDash: false,
+                    canTaunt: true,
+                    canInteract: false,
+                    canPause: true,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: true
+                ),
+
+                PlayerControlContext.AugmentRaceBullyLocked => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
                     canInteract: false,
                     canPause: true,
                     canNavigateUI: false,

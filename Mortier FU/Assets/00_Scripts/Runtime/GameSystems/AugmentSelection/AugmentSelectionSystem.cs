@@ -48,6 +48,8 @@ namespace MortierFu
         private readonly Dictionary<PlayerCharacter, List<SO_Augment>> _pickedAugments = new();
 
         public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
+        
+        public int AugmentCount => _augmentCount;
 
         public bool IsSelectionOver
         {
@@ -125,8 +127,12 @@ namespace MortierFu
             _augmentTimer?.Dispose();
         }
 
-        public async UniTask 
-            PrepareAugmentSelection(List<PlayerManager> pickers, CancellationToken cancellationToken)
+        public UniTask PrepareAugmentSelection(List<PlayerManager> pickers, CancellationToken cancellationToken)
+        {
+            return PrepareAugmentSelection(pickers, null, cancellationToken);
+        }
+        
+        public async UniTask PrepareAugmentSelection(List<PlayerManager> pickers, RaceAugmentLayout layout, CancellationToken cancellationToken)
         {
             if (pickers == null || pickers.Count == 0)
             {
@@ -163,17 +169,17 @@ namespace MortierFu
                 _pickupsVFX[i].SetAugmentVisual(augment);
             }
 
-            var augmentPivot = _levelSystem.GetAugmentPivot();
-            var augmentPoints = new Vector3[_augmentCount];
-            _levelSystem.PopulateAugmentPoints(augmentPoints);
+            layout ??= RaceAugmentLayout.FromLevelSystem(_levelSystem, _augmentCount);
+
+            if (!layout.IsValid(_augmentCount))
+            {
+                Logs.LogWarning("[AugmentSelectionSystem] Invalid race augment layout. Falling back to LevelSystem layout.");
+                layout = RaceAugmentLayout.FromLevelSystem(_levelSystem, _augmentCount);
+            }
 
             try
             {
-                await _augmentShowcaser.Showcase(
-                    augmentPivot,
-                    augmentPoints,
-                    _augmentCount
-                );
+                await _augmentShowcaser.Showcase(layout, _augmentCount);
             }
             finally
             {

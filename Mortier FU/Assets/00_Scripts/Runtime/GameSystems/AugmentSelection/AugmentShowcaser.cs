@@ -47,8 +47,17 @@ namespace MortierFu
             StopShowcase();
         }
 
-        public async UniTask Showcase(Transform pivot, Vector3[] augmentPoints, int augmentCount)
+        public async UniTask Showcase(RaceAugmentLayout layout, int augmentCount)
         {
+            if (layout == null || !layout.IsValid(augmentCount))
+            {
+                Logs.LogWarning("[AugmentShowcaser] Invalid layout.");
+                return;
+            }
+
+            Transform pivot = layout.Pivot;
+            Vector3[] augmentPoints = layout.Points;
+            
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
@@ -195,19 +204,21 @@ namespace MortierFu
             {
                 ct.ThrowIfCancellationRequested();
 
-                var pickupVFX = _pickupsVFX[i];
+                AugmentPickup pickupVFX = _pickupsVFX[i];
 
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+               
+                Transform augmentPoint = new GameObject("Augment Point #" + i).transform;
+                augmentPoint.position = augmentPoints[i].Add(y: layout.HeightOffset);
 
-                var augmentPoint = new GameObject("Augment Point #" + i).transform;
-                augmentPoint.SetParent(pivot);
-                augmentPoint.position = augmentPoints[i].Add(y: 1f);
+                if (layout.ParentPointsToPivot && pivot)
+                    augmentPoint.SetParent(pivot, true);
+
                 _augmentPoints[i] = augmentPoint;
 
                 var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
 
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, ct)
-                    .Forget();
+                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, layout, ct).Forget();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
                     cancellationToken: ct);
@@ -222,21 +233,29 @@ namespace MortierFu
                 .ToUniTask(cancellationToken: ct);
         }
 
-        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale,
-            CancellationToken ct)
+        private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale, RaceAugmentLayout layout, CancellationToken ct)
         {
-            var rotator = _levelSystem.GetAugmentPivot().GetComponentInParent<Rotator>();
+            Vector3 targetPosition = _augmentPoints[i].position;
 
-            var localPos = _augmentPoints[i].position - rotator.transform.position;
-            var translatedPos = rotator.TransposePoint(localPos, duration);
+            if (layout is { UseRotatorPrediction: true, Pivot: not null })
+            {
+                Rotator rotator = layout.Pivot.GetComponentInParent<Rotator>();
+
+                if (rotator)
+                {
+                    Vector3 localPos = _augmentPoints[i].position - rotator.transform.position;
+                    targetPosition = rotator.TransposePoint(localPos, duration);
+                }
+            }
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
+
             await Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack)
-                .Group(Tween.Position(pickup.transform, translatedPos, duration, Ease.InOutQuad))
+                .Group(Tween.Position(pickup.transform, targetPosition, duration, Ease.InOutQuad))
                 .OnComplete(() => { pickup.AttachToPoint(_augmentPoints[i]); })
                 .ToUniTask(cancellationToken: ct);
         }
-
+        
         private async UniTask FlipPickupStair(AugmentCardUI cardUI, CancellationToken ct,
             UniTaskCompletionSource onMidFlip, float duration = 0.5f)
         {

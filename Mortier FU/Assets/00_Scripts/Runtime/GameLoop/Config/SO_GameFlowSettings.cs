@@ -48,8 +48,8 @@ namespace MortierFu
         [Min(0.1f)]
         [Tooltip("La taille pendant la race du gagnant du round précédent.")]
         public float PreviousRoundWinnerRaceTargetSize = 3.5f;
-
-        public float GetShowScoreboardDelay =>
-            CameraZoomOnWinnerDuration + ShowScoreboardDelayFactor;
+        
+        [Header("Race Modes")]
+        public SO_RaceModeDefinition DefaultRaceModeDefinition;
     }
 }
