@@ -15,8 +15,8 @@ namespace MortierFu
             DisplayName = "Static Bully Maze";
             UsePreviousRoundWinnerAsBully = true;
             BullyCanPickAugment = false;
-            BullyContext = PlayerControlContext.AugmentRaceShooterOnly;
-            RacerContext = PlayerControlContext.AugmentRaceRunnerOnly;
+            BullyContext = PlayerControlContext.AugmentRaceBullyShootOnly;
+            RacerContext = PlayerControlContext.AugmentRace;
             UseGameFlowBullySize = true;
         }
 
