@@ -25,6 +25,7 @@ namespace MortierFu
         public Ease AugmentIconScaleEase = Ease.OutBack;
         public Ease AugmentIconMoveEase = Ease.OutCubic;
         public float ChildAnimationExponentFactor = 1.2f;
+        public float AngleOffsetDeparture = -90f;
 
         [Header("Card Icon Animation")] 
         public float CardDurationScale = 0.4f;
