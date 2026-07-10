@@ -9,7 +9,7 @@ namespace MortierFu
 
         private PlayerCharacter _activeCharacter;
 
-        public void Apply(PlayerCharacter character, float targetFinalSize)
+        public void Apply(PlayerCharacter character, float targetFinalSize, bool applyControlContext = true)
         {
             Clear();
 
@@ -18,27 +18,19 @@ namespace MortierFu
 
             targetFinalSize = Mathf.Max(0.1f, targetFinalSize);
 
-            var flatDelta = CalculateAvatarFlatDeltaForTargetFinalSize(
-                character.Stats,
-                targetFinalSize
-            );
+            float flatDelta = CalculateAvatarFlatDeltaForTargetFinalSize(character.Stats, targetFinalSize);
 
             if (Mathf.Approximately(flatDelta, 0f))
                 return;
 
-            character.Stats.AvatarSize.AddModifier(
-                new StatModifier(
-                    flatDelta,
-                    E_StatModType.Flat,
-                    _modifierSource
-                )
-            );
+            character.Stats.AvatarSize.AddModifier(new StatModifier(flatDelta, E_StatModType.Flat, _modifierSource));
 
-            character.SetControlContext(PlayerControlContext.AugmentRaceBully);
+            if (applyControlContext)
+                character.SetControlContext(PlayerControlContext.AugmentRaceBully);
             
             _activeCharacter = character;
         }
-
+        
         public void Clear()
         {
             if (!_activeCharacter || !_activeCharacter.Stats)
@@ -53,9 +45,7 @@ namespace MortierFu
 
         private static float CalculateAvatarFlatDeltaForTargetFinalSize(SO_CharacterStats stats, float targetFinalSize)
         {
-            var maxHealthContribution =
-                (stats.MaxHealth.Value - stats.MaxHealth.BaseValue) *
-                stats.MaxHealthToAvatarSizeFactor;
+            var maxHealthContribution = (stats.MaxHealth.Value - stats.MaxHealth.BaseValue) * stats.MaxHealthToAvatarSizeFactor;
 
             var requiredAvatarStatValue = targetFinalSize - maxHealthContribution;
 

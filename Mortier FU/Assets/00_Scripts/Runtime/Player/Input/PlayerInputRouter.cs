@@ -147,10 +147,15 @@ namespace MortierFu
         {
             return context is PlayerControlContext.LobbySandbox
                 or PlayerControlContext.AugmentRace
+                or PlayerControlContext.AugmentRaceBully
+                or PlayerControlContext.AugmentRaceRunnerOnly
+                or PlayerControlContext.AugmentRaceShooterOnly
+                or PlayerControlContext.AugmentRaceLocked
                 or PlayerControlContext.RoundCountdown
                 or PlayerControlContext.RoundGameplay
                 or PlayerControlContext.RoundEnded
                 or PlayerControlContext.RoundGhost;
         }
+
     }
 }
