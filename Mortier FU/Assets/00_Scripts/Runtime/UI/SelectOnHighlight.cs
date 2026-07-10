@@ -10,6 +10,7 @@ namespace MortierFu
         private Selectable _selectable;
         
         [SerializeField] private GameObject _highlight;
+        [SerializeField] private GameObject _unhighlight;
         
         private Button _button;
         
@@ -17,23 +18,19 @@ namespace MortierFu
         {
             _selectable = GetComponent<Selectable>();
             _button = GetComponent<Button>();
-            
         }
 
         private void Update()
         {
             if (_selectable == null) return;
 
-            if (EventSystem.current.currentSelectedGameObject == _selectable.gameObject)
-            {
-                if (_highlight != null)
-                    _highlight.SetActive(true);
-            }
-            else
-            {
-                if (_highlight != null)
-                    _highlight.SetActive(false);
-            }
+            bool isSelected = EventSystem.current.currentSelectedGameObject == _selectable.gameObject;
+
+            if (_highlight != null)
+                _highlight.SetActive(isSelected);
+
+            if (_unhighlight != null)
+                _unhighlight.SetActive(!isSelected);
         }
     }
 }

@@ -38,6 +38,7 @@ namespace MortierFu
         private AugmentRaceController _augmentRaceController;
         private PreviousRoundWinnerRaceSizeController _previousRoundWinnerRaceSizeController;
         private RoundStartController _roundStartController;
+        private RaceRuntimeController _raceRuntimeController;
         private RoundWinnerPresentationController _roundWinnerPresentationController;
         private ScorePhaseController _scorePhaseController;
         private PlayerTeamSetupController _teamSetupController;
@@ -108,20 +109,14 @@ namespace MortierFu
             _dependencies = GameModeDependencies.ResolveServices();
 
             if (!_dependencies.HasRequiredServices())
-            {
                 Logs.LogError("[GameModeBase] Missing required services.");
-            }
 
             _dataHandle = await AddressablesUtils.LazyLoadAsset<SO_GameModeData>("DA_GM_FFA");
             _flowSettingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GameFlowSettings>("DA_GameFlowSettings");
 
             timer = new CountdownTimer(0f);
 
-            _roundStartController = new RoundStartController(
-                timer,
-                FlowSettings,
-                roundInfo => OnRoundStarted?.Invoke(roundInfo)
-            );
+            _roundStartController = new RoundStartController(timer, FlowSettings, roundInfo => OnRoundStarted?.Invoke(roundInfo));
 
             Logs.Log("Game mode initialized successfully.");
         }
@@ -133,9 +128,7 @@ namespace MortierFu
             _dependencies.ResolveGameplaySystems();
 
             if (!_dependencies.HasRequiredGameplaySystems())
-            {
                 Logs.LogError("[GameModeBase] Missing required gameplay systems.");
-            }
         }
 
         protected virtual void CreateTeams()
@@ -153,35 +146,22 @@ namespace MortierFu
 
         protected virtual void CreateControllers()
         {
-            _playerSpawnController = new PlayerSpawnController(teams, levelSystem);
+            _playerSpawnController = new PlayerSpawnController(teams, levelSystem); _raceRuntimeController = new RaceRuntimeController();
 
             _roundWinnerPresentationController = new RoundWinnerPresentationController();
 
-            _scorePhaseController = new ScorePhaseController(
-                () => _roundStartController.StopCountdown(),
-                () => OnScoreDisplayOver?.Invoke()
-            );
+            _scorePhaseController = new ScorePhaseController(() => _roundStartController.StopCountdown(), () => OnScoreDisplayOver?.Invoke());
             
-            _augmentRaceController = new AugmentRaceController(
-                teams,
-                augmentSelectionSys,
-                _playerSpawnController,
-                SetPlayersControlContext,
-                () => OnRaceStart?.Invoke()
-            );
-
+            _augmentRaceController = new AugmentRaceController(teams, augmentSelectionSys, _playerSpawnController, SetPlayersControlContext, () => OnRaceStart?.Invoke(), 
+                () => _raceRuntimeController?.GetAugmentPickers(), augmentCount => _raceRuntimeController?.BuildAugmentLayout(augmentCount));
+            
             _roundController = new RoundController(teams, alivePlayers);
             _roundController.OnPlayerDied += HandleRoundPlayerDied;
             _roundController.OnPlayerKilled += HandleRoundPlayerKilled;
 
             AlivePlayers = _roundController.AlivePlayers;
 
-            _scoreController = new ScoreController(
-                Data,
-                teams,
-                ScoreToWin,
-                analyticsSystem
-            );
+            _scoreController = new ScoreController(Data, teams, ScoreToWin, analyticsSystem);
 
             _previousRoundWinnerRaceSizeController = new PreviousRoundWinnerRaceSizeController();
         }
@@ -240,18 +220,20 @@ namespace MortierFu
 
                 UpdateGameState(GameState.AugmentRace);
                 
-                SetPlayersControlContext(PlayerControlContext.AugmentRace);
+                _raceRuntimeController?.BeginGameplay();
+
+                float raceDuration = _raceRuntimeController != null ? _raceRuntimeController.GetRaceDuration(FlowSettings.AugmentRaceDuration) : FlowSettings.AugmentRaceDuration;
+
+                _augmentRaceController.StartRaceTimer(raceDuration);
                 
-                ApplyPreviousRoundWinnerRaceGiant();
-
-                _augmentRaceController.StartRaceTimer(FlowSettings.AugmentRaceDuration);
-
                 await _augmentRaceController.WaitUntilSelectionOverAsync(cancellationToken);
 
                 _augmentRaceController.EndSelection();
 
                 EndRace();
 
+                _raceRuntimeController?.EndRace();
+                
                 _previousRoundWinnerRaceSizeController?.Clear();
 
                 EnablePlayerGravity(false);
@@ -260,6 +242,7 @@ namespace MortierFu
             }
             finally
             {
+                _raceRuntimeController?.EndRace();
                 _previousRoundWinnerRaceSizeController?.Clear();
             }
         }
@@ -281,7 +264,7 @@ namespace MortierFu
             if (OnRoundEndedAsync == null)
                 return;
 
-            foreach (var @delegate in OnRoundEndedAsync.GetInvocationList())
+            foreach (Delegate @delegate in OnRoundEndedAsync.GetInvocationList())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -466,8 +449,27 @@ namespace MortierFu
 
         protected virtual void StartRace()
         {
+            _raceRuntimeController?.PrepareRace(CreateRaceModeContext(), FlowSettings ? FlowSettings.DefaultRaceModeDefinition : null);
+
             _augmentRaceController.BeginRace(_currentRound.RoundIndex);
             ResetPlayersForRace();
+        }
+        
+        private RaceModeContext CreateRaceModeContext()
+        {
+            return new RaceModeContext
+            {
+                Teams = Teams,
+                PreviousRoundWinnerTeam = _currentRound.WinningTeam,
+
+                LevelSystem = levelSystem,
+                PlayerSpawnController = _playerSpawnController,
+                FlowSettings = FlowSettings,
+
+                SetAllPlayersControlContext = SetPlayersControlContext,
+                ApplyBullySize = (character, size) => _previousRoundWinnerRaceSizeController?.Apply(character, size, applyControlContext: false),
+                ClearBullySize = () => _previousRoundWinnerRaceSizeController?.Clear()
+            };
         }
         
         protected virtual void EndRace()
@@ -480,14 +482,10 @@ namespace MortierFu
         public int GetWinnerPlayerIndex()
         {
             if (IsGameOver(out var victor))
-            {
                 return victor?.Index ?? -1;
-            }
 
             if (_currentRound.WinningTeam != null)
-            {
                 return _currentRound.WinningTeam.Index;
-            }
 
             Logs.LogWarning("[GameModeBase] GetWinnerPlayerIndex called but no game victor or round winner was found.");
             return -1;
@@ -495,9 +493,7 @@ namespace MortierFu
 
         protected virtual void EndGame()
         {
-            audioService
-                .StartMusic(AudioService.FMODEvents.MUS_Victory)
-                .Forget();
+            audioService.StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
 
             SetPlayersControlContext(PlayerControlContext.EndGame);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
@@ -509,7 +505,7 @@ namespace MortierFu
             if (OnAugmentRaceStartPresentationAsync == null)
                 return;
 
-            foreach (var @delegate in OnAugmentRaceStartPresentationAsync.GetInvocationList())
+            foreach (Delegate @delegate in OnAugmentRaceStartPresentationAsync.GetInvocationList())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -525,7 +521,7 @@ namespace MortierFu
             if (OnRoundStartPresentationAsync == null)
                 return;
 
-            foreach (var @delegate in OnRoundStartPresentationAsync.GetInvocationList())
+            foreach (Delegate @delegate in OnRoundStartPresentationAsync.GetInvocationList())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -551,8 +547,7 @@ namespace MortierFu
 
         public void SetScoreToWin(int score) => SetMatchConfig(new MatchConfig(score));
 
-        public virtual void Update()
-        { }
+        public virtual void Update() => _raceRuntimeController?.Tick(Time.deltaTime);
 
         public virtual void Dispose()
         {
@@ -561,14 +556,10 @@ namespace MortierFu
             _gameplayCancellation = null;
 
             if (_dataHandle.IsValid())
-            {
                 Addressables.Release(_dataHandle);
-            }
 
             if (_flowSettingsHandle.IsValid())
-            {
                 Addressables.Release(_flowSettingsHandle);
-            }
 
             if (_roundController != null)
             {
@@ -581,6 +572,9 @@ namespace MortierFu
             _roundStartController?.Dispose();
             _roundStartController = null;
 
+            _raceRuntimeController?.Dispose();
+            _raceRuntimeController = null;
+            
             _scoreController = null;
             _playerSpawnController = null;
             _augmentRaceController = null;
@@ -666,16 +660,13 @@ namespace MortierFu
             if (OnRaceEndedUI == null)
                 return;
 
-            foreach (var @delegate in OnRaceEndedUI.GetInvocationList())
+            foreach (Delegate @delegate in OnRaceEndedUI.GetInvocationList())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var handler = (Func<UniTask, CancellationToken, UniTask>)@delegate;
 
-                await handler.Invoke(
-                    canHideTask,
-                    cancellationToken
-                );
+                await handler.Invoke(canHideTask, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -685,22 +676,13 @@ namespace MortierFu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var minimumDurationTask = UniTask.Delay(
-                TimeSpan.FromSeconds(GetAugmentSummaryMinimumDuration()),
-                cancellationToken: cancellationToken
-            );
+            UniTask minimumDurationTask = UniTask.Delay(TimeSpan.FromSeconds(GetAugmentSummaryMinimumDuration()), cancellationToken: cancellationToken);
 
-            var loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
+            UniTask loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
 
-            var canHideSummaryTask = UniTask.WhenAll(
-                minimumDurationTask,
-                loadArenaTask
-            );
+            UniTask canHideSummaryTask = UniTask.WhenAll(minimumDurationTask, loadArenaTask);
 
-            await RunAugmentSummaryPresentationAsync(
-                canHideSummaryTask,
-                cancellationToken
-            );
+            await RunAugmentSummaryPresentationAsync(canHideSummaryTask, cancellationToken);
 
             await canHideSummaryTask;
 
@@ -711,7 +693,7 @@ namespace MortierFu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var presentationTask = RunRoundEndPresentationAsync(cancellationToken);
+            UniTask presentationTask = RunRoundEndPresentationAsync(cancellationToken);
 
             await presentationTask;
 
