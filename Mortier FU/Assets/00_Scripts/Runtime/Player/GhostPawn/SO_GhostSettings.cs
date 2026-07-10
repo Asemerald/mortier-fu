@@ -56,8 +56,7 @@ namespace MortierFu
         [SerializeField] private SO_GhostPlaceableProp[] _placeableProps;
 
         [Header("Preview Materials")] 
-        [SerializeField] private Material _validPreviewMaterial;
-        [SerializeField] private Material _invalidPreviewMaterial;
+        [SerializeField] private Material _previewMaterial;
 
         public float SpawnDelay => _spawnDelay;
         public PlayerGhostPawn GhostPawnPrefab => _ghostPawnPrefab;
@@ -85,7 +84,6 @@ namespace MortierFu
         public float PropSpawnCooldown => _propSpawnCooldown;
         public SO_GhostPlaceableProp[] PlaceableProps => _placeableProps;
         
-        public Material ValidPreviewMaterial => _validPreviewMaterial;
-        public Material InvalidPreviewMaterial => _invalidPreviewMaterial;
+        public Material PreviewMaterial => _previewMaterial;
     }
 }
