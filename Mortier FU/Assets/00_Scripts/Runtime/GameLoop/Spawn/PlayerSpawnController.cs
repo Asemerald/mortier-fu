@@ -7,15 +7,27 @@ namespace MortierFu
 {
     public sealed class PlayerSpawnController
     {
+        public delegate Transform PlayerSpawnResolver(PlayerTeam team, PlayerManager player, int racerIndex, Transform fallbackSpawnPoint);
+
         private readonly IReadOnlyList<PlayerTeam> _teams;
         private readonly LevelSystem _levelSystem;
 
-        public PlayerSpawnController(
-            IReadOnlyList<PlayerTeam> teams,
-            LevelSystem levelSystem)
+        private PlayerSpawnResolver _spawnResolver;
+
+        public PlayerSpawnController(IReadOnlyList<PlayerTeam> teams, LevelSystem levelSystem)
         {
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
             _levelSystem = levelSystem ?? throw new ArgumentNullException(nameof(levelSystem));
+        }
+
+        public void SetSpawnResolver(PlayerSpawnResolver spawnResolver)
+        {
+            _spawnResolver = spawnResolver;
+        }
+
+        public void ClearSpawnResolver()
+        {
+            _spawnResolver = null;
         }
 
         public void ResetPlayers()
@@ -52,17 +64,23 @@ namespace MortierFu
         public void SpawnPlayers(int roundIndex)
         {
             bool opposite = roundIndex % 2 == 0;
-            int spawnIndex = opposite
-                ? _teams.Sum(team => team.Members.Count) - 1
-                : 0;
+            int spawnIndex = opposite ? _teams.Sum(team => team.Members.Count) - 1 : 0;
+
+            int racerIndex = 0;
 
             foreach (var team in _teams.OrderByDescending(team => team.Rank))
             {
                 foreach (var member in team.Members)
                 {
-                    Transform spawnPoint = GetSpawnPointFor(team, spawnIndex);
+                    Transform fallbackSpawnPoint = GetSpawnPointFor(team, spawnIndex);
+                    int currentRacerIndex = team.Rank == 1 ? -1 : racerIndex;
+
+                    Transform spawnPoint = ResolveSpawnPointFor(team, member, currentRacerIndex, fallbackSpawnPoint);
 
                     member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
+
+                    if (team.Rank != 1)
+                        racerIndex++;
 
                     if (opposite)
                         spawnIndex--;
@@ -83,6 +101,13 @@ namespace MortierFu
             {
                 member.SpawnInGame(spawnPoint.position, spawnPoint.rotation);
             }
+        }
+
+        private Transform ResolveSpawnPointFor(PlayerTeam team, PlayerManager player, int racerIndex, Transform fallbackSpawnPoint)
+        {
+            Transform resolvedSpawn = _spawnResolver?.Invoke(team, player, racerIndex, fallbackSpawnPoint);
+
+            return resolvedSpawn ? resolvedSpawn : fallbackSpawnPoint;
         }
 
         private Transform GetSpawnPointFor(PlayerTeam team, int spawnIndex)
