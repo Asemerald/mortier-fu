@@ -12,7 +12,8 @@ public class Rotator : MonoBehaviour
     {
         var angle = time * _speed;
         Quaternion rotation = Quaternion.Euler(0f, angle, 0f);
-
+        
+        
         canMoveInLoading = true;
         
         return transform.position + rotation * localPoint;
@@ -28,6 +29,7 @@ public class Rotator : MonoBehaviour
 
     void FixedUpdate()
     {
+        
         if (!canMoveInLoading)
             return;
         
