@@ -57,6 +57,9 @@ namespace MortierFu
 
         public virtual RaceAugmentLayout BuildAugmentLayout(int augmentCount) => RaceAugmentLayout.FromLevelSystem(Context.LevelSystem, augmentCount);
 
+        public virtual void AfterShowcaseCompleted()
+        { }
+        
         public virtual void BeginGameplay()
         {
             ApplyPlayerContexts();
@@ -68,10 +71,7 @@ namespace MortierFu
 
         public virtual float GetRaceDuration(float defaultDuration) => Definition.ResolveRaceDuration(defaultDuration);
 
-        public virtual void End()
-        {
-            Context.ClearBullySize?.Invoke();
-        }
+        public virtual void End() => Context.ClearBullySize?.Invoke();
 
         public virtual void Dispose()
         { }

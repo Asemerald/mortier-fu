@@ -9,7 +9,6 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -209,6 +208,7 @@ namespace MortierFu
                 augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
                 
                 await _augmentRaceController.PrepareSelectionAsync(cancellationToken, FlowSettings.AugmentStartShowcaseDelay);
+                _raceRuntimeController?.AfterShowcaseCompleted();
                 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -464,10 +464,12 @@ namespace MortierFu
 
                 LevelSystem = levelSystem,
                 PlayerSpawnController = _playerSpawnController,
+                AugmentSelectionSystem = augmentSelectionSys,
                 FlowSettings = FlowSettings,
 
                 SetAllPlayersControlContext = SetPlayersControlContext,
-                ApplyBullySize = (character, size) => _previousRoundWinnerRaceSizeController?.Apply(character, size, applyControlContext: false),
+                ApplyBullySize = (character, size) =>
+                    _previousRoundWinnerRaceSizeController?.Apply(character, size, applyControlContext: false),
                 ClearBullySize = () => _previousRoundWinnerRaceSizeController?.Clear()
             };
         }

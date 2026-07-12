@@ -16,7 +16,6 @@ namespace MortierFu
         private readonly CameraSystem _cameraSystem;
         private readonly ConfirmationService _confirmationService;
         private readonly LobbyService _lobbyService;
-        private readonly LevelSystem _levelSystem;
         private readonly ReadOnlyCollection<AugmentCardUI> _pickups;
         private readonly ReadOnlyCollection<AugmentPickup> _pickupsVFX;
         private readonly AugmentSelectionSystem _system;
@@ -26,8 +25,7 @@ namespace MortierFu
 
         private Transform[] _augmentPoints;
 
-        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups,
-            ReadOnlyCollection<AugmentPickup> pickupsVFX)
+        public AugmentShowcaser(AugmentSelectionSystem system, ReadOnlyCollection<AugmentCardUI> pickups, ReadOnlyCollection<AugmentPickup> pickupsVFX)
         {
             _pickups = pickups;
             _pickupsVFX = pickupsVFX;
@@ -37,15 +35,11 @@ namespace MortierFu
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
             _cam = _cameraSystem.Controller.Camera;
             _flowSettings = (GameService.CurrentGameMode as GameModeBase)?.FlowSettings;
         }
 
-        public void Dispose()
-        {
-            StopShowcase();
-        }
+        public void Dispose() => StopShowcase();
 
         public async UniTask Showcase(RaceAugmentLayout layout, int augmentCount)
         {
@@ -56,7 +50,7 @@ namespace MortierFu
             }
 
             Transform pivot = layout.Pivot;
-            Vector3[] augmentPoints = layout.Points;
+            var augmentPoints = layout.Points;
             
             _cts?.Cancel();
             _cts?.Dispose();
@@ -64,36 +58,29 @@ namespace MortierFu
             var ct = _cts.Token;
 
             float alpha = (augmentCount - 3) / 2f;
-            float cardScale = Mathf.Lerp(_system.Settings.DisplayedCardScaleRange.Min,
-                _system.Settings.DisplayedCardScaleRange.Max,
-                alpha);
-            float cardSpace = Mathf.Lerp(_system.Settings.CardSpacingRange.Min,
-                _system.Settings.CardSpacingRange.Max,
-                alpha);
+            float cardScale = Mathf.Lerp(_system.Settings.DisplayedCardScaleRange.Min, _system.Settings.DisplayedCardScaleRange.Max, alpha);
+            float cardSpace = Mathf.Lerp(_system.Settings.CardSpacingRange.Min, _system.Settings.CardSpacingRange.Max, alpha);
 
             const int k_referenceOrthoSize = 20;
             cardScale *= _cam.orthographicSize / k_referenceOrthoSize;
 
             float step = cardScale * 2f + cardSpace;
-            Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f -
-                             _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
+            Vector3 origin = _cam.transform.position + _cam.transform.forward * 2f - _cam.transform.right * (step * (_pickups.Count - 1)) / 2f;
 
             for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
 
-                var pickup = _pickups[i];
+                AugmentCardUI pickup = _pickups[i];
                 pickup.ResetUI();
                 pickup.SetFaceCameraEnabled(true);
                 pickup.transform.position = origin + _cam.transform.right * (step * i);
-                
                
-                var pickupVFX = _pickupsVFX[i];
+                AugmentPickup pickupVFX = _pickupsVFX[i];
 
                 pickupVFX.gameObject.SetActive(false);
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
-
                 
                 //pickupVFX.transform.localPosition = pickup.transform.position;
                 pickupVFX.transform.localScale = new Vector3(2, 2, 2);
@@ -104,7 +91,7 @@ namespace MortierFu
 
                 pickupVFX.transform.position = pickup.AnchorIncon.position;
                 pickupVFX.gameObject.SetActive(true);
-                pickupVFX.visual.HideVfx();
+                pickupVFX.HideVfx();
                 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
                 await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);
@@ -112,10 +99,7 @@ namespace MortierFu
 
             ct.ThrowIfCancellationRequested();
 
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(_system.Settings.CardPopInDuration),
-                cancellationToken: ct
-            );
+            await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardPopInDuration), cancellationToken: ct);
 
             await WaitBeforePlayerConfirmationAsync(ct);
 
@@ -138,20 +122,15 @@ namespace MortierFu
                 ct.ThrowIfCancellationRequested();
 
                 _pickupsVFX[i].gameObject.SetActive(false);
-                var pickup = _pickups[i];
-                var midFlipSignal = new UniTaskCompletionSource();
+                AugmentCardUI pickup = _pickups[i];
+                UniTaskCompletionSource midFlipSignal = new();
 
                 flipTasks[i] = UniTask.Create(async () =>
                 {
                     if (previousMidFlip != null)
                         await previousMidFlip.Task;
                     
-                    await FlipPickupStair(
-                        pickup,
-                        ct,
-                        midFlipSignal,
-                        _system.Settings.FlipDuration
-                    );
+                    await FlipPickupStair(pickup, ct, midFlipSignal, _system.Settings.FlipDuration);
                 });
 
                 previousMidFlip = midFlipSignal;
@@ -168,20 +147,19 @@ namespace MortierFu
 
                 ct.ThrowIfCancellationRequested();
 
-                var pickup = _pickups[idx];
-                var pickupVFX = _pickupsVFX[idx];
+                AugmentCardUI pickup = _pickups[idx];
+                AugmentPickup pickupVFX = _pickupsVFX[idx];
 
                 pickup.PlayRevealSequence().Forget();
 
                 float t = (shuffled.Length - j) / (float)shuffled.Length;
 
-                await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger),
-                    cancellationToken: ct);
+                await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger), cancellationToken: ct);
                 
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
                 pickupVFX.transform.position = pickup.transform.position;  
                 pickupVFX.gameObject.SetActive(true);
-                pickupVFX.visual.SetVfx();
+                pickupVFX.SetVfx();
                 
                 var children = pickupVFX.GetComponentsInChildren<Transform>(true);
                 foreach (var child in children)
@@ -199,15 +177,16 @@ namespace MortierFu
             }
 
             _augmentPoints = new Transform[_pickups.Count];
+            var moveTasks = new UniTask[_pickups.Count];
 
-            for (var i = 0; i < _pickups.Count; i++)
+            for (int i = 0; i < _pickups.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
 
                 AugmentPickup pickupVFX = _pickupsVFX[i];
 
                 pickupVFX.transform.localScale = new Vector3(4, 4, 4);
-               
+
                 Transform augmentPoint = new GameObject("Augment Point #" + i).transform;
                 augmentPoint.position = augmentPoints[i].Add(y: layout.HeightOffset);
 
@@ -216,21 +195,23 @@ namespace MortierFu
 
                 _augmentPoints[i] = augmentPoint;
 
-                var duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
+                float duration = _system.Settings.CardMoveDurationRange.GetRandomValue();
 
-                MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, layout, ct).Forget();
+                moveTasks[i] = MovePickupToAugmentPoint(pickupVFX, i, duration, _system.Settings.CarouselCardScale, layout, ct);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()),
-                    cancellationToken: ct);
+                await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.CardMoveStaggerRange.GetRandomValue()), cancellationToken: ct);
             }
+
+            await UniTask.WhenAll(moveTasks);
+
+            ct.ThrowIfCancellationRequested();
         }
 
         private async UniTask GrowPickup(AugmentCardUI cardUI, float scale, CancellationToken ct)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, cardUI.transform.position);
             _shakeService.ShakeControllers(ShakeService.ShakeType.LITTLE);
-            await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce)
-                .ToUniTask(cancellationToken: ct);
+            await Tween.Scale(cardUI.transform, scale, _system.Settings.CardPopInDuration, Ease.OutBounce).ToUniTask(cancellationToken: ct);
         }
 
         private async UniTask MovePickupToAugmentPoint(AugmentPickup pickup, int i, float duration, float scale, RaceAugmentLayout layout, CancellationToken ct)
@@ -249,15 +230,18 @@ namespace MortierFu
             }
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_ToWorld, pickup.transform.position);
-
             await Tween.Scale(pickup.transform, scale, 1, duration, Ease.OutBack)
                 .Group(Tween.Position(pickup.transform, targetPosition, duration, Ease.InOutQuad))
-                .OnComplete(() => { pickup.AttachToPoint(_augmentPoints[i]); })
+                .OnComplete(() =>
+                {
+                    pickup.AttachToPoint(_augmentPoints[i]);
+                    pickup.SetVisible(true);
+                    pickup.SetInteractable(true);
+                })
                 .ToUniTask(cancellationToken: ct);
         }
         
-        private async UniTask FlipPickupStair(AugmentCardUI cardUI, CancellationToken ct,
-            UniTaskCompletionSource onMidFlip, float duration = 0.5f)
+        private async UniTask FlipPickupStair(AugmentCardUI cardUI, CancellationToken ct, UniTaskCompletionSource onMidFlip, float duration = 0.5f)
         {
             cardUI.SetFaceCameraEnabled(false);
             Transform t = cardUI.transform;
@@ -268,24 +252,14 @@ namespace MortierFu
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Flip, cardUI.transform.position);
 
-            await Tween.LocalRotation(
-                t,
-                midRot,
-                duration * 0.5f,
-                Ease.InQuad  
-            ).ToUniTask(cancellationToken: ct);
+            await Tween.LocalRotation(t, midRot, duration * 0.5f, Ease.InQuad).ToUniTask(cancellationToken: ct);
 
             ct.ThrowIfCancellationRequested();
 
             cardUI.DisableObjectsOnFlip();
             onMidFlip.TrySetResult();
 
-            await Tween.LocalRotation(
-                t,
-                endRot,
-                duration * 0.5f,
-                Ease.OutQuad
-            ).ToUniTask(cancellationToken: ct);
+            await Tween.LocalRotation(t, endRot, duration * 0.5f, Ease.OutQuad).ToUniTask(cancellationToken: ct);
         }
 
         private async UniTask WaitBeforePlayerConfirmationAsync(CancellationToken ct)
@@ -298,10 +272,7 @@ namespace MortierFu
             if (delay <= 0f)
                 return;
 
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(delay),
-                cancellationToken: ct
-            );
+            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: ct);
         }
 
         public void StopShowcase()
@@ -312,7 +283,7 @@ namespace MortierFu
 
             _system.RestorePickupParent();
 
-            foreach (var pickup in _pickups)
+            foreach (AugmentCardUI pickup in _pickups)
             {
                 pickup.ResetUI();
                 pickup.Reset();
@@ -332,7 +303,7 @@ namespace MortierFu
 
         private int[] GetShuffledIndices(int count)
         {
-            var indices = new int[count];
+            int[] indices = new int[count];
             for (int i = 0; i < count; i++) indices[i] = i;
 
             for (int i = 0; i < count; i++)

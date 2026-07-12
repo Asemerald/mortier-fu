@@ -10,6 +10,7 @@ namespace MortierFu
 
         public LevelSystem LevelSystem;
         public PlayerSpawnController PlayerSpawnController;
+        public AugmentSelectionSystem AugmentSelectionSystem;
         public SO_GameFlowSettings FlowSettings;
 
         public Action<PlayerControlContext> SetAllPlayersControlContext;

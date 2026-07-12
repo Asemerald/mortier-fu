@@ -50,6 +50,8 @@ namespace MortierFu
         public Dictionary<PlayerCharacter, List<SO_Augment>> PickedAugments => _pickedAugments;
         
         public int AugmentCount => _augmentCount;
+        
+        public int PickupCount => _pickupsVFX?.Count ?? 0;
 
         public bool IsSelectionOver
         {
@@ -94,15 +96,15 @@ namespace MortierFu
 
             for (var i = 0; i < _augmentCount; i++)
             {
-                var pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
-                var pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
+                GameObject pickupGo = await Settings.AugmentPickupPrefab.InstantiateAsync(_pickupParent);
+                GameObject pickupVFX = await Settings.AugmentVFXPrefab.InstantiateAsync(_pickupParent);
 
-                var pickup = pickupGo.GetComponent<AugmentCardUI>();
+                AugmentCardUI pickup = pickupGo.GetComponent<AugmentCardUI>();
 
                 pickup.Initialize();
                 pickup.Hide();
                 
-                var pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
+                AugmentPickup pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
                 pickupNewAugment.Reset();       
 
@@ -127,10 +129,40 @@ namespace MortierFu
             _augmentTimer?.Dispose();
         }
 
-        public UniTask PrepareAugmentSelection(List<PlayerManager> pickers, CancellationToken cancellationToken)
+        private bool TryGetPickup(int index, out AugmentPickup pickup)
         {
-            return PrepareAugmentSelection(pickers, null, cancellationToken);
+            pickup = null;
+
+            if (_pickupsVFX == null)
+                return false;
+
+            if (index < 0 || index >= _pickupsVFX.Count)
+                return false;
+
+            pickup = _pickupsVFX[index];
+            return pickup;
         }
+
+        public void SetPickupVisible(int index, bool visible)
+        {
+            if (TryGetPickup(index, out AugmentPickup pickup))
+                pickup.SetVisible(visible);
+        }
+
+        public void SetPickupInteractable(int index, bool interactable)
+        {
+            if (TryGetPickup(index, out AugmentPickup pickup))
+                pickup.SetInteractable(interactable);
+        }
+
+        public void AttachPickupTo(int index, Transform target, Vector3 localOffset)
+        {
+            if (TryGetPickup(index, out AugmentPickup pickup))
+                pickup.AttachTo(target, localOffset);
+        }
+
+        public UniTask DropPickupAsync(int index, Vector3 position, float jumpHeight, float duration, CancellationToken cancellationToken) => 
+            !TryGetPickup(index, out AugmentPickup pickup) ? UniTask.CompletedTask : pickup.DropToAsync(position, jumpHeight, duration, cancellationToken);
         
         public async UniTask PrepareAugmentSelection(List<PlayerManager> pickers, RaceAugmentLayout layout, CancellationToken cancellationToken)
         {
@@ -157,7 +189,7 @@ namespace MortierFu
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var augment = _selectedAugments[i];
+                SO_Augment augment = _selectedAugments[i];
 
                 _augmentBag.Add(new AugmentState
                 {
@@ -214,8 +246,8 @@ namespace MortierFu
         {
             try
             {
-                var pressureStartTime = 5f;
-                var delay = Mathf.Max(0f, duration - pressureStartTime);
+                float pressureStartTime = 5f;
+                float delay = Mathf.Max(0f, duration - pressureStartTime);
 
                 await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: cancellationToken);
 
@@ -251,7 +283,7 @@ namespace MortierFu
                     break;
                 }
 
-                var randomAugment = remainingAugments.RandomElement();
+                AugmentState randomAugment = remainingAugments.RandomElement();
                 picker.Character.AddAugment(randomAugment.Augment);
 
                 _pickedAugments[picker.Character].Add(randomAugment.Augment);
@@ -274,7 +306,7 @@ namespace MortierFu
 
             foreach (var pickup in _pickupsVFX)
             {
-                var pickupVFX = pickup.GetComponent<AugmentPickup>();
+                AugmentPickup pickupVFX = pickup.GetComponent<AugmentPickup>();
                 pickupVFX.Reset();
             }
 
@@ -287,12 +319,12 @@ namespace MortierFu
 
         public void RestorePickupParent()
         {
-            for (var i = 0; i < _pickups.Count; i++)
+            for (int i = 0; i < _pickups.Count; i++)
             {
-                var pickup = _pickups[i];
+                AugmentCardUI pickup = _pickups[i];
                 pickup.transform.SetParent(_pickupParent);
 
-                var pickupVFX = _pickupsVFX[i];
+                AugmentPickup pickupVFX = _pickupsVFX[i];
                 pickupVFX.AttachToPoint(null);
             }
         }
@@ -305,8 +337,8 @@ namespace MortierFu
             if (character == null || augmentIndex < 0 || augmentIndex >= _augmentBag.Count)
                 return false;
 
-            var augment = _augmentBag[augmentIndex];
-            var picker = character.Owner;
+            AugmentState augment = _augmentBag[augmentIndex];
+            PlayerManager picker = character.Owner;
 
             if (!_pickers.Contains(picker) || augment.IsPicked)
                 return false;
@@ -316,10 +348,11 @@ namespace MortierFu
 
             character.AddAugment(augment.Augment);
 
-            var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            var particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
+            GameObject prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
+            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
                 character.transform);
-            var particle = particleGO.TryGetComponent(out _particleSystem);
+            bool particle = particleGO.TryGetComponent(out _particleSystem);
+            
             if (particle)
                 _particleSystem.Init();
             

@@ -70,5 +70,7 @@ namespace MortierFu
 
             return fallbackDefinition;
         }
+        
+        public void AfterShowcaseCompleted() => _runtime?.AfterShowcaseCompleted();
     }
 }
