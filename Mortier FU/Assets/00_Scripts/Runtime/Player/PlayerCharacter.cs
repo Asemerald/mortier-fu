@@ -38,9 +38,6 @@ namespace MortierFu
 
         [Header("References")] [SerializeField]
         private Animator _animator;
-        [SerializeField] private Animator _tailAnimator;
-        [SerializeField] private RuntimeAnimatorController  _winAnimatorController; 
-        [SerializeField] private RuntimeAnimatorController  _tailAnimatorController; 
 
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
@@ -252,8 +249,6 @@ namespace MortierFu
 
         public void Reset()
         {
-            _tailAnimator.runtimeAnimatorController = _tailAnimatorController;
-            
             gameObject.SetActive(true);
             
             // Reset the parent if it was held by an actor
@@ -563,11 +558,7 @@ namespace MortierFu
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
         }
 
-        public void WinRoundDance()
-        {
-            _animator.CrossFade("WinRound", 0.1f, 0);
-            _tailAnimator.runtimeAnimatorController = _winAnimatorController;
-        }
+        public void WinRoundDance() => _animator.CrossFade("WinRound", 0.1f, 0);
 
         private void UpdateInvincibilityFromControlContext(PlayerControlContext context)
         {

@@ -22,7 +22,7 @@ namespace MortierFu
         [SerializeField] private UIIntStepperItem _hatItem;
 
         [Header("Customization Limits")]
-        [SerializeField] private int _skinCount = 4;
+        [SerializeField] private int _skinCount = 13;
         [SerializeField] private int _faceColumnCount = 4;
         [SerializeField] private int _faceRowCount = 4;
 
@@ -44,8 +44,6 @@ namespace MortierFu
                 _root.SetActive(false);
 
             BindItems();
-
-            
         }
 
         private void OnEnable() => BindItems();
@@ -74,17 +72,12 @@ namespace MortierFu
         {
             if (!player)
                 return;
-            
-            _skinCount = player.Character.CustomizationVisual.SkinCount;
 
             CancelPanelTasks();
 
             _panelCancellation = new CancellationTokenSource();
 
             _activePlayer = player;
-            
-            
-            
             _onConfirmed = onConfirmed;
             _isOpen = true;
 
