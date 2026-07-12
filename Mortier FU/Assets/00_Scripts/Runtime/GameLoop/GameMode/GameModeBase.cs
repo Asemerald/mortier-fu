@@ -742,7 +742,7 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(0.5f);
+            await CircleTransition.Instance.CloseAsync(0.3f);
             
             await levelSystem.LoadRaceMap();
 
@@ -756,9 +756,9 @@ namespace MortierFu
             
             HideScores();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(0.1f), cancellationToken: cancellationToken);
+            await UniTask.Delay(TimeSpan.FromSeconds(1.3f), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(0.5f);
+            await CircleTransition.Instance.OpenAsync(0.3f);
         }
 
         private void ApplyPreviousRoundWinnerRaceGiant()
