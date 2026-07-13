@@ -1,4 +1,7 @@
-﻿namespace MortierFu
+﻿using MortierFu.Shared;
+using UnityEngine;
+
+namespace MortierFu
 {
     public abstract class AugmentBase : IAugment 
     {
@@ -16,6 +19,8 @@
             this.stats = owner.Stats;
             this.db = db;
         }
+
+        private GameObject ps;
         
         public virtual void Initialize() 
         { }
@@ -25,5 +30,27 @@
 
         public virtual void Dispose()
         { }
+
+        public void InstantiateVFX()
+        {
+            if (augmentData == null)
+                return;
+            
+            if (augmentData.AugmentVFX == null)
+                return;
+            
+            ClearVFXInstance();
+            
+            //Logs.LogError($"InstantiateVFX");
+            ps = Object.Instantiate(augmentData.AugmentVFX, owner.transform);
+        }
+
+        public void ClearVFXInstance()
+        {
+            if (ps == null)
+                return;
+            
+            Object.Destroy(ps);
+        }
     }
 }
