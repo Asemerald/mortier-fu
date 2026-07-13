@@ -217,17 +217,11 @@ namespace MortierFu
 
         public void HideVfx()
         {
-            if (_visualInstance)
-                _visualInstance.HideVfx();
-
             StopParticles();
         }
 
         public void SetVfx()
         {
-            if (_visualInstance)
-                _visualInstance.SetVfx();
-
             PlayParticles();
         }
         

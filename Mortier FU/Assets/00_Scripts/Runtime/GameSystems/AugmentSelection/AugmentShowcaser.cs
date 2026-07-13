@@ -82,15 +82,15 @@ namespace MortierFu
                 pickup.transform.localScale = Vector3.zero;
                 pickup.Show();
                 
-                //pickupVFX.transform.localPosition = pickup.transform.position;
-                pickupVFX.transform.localScale = new Vector3(2, 2, 2);
+                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
+                pickupVFX.transform.localPosition = pickup.transform.position;
+
                 // TODO : Atroce hack to fix VFX rotation
                 pickupVFX.transform.rotation *= Quaternion.Euler(0f, 15f, 0f);
                 
                 await GrowPickup(pickup, cardScale, ct);
 
                 pickupVFX.transform.position = pickup.AnchorIncon.position;
-                pickupVFX.gameObject.SetActive(true);
                 pickupVFX.HideVfx();
                 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
@@ -156,8 +156,6 @@ namespace MortierFu
 
                 await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger), cancellationToken: ct);
                 
-                pickupVFX.transform.localScale = new Vector3(4, 4, 4);
-                pickupVFX.transform.position = pickup.transform.position;  
                 pickupVFX.gameObject.SetActive(true);
                 pickupVFX.SetVfx();
                 
