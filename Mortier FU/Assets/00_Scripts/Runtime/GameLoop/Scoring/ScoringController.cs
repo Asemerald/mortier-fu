@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using MortierFu.Analytics;
 using MortierFu.Shared;
@@ -110,48 +111,61 @@ namespace MortierFu
             _analyticsSystem.OnScoreChanged(firstMember.Character, team.Score);
         }
 
-        public List<PlayerTeam> GetOrderWinners(List<PlayerTeam> teams) => teams.OrderByDescending(t => t.Score).ToList();
+        public List<PlayerTeam> GetOrderWinners(ReadOnlyCollection<PlayerTeam> teams) => teams.OrderByDescending(t => t.Score).ToList();
 
-        public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
+        public void UpdatePlayerVisualsAfterRound(ReadOnlyCollection<PlayerTeam> teams)
         {
             if (teams == null || teams.Count == 0)
             {
                 Logs.LogWarning("No teams detected; cancelling player visuals update");
                 return;
             }
-            
-            int count = teams.Count;
-            
-            //reset visuals
-            for (int i = 0; i < count; i++)
-            {
-                foreach (PlayerManager member in teams[i].Members)
-                {
-                    if (!member || !member.Character || !member.Character.CustomizationVisual)
-                        return;
-                    
-                    member.Character.CustomizationVisual.ResetVisualAfterRound();
-                }
-            }
 
-            var winners = GetOrderWinners(teams);
+            List<PlayerTeam> winnerTeams = GetLeadingTeams(teams);
 
-            if (winners.Count == 0 || winners[0] == null)
+            if (winnerTeams.Count == 0)
             {
                 Logs.LogWarning("No winners detected; cancelling player visuals update");
                 return;
             }
-            
-            PlayerTeam winner = winners[0];
 
-            //apply visuals to winner team
-            foreach (PlayerManager playerWin in winner.Members)
+            foreach (PlayerTeam team in teams)
             {
-                if (!playerWin || !playerWin.Character || !playerWin.Character.CustomizationVisual)
-                    return;
-                
-                playerWin.Character.CustomizationVisual.UpdateVisualsAfterRound(isWinningGame: true);
+                bool isWinnerTeam = winnerTeams.Contains(team);
+
+                foreach (PlayerManager member in team.Members)
+                {
+                    if (!member || !member.Character || !member.Character.CustomizationVisual)
+                        continue;
+
+                    if (isWinnerTeam)
+                    {
+                        member.Character.CustomizationVisual.UpdateVisualsAfterRound(isWinningGame: true);
+                    }
+                    else
+                    {
+                        member.Character.CustomizationVisual.ResetVisualAfterRound();
+                    }
+                }
             }
+        }
+        
+        private static List<PlayerTeam> GetLeadingTeams(ReadOnlyCollection<PlayerTeam> teams)
+        {
+            var leadingTeams = new List<PlayerTeam>();
+
+            if (teams == null || teams.Count == 0)
+                return leadingTeams;
+
+            int maxScore = teams.Max(team => team.Score);
+
+            foreach (PlayerTeam team in teams)
+            {
+                if (team.Score == maxScore)
+                    leadingTeams.Add(team);
+            }
+
+            return leadingTeams;
         }
     }
 }

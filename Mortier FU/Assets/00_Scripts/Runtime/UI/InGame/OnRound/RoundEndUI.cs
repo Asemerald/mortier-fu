@@ -89,6 +89,9 @@ namespace MortierFu
         private Vector3 _originalScale;
         private int _previousTopPlayerIndex;
 
+        private readonly HashSet<int> _winnerIconPlayerIndexes = new();
+        private readonly HashSet<int> _goldenBombshellPlayerIndexes = new();
+        
         private void Awake()
         {
             _originalScale = _playerSlots[0].transform.localScale;
@@ -559,21 +562,42 @@ namespace MortierFu
 
         private async UniTask RevealFinalScoreState(CancellationToken ct)
         {
+            _gm.ScoreController.UpdatePlayerVisualsAfterRound(_gm.Teams);
             await UniTask.WhenAll(RevealWinnerIcons(), ShowGoldenBombshellIndicator(ct));
         }
 
         private UniTask RevealWinnerIcons()
         {
             List<PlayerTeam> topTeams = GetTopScoreTeams();
+            var newWinnerIndexes = new HashSet<int>();
 
             foreach (PlayerTeam team in topTeams)
+            {
+                int idx = team.Index;
+
+                if (IsValidPlayerIndex(idx))
+                    newWinnerIndexes.Add(idx);
+            }
+
+            foreach (PlayerTeam team in _gm.Teams)
             {
                 int idx = team.Index;
 
                 if (!IsValidPlayerIndex(idx))
                     continue;
 
-                _playerIcons[idx].sprite = _playerWinnerIcons[idx];
+                bool isWinner = newWinnerIndexes.Contains(idx);
+
+                _playerIcons[idx].sprite = isWinner
+                    ? _playerWinnerIcons[idx]
+                    : _playerDefaultSprites[idx];
+            }
+
+            _winnerIconPlayerIndexes.Clear();
+
+            foreach (int idx in newWinnerIndexes)
+            {
+                _winnerIconPlayerIndexes.Add(idx);
             }
 
             return UniTask.CompletedTask;
@@ -588,7 +612,7 @@ namespace MortierFu
             _goldenBombshellCts?.Dispose();
 
             _goldenBombshellCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            CancellationToken ct = _goldenBombshellCts.Token;
+            var ct = _goldenBombshellCts.Token;
 
             var tasks = new List<UniTask>();
 
@@ -604,6 +628,23 @@ namespace MortierFu
                 if (!IsPlayerDisplayedAtMatchPoint(idx))
                     continue;
 
+                bool wasAlreadyGoldenBombshell = _goldenBombshellPlayerIndexes.Contains(idx);
+                _goldenBombshellPlayerIndexes.Add(idx);
+
+                if (wasAlreadyGoldenBombshell)
+                {
+                    _goldenBombshellImg[idx].sprite = _goldenBombshellSprites[idx];
+                    _goldenBombshellImg[idx].SetNativeSize();
+
+                    _goldenBombshellImg[idx].transform.localScale = Vector3.one;
+                    _goldenBombshellHaloImg[idx].transform.localScale = Vector3.one;
+
+                    _goldenBombshellImg[idx].gameObject.SetActive(true);
+                    _goldenBombshellHaloImg[idx].gameObject.SetActive(true);
+
+                    continue;
+                }
+
                 Image bombshell = _goldenBombshellImg[idx];
                 Image halo = _goldenBombshellHaloImg[idx];
 
@@ -617,7 +658,7 @@ namespace MortierFu
                 halo.gameObject.SetActive(true);
 
                 tasks.Add(Tween.Scale(bombshell.transform, Vector3.one, _goldenBombshellScaleUpDuration, _goldenBombshellScaleUp)
-                    .Group(Tween.Scale(halo.transform, Vector3.one, _goldenBombshellScaleUpDuration, _goldenBombshellScaleUp)).ToUniTask(cancellationToken: ct));
+                        .Group(Tween.Scale(halo.transform, Vector3.one, _goldenBombshellScaleUpDuration, _goldenBombshellScaleUp)).ToUniTask(cancellationToken: ct));
             }
 
             if (tasks.Count > 0)
@@ -706,10 +747,21 @@ namespace MortierFu
                 _playerSlots[idx].gameObject.SetActive(true);
                 _playerSlots[idx].transform.localScale = _originalScale;
 
-                _playerIcons[idx].sprite = _playerDefaultSprites[idx];
+                _playerIcons[idx].sprite = _winnerIconPlayerIndexes.Contains(idx) ? _playerWinnerIcons[idx] : _playerDefaultSprites[idx];
+
                 _playerIcons[idx].gameObject.SetActive(true);
 
                 _goldenBombshellBgdImg[idx].gameObject.SetActive(true);
+
+                if (!_goldenBombshellPlayerIndexes.Contains(idx)) continue;
+                
+                _goldenBombshellImg[idx].sprite = _goldenBombshellSprites[idx];
+                _goldenBombshellImg[idx].SetNativeSize();
+                _goldenBombshellImg[idx].transform.localScale = Vector3.one;
+                _goldenBombshellImg[idx].gameObject.SetActive(true);
+
+                _goldenBombshellHaloImg[idx].transform.localScale = Vector3.one;
+                _goldenBombshellHaloImg[idx].gameObject.SetActive(true);
             }
 
             if (orderOverride != null)

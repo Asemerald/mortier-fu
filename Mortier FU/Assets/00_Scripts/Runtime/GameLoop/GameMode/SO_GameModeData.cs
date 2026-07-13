@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Eflatun.SceneReference;
 
 namespace MortierFu
 {
@@ -58,6 +59,9 @@ namespace MortierFu
     {
         public int MinPlayerCount = 1;
         public int MaxPlayerCount = 4;
+        
+        [Header("Race Override")]
+        public SceneReference FirstArenaRaceOverride;
 
         [Header("Placement Rewards")]
         public PlacementScoreRewardsByPlayerCount[] PlacementRewardsByPlayerCount = { };

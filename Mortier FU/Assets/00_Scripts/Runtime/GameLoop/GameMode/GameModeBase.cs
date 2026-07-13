@@ -65,6 +65,8 @@ namespace MortierFu
 
         public SO_GameModeData Data => _dataHandle.Result;
         public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
+        
+        public ScoreController ScoreController => _scoreController;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
@@ -431,8 +433,6 @@ namespace MortierFu
             
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
             
-            _scoreController?.UpdatePlayerVisualsAfterRound(teams);
-
             OnRoundEnded?.Invoke(_currentRound);
         }
 
@@ -789,6 +789,6 @@ namespace MortierFu
         private int GetCurrentAugmentRaceNumber() => _currentRound.RoundIndex + 1;
 
         //en sah c'est un peu villain mais c'est appelé une fois donc en perf osef
-        public List<PlayerTeam> GetPlayerTeamsWinnersOrder() => _scoreController.GetOrderWinners(Teams.ToList()); 
+        public List<PlayerTeam> GetPlayerTeamsWinnersOrder() => _scoreController.GetOrderWinners(Teams); 
     }
 }
