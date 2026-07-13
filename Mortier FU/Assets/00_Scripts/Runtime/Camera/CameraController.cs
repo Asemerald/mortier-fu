@@ -48,12 +48,32 @@ namespace MortierFu
 
         public Camera Camera => _camera;
 
+        private bool _isInLobby = true;
+
         private void Start()
         {
             _currentOrthoSize = _cinemachineCamera.Lens.OrthographicSize;
 
             _cameraSettings = SystemManager.Instance.Get<CameraSystem>().Settings;
             _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
+            // if current scene is Lobby, set location to Vector3(-13,30.3999996,-2)
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Lobby")
+            {
+                transform.position = new Vector3(-13, 30.3999996f, -2);
+                ApplyLens();
+                _isInLobby = true;
+            }
+            
+            // listen for scene change and flip the bool
+            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += (prev, next) =>
+            {
+                if (next.name != "Lobby")
+                {
+                    _isInLobby = false;
+                }
+            };
+            
         }
 
         public void SetArenaMode(bool isArena)
@@ -111,6 +131,8 @@ namespace MortierFu
 
         private void UpdateCameraForTargets()
         {
+            if (_isInLobby) return;
+            
             Bounds bounds = CalculateTargetsBounds();
             float extent = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
 

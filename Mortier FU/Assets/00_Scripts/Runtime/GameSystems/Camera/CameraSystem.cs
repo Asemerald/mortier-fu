@@ -13,7 +13,7 @@ namespace MortierFu
 
         // Addressables settings
         private AsyncOperationHandle<SO_CameraSettings> _settingsHandle;
-        public SO_CameraSettings Settings => _settingsHandle.Result;
+        public SO_CameraSettings Settings = null;
         
         private GameObject _cameraGo;
 
@@ -30,6 +30,16 @@ namespace MortierFu
         {
             var settingsRef = SystemManager.Config.CameraSettings;
             _settingsHandle = await settingsRef.LazyLoadAssetRef();
+            
+            await _settingsHandle.Task;
+            
+            if (!_settingsHandle.IsDone || _settingsHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Logs.LogError($"[CameraSystem] Failed to load camera settings from addressable: {settingsRef.RuntimeKey}");
+                return;
+            }
+            
+            Settings =  settingsRef.Asset as SO_CameraSettings;
             
             await InstantiateCamera();
 
