@@ -185,6 +185,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd992bb27af89f7448dbee687fb95319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::DeathZone
+  _ghostSpawnPolicy: 1
+  _ghostSpawnAnchor: {fileID: 0}
 --- !u!1001 &1925171432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -301,6 +303,10 @@ PrefabInstance:
     - target: {fileID: 7406974725126170679, guid: 3cb17d4e7a9a83d4c99bc6b39af88bab, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8557855901330017875, guid: 3cb17d4e7a9a83d4c99bc6b39af88bab, type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 8682326618025565555, guid: 3cb17d4e7a9a83d4c99bc6b39af88bab, type: 3}
       propertyPath: m_Name

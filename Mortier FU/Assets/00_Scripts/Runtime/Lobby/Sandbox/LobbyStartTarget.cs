@@ -1,53 +1,51 @@
 using System;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace MortierFu
 {
     public sealed class LobbyStartTarget : MonoBehaviour
     {
         public event Action<PlayerManager> OnHitByPlayer;
-        [SerializeField] private LobbyStartReadyController lobbyStartReadyController;
+
+        [Header("Animation")]
+        [SerializeField] private PlayableDirector _dongAnimation;
+
+        [Header("References")]
+        [SerializeField] private LobbyStartReadyController _lobbyStartReadyController;
 
         private EventBinding<TriggerBombshellImpact> _bombshellImpactBinding;
 
         private void Awake()
         {
+            if (!_lobbyStartReadyController)
+                _lobbyStartReadyController = GetComponent<LobbyStartReadyController>();
+
             _bombshellImpactBinding = new EventBinding<TriggerBombshellImpact>(OnBombshellImpact);
         }
 
-        private void OnEnable()
-        {
-            EventBus<TriggerBombshellImpact>.Register(_bombshellImpactBinding);
-        }
+        private void OnEnable() => EventBus<TriggerBombshellImpact>.Register(_bombshellImpactBinding);
 
-        private void OnDisable()
-        {
-            EventBus<TriggerBombshellImpact>.Deregister(_bombshellImpactBinding);
-        }
+        private void OnDisable() => EventBus<TriggerBombshellImpact>.Deregister(_bombshellImpactBinding);
 
-        private void OnDestroy()
-        {
-            OnHitByPlayer = null;
-        }
+        private void OnDestroy() => OnHitByPlayer = null;
 
         private void OnBombshellImpact(TriggerBombshellImpact evt)
         {
             if (!IsTargetHit(evt.HitObject))
                 return;
 
-            var bombshell = evt.Bombshell;
+            Bombshell bombshell = evt.Bombshell;
 
             if (!bombshell)
                 return;
 
-            var shooterCharacter = bombshell.Owner;
+            PlayerCharacter shooterCharacter = bombshell.Owner;
 
             if (!shooterCharacter || !shooterCharacter.Owner)
                 return;
 
-            lobbyStartReadyController._character = shooterCharacter; //stoian
-            
-            OnHitByPlayer?.Invoke( lobbyStartReadyController._character.Owner); //stoian
+            OnHitByPlayer?.Invoke(shooterCharacter.Owner);
         }
 
         private bool IsTargetHit(GameObject hitObject)
@@ -55,10 +53,24 @@ namespace MortierFu
             if (!hitObject)
                 return false;
 
-            if (hitObject == gameObject)
-                return true;
+            return hitObject == gameObject || hitObject.transform.IsChildOf(transform);
+        }
 
-            return hitObject.transform.IsChildOf(transform);
+        public void PlayDongAnimation()
+        {
+            if (!_dongAnimation)
+                return;
+
+            _dongAnimation.Stop();
+            _dongAnimation.time = 0f;
+            _dongAnimation.Evaluate();
+            _dongAnimation.Play();
+        }
+
+        public void ConfirmAnimationEnd()
+        {
+            if (_lobbyStartReadyController)
+                _lobbyStartReadyController.StartMatch();
         }
     }
 }

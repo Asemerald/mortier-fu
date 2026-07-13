@@ -22,7 +22,7 @@ namespace MortierFu
 
         public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
 
-        private float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
+        public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
 
@@ -69,7 +69,9 @@ namespace MortierFu
             }
 
             Color playerColor = character.Aspect.PlayerColor;
+            
             AimWidget.Colorize(playerColor);
+            
             ResetAimWidget();
 
             _shootStrategy = new MSSPositionLimited(this, _aimAction, _shootAction);
@@ -106,6 +108,7 @@ namespace MortierFu
         private void OnShootCooldownComplete()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ReloadComplete, character.transform.position);
+            Character.Aspect.ReloadCompleteFeedback();
         }
 
         private void UpdateFireRate()
@@ -116,6 +119,8 @@ namespace MortierFu
 
         private void ResetAimWidget()
         {
+            if (!AimWidget) return;
+            
             AimWidget.transform.localScale = Vector3.one * (Stats.BombshellImpactRadius.Value * 2f);
             AimWidget.SetRelativePosition(Vector3.zero);
             AimWidget.Hide();
@@ -225,7 +230,9 @@ namespace MortierFu
             if (!_isInitialized)
                 return;
 
-            AimWidget?.Hide();
+            if (AimWidget)
+                AimWidget.Hide();
+            
             _shootStrategy?.EndAiming();
 
             if (_shootAction != null)
@@ -236,8 +243,10 @@ namespace MortierFu
         {
             if (character.Owner != null && character.Owner.IsControllingGhost)
                 return;
+
+            if (AimWidget)
+                AimWidget.Hide();
             
-            AimWidget?.Hide();
 
             _shootStrategy?.CancelAiming();
 

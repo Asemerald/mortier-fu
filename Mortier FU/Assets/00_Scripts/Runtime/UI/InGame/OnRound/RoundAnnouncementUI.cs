@@ -115,10 +115,7 @@ namespace MortierFu
             if (gameMode == null)
                 return;
 
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _lifetimeCancellation.Token
-            );
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
 
             var ct = linkedCancellation.Token;
 

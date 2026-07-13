@@ -1,4 +1,3 @@
-using System;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -7,12 +6,12 @@ namespace MortierFu
     public sealed class PlayerCustomizationVisual : MonoBehaviour
     {
         [Header("Skins / Hats")]
-        [SerializeField] private GameObject[] _availableSkins;
-        [SerializeField] private GameObject[] _availableSkinOutlines;
+        [SerializeField] private SkinnedMeshRenderer _customSkinMeshRenderer;
+        [SerializeField] private Mesh[] _availableSkins;
         [SerializeField] private GameObject _crownInstance;
 
         [Header("Face")]
-        [SerializeField] private SkinnedMeshRenderer _faceMeshRenderer;
+        [SerializeField] private SkinnedMeshRenderer _bodySkinnedMeshRenderer;
         [SerializeField] private string _columnPropertyName = "_Column";
         [SerializeField] private string _rowPropertyName = "_Row";
 
@@ -40,7 +39,7 @@ namespace MortierFu
                 return;
             }
 
-            _gameModeBase.OnGameStarted += ResetVisualsOnGameStart;
+            _gameModeBase.OnGameStarted += ResetVisualAfterRound;
         }
 
         private void OnDisable()
@@ -48,7 +47,7 @@ namespace MortierFu
             if (_gameModeBase == null)
                 return;
 
-            _gameModeBase.OnGameStarted -= ResetVisualsOnGameStart;
+            _gameModeBase.OnGameStarted -= ResetVisualAfterRound;
         }
 
         private void OnDestroy()
@@ -79,25 +78,10 @@ namespace MortierFu
 
         private void ApplySkin(int skinIndex)
         {
-            if (_availableSkins == null || _availableSkins.Length == 0)
+            if (!_customSkinMeshRenderer || _availableSkins.Length == 0)
             {
                 DebugLog("[PlayerCustomizationVisual] No skins assigned.");
                 return;
-            }
-
-            for (int i = 0; i < _availableSkins.Length; i++)
-            {
-                if (_availableSkins[i])
-                    _availableSkins[i].SetActive(false);
-            }
-
-            if (_availableSkinOutlines != null)
-            {
-                for (int i = 0; i < _availableSkinOutlines.Length; i++)
-                {
-                    if (_availableSkinOutlines[i])
-                        _availableSkinOutlines[i].SetActive(false);
-                }
             }
 
             if (skinIndex < 0 || skinIndex >= _availableSkins.Length)
@@ -105,30 +89,21 @@ namespace MortierFu
                 Logs.LogWarning($"[PlayerCustomizationVisual] Skin index {skinIndex} is out of range.", this);
                 return;
             }
-
-            if (_availableSkins[skinIndex])
-                _availableSkins[skinIndex].SetActive(true);
-
-            if (_availableSkinOutlines != null &&
-                skinIndex >= 0 &&
-                skinIndex < _availableSkinOutlines.Length &&
-                _availableSkinOutlines[skinIndex])
-            {
-                _availableSkinOutlines[skinIndex].SetActive(true);
-            }
+            
+            _customSkinMeshRenderer.sharedMesh = _availableSkins[skinIndex];
 
             DebugLog($"[PlayerCustomizationVisual] Applied skin {skinIndex}.");
         }
 
         private void ApplyFace(int column, int row)
         {
-            if (!_faceMeshRenderer)
+            if (!_bodySkinnedMeshRenderer)
             {
                 DebugLog("[PlayerCustomizationVisual] No face mesh renderer assigned.");
                 return;
             }
 
-            _faceMaterialInstance ??= _faceMeshRenderer.material;
+            _faceMaterialInstance ??= _bodySkinnedMeshRenderer.materials[2];
 
             if (!_faceMaterialInstance)
             {
@@ -157,7 +132,7 @@ namespace MortierFu
             Logs.Log(message, this);
         }
 
-        private void ResetVisualsOnGameStart() => UpdateVisualsAfterRound(false);
+        public void ResetVisualAfterRound() => UpdateVisualsAfterRound(false);
         
         public void UpdateVisualsAfterRound(bool isWinningGame)
         {

@@ -14,14 +14,44 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_GameModeData
   MinPlayerCount: 1
   MaxPlayerCount: 4
-  FirstRankBonusScore: 100
-  SecondRankBonusScore: 30
-  ThirdRankBonusScore: 10
-  KillBonusScore: 30
-  KillPushBonusScore: 10
-  KillCarCrashBonusScore: 20
-  AugmentSelectionDuration: 20
-  RoundStartCountdown: 5
+  PlacementRewardsByPlayerCount:
+  - PlayerCount: 2
+    FirstRank:
+      Score: 100
+      Text: +100
+    SecondRank:
+      Score: 0
+      Text: +0
+    ThirdRank:
+      Score: 0
+      Text: +0
+  - PlayerCount: 3
+    FirstRank:
+      Score: 100
+      Text: +100
+    SecondRank:
+      Score: 15
+      Text: +15
+    ThirdRank:
+      Score: 0
+      Text: +0
+  - PlayerCount: 4
+    FirstRank:
+      Score: 100
+      Text: +100
+    SecondRank:
+      Score: 30
+      Text: +30
+    ThirdRank:
+      Score: 10
+      Text: +10
+  BombshellKillReward:
+    Score: 30
+    Text: +30
+  PushKillReward:
+    Score: 40
+    Text: +40
+  VehicleCrashKillReward:
+    Score: 50
+    Text: +50
   StopShowScoreBoardDelay: 1
-  ShowRoundWinnerDelay: 3
-  StormSpawnTime: 30

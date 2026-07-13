@@ -13,19 +13,19 @@ namespace MortierFu
         private readonly PlayerSpawnController _playerSpawnController;
         private readonly Action<PlayerControlContext> _setPlayerControlContext;
         private readonly Action _onRaceStart;
+        private readonly Func<List<PlayerManager>> _getAugmentPickers;
+        private readonly Func<int, RaceAugmentLayout> _buildAugmentLayout;
 
-        public AugmentRaceController(
-            IReadOnlyList<PlayerTeam> teams,
-            AugmentSelectionSystem augmentSelectionSystem,
-            PlayerSpawnController playerSpawnController,
-            Action<PlayerControlContext> setPlayerControlContext,
-            Action onRaceStart)
+        public AugmentRaceController(IReadOnlyList<PlayerTeam> teams, AugmentSelectionSystem augmentSelectionSystem, PlayerSpawnController playerSpawnController, Action<PlayerControlContext> setPlayerControlContext,
+            Action onRaceStart, Func<List<PlayerManager>> getAugmentPickers = null, Func<int, RaceAugmentLayout> buildAugmentLayout = null)
         {
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
             _augmentSelectionSystem = augmentSelectionSystem ?? throw new ArgumentNullException(nameof(augmentSelectionSystem));
             _playerSpawnController = playerSpawnController ?? throw new ArgumentNullException(nameof(playerSpawnController));
             _setPlayerControlContext = setPlayerControlContext ?? throw new ArgumentNullException(nameof(setPlayerControlContext));
             _onRaceStart = onRaceStart;
+            _getAugmentPickers = getAugmentPickers;
+            _buildAugmentLayout = buildAugmentLayout;
         }
 
         public void BeginRace(int roundIndex)
@@ -41,10 +41,7 @@ namespace MortierFu
             Logs.Log("[AugmentRaceController] Starting augment race.");
         }
 
-        public void EndSelection()
-        {
-            _augmentSelectionSystem.EndRace();
-        }
+        public void EndSelection() => _augmentSelectionSystem.EndRace();
 
         public void EndRace()
         {
@@ -57,7 +54,7 @@ namespace MortierFu
             Logs.Log("[AugmentRaceController] Ending augment race.");
         }
 
-        private List<PlayerManager> GetAugmentPickers()
+        private List<PlayerManager> GetDefaultAugmentPickers()
         {
             var pickers = new List<PlayerManager>();
 
@@ -81,14 +78,16 @@ namespace MortierFu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var pickers = GetAugmentPickers();
+            var pickers = _getAugmentPickers?.Invoke();
+
+            if (pickers == null || pickers.Count == 0)
+                pickers = GetDefaultAugmentPickers();
+
+            RaceAugmentLayout layout = _buildAugmentLayout?.Invoke(_augmentSelectionSystem.AugmentCount);
 
             await UniTask.Delay(TimeSpan.FromSeconds(startShowcaseDelay), cancellationToken: cancellationToken);
 
-            await _augmentSelectionSystem.PrepareAugmentSelection(
-                pickers,
-                cancellationToken
-            );
+            await _augmentSelectionSystem.PrepareAugmentSelection(pickers, layout, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
         }

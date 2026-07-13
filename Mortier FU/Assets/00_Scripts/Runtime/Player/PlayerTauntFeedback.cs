@@ -19,7 +19,10 @@ namespace MortierFu
         [Header("UI Elements")] [SerializeField]
         private Image _tauntImg;
 
-        [SerializeField] private Sprite[] _characterIcons;
+        [SerializeField] private Sprite[] _characterIconsTaunt1;
+        [SerializeField] private Sprite[] _characterIconsTaunt2;
+        [SerializeField] private Sprite[] _characterIconsTaunt3;
+        [SerializeField] private Sprite[] _characterIconsTaunt4;
 
         [Header("Tween Settings")] [SerializeField]
         private Ease _scaleInEase = Ease.OutBack;
@@ -45,9 +48,9 @@ namespace MortierFu
 
         private void Start()
         {
-            if (_tauntImg == null || _character == null) return;
-
-            _tauntImg.sprite = _characterIcons[_character.Owner.PlayerIndex];
+            //if (_tauntImg == null || _character == null) return;
+            
+            //_tauntImg.sprite = _characterIcons[_character.Owner.PlayerIndex];
             _tauntImg.enabled = false;
         }
         
@@ -55,15 +58,15 @@ namespace MortierFu
 
         #region Taunt
 
-        public void Taunt()
+        public void Taunt(int tauntIndex)
         {
             if (!_character.Health.IsAlive) return;
-            PlayTauntAsync().Forget();
+            PlayTauntAsync(tauntIndex).Forget();
         }
 
-        private async UniTaskVoid PlayTauntAsync()
+        private async UniTaskVoid PlayTauntAsync(int tauntIndex)
         {
-            if (_isTaunting || _tauntImg == null) return;
+            if (_isTaunting) return;
 
             _isTaunting = true;
 
@@ -71,6 +74,25 @@ namespace MortierFu
                 _currentTween.Stop();
 
             await UniTask.Yield();
+            
+            // Change tauntImage Sprite from 1 to 4 and to player color
+            switch (tauntIndex)
+            {
+                case 1:
+                    _tauntImg.sprite = _characterIconsTaunt1[_character.Owner.PlayerIndex];
+                    break;
+                case 2:
+                    _tauntImg.sprite = _characterIconsTaunt2[_character.Owner.PlayerIndex];
+                    break;
+                case 3:
+                    _tauntImg.sprite = _characterIconsTaunt3[_character.Owner.PlayerIndex];
+                    break;
+                case 4:
+                    _tauntImg.sprite = _characterIconsTaunt4[_character.Owner.PlayerIndex];
+                    break;
+                default:
+                    break;
+            }
 
             _tauntImg.transform.localScale = Vector3.zero;
             _tauntImg.enabled = true;

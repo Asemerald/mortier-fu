@@ -150,6 +150,15 @@ namespace MortierFu
 
             _playerInput = GetComponent<PlayerInput>();
         }
+        
+        public bool IsKeyboardAndMouseControlScheme()
+        {
+            return _playerInput != null
+                   && string.Equals(
+                       _playerInput.currentControlScheme,
+                       "Keyboard and Mouse",
+                       System.StringComparison.Ordinal);
+        }
 
         private bool TryResolveGamePauseSystem()
         {

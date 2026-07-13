@@ -201,6 +201,7 @@ GameObject:
   - component: {fileID: 6070222457573841960}
   - component: {fileID: 4158406251926292994}
   - component: {fileID: 3147581789836301231}
+  - component: {fileID: 8758250505309888029}
   m_Layer: 0
   m_Name: PF_LevelReporter
   m_TagString: Untagged
@@ -244,6 +245,7 @@ MonoBehaviour:
   RoundWinnerSpawnPoint: {fileID: 5538538734176667989}
   _cameraMapConfig:
     PositionForRace: {x: 0, y: 10, z: -10}
+    PositionForMap: {x: 0, y: 0, z: 0}
     OrthoSize: 20
   IsRaceMap: 0
   WinnerSpawnPoint: {fileID: 0}
@@ -298,6 +300,24 @@ MonoBehaviour:
     useUnscaledTime: 0
     _useFixedUpdate: 0
     _updateType: 0
+--- !u!114 &8758250505309888029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7842982718008541184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 371dd7b9002893e49b2e899b7dc451ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.RaceReporter
+  _raceModeDefinition: {fileID: 11400000, guid: 3731b60c2aa26194da15ed73069f5e32, type: 2}
+  _bullySpawnPoint: {fileID: 5538538734176667989}
+  _racerSpawnPoints: []
+  _augmentPivot: {fileID: 0}
+  _augmentSpawnPoints: []
+  _augmentRadius: 4
 --- !u!1 &8358214891320462638
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,79 +3,77 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using PrimeTween;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using PrimeTween;
 
 namespace MortierFu
 {
     public class RoundEndUI : MonoBehaviour
     {
-        [Header("Winner UI")] [SerializeField] private Image _winnerTitleImage;
+        [Header("Winner UI")]
+        [SerializeField] private Image _winnerTitleImage;
         [SerializeField] private Image _winnerBackgroundImage;
-        [SerializeField] private Image _background;
         [SerializeField] private Image _winnerBackgroundColorImage;
 
-        [Header("Player Panels (0 = Blue, 1 = Red, 2 = Green, 3 = Yellow)")] [SerializeField]
-        private RectTransform[] _playerSlots;
-
+        [Header("Player Panels")]
+        [SerializeField] private RectTransform[] _playerSlots;
         [SerializeField] private Image[] _playerIcons;
         [SerializeField] private Slider[] _scoreSliders;
 
-        [Header("Assets")] [SerializeField] private Sprite[] _playerDefaultSprites;
+        [Header("Player Assets")]
+        [SerializeField] private Sprite[] _playerDefaultSprites;
         [SerializeField] private Sprite[] _playerWinnerIcons;
         [SerializeField] private Sprite[] _winnerTitleSprites;
         [SerializeField] private Sprite[] _winnerBackgrounds;
         [SerializeField] private Sprite[] _winnerBackgroundColors;
 
-        [Header("Animation Settings")] [SerializeField]
-        private float _sliderAnimationDuration = 0.3f;
-
-        [SerializeField] private float _reorderPlayerDelay = 0.3f;
-
-        [Header("Tween Settings")] [SerializeField]
-        private float _leaderboardMoveDuration = 0.5f;
-
-        [SerializeField] private float _topPlayerScaleDuration = 0.3f;
-        [SerializeField] private float _topPlayerScaleFactor = 1.2f;
-        [SerializeField] private Ease _leaderboardTweenEase = Ease.OutBack;
-        [SerializeField] private Ease _scaleTweenEase = Ease.OutBack;
-
-        [Header("Leaderboard Positions")] [SerializeField]
-        private Vector2[] _leaderboardPositions;
-
+        [Header("Leaderboard")]
+        [SerializeField] private Vector2[] _leaderboardPositions;
         [SerializeField] private Sprite[] _placeSprites;
-        [SerializeField] private Sprite[] _scoreSprites;
-        [SerializeField] private Sprite[] _goldenBombshellSprites;
-        [SerializeField] private Sprite[] _goldenBombshellBgdSprites;
+        [SerializeField] private Image[] _placeImages;
 
+        [Header("Score Text")]
+        [SerializeField] private TextMeshProUGUI[] _scoreTexts;
+
+        [Header("Kill Context")]
+        [SerializeField] private Image[] _killContextImages;
+        [SerializeField] private Sprite _bombshellKillContextSprite;
+        [SerializeField] private Sprite _fallKillContextSprite;
+        [SerializeField] private Sprite _vehicleCrashKillContextSprite;
+
+        [Header("Golden Bombshell")]
+        [SerializeField] private Sprite[] _goldenBombshellSprites;
         [SerializeField] private Image[] _goldenBombshellImg;
         [SerializeField] private Image[] _goldenBombshellBgdImg;
         [SerializeField] private Image[] _goldenBombshellHaloImg;
 
-        [Header("Kill Assets")] [SerializeField]
-        private Sprite _bombshellKillContextSprite;
+        [Header("Timing")]
+        [SerializeField] private float _sliderAnimationDuration = 0.13f;
+        [SerializeField] private float _reorderPlayerDelay = 0.13f;
+        [SerializeField] private float _hideDelay = 0.3f;
+        [SerializeField] private float _updateSlidersDelay = 0.08f;
+        [SerializeField] private float _startKillAnimDelay = 0.05f;
 
-        [SerializeField] private Sprite _bombshellKillScoreSprite;
-        [SerializeField] private Sprite _fallKillContextSprite;
-        [SerializeField] private Sprite _fallKillScoreSprite;
-        [SerializeField] private Sprite _vehicleCrashKillContextSprite;
-        [SerializeField] private Sprite _vehicleCrashKillScoreSprite;
+        [Header("Leaderboard Animation")]
+        [SerializeField] private float _leaderboardMoveDuration = 0.35f;
+        [SerializeField] private float _topPlayerScaleDuration = 0.2f;
+        [SerializeField] private float _topPlayerScaleFactor = 1.05f;
 
-        [SerializeField] private Image[] _scoreImages;
-        [SerializeField] private Image[] _killContextImages;
-        [SerializeField] private Image[] _placeImages;
+        [Header("Popup Animation")]
+        [SerializeField] private float _showPlacementScaleDuration = 0.12f;
+        [SerializeField] private float _hidePlacementScaleDuration = 0.12f;
+        [SerializeField] private float _showKillScaleDuration = 0.12f;
+        [SerializeField] private float _hideKillScaleDuration = 0.12f;
 
-        [SerializeField] private float _hidePlacementScaleDuration = 1f;
-        [SerializeField] private float _showPlacementScaleDuration = 1f;
-        [SerializeField] private float _startKillAnimDelay = 0.5f;
-        [SerializeField] private float _hideDelay = 0.2f;
-        [SerializeField] private float _updateSlidersDelay = 0.2f;
-        [SerializeField] private float _hideKillScaleDuration = 0.5f;
-        [SerializeField] private float _showKillScaleDuration = 0.5f;
+        [Header("Golden Bombshell Animation")]
         [SerializeField] private float _goldenBombshellScaleUpDuration = 0.5f;
         [SerializeField] private float _goldenBombshellScaleUpFactor = 1.15f;
 
+        [Header("Eases")]
+        [SerializeField] private Ease _leaderboardTweenEase = Ease.OutBack;
+        [SerializeField] private Ease _scaleTweenEase = Ease.OutBack;
         [SerializeField] private Ease _showPlacementEase = Ease.OutBack;
         [SerializeField] private Ease _hidePlacementEase = Ease.InBack;
         [SerializeField] private Ease _showKillEase = Ease.OutBack;
@@ -84,13 +82,12 @@ namespace MortierFu
         [SerializeField] private Ease _goldenBombshellScaleDown = Ease.InBack;
 
         private GameModeBase _gm;
-
-        private CancellationTokenSource _goldenBombshellCts;
         private CancellationTokenSource _lifetimeCancellation;
+        private CancellationTokenSource _goldenBombshellCts;
 
         private int[] _leaderboardOrder;
         private Vector3 _originalScale;
-        private int _previousTopPlayerIndex = 0;
+        private int _previousTopPlayerIndex;
 
         private void Awake()
         {
@@ -99,12 +96,6 @@ namespace MortierFu
 
             ResetUI();
             SetPlayersToLeaderboardOrder(_leaderboardOrder);
-        }
-
-        private void Start()
-        {
-            if (_gm != null)
-                InitializeSliders();
         }
 
         private void OnEnable()
@@ -119,7 +110,6 @@ namespace MortierFu
         private void OnDisable()
         {
             UnsubscribeGameMode();
-
             StopRuntimeAnimations();
 
             _lifetimeCancellation?.Cancel();
@@ -130,30 +120,11 @@ namespace MortierFu
         private void OnDestroy()
         {
             UnsubscribeGameMode();
-
             StopRuntimeAnimations();
 
             _lifetimeCancellation?.Cancel();
             _lifetimeCancellation?.Dispose();
             _lifetimeCancellation = null;
-        }
-
-        private void InitializeSliders()
-        {
-            int max = _gm.ScoreToWin;
-
-            foreach (var slider in _scoreSliders)
-            {
-                slider.value = Mathf.Clamp(0, 0, max);
-            }
-        }
-
-        private float GetScoreboardMinimumDuration()
-        {
-            if (_gm != null && _gm.FlowSettings)
-                return Mathf.Max(0f, _gm.FlowSettings.ScoreboardMinimumDuration);
-
-            return _gm != null ? Mathf.Max(0f, _gm.Data.StopShowScoreBoardDelay) : 5f;
         }
 
         private void SubscribeGameMode()
@@ -167,6 +138,8 @@ namespace MortierFu
 
             _gm.OnRoundEndedAsync += AnimateRoundEndSequence;
             _gm.OnScoreDisplayOver += ResetUI;
+
+            InitializeSliders();
         }
 
         private void UnsubscribeGameMode()
@@ -179,6 +152,21 @@ namespace MortierFu
             _gm = null;
         }
 
+        private void InitializeSliders()
+        {
+            if (_gm == null)
+                return;
+
+            for (int i = 0; i < _scoreSliders.Length; i++)
+            {
+                if (!_scoreSliders[i])
+                    continue;
+
+                _scoreSliders[i].maxValue = _gm.ScoreToWin;
+                _scoreSliders[i].value = Mathf.Clamp(_scoreSliders[i].value, 0f, _gm.ScoreToWin);
+            }
+        }
+
         private void StopRuntimeAnimations()
         {
             _goldenBombshellCts?.Cancel();
@@ -186,424 +174,327 @@ namespace MortierFu
             _goldenBombshellCts = null;
         }
 
-        private async UniTask ShowGoldenBombshellIndicator(CancellationToken cancellationToken)
+        private async UniTask AnimateRoundEndSequence(RoundInfo round, CancellationToken cancellationToken)
         {
-            if (_gm == null) return;
+            using CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
+
+            CancellationToken ct = linkedCancellation.Token;
+
+            ResetUI();
+
+            InitializePlayerPanels(_leaderboardOrder);
+            ShowRoundWinner(round.WinningTeam);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
+
+            await AnimatePlacementRewards(ct);
+            await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay), cancellationToken: ct);
+
+            var sortedTeams = _gm.GetPlayerTeamsWinnersOrder();
+
+            await AnimateLeaderboardPositions(sortedTeams, ct);
+
+            _leaderboardOrder = sortedTeams.Select(team => team.Index).ToArray();
+
+            await RevealFinalScoreState(ct);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(GetScoreboardMinimumDuration()), cancellationToken: ct);
 
             _goldenBombshellCts?.Cancel();
-            _goldenBombshellCts?.Dispose();
-
-            _goldenBombshellCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var ct = _goldenBombshellCts.Token;
-
-            var showTasks = new List<UniTask>();
-
-            for (int i = 0; i < _gm.Teams.Count; i++)
-            {
-                var team = _gm.Teams[i];
-                int idx = team.Index;
-
-                if (!IsValidPlayerIndex(idx))
-                    continue;
-
-                _goldenBombshellBgdImg[idx].sprite = _goldenBombshellBgdSprites[_gm.GetWinnerPlayerIndex()];
-
-                bool isTeamAtMatchPoint = team.Score >= _gm.ScoreToWin - 1;
-
-                if (isTeamAtMatchPoint)
-                {
-                    _goldenBombshellImg[idx].sprite = _goldenBombshellSprites[idx];
-                    _goldenBombshellImg[idx].SetNativeSize();
-                }
-
-                if (!isTeamAtMatchPoint) continue;
-
-                _goldenBombshellImg[idx].gameObject.SetActive(true);
-                _goldenBombshellHaloImg[idx].gameObject.SetActive(true);
-
-                showTasks.Add(
-                    Tween.Scale(
-                        _goldenBombshellImg[idx].transform,
-                        Vector3.one,
-                        _goldenBombshellScaleUpDuration,
-                        _goldenBombshellScaleUp
-                    ).Group(Tween.Scale(
-                        _goldenBombshellHaloImg[idx].transform,
-                        Vector3.one,
-                        _goldenBombshellScaleUpDuration,
-                        _goldenBombshellScaleUp
-                    )).ToUniTask(cancellationToken: ct)
-                );
-            }
-
-            await UniTask.WhenAll(showTasks);
-
-            for (int i = 0; i < _gm.Teams.Count; i++)
-            {
-                var team = _gm.Teams[i];
-                int idx = team.Index;
-
-                if (_goldenBombshellImg[idx].gameObject.activeInHierarchy)
-                {
-                    AnimateGoldenBombshellLoop(
-                        _goldenBombshellImg[idx].transform,
-                        ct
-                    ).Forget();
-                }
-
-                if (_goldenBombshellHaloImg[idx].gameObject.activeInHierarchy)
-                {
-                    AnimateHaloLoop(
-                        _goldenBombshellHaloImg[idx].transform,
-                        ct
-                    ).Forget();
-                }
-            }
         }
 
-        private async UniTask AnimateHaloLoop(
-            Transform target,
-            CancellationToken token
-        )
+        private async UniTask AnimatePlacementRewards(CancellationToken ct)
         {
-            Vector3 baseScale = Vector3.one;
-            Vector3 upScale = Vector3.one * 1.08f;
-
-            await Tween.Rotation(
-                target,
-                new Vector3(0f, 0f, -90f),
-                6f,
-                Ease.Linear).ToUniTask(cancellationToken: token);
-
-            await Tween.Scale(
-                target,
-                upScale,
-                1.2f,
-                Ease.OutSine
-            ).ToUniTask(cancellationToken: token);
-
-            await Tween.Scale(
-                target,
-                baseScale,
-                1.2f,
-                Ease.InSine
-            ).ToUniTask(cancellationToken: token);
-        }
-
-        private async UniTask AnimateGoldenBombshellLoop(
-            Transform target,
-            CancellationToken token
-        )
-        {
-            Vector3 baseScale = Vector3.one;
-            Vector3 upScale = Vector3.one * _goldenBombshellScaleUpFactor;
-
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    await Tween.PunchScale(
-                        target,
-                        Vector3.one * 0.08f,
-                        0.25f
-                    ).ToUniTask(cancellationToken: token);
-
-                    await Tween.Scale(
-                        target,
-                        upScale,
-                        0.2f,
-                        _goldenBombshellScaleUp
-                    ).ToUniTask(cancellationToken: token);
-
-                    await Tween.Scale(
-                        target,
-                        baseScale,
-                        0.2f,
-                        _goldenBombshellScaleDown
-                    ).ToUniTask(cancellationToken: token);
-
-                    await UniTask.Delay(
-                        TimeSpan.FromSeconds(0.8f),
-                        cancellationToken: token
-                    );
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
-            {
-                target.localScale = baseScale;
-            }
-        }
-
-        private async UniTask AnimatePlacementText(CancellationToken ct)
-        {
-            var showTasks = new List<UniTask>();
-            foreach (var team in _gm.Teams)
-            {
-                int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
-
-                int rankIndex = team.Rank - 1;
-                if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
-
-                _placeImages[idx].transform.localScale = Vector3.zero;
-
-                _placeImages[idx].sprite = _placeSprites[rankIndex];
-
-                _placeImages[idx].SetNativeSize();
-
-                _placeImages[idx].gameObject.SetActive(true);
-
-                showTasks.Add(
-                    Tween.Scale(_placeImages[idx].transform, Vector3.one, _showPlacementScaleDuration,
-                            _showPlacementEase)
-                        .ToUniTask(cancellationToken: ct)
-                );
-            }
-
-            await UniTask.WhenAll(showTasks);
-            ct.ThrowIfCancellationRequested();
-
-            showTasks.Clear();
-
-            foreach (var team in _gm.Teams)
-            {
-                int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
-
-                int rankIndex = team.Rank - 1;
-                if (_scoreSliders[idx] != null)
-                    _scoreSliders[idx].maxValue = _gm.ScoreToWin;
-
-                _scoreImages[idx].transform.localScale = Vector3.zero;
-
-                _scoreImages[idx].sprite = _scoreSprites[rankIndex];
-
-                _scoreImages[idx].SetNativeSize();
-
-                _scoreImages[idx].gameObject.SetActive(true);
-
-                showTasks.Add(
-                    Tween.Scale(_scoreImages[idx].transform, Vector3.one, _showPlacementScaleDuration,
-                            _showPlacementEase)
-                        .ToUniTask(cancellationToken: ct)
-                );
-            }
+            await ShowPlacementPopups(ct);
+            await ShowPlacementScoreTexts(ct);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay), cancellationToken: ct);
 
-            var hideTasks = new List<UniTask>();
-            foreach (var team in _gm.Teams)
-            {
-                int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
-
-                hideTasks.Add(
-                    Tween.Scale(_placeImages[idx].transform, Vector3.zero, _hidePlacementScaleDuration,
-                            _hidePlacementEase)
-                        .Group(Tween.Scale(_scoreImages[idx].transform, Vector3.zero, _hidePlacementScaleDuration,
-                            _hidePlacementEase))
-                        .ToUniTask(cancellationToken: ct)
-                );
-            }
-
-            await UniTask.WhenAll(hideTasks);
-            ct.ThrowIfCancellationRequested();
+            await HidePlacementPopups(ct);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_updateSlidersDelay), cancellationToken: ct);
 
-            var sliderTasks = new List<UniTask>();
-            foreach (var team in _gm.Teams)
-            {
-                int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
-
-                int bonus = GetPlacementBonus(team);
-                if (bonus <= 0) continue;
-
-                int start = Mathf.RoundToInt(_scoreSliders[idx].value);
-                int max = (int)_scoreSliders[idx].maxValue;
-
-                if (start >= max)
-                    continue;
-
-                int end = Mathf.Min(start + bonus, max);
-
-                sliderTasks.Add(
-                    AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration, ct)
-                );
-            }
-
-            if (sliderTasks.Count > 0)
-            {
-                await UniTask.WhenAll(sliderTasks);
-                ct.ThrowIfCancellationRequested();
-            }
+            await AnimatePlacementSliders(ct);
 
             await UniTask.Delay(TimeSpan.FromSeconds(_startKillAnimDelay), cancellationToken: ct);
 
             await AnimateKillsByRound(ct);
         }
 
+        private async UniTask ShowPlacementPopups(CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+                int rankIndex = team.Rank - 1;
+
+                if (!IsValidPlayerIndex(idx) || rankIndex < 0 || rankIndex >= _placeSprites.Length)
+                    continue;
+
+                Image placeImage = _placeImages[idx];
+
+                placeImage.sprite = _placeSprites[rankIndex];
+                placeImage.SetNativeSize();
+                placeImage.transform.localScale = Vector3.zero;
+                placeImage.gameObject.SetActive(true);
+
+                tasks.Add(Tween.Scale(placeImage.transform, Vector3.one, _showPlacementScaleDuration, _showPlacementEase).ToUniTask(cancellationToken: ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask ShowPlacementScoreTexts(CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                ScoreRewardData reward = GetPlacementReward(team);
+
+                if (!reward.ShouldDisplay())
+                    continue;
+
+                TextMeshProUGUI scoreText = _scoreTexts[idx];
+
+                scoreText.text = reward.GetDisplayText();
+                scoreText.transform.localScale = Vector3.zero;
+                scoreText.gameObject.SetActive(true);
+
+                tasks.Add(Tween.Scale(scoreText.transform, Vector3.one, _showPlacementScaleDuration, _showPlacementEase).ToUniTask(cancellationToken: ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask HidePlacementPopups(CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                Image placeImage = _placeImages[idx];
+                TextMeshProUGUI scoreText = _scoreTexts[idx];
+
+                if (scoreText.gameObject.activeSelf)
+                {
+                    tasks.Add(Tween.Scale(placeImage.transform, Vector3.zero, _hidePlacementScaleDuration, _hidePlacementEase)
+                        .Group(Tween.Scale(scoreText.transform, Vector3.zero, _hidePlacementScaleDuration, _hidePlacementEase)).ToUniTask(cancellationToken: ct));
+                }
+                else
+                {
+                    tasks.Add(Tween.Scale(placeImage.transform, Vector3.zero, _hidePlacementScaleDuration, _hidePlacementEase).ToUniTask(cancellationToken: ct));
+                }
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+
+            HideAllScoreTexts();
+        }
+
+        private async UniTask AnimatePlacementSliders(CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                int bonus = GetPlacementReward(team).Score;
+
+                if (bonus <= 0)
+                    continue;
+
+                Slider slider = _scoreSliders[idx];
+
+                int start = Mathf.RoundToInt(slider.value);
+                int max = Mathf.RoundToInt(slider.maxValue);
+
+                if (start >= max)
+                    continue;
+
+                int end = Mathf.Min(start + bonus, max);
+
+                tasks.Add(AnimateSlider(slider, start, end, _sliderAnimationDuration, ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+        }
+
         private async UniTask AnimateKillsByRound(CancellationToken ct)
         {
-            int maxKills = _gm.Teams.Max(t => t.Members.Sum(m => m.Metrics.RoundKills.Count));
+            int maxKills = _gm.Teams.Max(team => GetTeamRoundKills(team).Count);
 
             for (int killRound = 0; killRound < maxKills; killRound++)
             {
-                var showContextTasks = new List<UniTask>();
+                await ShowKillContextPopups(killRound, ct);
+                await ShowKillScoreTexts(killRound, ct);
 
-                foreach (var team in _gm.Teams)
-                {
-                    int idx = team.Index;
-                    if (!IsValidPlayerIndex(idx)) continue;
+                await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay), cancellationToken: ct);
 
-                    var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
-                    if (killRound >= kills.Count) continue;
-
-                    var cause = kills[killRound];
-                    var contextImg = _killContextImages[idx];
-
-                    contextImg.sprite = GetKillContextSprite(cause);
-                    contextImg.transform.localScale = Vector3.zero;
-                    contextImg.SetNativeSize();
-                    contextImg.gameObject.SetActive(true);
-
-                    showContextTasks.Add(
-                        Tween.Scale(contextImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
-                            .ToUniTask(cancellationToken: ct)
-                    );
-                }
-
-                if (showContextTasks.Count > 0)
-                    await UniTask.WhenAll(showContextTasks);
-
-                var showScoreTasks = new List<UniTask>();
-
-                foreach (var team in _gm.Teams)
-                {
-                    int idx = team.Index;
-                    if (!IsValidPlayerIndex(idx)) continue;
-
-                    var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
-                    if (killRound >= kills.Count) continue;
-
-                    var cause = kills[killRound];
-                    var scoreImg = _scoreImages[idx];
-
-                    scoreImg.sprite = GetKillScoreSprite(cause);
-                    scoreImg.transform.localScale = Vector3.zero;
-                    scoreImg.SetNativeSize();
-                    scoreImg.gameObject.SetActive(true);
-
-                    showScoreTasks.Add(
-                        Tween.Scale(scoreImg.transform, Vector3.one, _showKillScaleDuration, _showKillEase)
-                            .ToUniTask(cancellationToken: ct)
-                    );
-                }
-
-                if (showScoreTasks.Count > 0)
-                    await UniTask.WhenAll(showScoreTasks);
-
-                await UniTask.Delay(TimeSpan.FromSeconds(_hideDelay));
-
-                var hideTasks = new List<UniTask>();
-
-                foreach (var team in _gm.Teams)
-                {
-                    int idx = team.Index;
-                    if (!IsValidPlayerIndex(idx)) continue;
-
-                    var contextImg = _killContextImages[idx];
-                    var scoreImg = _scoreImages[idx];
-
-                    if (!contextImg.gameObject.activeSelf) continue;
-
-                    hideTasks.Add(
-                        Tween.Scale(contextImg.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase)
-                            .Group(Tween.Scale(scoreImg.transform, Vector3.zero, _hideKillScaleDuration,
-                                _hideKillEase))
-                            .ToUniTask(cancellationToken: ct)
-                    );
-                }
-
-                if (hideTasks.Count > 0)
-                    await UniTask.WhenAll(hideTasks);
-
-                foreach (var team in _gm.Teams)
-                {
-                    int idx = team.Index;
-                    if (!IsValidPlayerIndex(idx)) continue;
-
-                    _killContextImages[idx].gameObject.SetActive(false);
-                    _scoreImages[idx].gameObject.SetActive(false);
-                }
+                await HideKillPopups(ct);
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_updateSlidersDelay), cancellationToken: ct);
 
-                var sliderTasks = new List<UniTask>();
+                await AnimateKillSliders(killRound, ct);
 
-                foreach (var team in _gm.Teams)
-                {
-                    int idx = team.Index;
-                    if (!IsValidPlayerIndex(idx)) continue;
-
-                    var kills = team.Members.SelectMany(m => m.Metrics.RoundKills).ToList();
-                    if (killRound >= kills.Count) continue;
-
-                    int start = Mathf.RoundToInt(_scoreSliders[idx].value);
-                    int max = (int)_scoreSliders[idx].maxValue;
-
-                    if (start >= max)
-                        continue;
-
-                    int gain = GetKillScore(kills[killRound]);
-                    int end = Mathf.Min(start + gain, max);
-
-                    sliderTasks.Add(
-                        AnimateSlider(_scoreSliders[idx], start, end, _sliderAnimationDuration, ct)
-                    );
-                }
-
-                if (sliderTasks.Count > 0)
-                    await UniTask.WhenAll(sliderTasks);
-
-                await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
+                await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
             }
         }
 
-        private Sprite GetKillContextSprite(E_DeathCause cause)
+        private async UniTask ShowKillContextPopups(int killRound, CancellationToken ct)
         {
-            return cause switch
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
             {
-                E_DeathCause.BombshellExplosion => _bombshellKillContextSprite,
-                E_DeathCause.Fall => _fallKillContextSprite,
-                E_DeathCause.VehicleCrash => _vehicleCrashKillContextSprite,
-                _ => null
-            };
+                int idx = team.Index;
+                var kills = GetTeamRoundKills(team);
+
+                if (!IsValidPlayerIndex(idx) || killRound >= kills.Count)
+                    continue;
+
+                Image contextImage = _killContextImages[idx];
+
+                contextImage.sprite = GetKillContextSprite(kills[killRound]);
+                contextImage.SetNativeSize();
+                contextImage.transform.localScale = Vector3.zero;
+                contextImage.gameObject.SetActive(true);
+
+                tasks.Add(Tween.Scale(contextImage.transform, Vector3.one, _showKillScaleDuration, _showKillEase).ToUniTask(cancellationToken: ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
         }
 
-        private Sprite GetKillScoreSprite(E_DeathCause cause)
+        private async UniTask ShowKillScoreTexts(int killRound, CancellationToken ct)
         {
-            return cause switch
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
             {
-                E_DeathCause.BombshellExplosion => _bombshellKillScoreSprite,
-                E_DeathCause.Fall => _fallKillScoreSprite,
-                E_DeathCause.VehicleCrash => _vehicleCrashKillScoreSprite,
-                _ => null
-            };
+                int idx = team.Index;
+                var kills = GetTeamRoundKills(team);
+
+                if (!IsValidPlayerIndex(idx) || killRound >= kills.Count)
+                    continue;
+
+                ScoreRewardData reward = GetKillReward(kills[killRound]);
+
+                if (!reward.ShouldDisplay())
+                    continue;
+
+                TextMeshProUGUI scoreText = _scoreTexts[idx];
+
+                scoreText.text = reward.GetDisplayText();
+                scoreText.transform.localScale = Vector3.zero;
+                scoreText.gameObject.SetActive(true);
+
+                tasks.Add(Tween.Scale(scoreText.transform, Vector3.one, _showKillScaleDuration, _showKillEase).ToUniTask(cancellationToken: ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
         }
 
-        private async UniTask AnimateSlider(
-            Slider slider,
-            float start,
-            float end,
-            float duration,
-            CancellationToken ct
-        )
+        private async UniTask HideKillPopups(CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                Image contextImage = _killContextImages[idx];
+                TextMeshProUGUI scoreText = _scoreTexts[idx];
+
+                if (!contextImage.gameObject.activeSelf)
+                    continue;
+
+                if (scoreText.gameObject.activeSelf)
+                {
+                    tasks.Add(Tween.Scale(contextImage.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase)
+                        .Group(Tween.Scale(scoreText.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase)).ToUniTask(cancellationToken: ct));
+                }
+                else
+                {
+                    tasks.Add(Tween.Scale(contextImage.transform, Vector3.zero, _hideKillScaleDuration, _hideKillEase).ToUniTask(cancellationToken: ct));
+                }
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                _killContextImages[idx].gameObject.SetActive(false);
+                HideScoreText(idx);
+            }
+        }
+
+        private async UniTask AnimateKillSliders(int killRound, CancellationToken ct)
+        {
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+                var kills = GetTeamRoundKills(team);
+
+                if (!IsValidPlayerIndex(idx) || killRound >= kills.Count)
+                    continue;
+
+                int gain = GetKillReward(kills[killRound]).Score;
+
+                if (gain <= 0)
+                    continue;
+
+                Slider slider = _scoreSliders[idx];
+
+                int start = Mathf.RoundToInt(slider.value);
+                int max = Mathf.RoundToInt(slider.maxValue);
+
+                if (start >= max)
+                    continue;
+
+                int end = Mathf.Min(start + gain, max);
+
+                tasks.Add(AnimateSlider(slider, start, end, _sliderAnimationDuration, ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask AnimateSlider(Slider slider, float start, float end, float duration, CancellationToken ct)
         {
             if (!slider)
                 return;
@@ -611,7 +502,6 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_ScoreIncrease);
 
             slider.value = start;
-
             duration = Mathf.Max(0.01f, duration);
 
             float elapsed = 0f;
@@ -631,238 +521,369 @@ namespace MortierFu
             slider.value = end;
         }
 
-        private async UniTask AnimateRoundEndSequence(
-            RoundInfo round,
-            CancellationToken cancellationToken
-        )
-        {
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _lifetimeCancellation.Token
-            );
-
-            var ct = linkedCancellation.Token;
-
-            ResetUI();
-
-            InitializePlayerPanels(_leaderboardOrder);
-            ShowRoundWinner(round.WinningTeam);
-            ShowGoldenBombshellIndicator(ct).Forget();
-
-            await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
-
-            await AnimatePlacementText(ct);
-            await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay), cancellationToken: ct);
-
-            var sortedTeams = _gm.Teams.OrderByDescending(t => t.Score).ToList();
-            await AnimateLeaderboardPositions(sortedTeams, ct);
-
-            _leaderboardOrder = sortedTeams.Select(t => t.Index).ToArray();
-
-            await UniTask.Delay(
-                TimeSpan.FromSeconds(GetScoreboardMinimumDuration()),
-                cancellationToken: ct
-            );
-
-            _goldenBombshellCts?.Cancel();
-        }
-
         private async UniTask AnimateLeaderboardPositions(List<PlayerTeam> sortedTeams, CancellationToken ct)
         {
-            var animations = new UniTask[sortedTeams.Count];
+            if (sortedTeams == null || sortedTeams.Count == 0)
+                return;
 
             int currentTopIdx = sortedTeams[0].Index;
             bool isSameTopPlayer = currentTopIdx == _previousTopPlayerIndex;
 
-            if (!isSameTopPlayer)
+            if (!isSameTopPlayer && IsValidPlayerIndex(currentTopIdx))
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_NewLeader);
-                await Tween.Scale(_playerSlots[currentTopIdx], _originalScale * _topPlayerScaleFactor,
-                    _topPlayerScaleDuration, _scaleTweenEase).ToUniTask(cancellationToken: ct);
+
+                await Tween.Scale(_playerSlots[currentTopIdx], _originalScale * _topPlayerScaleFactor, _topPlayerScaleDuration, _scaleTweenEase).ToUniTask(cancellationToken: ct);
             }
+
+            var tasks = new List<UniTask>();
 
             for (int rank = 0; rank < sortedTeams.Count; rank++)
             {
-                int playerIdx = sortedTeams[rank].Index;
-                animations[rank] = TweenPlayerToPosition(
-                    _playerSlots[playerIdx],
-                    _leaderboardPositions[rank],
-                    _leaderboardMoveDuration,
-                    _leaderboardTweenEase,
-                    ct
-                );
+                int idx = sortedTeams[rank].Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                tasks.Add(Tween.UIAnchoredPosition(_playerSlots[idx], _leaderboardPositions[rank], _leaderboardMoveDuration, _leaderboardTweenEase).ToUniTask(cancellationToken: ct));
             }
 
-            await UniTask.WhenAll(animations);
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
 
-            if (!isSameTopPlayer)
-                await Tween.Scale(_playerSlots[currentTopIdx], _originalScale, _topPlayerScaleDuration,
-                    _scaleTweenEase).ToUniTask(cancellationToken: ct);
-            ;
+            if (!isSameTopPlayer && IsValidPlayerIndex(currentTopIdx))
+                await Tween.Scale(_playerSlots[currentTopIdx], _originalScale, _topPlayerScaleDuration, _scaleTweenEase).ToUniTask(cancellationToken: ct);
 
             _previousTopPlayerIndex = currentTopIdx;
         }
 
-        private async UniTask TweenPlayerToPosition(RectTransform rt, Vector2 target, float duration, Ease ease,
-            CancellationToken ct)
+        private async UniTask RevealFinalScoreState(CancellationToken ct)
         {
-            if (!rt)
-                return;
-
-            if (Vector2.Distance(rt.anchoredPosition, target) < 0.01f)
-                return;
-
-            await Tween.UIAnchoredPosition(rt, target, duration, ease)
-                .ToUniTask(cancellationToken: ct);
+            await UniTask.WhenAll(RevealWinnerIcons(), ShowGoldenBombshellIndicator(ct));
         }
 
-        private void SetPlayersToLeaderboardOrder(int[] order)
+        private UniTask RevealWinnerIcons()
         {
-            for (int rank = 0; rank < order.Length; rank++)
+            List<PlayerTeam> topTeams = GetTopScoreTeams();
+
+            foreach (PlayerTeam team in topTeams)
             {
-                int playerIdx = order[rank];
-                if (!IsValidPlayerIndex(playerIdx)) continue;
-                _playerSlots[playerIdx].anchoredPosition = _leaderboardPositions[rank];
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                _playerIcons[idx].sprite = _playerWinnerIcons[idx];
+            }
+
+            return UniTask.CompletedTask;
+        }
+
+        private async UniTask ShowGoldenBombshellIndicator(CancellationToken cancellationToken)
+        {
+            if (_gm == null)
+                return;
+
+            _goldenBombshellCts?.Cancel();
+            _goldenBombshellCts?.Dispose();
+
+            _goldenBombshellCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            CancellationToken ct = _goldenBombshellCts.Token;
+
+            var tasks = new List<UniTask>();
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                _goldenBombshellBgdImg[idx].gameObject.SetActive(true);
+
+                if (!IsPlayerDisplayedAtMatchPoint(idx))
+                    continue;
+
+                Image bombshell = _goldenBombshellImg[idx];
+                Image halo = _goldenBombshellHaloImg[idx];
+
+                bombshell.sprite = _goldenBombshellSprites[idx];
+                bombshell.SetNativeSize();
+
+                bombshell.transform.localScale = Vector3.zero;
+                halo.transform.localScale = Vector3.zero;
+
+                bombshell.gameObject.SetActive(true);
+                halo.gameObject.SetActive(true);
+
+                tasks.Add(Tween.Scale(bombshell.transform, Vector3.one, _goldenBombshellScaleUpDuration, _goldenBombshellScaleUp)
+                    .Group(Tween.Scale(halo.transform, Vector3.one, _goldenBombshellScaleUpDuration, _goldenBombshellScaleUp)).ToUniTask(cancellationToken: ct));
+            }
+
+            if (tasks.Count > 0)
+                await UniTask.WhenAll(tasks);
+
+            StartGoldenBombshellLoops(ct);
+        }
+
+        private void StartGoldenBombshellLoops(CancellationToken ct)
+        {
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                if (_goldenBombshellImg[idx].gameObject.activeInHierarchy)
+                    AnimateGoldenBombshellLoop(_goldenBombshellImg[idx].transform, ct).Forget();
+
+                if (_goldenBombshellHaloImg[idx].gameObject.activeInHierarchy)
+                    AnimateHaloLoop(_goldenBombshellHaloImg[idx].transform, ct).Forget();
+            }
+        }
+
+        private async UniTask AnimateGoldenBombshellLoop(Transform target, CancellationToken token)
+        {
+            Vector3 baseScale = Vector3.one;
+            Vector3 upScale = Vector3.one * _goldenBombshellScaleUpFactor;
+
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    await Tween.PunchScale(target, Vector3.one * 0.08f, 0.25f).ToUniTask(cancellationToken: token);
+                    await Tween.Scale(target, upScale, 0.2f, _goldenBombshellScaleUp).ToUniTask(cancellationToken: token);
+                    await Tween.Scale(target, baseScale, 0.2f, _goldenBombshellScaleDown).ToUniTask(cancellationToken: token);
+                    await UniTask.Delay(TimeSpan.FromSeconds(0.8f), cancellationToken: token);
+                }
+            }
+            catch (OperationCanceledException)
+            { }
+            finally
+            {
+                target.localScale = baseScale;
+            }
+        }
+
+        private async UniTask AnimateHaloLoop(Transform target, CancellationToken token)
+        {
+            Vector3 baseScale = Vector3.one;
+            Vector3 upScale = Vector3.one * 1.08f;
+
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    await Tween.Rotation(target, new Vector3(0f, 0f, -90f), 6f, Ease.Linear).ToUniTask(cancellationToken: token);
+                    await Tween.Scale(target, upScale, 1.2f, Ease.OutSine).ToUniTask(cancellationToken: token);
+                    await Tween.Scale(target, baseScale, 1.2f, Ease.InSine).ToUniTask(cancellationToken: token);
+                }
+            }
+            catch (OperationCanceledException)
+            { }
+            finally
+            {
+                target.localScale = baseScale;
             }
         }
 
         private void InitializePlayerPanels(int[] orderOverride = null)
         {
             for (int i = 0; i < _playerSlots.Length; i++)
+            {
                 _playerSlots[i].gameObject.SetActive(false);
+                _goldenBombshellBgdImg[i].gameObject.SetActive(false);
+            }
 
-            foreach (var team in _gm.Teams)
+            foreach (PlayerTeam team in _gm.Teams)
             {
                 int idx = team.Index;
-                if (!IsValidPlayerIndex(idx)) continue;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
 
                 _playerSlots[idx].gameObject.SetActive(true);
+                _playerSlots[idx].transform.localScale = _originalScale;
+
                 _playerIcons[idx].sprite = _playerDefaultSprites[idx];
                 _playerIcons[idx].gameObject.SetActive(true);
-                _playerSlots[idx].transform.localScale = _originalScale;
+
+                _goldenBombshellBgdImg[idx].gameObject.SetActive(true);
             }
 
             if (orderOverride != null)
                 SetPlayersToLeaderboardOrder(orderOverride);
-
-            //var topTeam = _gm.Teams.OrderByDescending(t => t.Score).FirstOrDefault();
-            //Refactoriser cette merde
-            
-            List<PlayerTeam> topTeam = new();
-
-            FindMaxScoresPlayer(topTeam);
-            
-            if (topTeam.Count == 0)
-                return;
-            
-            foreach (var team in topTeam)
-            {
-                if (!IsValidPlayerIndex(team.Index))
-                    continue;
-
-                _playerIcons[team.Index].sprite = _playerWinnerIcons[team.Index];
-            }
         }
 
-        private void FindMaxScoresPlayer(List<PlayerTeam> pTopTeam)
-        {
-            int scoreMax = int.MinValue;
-
-            foreach (var team in _gm.Teams)
-            {
-                if (team.Score > scoreMax)
-                {
-                    pTopTeam.Clear();
-                    pTopTeam.Add(team);
-                    scoreMax = team.Score;
-                }
-                else if (team.Score == scoreMax)
-                {
-                    pTopTeam.Add(team);
-                }
-            }
-        }
-        
         private void ShowRoundWinner(PlayerTeam winningTeam)
         {
-            if (winningTeam == null || !IsValidPlayerIndex(winningTeam.Index)) return;
+            if (winningTeam == null || !IsValidPlayerIndex(winningTeam.Index))
+                return;
 
-            _winnerTitleImage.sprite = _winnerTitleSprites[winningTeam.Index];
-            _winnerBackgroundImage.sprite = _winnerBackgrounds[winningTeam.Index];
-            _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[winningTeam.Index];
+            int idx = winningTeam.Index;
 
-            _background.gameObject.SetActive(true);
+            _winnerTitleImage.sprite = _winnerTitleSprites[idx];
+            _winnerBackgroundImage.sprite = _winnerBackgrounds[idx];
+            _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[idx];
+
             _winnerTitleImage.gameObject.SetActive(true);
             _winnerBackgroundImage.gameObject.SetActive(true);
             _winnerBackgroundColorImage.gameObject.SetActive(true);
         }
 
-        private int GetPlacementBonus(PlayerTeam team)
+        private void SetPlayersToLeaderboardOrder(int[] order)
         {
-            return team.Rank switch
+            for (int rank = 0; rank < order.Length; rank++)
             {
-                1 => _gm.Data.FirstRankBonusScore,
-                2 => _gm.Data.SecondRankBonusScore,
-                3 => _gm.Data.ThirdRankBonusScore,
-                _ => 0
-            };
+                int idx = order[rank];
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                _playerSlots[idx].anchoredPosition = _leaderboardPositions[rank];
+            }
         }
 
-        private int GetKillScore(E_DeathCause cause)
+        private ScoreRewardData GetPlacementReward(PlayerTeam team)
+        {
+            if (_gm == null || _gm.Data == null || team == null)
+                return ScoreRewardData.Zero;
+
+            return _gm.Data.GetPlacementReward(_gm.Teams.Count, team.Rank);
+        }
+
+        private ScoreRewardData GetKillReward(E_DeathCause cause)
+        {
+            if (_gm == null || _gm.Data == null)
+                return ScoreRewardData.Zero;
+
+            return _gm.Data.GetKillReward(cause);
+        }
+
+        private Sprite GetKillContextSprite(E_DeathCause cause)
         {
             return cause switch
             {
-                E_DeathCause.BombshellExplosion => _gm.Data.KillBonusScore,
-                E_DeathCause.Fall => _gm.Data.KillBonusScore + _gm.Data.KillPushBonusScore,
-                E_DeathCause.VehicleCrash => _gm.Data.KillBonusScore + _gm.Data.KillCarCrashBonusScore,
-                _ => 0
+                E_DeathCause.BombshellExplosion => _bombshellKillContextSprite,
+                E_DeathCause.Fall => _fallKillContextSprite,
+                E_DeathCause.VehicleCrash => _vehicleCrashKillContextSprite,
+                _ => null
             };
         }
 
-        private int GetTotalKillScore(PlayerTeam team)
+        private List<E_DeathCause> GetTeamRoundKills(PlayerTeam team)
         {
-            int total = 0;
-            foreach (var member in team.Members)
-            {
-                total += member.Metrics.RoundKills.Sum(k => GetKillScore(k));
-            }
-
-            return total;
+            return team.Members
+                .Where(member => member != null && member.Metrics.RoundKills != null)
+                .SelectMany(member => member.Metrics.RoundKills)
+                .ToList();
         }
 
-        private bool IsValidPlayerIndex(int idx) => idx >= 0 && idx < _playerSlots.Length;
+        private List<PlayerTeam> GetTopScoreTeams()
+        {
+            var topTeams = new List<PlayerTeam>();
+
+            int maxDisplayedScore = int.MinValue;
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                int displayedScore = Mathf.RoundToInt(_scoreSliders[idx].value);
+
+                if (displayedScore > maxDisplayedScore)
+                {
+                    topTeams.Clear();
+                    topTeams.Add(team);
+                    maxDisplayedScore = displayedScore;
+                }
+                else if (displayedScore == maxDisplayedScore)
+                {
+                    topTeams.Add(team);
+                }
+            }
+
+            return topTeams;
+        }
+
+        private bool IsPlayerDisplayedAtMatchPoint(int playerIndex) => IsValidPlayerIndex(playerIndex) && _scoreSliders[playerIndex].value >= _gm.ScoreToWin - 0.01f;
+
+        private bool IsValidPlayerIndex(int idx)
+        {
+            return idx >= 0 &&
+                   idx < _playerSlots.Length &&
+                   idx < _playerIcons.Length &&
+                   idx < _scoreSliders.Length &&
+                   idx < _scoreTexts.Length &&
+                   idx < _placeImages.Length &&
+                   idx < _killContextImages.Length &&
+                   idx < _goldenBombshellImg.Length &&
+                   idx < _goldenBombshellBgdImg.Length &&
+                   idx < _goldenBombshellHaloImg.Length;
+        }
+
+        private float GetScoreboardMinimumDuration()
+        {
+            if (_gm != null && _gm.FlowSettings)
+                return Mathf.Max(0f, _gm.FlowSettings.ScoreboardMinimumDuration);
+
+            return _gm != null ? Mathf.Max(0f, _gm.Data.StopShowScoreBoardDelay) : 5f;
+        }
+
+        private void HideScoreText(int index)
+        {
+            if (!IsValidPlayerIndex(index))
+                return;
+
+            _scoreTexts[index].gameObject.SetActive(false);
+            _scoreTexts[index].text = string.Empty;
+            _scoreTexts[index].transform.localScale = Vector3.zero;
+        }
+
+        private void HideAllScoreTexts()
+        {
+            for (int i = 0; i < _scoreTexts.Length; i++)
+            {
+                _scoreTexts[i].gameObject.SetActive(false);
+                _scoreTexts[i].text = string.Empty;
+                _scoreTexts[i].transform.localScale = Vector3.zero;
+            }
+        }
 
         private void ResetUI()
         {
             _goldenBombshellCts?.Cancel();
 
-            _background.gameObject.SetActive(false);
             _winnerTitleImage.gameObject.SetActive(false);
             _winnerBackgroundImage.gameObject.SetActive(false);
             _winnerBackgroundColorImage.gameObject.SetActive(false);
 
-            for (int i = 0; i < _playerIcons.Length; i++)
+            for (int i = 0; i < _playerSlots.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
-                _scoreImages[i].gameObject.SetActive(false);
                 _placeImages[i].gameObject.SetActive(false);
                 _killContextImages[i].gameObject.SetActive(false);
 
-                if (i < _playerIcons.Length)
-                    _playerIcons[i].sprite = _playerDefaultSprites[i];
+                _playerIcons[i].sprite = _playerDefaultSprites[i];
+
+                HideScoreText(i);
             }
 
-            foreach (var img in _goldenBombshellImg)
+            for (int i = 0; i < _goldenBombshellImg.Length; i++)
             {
-                img.transform.localScale = Vector3.zero;
-                img.gameObject.SetActive(false);
-            }
+                _goldenBombshellImg[i].transform.localScale = Vector3.zero;
+                _goldenBombshellImg[i].gameObject.SetActive(false);
 
-            foreach (var img in _goldenBombshellHaloImg)
-            {
-                img.transform.localScale = Vector3.zero;
-                img.transform.rotation = Quaternion.identity;
-                img.gameObject.SetActive(false);
+                _goldenBombshellHaloImg[i].transform.localScale = Vector3.zero;
+                _goldenBombshellHaloImg[i].transform.rotation = Quaternion.identity;
+                _goldenBombshellHaloImg[i].gameObject.SetActive(false);
+
+                _goldenBombshellBgdImg[i].transform.localScale = Vector3.one;
+                _goldenBombshellBgdImg[i].gameObject.SetActive(false);
             }
         }
     }

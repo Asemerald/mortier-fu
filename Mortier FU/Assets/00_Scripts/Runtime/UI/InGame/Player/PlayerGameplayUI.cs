@@ -25,7 +25,7 @@ public class PlayerGameplayUI : MonoBehaviour
     [SerializeField] private Image _healthTicksImg;
     private Material _ticksMaterialInstance;
     [SerializeField] private Image _playerHUD;
-    [SerializeField] private Image _strikeCdImage;
+    
     [SerializeField] private Image _characterIcon;
 
     [SerializeField] private Sprite[] _characterIcons;
@@ -36,8 +36,11 @@ public class PlayerGameplayUI : MonoBehaviour
 
     [SerializeField] private Ease _iconInEase = Ease.InBack;
     [SerializeField] private Ease _healthBarEase = Ease.OutBack;
+    
+    [SerializeField] private Image _reloadCdImage;
 
-    [Header("Dash")] [SerializeField] private GameObject _dashChargeBg;
+    [Header("Dash")] 
+    [SerializeField] private Image _strikeCdImage;
     [SerializeField] private RawImage _dashChargeTiledImg;
     private int _currentDashCharges = 0;
 
@@ -147,13 +150,19 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void Update()
     {
+        UpdateReloadUI();
+        UpdateStrikeUI();
+    }
+
+    private void UpdateStrikeUI()
+    {
         // Reverse progress bar
         float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
-        // Utiliser : _character.Mortar.ShootCooldownProgress pour montrer le Reload Time
 
         // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
-        if (strikeProgress >= 1f)
+
+        if (_character.AvailableDashCharges > 0)
         {
             _strikeCdImage.color = Color.Lerp(_strikeCdImage.color, Color.white, 25 * Time.deltaTime);
         }
@@ -161,8 +170,24 @@ public class PlayerGameplayUI : MonoBehaviour
         {
             _strikeCdImage.color = new Color(0.75f, 0.75f, 0.75f, 1);
         }
-
+        
         UpdateDashChargeSprite();
+    }
+
+    private void UpdateReloadUI()
+    {
+        // Reverse progress bar
+        float reloadProgress = 1 - _character.Mortar.ShootCooldownProgress;
+        
+        _reloadCdImage.fillAmount = reloadProgress;
+        if (reloadProgress >= 1f)
+        {
+            _reloadCdImage.color = Color.Lerp(_reloadCdImage.color, Color.white, 25 * Time.deltaTime);
+        }
+        else
+        {
+            _reloadCdImage.color = new Color(0.75f, 0.75f, 0.75f, 1);
+        }
     }
 
     private async UniTask ShowPlayerHUD(bool showIcon = false)
@@ -225,31 +250,17 @@ public class PlayerGameplayUI : MonoBehaviour
         _characterIcon.sprite = _characterIcons[_character.Owner.PlayerIndex];
     }
 
-    private void OnRoundEnded(RoundInfo roundInfo)
-    {
-        HidePlayerHUD().Forget();
-    }
+    private void OnRoundEnded(RoundInfo roundInfo) => HidePlayerHUD().Forget();
     
-    private void OnRaceStart()
-    {
-        ShowPlayerHUD().Forget();
-    }
+    private void OnRaceStart() => ShowPlayerHUD().Forget();
 
-    private async UniTask HidePlayerHUD()
-    {
-        await Tween.Scale(
-            _playerHUD.transform,
-            Vector3.zero,
-            _tweenDuration,
-            _healthBarEase
-        );
-    }
+    private async UniTask HidePlayerHUD() => await Tween.Scale(_playerHUD.transform, Vector3.zero, _tweenDuration, _healthBarEase);
 
     private void OnHealthChanged(float oldHealth, float newHealth)
     {
-        float fillAmount = _character.Health.HealthRatio;
+        var fillAmount = _character.Health.HealthRatio;
 
-        if (_healthTween.isAlive && _healthTween.progress < 1f)
+        if (_healthTween is { isAlive: true, progress: < 1f })
             _healthTween.Stop();
 
         _healthTween = Tween.Custom(_healthFillImg.fillAmount, fillAmount, _healthTweenDuration, newFillAmount =>
@@ -312,8 +323,7 @@ public class PlayerGameplayUI : MonoBehaviour
     private void OnDashChargeUpdated()
     {
         int dashCharges = Mathf.RoundToInt(_character.Stats.DashCharges.Value);
-
-        _dashChargeBg.SetActive(dashCharges > 1);
+        
         UpdateDashChargeSprite();
     }
 
@@ -327,6 +337,14 @@ public class PlayerGameplayUI : MonoBehaviour
             return;
  
         _currentDashCharges = dashCharges;
+
+        if (_character.Stats.DashCharges.Value < 2 || _currentDashCharges == 0)
+        {
+            _dashChargeTiledImg.enabled = false;
+            return;
+        }
+        
+        _dashChargeTiledImg.enabled = true; 
 
         Rect rect = _dashChargeTiledImg.uvRect;
         rect.x = 1f / k_maxDashCharges * dashCharges;

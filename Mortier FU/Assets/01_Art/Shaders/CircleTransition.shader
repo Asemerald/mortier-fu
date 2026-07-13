@@ -5,16 +5,26 @@ Shader "Custom/CircleTransition"
         _Color ("Color", Color) = (0,0,0,1)
         _Progress ("Progress", Range(0, 1)) = 0
     }
+
     SubShader
     {
-        Tags { "Queue"="Overlay" "RenderType"="Transparent" }
+        Tags 
+        { 
+            "Queue"="Overlay" 
+            "RenderType"="Transparent" 
+        }
+
         Blend SrcAlpha OneMinusSrcAlpha
-        
+        ZWrite Off
+        ZTest Always
+        Cull Off
+
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+
             #include "UnityCG.cginc"
 
             struct appdata
@@ -32,7 +42,7 @@ Shader "Custom/CircleTransition"
             float4 _Color;
             float _Progress;
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -40,14 +50,25 @@ Shader "Custom/CircleTransition"
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag(v2f i) : SV_Target
             {
                 float2 center = float2(0.5, 0.5);
-                float dist = distance(i.uv, center);
-                float radius = _Progress * 1.5;
-                float alpha = step(radius, dist);
-                return float4(_Color.rgb, alpha);
+
+                float aspect = _ScreenParams.x / _ScreenParams.y;
+
+                float2 correctedUv = i.uv - center;
+                correctedUv.x *= aspect;
+
+                float dist = length(correctedUv);
+
+                float maxRadius = length(float2(0.5 * aspect, 0.5));
+                float radius = _Progress * maxRadius * 1.15;
+
+                float alpha = smoothstep(radius, radius, dist);
+
+                return float4(_Color.rgb, alpha * _Color.a);
             }
+
             ENDCG
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 
@@ -14,11 +15,7 @@ namespace MortierFu
         public int ScoreToWin { get; private set; }
         public PlayerTeam GameVictor { get; private set; }
 
-        public ScoreController(
-            SO_GameModeData data,
-            IReadOnlyList<PlayerTeam> teams,
-            int scoreToWin,
-            AnalyticsSystem analyticsSystem = null)
+        public ScoreController(SO_GameModeData data, IReadOnlyList<PlayerTeam> teams, int scoreToWin, AnalyticsSystem analyticsSystem = null)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
@@ -28,15 +25,7 @@ namespace MortierFu
             GameVictor = null;
         }
 
-        public void SetScoreToWin(int scoreToWin)
-        {
-            ScoreToWin = scoreToWin;
-        }
-
-        public void Reset()
-        {
-            GameVictor = null;
-        }
+        public void SetScoreToWin(int scoreToWin) => ScoreToWin = scoreToWin;
 
         public bool IsGameOver(out PlayerTeam victor)
         {
@@ -55,9 +44,7 @@ namespace MortierFu
                 if (team.Score >= ScoreToWin)
                 {
                     if (team.Rank == 1)
-                    {
                         GameVictor = team;
-                    }
 
                     continue;
                 }
@@ -66,15 +53,13 @@ namespace MortierFu
                 team.Score = Math.Min(team.Score + earnedScore, ScoreToWin);
 
                 if (team.Score != previousScore)
-                {
                     NotifyScoreChanged(team);
-                }
             }
 
             return GameVictor;
         }
 
-        public int CalculateEarnedScore(PlayerTeam team)
+        private int CalculateEarnedScore(PlayerTeam team)
         {
             if (team == null)
                 return 0;
@@ -82,48 +67,29 @@ namespace MortierFu
             return GetScorePerRank(team.Rank) + CalculateKillBonus(team);
         }
 
-        public int GetScorePerRank(int teamRank)
+        private int GetScorePerRank(int teamRank)
         {
             if (teamRank <= 0)
                 return 0;
 
-            if (teamRank >= _teams.Count)
-                return 0;
+            int playerCount = _teams?.Count ?? 0;
 
-            return teamRank switch
-            {
-                1 => _data.FirstRankBonusScore,
-                2 => _data.SecondRankBonusScore,
-                3 => _data.ThirdRankBonusScore,
-                _ => 0
-            };
+            return _data.GetPlacementReward(playerCount, teamRank).Score;
         }
 
         private int CalculateKillBonus(PlayerTeam team)
         {
             int killBonusScore = 0;
 
-            foreach (var member in team.Members)
+            foreach (PlayerManager member in team.Members)
             {
                 var roundKills = member.Metrics.RoundKills;
+
                 if (roundKills == null)
                     continue;
 
-                foreach (var deathCause in roundKills)
-                {
-                    killBonusScore += _data.KillBonusScore;
-
-                    switch (deathCause)
-                    {
-                        case E_DeathCause.Fall:
-                            killBonusScore += _data.KillPushBonusScore;
-                            break;
-
-                        case E_DeathCause.VehicleCrash:
-                            killBonusScore += _data.KillCarCrashBonusScore;
-                            break;
-                    }
-                }
+                foreach (E_DeathCause deathCause in roundKills)
+                    killBonusScore += _data.GetKillReward(deathCause).Score;
             }
 
             return killBonusScore;
@@ -137,12 +103,14 @@ namespace MortierFu
             if (team.Members == null || team.Members.Count == 0)
                 return;
 
-            var firstMember = team.Members[0];
+            PlayerManager firstMember = team.Members[0];
             if (firstMember == null || firstMember.Character == null)
                 return;
 
             _analyticsSystem.OnScoreChanged(firstMember.Character, team.Score);
         }
+
+        public List<PlayerTeam> GetOrderWinners(List<PlayerTeam> teams) => teams.OrderByDescending(t => t.Score).ToList();
 
         public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
         {
@@ -151,39 +119,38 @@ namespace MortierFu
                 Logs.LogWarning("No teams detected; cancelling player visuals update");
                 return;
             }
-
-            int scoreWinner = Int32.MinValue;
-            List<PlayerTeam> winners = new();
-
-            foreach (PlayerTeam team in teams)
+            
+            int count = teams.Count;
+            
+            //reset visuals
+            for (int i = 0; i < count; i++)
             {
-                if (team.Score > scoreWinner)
+                foreach (PlayerManager member in teams[i].Members)
                 {
-                    scoreWinner = team.Score;
-                    winners.Clear();
-                    winners.Add(team);
+                    if (!member || !member.Character || !member.Character.CustomizationVisual)
+                        return;
+                    
+                    member.Character.CustomizationVisual.ResetVisualAfterRound();
                 }
-                else if (team.Score == scoreWinner)
-                    winners.Add(team);
             }
 
-            HashSet<PlayerTeam> winnersSet = new(winners);
+            var winners = GetOrderWinners(teams);
 
-            foreach (PlayerTeam team in teams)
+            if (winners.Count == 0 || winners[0] == null)
             {
-                if (team?.Members == null)
-                    continue;
+                Logs.LogWarning("No winners detected; cancelling player visuals update");
+                return;
+            }
+            
+            PlayerTeam winner = winners[0];
 
-                bool isWinningTeam = winnersSet.Contains(team);
-
-                foreach (var player in team.Members)
-                {
-                    var customizationVisual = player?.Character?.CustomizationVisual;
-                    if (customizationVisual == null)
-                        continue;
-
-                    customizationVisual.UpdateVisualsAfterRound(isWinningGame: isWinningTeam);
-                }
+            //apply visuals to winner team
+            foreach (PlayerManager playerWin in winner.Members)
+            {
+                if (!playerWin || !playerWin.Character || !playerWin.Character.CustomizationVisual)
+                    return;
+                
+                playerWin.Character.CustomizationVisual.UpdateVisualsAfterRound(isWinningGame: true);
             }
         }
     }

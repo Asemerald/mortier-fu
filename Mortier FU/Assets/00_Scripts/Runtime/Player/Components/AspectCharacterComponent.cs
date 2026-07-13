@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -20,30 +21,35 @@ namespace MortierFu
         [ColorUsage(true)] public Color PlayerColor;
         public Material PlayerMaterial;
         public Material PlayerOutlineMaterial;
-        public SkinnedMeshRenderer[] PlayerMeshes;
-        public SkinnedMeshRenderer[] PlayerOutlineMeshes;
-        public SkinnedMeshRenderer[] CosmeticsOutlineMeshes;
+        public SkinnedMeshRenderer PlayerMesh;
+        public SkinnedMeshRenderer PlayerCrownMesh;
+        public SkinnedMeshRenderer PlayerCustomMesh;
+        public SkinnedMeshRenderer PlayerTailMesh;
         public GameObject SpawnVFXPrefab;
         public Material DashTrailMaterial;
     }
 
     public class AspectCharacterComponent : CharacterComponent
     {
+        private const int k_playerMaterialSlot = 0;
+        private const int k_outlineMaterialSlot = 1;
+
         private Sequence _blinkTween;
+        private Sequence _reloadWidgetTween;
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
 
         private ParticleSystem _particleSystemInstance;
-
         private GameObject _spawnVFXInstance;
-        private Color _startingColor;
 
+        private Color _startingColor;
         private Color _startingOutlineColor;
 
+        private ShakeService _shakeService;
+
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        {
-        }
+        { }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
@@ -58,44 +64,97 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>();
-            if (renderers.Length <= 0)
+            if (!ValidateMaterials())
                 return;
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
             _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
 
-            foreach (var mesh in AspectMaterials.PlayerMeshes)
-            {
-                mesh.material = _materialInstance;
-            }
+            ApplyRuntimeMaterials();
 
-            foreach (var mesh in AspectMaterials.PlayerOutlineMeshes)
-            {
-                mesh.material = _outlineMaterialInstance;
-            }
-            
-            foreach (var mesh in AspectMaterials.CosmeticsOutlineMeshes)
-            {
-                mesh.material = _outlineMaterialInstance;
-            }
-            
-            _startingOutlineColor = _outlineMaterialInstance.color;
             _startingColor = _materialInstance.color;
+            _startingOutlineColor = _outlineMaterialInstance.color;
 
-            if (SpawnVFXPrefab)
+            InitializeSpawnVfx();
+
+            _shakeService = ServiceManager.Instance.Get<ShakeService>();
+
+            if (character.ControlContext == PlayerControlContext.LobbySandbox)
+                Character.Aspect.PlayVFXSequential(new[] { Character }).Forget();
+        }
+
+        private bool ValidateMaterials()
+        {
+            if (!AspectMaterials.PlayerMaterial)
             {
-                _spawnVFXInstance = Object.Instantiate(SpawnVFXPrefab, character.transform.position,
-                    SpawnVFXPrefab.transform.rotation);
-                _spawnVFXInstance.SetActive(false);
-
-                _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
+                Logs.LogError("[AspectCharacterComponent] PlayerMaterial is missing.", character);
+                return false;
             }
+
+            if (!AspectMaterials.PlayerOutlineMaterial)
+            {
+                Logs.LogError("[AspectCharacterComponent] PlayerOutlineMaterial is missing.", character);
+                return false;
+            }
+
+            if (!AspectMaterials.PlayerMesh)
+            {
+                Logs.LogError("[AspectCharacterComponent] PlayerMesh is missing.", character);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void ApplyRuntimeMaterials()
+        {
+            SetMaterialSlot(AspectMaterials.PlayerMesh, k_playerMaterialSlot, _materialInstance);
+
+            SetMaterialSlot(AspectMaterials.PlayerMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+
+            SetMaterialSlot(AspectMaterials.PlayerCrownMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+
+            SetMaterialSlot(AspectMaterials.PlayerCustomMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+
+            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_playerMaterialSlot, _materialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+        }
+
+        private static void SetMaterialSlot(Renderer renderer, int slotIndex, Material material)
+        {
+            if (!renderer || !material)
+                return;
+
+            var materials = renderer.sharedMaterials;
+
+            if (slotIndex < 0 || slotIndex >= materials.Length)
+            {
+                Logs.LogWarning(
+                    $"[AspectCharacterComponent] Renderer '{renderer.name}' has no material slot {slotIndex}.",
+                    renderer
+                );
+
+                return;
+            }
+
+            materials[slotIndex] = material;
+            renderer.sharedMaterials = materials;
+        }
+
+        private void InitializeSpawnVfx()
+        {
+            if (!SpawnVFXPrefab)
+                return;
+
+            _spawnVFXInstance = Object.Instantiate(SpawnVFXPrefab, character.transform.position, SpawnVFXPrefab.transform.rotation);
+
+            _spawnVFXInstance.SetActive(false);
+            _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
         }
 
         public void PlayDamageBlink(Color blinkColor, int blinkCount = 5, float blinkDuration = 0.08f)
         {
-            if (_materialInstance == null || _outlineMaterialInstance == null)
+            if (!_materialInstance || !_outlineMaterialInstance)
                 return;
 
             if (_blinkTween.isAlive)
@@ -130,48 +189,105 @@ namespace MortierFu
                 )
                 .OnComplete(() =>
                 {
-                    _materialInstance.color = _startingColor;
-                    _outlineMaterialInstance.color = _startingOutlineColor;
+                    if (_materialInstance)
+                        _materialInstance.color = _startingColor;
+
+                    if (_outlineMaterialInstance)
+                        _outlineMaterialInstance.color = _startingOutlineColor;
                 });
         }
 
-        public async UniTask PlayVFXSequential(PlayerCharacter[] characters,
-            Action<PlayerCharacter> onVFXCompleted = null)
+        public async UniTask ReloadCompleteFeedback()
         {
-            foreach (var character in characters)
-            {
-                if (_spawnVFXInstance == null)
+            if (_reloadWidgetTween.isAlive)
+                _reloadWidgetTween.Stop();
+
+            var startColor = Character.Mortar.AimWidget.MaterialInstance.color;
+            var finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
+
+            _reloadWidgetTween = Sequence.Create()
+                .Group(
+                    Tween.MaterialColor(
+                        Character.Mortar.AimWidget.MaterialInstance,
+                        finalColor,
+                        0.08f,
+                        ease: Ease.InOutSine,
+                        cycles: 2,
+                        cycleMode: CycleMode.Yoyo
+                    )
+                )
+                .OnComplete(() =>
                 {
-                    onVFXCompleted?.Invoke(character);
+                    Character.Mortar.AimWidget.MaterialInstance.color = startColor;
+                });
+
+            await UniTask.CompletedTask;
+        }
+
+        public async UniTask PlayVFXSequential(PlayerCharacter[] characters, Action<PlayerCharacter> onVFXCompleted = null)
+        {
+            foreach (var playerCharacter in characters)
+            {
+                if (!_spawnVFXInstance)
+                {
+                    onVFXCompleted?.Invoke(playerCharacter);
                     continue;
                 }
 
-                _spawnVFXInstance.transform.position = character.transform.position;
+                _spawnVFXInstance.transform.position = playerCharacter.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Summon, character.transform.position);
+                AudioService.PlayOneShot(
+                    AudioService.FMODEvents.SFX_Player_Summon,
+                    playerCharacter.transform.position
+                );
 
-                character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
+                _shakeService?.ShakeController(playerCharacter.Owner, ShakeService.ShakeType.MID);
 
                 _particleSystemInstance?.Play();
 
-                float totalDuration = 2f;
-                float onCompleteDelay = 0.5f;
+                var totalDuration = 2f;
+                var onCompleteDelay = 0.5f;
 
                 _ = UniTask.Delay(TimeSpan.FromSeconds(totalDuration)).ContinueWith(() =>
                 {
-                    _spawnVFXInstance.SetActive(false);
-                    _particleSystemInstance.Stop();
+                    if (_spawnVFXInstance)
+                        _spawnVFXInstance.SetActive(false);
+
+                    _particleSystemInstance?.Stop();
                 });
 
                 await UniTask.Delay(TimeSpan.FromSeconds(onCompleteDelay));
-                onVFXCompleted?.Invoke(character);
+
+                onVFXCompleted?.Invoke(playerCharacter);
             }
         }
 
         public override void Dispose()
         {
-            _blinkTween.Stop();
+            if (_blinkTween.isAlive)
+                _blinkTween.Stop();
+
+            if (_reloadWidgetTween.isAlive)
+                _reloadWidgetTween.Stop();
+
+            if (_materialInstance)
+            {
+                Object.Destroy(_materialInstance);
+                _materialInstance = null;
+            }
+
+            if (_outlineMaterialInstance)
+            {
+                Object.Destroy(_outlineMaterialInstance);
+                _outlineMaterialInstance = null;
+            }
+
+            if (!_spawnVFXInstance) return;
+            
+            Object.Destroy(_spawnVFXInstance);
+            _spawnVFXInstance = null;
+            _particleSystemInstance = null;
         }
     }
 }

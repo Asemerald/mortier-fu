@@ -1,38 +1,37 @@
 using System.Collections.Generic;
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
 {
     public abstract class LobbyInteractionZone : MonoBehaviour, IPlayerInteractionHandler
     {
-        protected readonly HashSet<PlayerManager> PlayersInside = new();
+        private readonly HashSet<PlayerManager> _playersInside = new();
 
         private PlayerInteractionService InteractionService =>
             ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!TryGetPlayer(other, out var player))
+            if (!TryGetPlayer(other, out PlayerManager player))
                 return;
 
-            if (!PlayersInside.Add(player))
+            if (!_playersInside.Add(player) || InteractionService == null)
                 return;
 
-            InteractionService?.Register(player, this);
+            InteractionService.Register(player, this);
 
             OnPlayerEntered(player);
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (!TryGetPlayer(other, out var player))
+            if (!TryGetPlayer(other, out PlayerManager player))
                 return;
 
-            if (!PlayersInside.Remove(player))
+            if (!_playersInside.Remove(player) || InteractionService == null)
                 return;
-
-            InteractionService?.Unregister(player, this);
+            
+            InteractionService.Unregister(player, this);
 
             OnPlayerExited(player);
         }
@@ -40,7 +39,7 @@ namespace MortierFu
         protected virtual void OnDisable()
         {
             UnregisterAllPlayers();
-            PlayersInside.Clear();
+            _playersInside.Clear();
         }
 
         protected virtual void OnPlayerEntered(PlayerManager player)
@@ -49,21 +48,11 @@ namespace MortierFu
         protected virtual void OnPlayerExited(PlayerManager player)
         { }
 
-        protected virtual bool CanInteract(PlayerManager player)
-        {
-            return player &&
-                   player.ControlContext == PlayerControlContext.LobbySandbox &&
-                   player.CurrentPermissions.CanInteract;
-        }
+        protected virtual bool CanInteract(PlayerManager player) => player && player.ControlContext == PlayerControlContext.LobbySandbox && player.CurrentPermissions.CanInteract;
 
         protected abstract void Interact(PlayerManager player);
 
-        public bool CanHandleInteraction(PlayerManager player)
-        {
-            return player &&
-                   PlayersInside.Contains(player) &&
-                   CanInteract(player);
-        }
+        public bool CanHandleInteraction(PlayerManager player) => player && _playersInside.Contains(player) && CanInteract(player);
 
         public bool HandleInteract(PlayerManager player)
         {
@@ -76,15 +65,16 @@ namespace MortierFu
 
         private void UnregisterAllPlayers()
         {
-            if (PlayersInside.Count == 0)
+            if (_playersInside.Count == 0)
                 return;
 
-            var players = new List<PlayerManager>(PlayersInside);
+            var players = new List<PlayerManager>(_playersInside);
 
-            for (var i = 0; i < players.Count; i++)
-            {
-                InteractionService?.Unregister(players[i], this);
-            }
+            if(InteractionService == null)
+                return;
+            
+            foreach (PlayerManager player in players)
+                InteractionService.Unregister(player, this);
         }
 
         private static bool TryGetPlayer(Collider other, out PlayerManager player)
@@ -94,7 +84,7 @@ namespace MortierFu
             if (!other)
                 return false;
 
-            var character = other.GetComponentInParent<PlayerCharacter>();
+            PlayerCharacter character = other.GetComponentInParent<PlayerCharacter>();
 
             if (!character || !character.Owner)
                 return false;

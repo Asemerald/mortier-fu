@@ -149,7 +149,8 @@ namespace MortierFu
             );
 
             // Rotation basée sur la vélocité réelle
-            Vector3 velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
+            //Vector3 velocity3D = new Vector3(_moveDirection.x, 0f, _moveDirection.y);
+            Vector3 velocity3D = new Vector3(input.x, 0f, input.y);
             
             if (velocity3D.sqrMagnitude > 0.001f)
             {

@@ -36,10 +36,7 @@ namespace MortierFu
             if (!base.CanInteract(player))
                 return false;
 
-            if (_activePlayer)
-                return false;
-
-            if (!_stateController)
+            if (_activePlayer || !_stateController)
                 return false;
 
             return _settingsPanel && _stateController.CanUseSettingsStation(player);
@@ -108,7 +105,7 @@ namespace MortierFu
             if (!_activePlayer)
                 return;
 
-            var player = _activePlayer;
+            PlayerManager player = _activePlayer;
             _activePlayer = null;
 
             if (closePanel && _settingsPanel)
@@ -118,13 +115,9 @@ namespace MortierFu
                 _cameraFocusController.FocusSandbox();
 
             if (exitState && _stateController)
-            {
                 _stateController.TryExitSettings(player);
-            }
             else if (lockPlayer)
-            {
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
-            }
 
             Logs.Log($"[LobbySettingsStation] Player {player.PlayerIndex + 1} left settings.");
         }
