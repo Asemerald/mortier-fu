@@ -4703,6 +4703,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::Rotator
   _speed: 125
   calculatePhysics: 1
+  canMoveInLoading: 0
 --- !u!65 &982329701336885188
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5566,6 +5567,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!1 &2999532684892114127
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 2085062413433238855, guid: 413302c6dda46ba44bae9bd5999b8d36, type: 3}
+  m_PrefabInstance: {fileID: 4806167225380170892}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1602812298965952213}
+  m_Layer: 0
+  m_Name: 'PF_WaterZone (Missing Prefab with guid: 413302c6dda46ba44bae9bd5999b8d36)'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1602812298965952213
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 6092449917334637145, guid: 413302c6dda46ba44bae9bd5999b8d36, type: 3}
+  m_PrefabInstance: {fileID: 4806167225380170892}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2999532684892114127}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.13052616, z: -0, w: 0.9914449}
+  m_LocalPosition: {x: 0, y: 2.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 225490495364208073}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3316744943729997276
 GameObject:
   m_ObjectHideFlags: 0
@@ -26110,6 +26142,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 119.74
       objectReference: {fileID: 0}
+    - target: {fileID: 8758250505309888029, guid: 540253403287db544bc299cbf112c5c8, type: 3}
+      propertyPath: _raceModeDefinition
+      value: 
+      objectReference: {fileID: 11400000, guid: 4f9f661290f699a40ad2c5558dedd6d4, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -28854,11 +28890,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 413302c6dda46ba44bae9bd5999b8d36, type: 3}
---- !u!4 &1602812298965952213 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6092449917334637145, guid: 413302c6dda46ba44bae9bd5999b8d36, type: 3}
-  m_PrefabInstance: {fileID: 4806167225380170892}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5641724117326707482
 PrefabInstance:
   m_ObjectHideFlags: 0
