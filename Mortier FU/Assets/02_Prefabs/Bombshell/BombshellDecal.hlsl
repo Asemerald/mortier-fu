@@ -131,6 +131,11 @@ void RingDecal_float(
     out float3 OutColor,
     out float OutAlpha)
 {
+    // Rotation de 90° autour du centre des UV
+    float2 uv = UV - 0.5;
+    uv = float2(-uv.y, uv.x); // +90°
+    UV = uv + 0.5;
+    
     float2 discCenter = float2(0.5, 0.5);
     float2 ringCenter = GetRingCenter(Seed, CenterOffsetProbability, CenterOffsetAmount);
 

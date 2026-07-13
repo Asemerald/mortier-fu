@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
 namespace MortierFu
@@ -57,18 +58,34 @@ namespace MortierFu
             Vector3 surfaceNormal = GetSafeNormal(normal);
             Vector3 spawnPosition = position + surfaceNormal * k_surfaceFxOffset;
             Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellPreview.transform, surfaceNormal);
+            
+            // 90 sur X pour le decal
+            spawnRotation *= Quaternion.Euler(90f, 0f, 0f);
 
             Transform preview = Object.Instantiate(library.BombshellPreview, spawnPosition, spawnRotation).transform;
+            
+            var decalProjector = preview.GetComponent<DecalProjector>();
 
-            float boxHeight = 2f;
-            preview.localScale = new Vector3(0.001f, boxHeight, 0.001f);
+            // Taille initiale
+            Vector3 size = decalProjector.size;
+            size.x = 0.001f;
+            size.y = 0.001f;
+            size.z = 10f;
+            decalProjector.size = size;
 
             float safeTravelTime = Mathf.Max(0.01f, travelTime);
 
             Tween.Custom(
-                0f, range * 2f,
+                0f,
+                range * 2f,
                 duration: Mathf.Max(0.01f, safeTravelTime * 0.9f),
-                onValueChange: v => preview.localScale = new Vector3(v, boxHeight, v),
+                onValueChange: v =>
+                {
+                    Vector3 newSize = decalProjector.size;
+                    newSize.x = v;
+                    newSize.y = v;
+                    decalProjector.size = newSize;
+                },
                 ease: Ease.OutQuad
             );
 
