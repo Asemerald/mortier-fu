@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace MortierFu
 {
     public class AGM_PerfectPush : AugmentBase
@@ -6,9 +8,10 @@ namespace MortierFu
         [System.Serializable]
         public struct Params
         {
-            public AugmentStatMod MaxHealthMod; // OLD [OnSuccesfulMaxHealthMod) raccourcit pour équilibrage plus simple 
+            [FormerlySerializedAs("MaxHealthMod")] public AugmentStatMod OnStunMaxHealthMod; // OLD [OnSuccesfulMaxHealthMod) raccourcit pour équilibrage plus simple 
             public AugmentStatMod StrikePushForceMod;
             public AugmentStatMod DashCooldownMod;
+            public AugmentStatMod MaxHealthMod;
         }
         
         private EventBinding<TriggerSuccessfulPush> _successfulPushBinding;
@@ -21,6 +24,7 @@ namespace MortierFu
         {
             stats.StrikePushForce.AddModifier(db.PerfectPushParams.StrikePushForceMod.ToMod(this));
             stats.DashCooldown.AddModifier(db.PerfectPushParams.DashCooldownMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.PerfectPushParams.MaxHealthMod.ToMod(this));
             
             _successfulPushBinding = new EventBinding<TriggerSuccessfulPush>(OnSuccessfulPush);
             EventBus<TriggerSuccessfulPush>.Register(_successfulPushBinding);
@@ -40,7 +44,7 @@ namespace MortierFu
          
             Debug.Log("AGM_PerfectPush: OnSuccessfulPush triggered: " + evt.Character.Owner.PlayerIndex + " was pushed by + " + sourceCharacter.Owner.PlayerIndex);
             
-            stats.MaxHealth.AddModifier(db.PerfectPushParams.MaxHealthMod.ToMod(this));
+            stats.MaxHealth.AddModifier(db.PerfectPushParams.OnStunMaxHealthMod.ToMod(this));
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
             Debug.Log("C'est touché");
         }
@@ -56,6 +60,8 @@ namespace MortierFu
             EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
             
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
+            stats.StrikePushForce.RemoveAllModifiersFromSource(this);
+            stats.DashCooldown.RemoveAllModifiersFromSource(this);
         }
     }
 }

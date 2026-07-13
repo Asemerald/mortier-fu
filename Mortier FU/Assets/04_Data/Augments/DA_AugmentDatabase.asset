@@ -21,10 +21,10 @@ MonoBehaviour:
       Value: 0.2
       ModType: 300
     MaxHealthFlat:
-      Value: 20
+      Value: 40
       ModType: 100
     FireRateMod:
-      Value: -0.2
+      Value: -0.15
       ModType: 200
   VampireParams:
     BombshellDamageMod:
@@ -188,7 +188,7 @@ MonoBehaviour:
       Value: -0.2
       ModType: 200
     BombshellSpeedMod:
-      Value: -0.5
+      Value: -0.4
       ModType: 200
   BigStrikeParams:
     StrikePushForceMod:
@@ -216,7 +216,7 @@ MonoBehaviour:
       Value: 1
       ModType: 100
   PerfectPushParams:
-    MaxHealthMod:
+    OnStunMaxHealthMod:
       Value: 20
       ModType: 100
     StrikePushForceMod:
@@ -224,6 +224,9 @@ MonoBehaviour:
       ModType: 100
     DashCooldownMod:
       Value: 0.5
+      ModType: 100
+    MaxHealthMod:
+      Value: 20
       ModType: 100
   TravelerParams:
     DashForceMod:
