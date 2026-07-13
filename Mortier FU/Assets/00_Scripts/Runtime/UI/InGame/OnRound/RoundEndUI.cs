@@ -204,6 +204,9 @@ namespace MortierFu
             await UniTask.Delay(TimeSpan.FromSeconds(GetScoreboardMinimumDuration()), cancellationToken: ct);
 
             _goldenBombshellCts?.Cancel();
+            
+            if (_gm != null && _gm.IsGameOver(out PlayerTeam playerTeam))
+                ResetUI();
         }
 
         private async UniTask AnimatePlacementRewards(CancellationToken ct)
