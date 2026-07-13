@@ -106,8 +106,9 @@ namespace MortierFu
                 
                 AugmentPickup pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
-                pickupNewAugment.Reset();       
+                pickupNewAugment.Reset();
 
+                
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupNewAugment);
                 pickupVFX.SetActive(false);
