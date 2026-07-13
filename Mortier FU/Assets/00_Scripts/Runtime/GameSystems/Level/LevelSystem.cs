@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Eflatun.SceneReference;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -42,6 +43,8 @@ namespace MortierFu
         private Transform _fallbackTransform;
 
         private RaceReporter _boundRaceReporter;
+
+        private GameModeBase _gameModeBase;
         
         public bool IsInitialized { get; set; }
         public RaceReporter CurrentRaceReporter => BoundRaceReporter;
@@ -87,6 +90,71 @@ namespace MortierFu
 
                 if (mapLocation is null)
                     return;
+                
+                // If first round, override race map
+                if (arenaMode == false && CurrentRaceReporter != null && CurrentRaceReporter.IsFirstRound)
+                {
+                    if (IsDebugEnabled)
+                        Logs.Log($"[LevelSystem] First round of race, overriding race map with arena map: {DescribeSceneKey(mapLocation)}");
+                    var maplocationOverride = _gameModeBase.Data.FirstArenaRaceOverride.Address;
+                    
+                    // load it 
+                    
+                    IResourceLocation mapLocationOverride = null;
+                    
+                    var mapOverrideHandle = Addressables.LoadResourceLocationsAsync(maplocationOverride);
+
+                    try
+                    {
+                        await mapOverrideHandle;
+
+                        if (mapOverrideHandle.Status != AsyncOperationStatus.Succeeded ||
+                            mapOverrideHandle.Result == null || mapOverrideHandle.Result.Count == 0)
+                        {
+                            if (IsDebugEnabled)
+                            {
+                                Logs.LogWarning(
+                                    $"[LevelSystem] Debug {debugMapTypeName} scene key not found in Addressables: {maplocationOverride}");
+                            }
+
+                            return;
+                        }
+
+                        for (int i = 0; i < mapOverrideHandle.Result.Count; i++)
+                        {
+                            IResourceLocation location = mapOverrideHandle.Result[i];
+
+                            if (!IsSceneLocation(location)) continue;
+                            mapLocationOverride = location;
+                            break;
+                        }
+
+                        if (maplocationOverride is null)
+                        {
+                            Logs.LogError(
+                                $"[LevelSystem] Debug {debugMapTypeName} key found, but no valid scene location was found for: {maplocationOverride}");
+                            return;
+                        }
+
+                        bool loadedOverride = await LoadAddressableMapAsync(mapLocationOverride,
+                            $"debug {debugMapTypeName} (first round override)");
+
+
+                        if (!loadedOverride) return;
+
+                        ApplyLoadedMapData();
+
+                        if (IsDebugEnabled)
+                            Logs.Log(
+                                $"[LevelSystem] Enforced {debugMapTypeName} scene (first round override): {DescribeSceneKey(mapLocationOverride)}");
+                    }
+                    finally
+                    {
+                        if (mapOverrideHandle.IsValid())
+                            Addressables.Release(mapOverrideHandle);
+                    }
+                    return;
+                }
 
                 bool loaded = await LoadAddressableMapAsync(mapLocation, debugMapTypeName);
 
@@ -618,6 +686,8 @@ namespace MortierFu
 
             _arenaMapLocations = await LoadMapsByLabel(k_arenaMapsLabel);
             _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
+            
+            _gameModeBase = GameService.CurrentGameMode as GameModeBase;
         }
 
         private static bool IsSceneLocation(IResourceLocation location) => location is not null && location.ResourceType == typeof(SceneInstance);

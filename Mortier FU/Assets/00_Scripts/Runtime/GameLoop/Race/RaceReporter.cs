@@ -22,6 +22,8 @@ namespace MortierFu
         public Transform AugmentPivot => _augmentPivot;
         public float AugmentRadius => Mathf.Max(0f, _augmentRadius);
 
+        public bool IsFirstRound = true;
+
         private void Awake()
         {
             LevelSystem levelSystem = SystemManager.Instance?.Get<LevelSystem>();

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using System.Linq;
+using MortierFu.Shared;
 
 namespace MortierFu.Analytics
 {
@@ -354,17 +355,17 @@ namespace MortierFu.Analytics
 
                         if (www.result != UnityWebRequest.Result.Success)
                         {
-                            Debug.LogError($"Error sending data to Google Sheets: {www.error}");
+                            Logs.LogError($"Error sending data to Google Sheets: {www.error}");
                         }
                         else
                         {
-                            Debug.Log($"Successfully sent data for player {player.playerId} to Google Sheets");
+                            Logs.Log($"Successfully sent data for player {player.playerId} to Google Sheets");
                         }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Exception while sending data to Google Sheets: {ex.Message}");
+                    Logs.LogError($"Exception while sending data to Google Sheets: {ex.Message}");
                 }
                 
                 // Petit délai entre chaque requête pour éviter de surcharger l'API
@@ -374,17 +375,24 @@ namespace MortierFu.Analytics
 
         private void ExportToExcel()
         {
+            // if in editor return
+            if (Application.isEditor)
+            {
+                Logs.Log("Analytics export skipped in editor.");
+                return;
+            }
+            
             // Backup local en JSON
-            Debug.Log($"Exporting game data: {_gameData.gameId}");
+            Logs.Log($"Exporting game data: {_gameData.gameId}");
             
             string json = JsonUtility.ToJson(_gameData, true);
-            Debug.Log(json);
+            Logs.Log(json);
             
             // Sauvegarder temporairement en JSON
             string path = System.IO.Path.Combine(Application.persistentDataPath, 
                 $"GameData_{_gameData.gameId}.json");
             System.IO.File.WriteAllText(path, json);
-            Debug.Log($"Data saved to: {path}");
+            Logs.Log($"Data saved to: {path}");
         }
 
         public bool IsInitialized { get; set; }

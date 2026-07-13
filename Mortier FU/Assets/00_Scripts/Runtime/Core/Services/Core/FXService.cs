@@ -57,7 +57,7 @@ namespace MortierFu
 
             Vector3 surfaceNormal = GetSafeNormal(normal);
             Vector3 spawnPosition = position + surfaceNormal * k_surfaceFxOffset;
-            Quaternion spawnRotation = GetSurfaceAlignedRotation(library.BombshellPreview.transform, surfaceNormal);
+            Quaternion spawnRotation = new Quaternion(90f, 0f, 0f, 0f);
             
             // 90 sur X pour le decal
             spawnRotation *= Quaternion.Euler(90f, 0f, 0f);
