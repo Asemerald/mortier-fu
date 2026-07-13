@@ -378,8 +378,9 @@ namespace MortierFu
         {
             if (slotIndex < 0 || slotIndex >= _maxPlayers) return false;
             
-            if (slotIndex >= GetConnectedGamepadCount()) return false;
+            if (slotIndex >= GetAllDevicesConnected()) return false;
             
+            //TODO make sure keyboard pass this shit
             return !IsPlayerIndexAccepted(slotIndex);
         }
 
@@ -393,7 +394,7 @@ namespace MortierFu
                 if (player.PlayerIndex == playerIndex)
                     return true;
             }
-
+            
             return false;
         }
 
@@ -419,12 +420,12 @@ namespace MortierFu
 
         private int GetConnectedKeyboard()
         {
-            if (Keyboard.current == null)
-            {
-                return 0;
-            }
+            return Keyboard.current != null ? 1 : 0;
+        }
 
-            return 1;
+        private int GetAllDevicesConnected()
+        {
+            return GetConnectedKeyboard() + GetConnectedGamepadCount();
         }
 
         private int GetKnownPlayerCount()
