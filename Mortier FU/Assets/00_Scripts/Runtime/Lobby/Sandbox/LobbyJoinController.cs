@@ -376,11 +376,12 @@ namespace MortierFu
 
         public bool ShouldShowPromptForSlot(int slotIndex)
         {
-            if (slotIndex < 0 || slotIndex >= _maxPlayers)
-                return false;
-
-            if (slotIndex >= GetConnectedGamepadCount())
-                return false;
+            if (slotIndex < 0 || slotIndex >= _maxPlayers) return false;
+            
+            if (slotIndex == 0 && !IsPlayerIndexAccepted(slotIndex)) return true;
+            
+            if (slotIndex >= GetConnectedGamepadCount()) return false;
+                
 
             return !IsPlayerIndexAccepted(slotIndex);
         }
@@ -418,6 +419,7 @@ namespace MortierFu
 
             return Mathf.Min(count, _maxPlayers);
         }
+        
 
         private int GetKnownPlayerCount()
         {

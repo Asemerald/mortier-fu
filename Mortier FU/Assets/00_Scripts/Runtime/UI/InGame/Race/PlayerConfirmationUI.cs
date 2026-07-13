@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 using PrimeTween;
@@ -198,7 +199,7 @@ namespace MortierFu
 
             foreach (var slot in _playerSlots)
             {
-                slot.AButtonImage.gameObject.SetActive(false);
+                slot.ConfirmationButtonImageTarget.gameObject.SetActive(false);
                 slot.OkImage.gameObject.SetActive(false);
                 slot.Animator.enabled = false;
                 slot.IsActive = false;
@@ -270,6 +271,8 @@ namespace MortierFu
             if (gm == null)
                 return;
 
+            InitializeSlots();
+            
             await WaitForConfirmationHideAsync(ct);
 
             float delayAfterConfirmation = gm.FlowSettings.AugmentRaceStartDelayAfterConfirmation;
@@ -299,7 +302,7 @@ namespace MortierFu
                 slot.IsActive = i < playerCount;
 
                 slot.Animator.gameObject.SetActive(slot.IsActive);
-                slot.AButtonImage.gameObject.SetActive(slot.IsActive);
+                slot.ConfirmationButtonImageTarget.gameObject.SetActive(slot.IsActive);
                 slot.OkImage.gameObject.SetActive(false);
 
                 if (slot.ATween.isAlive)
@@ -313,7 +316,7 @@ namespace MortierFu
                     _actionButtonEaseOut);
 
                 slot.ATween = Tween.Scale(
-                    target: slot.AButtonImage.rectTransform,
+                    target: slot.ConfirmationButtonImageTarget.rectTransform,
                     Vector3.one * _pulseScale,
                     duration: _pulseDuration,
                     ease: _actionImageEaseInOut,
@@ -332,16 +335,42 @@ namespace MortierFu
             if (slot.ATween.isAlive)
                 slot.ATween.Stop();
 
-            slot.AButtonImage.gameObject.SetActive(false);
+            slot.ConfirmationButtonImageTarget.gameObject.SetActive(false);
             slot.Animator.enabled = true;
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
+        private void InitializeSlots()
+        {
+            if (_gm == null)
+            {
+                Logs.LogError("No Game Mode Base found");
+                return;
+            }
+            
+            int count = _gm.AlivePlayers.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                bool isKeyboardUser = _gm.AlivePlayers[i].Owner.IsKeyboardAndMouseControlScheme();
+
+                _playerSlots[i].ConfirmationButtonImageTarget = isKeyboardUser
+                    ? _playerSlots[i].KeyBoardInputImage
+                    : _playerSlots[i].GamePadInputImage;
+                
+                _playerSlots[i].KeyBoardInputImage.gameObject.SetActive(false);
+                _playerSlots[i].GamePadInputImage.gameObject.SetActive(false);
+            }
+        }
+
         [Serializable]
         public class PlayerSlot
         {
-            public Image AButtonImage;
+            [HideInInspector] public Image ConfirmationButtonImageTarget;
+            
+            public Image GamePadInputImage;
+            public Image KeyBoardInputImage;
 
             public Image OkImage;
 

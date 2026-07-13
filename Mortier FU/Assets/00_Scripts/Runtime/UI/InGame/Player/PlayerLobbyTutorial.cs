@@ -29,9 +29,6 @@ namespace MortierFu
         
         private InputActionMap _currentInputMap;
         
-        
-        
-        
         CountdownTimer timer;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
@@ -56,10 +53,9 @@ namespace MortierFu
             timer.OnTimerStop -= InitTuto;
             //save the active aim input in case the player skip it unintentionally
             _aimToggleInputReference = _tutorialBinding[1].inputAction;
+
+            UpdateVisual();
             
-            _currentInputToPress = _tutorialBinding[index].inputAction;
-            _tutorialSlot.sprite = _tutorialBinding[index].image;
-            _tutorialText.text = _tutorialBinding[index].explanationText;
             _currentInputMap = _playerCharacter.PlayerInput.currentActionMap;
             _currentInputMap.actionTriggered += UpdateStepTuto;
         }
@@ -93,7 +89,15 @@ namespace MortierFu
         private void UpdateVisual()
         {
             _currentInputToPress = _tutorialBinding[index].inputAction;
-            _tutorialSlot.sprite = _tutorialBinding[index].image;
+
+            _tutorialSlot.sprite = _tutorialBinding[index]
+                .GetSpriteByInput(_playerCharacter.IsKeyboardAndMouseControlScheme());
+            
+            Vector2 newSize = _tutorialBinding[index]
+                .GetSizeByInput(_playerCharacter.IsKeyboardAndMouseControlScheme());
+
+            _tutorialSlot.rectTransform.sizeDelta = new Vector2(newSize.x, newSize.y);
+            
             _tutorialText.text = _tutorialBinding[index].explanationText;
         }
 
