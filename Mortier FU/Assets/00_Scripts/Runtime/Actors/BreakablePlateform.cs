@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
@@ -5,12 +6,13 @@ using UnityEngine;
 
 public class BreakablePlateform : Breakable
 {
-    [SerializeField] private int _hurtPercent;
-    [SerializeField] private int _badlyHurtPercent;
+    [SerializeField] [Range(0, 1)] private float _hurtPercent;
+    [SerializeField] [Range(0, 1)] private float _badlyHurtPercent;
     [SerializeField] private GameObject _hurtMesh;
     [SerializeField] private GameObject _badlyHurtMesh;
 
     private GameObject _currentMesh;
+    private int maxHealth;
 
     protected override void Awake()
     {
@@ -21,17 +23,20 @@ public class BreakablePlateform : Breakable
             _badlyHurtMesh?.SetActive(false);
         
         _currentMesh = _intactMesh;
+
+        maxHealth = _life;
     }
     
     public override void Interact(Vector3 contactPoint)
     {
+        
         _life--;
-        if (_life == _hurtPercent)
+        if (_life == Mathf.RoundToInt(maxHealth*_hurtPercent))
         {
            ChangeCurrentMesh(_hurtMesh);
            return;
         }
-        if (_life == _badlyHurtPercent)
+        if (_life == Mathf.RoundToInt(maxHealth*_badlyHurtPercent))
         {
             ChangeCurrentMesh(_badlyHurtMesh);
             return;
@@ -39,6 +44,11 @@ public class BreakablePlateform : Breakable
          
         if (_life > 0) return;
         AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint).Forget();
+
+        if (gameObject.GetComponent<BoxCollider>())
+        {
+            gameObject.GetComponent<BoxCollider>().enabled = false;
+        }
         
         _currentMesh.SetActive(false);
         Destruct(contactPoint);
