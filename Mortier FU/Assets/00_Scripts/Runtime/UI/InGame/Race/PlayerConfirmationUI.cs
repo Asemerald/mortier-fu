@@ -195,11 +195,14 @@ namespace MortierFu
 
         public void ShowConfirmation(int activePlayerCount)
         {
+            InitializeSlots(activePlayerCount);
+            
             _raceGameObject.SetActive(false);
 
             foreach (var slot in _playerSlots)
             {
-                slot.ConfirmationButtonImageTarget.gameObject.SetActive(false);
+                slot.GamePadInputImage.gameObject.SetActive(false);
+                slot.KeyBoardInputImage.gameObject.SetActive(false);
                 slot.OkImage.gameObject.SetActive(false);
                 slot.Animator.enabled = false;
                 slot.IsActive = false;
@@ -270,8 +273,6 @@ namespace MortierFu
 
             if (gm == null)
                 return;
-
-            InitializeSlots();
             
             await WaitForConfirmationHideAsync(ct);
 
@@ -341,23 +342,32 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
-        private void InitializeSlots()
+        private void InitializeSlots(int activePLayerCount)
         {
             if (_gm == null)
             {
                 Logs.LogError("No Game Mode Base found");
                 return;
             }
-            
-            int count = _gm.AlivePlayers.Count;
 
-            for (int i = 0; i < count; i++)
+            //init necessary because crash otherwise
+            foreach (var t in _playerSlots)
             {
-                bool isKeyboardUser = _gm.AlivePlayers[i].Owner.IsKeyboardAndMouseControlScheme();
+                t.ConfirmationButtonImageTarget = t.GamePadInputImage;
+            }
 
-                _playerSlots[i].ConfirmationButtonImageTarget = isKeyboardUser
-                    ? _playerSlots[i].KeyBoardInputImage
-                    : _playerSlots[i].GamePadInputImage;
+            for (int i = 0; i < activePLayerCount; i++)
+            {
+                bool isActive = i < _playerSlots.Count - 1;
+
+                if (isActive)
+                {
+                    bool isKeyboardUser = _gm.Teams[i].Members[0].IsKeyboardAndMouseControlScheme();
+                    
+                    _playerSlots[i].ConfirmationButtonImageTarget = isKeyboardUser
+                        ? _playerSlots[i].KeyBoardInputImage
+                        : _playerSlots[i].GamePadInputImage;
+                }
                 
                 _playerSlots[i].KeyBoardInputImage.gameObject.SetActive(false);
                 _playerSlots[i].GamePadInputImage.gameObject.SetActive(false);

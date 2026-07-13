@@ -11,7 +11,7 @@ namespace MortierFu
         [SerializeField] private GameObject _root;
 
         [Header("UI")]
-        [SerializeField] private Image _inputImage;
+        [SerializeField] private RectTransform _inputImage;
         [SerializeField] private TextMeshProUGUI _label;
 
         [Header("Animation")]
@@ -94,7 +94,7 @@ namespace MortierFu
                 return;
             }
 
-            _initialInputScale = _inputImage.rectTransform.localScale;
+            _initialInputScale = _inputImage.localScale;
 
             _pulseTargetScale = new Vector3(
                 _pulseFinalScale,
@@ -113,7 +113,7 @@ namespace MortierFu
             ResetInputScale();
 
             _pulseTween = Tween.Scale(
-                target: _inputImage.rectTransform,
+                target: _inputImage,
                 endValue: _pulseTargetScale,
                 duration: _pulseDuration,
                 ease: _pulseEase,
@@ -127,7 +127,7 @@ namespace MortierFu
             if (!_inputImage)
                 return;
 
-            _inputImage.rectTransform.localScale = _initialInputScale;
+            _inputImage.localScale = _initialInputScale;
         }
 
         private void StopPulse()

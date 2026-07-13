@@ -378,11 +378,8 @@ namespace MortierFu
         {
             if (slotIndex < 0 || slotIndex >= _maxPlayers) return false;
             
-            if (slotIndex == 0 && !IsPlayerIndexAccepted(slotIndex)) return true;
-            
             if (slotIndex >= GetConnectedGamepadCount()) return false;
-                
-
+            
             return !IsPlayerIndexAccepted(slotIndex);
         }
 
@@ -419,7 +416,16 @@ namespace MortierFu
 
             return Mathf.Min(count, _maxPlayers);
         }
-        
+
+        private int GetConnectedKeyboard()
+        {
+            if (Keyboard.current == null)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
 
         private int GetKnownPlayerCount()
         {
