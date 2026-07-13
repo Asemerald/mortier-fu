@@ -9304,24 +9304,12 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.42912
-      objectReference: {fileID: 0}
-    - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.42912
-      objectReference: {fileID: 0}
-    - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.42912
-      objectReference: {fileID: 0}
-    - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
       propertyPath: m_LocalPosition.x
       value: -17.62
       objectReference: {fileID: 0}
     - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.897
+      value: -0.8
       objectReference: {fileID: 0}
     - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9355,66 +9343,43 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3248696112076831101, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3405553990910690570, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
-    - target: {fileID: 4287830910296668593, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7223875721896179709, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
       propertyPath: m_Name
       value: PF_BombshellPreview
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4287830910296668593, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-    - {fileID: 3405553990910690570, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_Size.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_Offset.z
+      value: -1.59
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_FadeScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_ScaleMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_DrawDistance
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_EndAngleFade
+      value: 180.00003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8113307513368502843, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
+      propertyPath: m_StartAngleFade
+      value: 180.00003
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7223875721896179709, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3422860151271015639}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
---- !u!1 &3422860151271015638 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7223875721896179709, guid: bdd99fdde7384824199a6e80469d13b5, type: 3}
-  m_PrefabInstance: {fileID: 3422860151271015637}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3422860151271015639
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3422860151271015638}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0777d029ed3dffa4692f417d4aba19ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.DecalProjector
-  m_Material: {fileID: 2100000, guid: f1fa9a6c2a3eaaf4faedf9e36d11dd0d, type: 2}
-  m_DrawDistance: 1000
-  m_FadeScale: 0
-  m_StartAngleFade: 180.00002
-  m_EndAngleFade: 180.00002
-  m_UVScale: {x: 1, y: 1}
-  m_UVBias: {x: 0, y: 0}
-  m_RenderingLayerMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ScaleMode: 1
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 1, y: 1, z: 1}
-  m_FadeFactor: 1
-  m_VisibleInScene: 1
-  version: 1
-  m_DecalLayerMask: 1
 --- !u!1001 &4739570628539400650
 PrefabInstance:
   m_ObjectHideFlags: 0
