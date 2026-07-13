@@ -17,10 +17,8 @@ namespace MortierFu
             
         }
 
-        protected override void ApplyEffectZoneExit(PlayerCharacter player,Collider other)
+        protected override void ApplyEffectZoneExit(PlayerCharacter player, Collider other)
         {
-            Debug.Log("out");
-            Debug.Log("effectRemoved");
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
         }
 
