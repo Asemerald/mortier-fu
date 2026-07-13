@@ -80,6 +80,7 @@ namespace MortierFu
             }
 
             ShatterPiecesCleanUp().Forget();
+            
         }
 
         public bool IsDashInteractable => true;
