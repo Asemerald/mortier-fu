@@ -6,8 +6,9 @@ public class Rotator : MonoBehaviour
 {
     [SerializeField] private float _speed = 12f;
     [SerializeField] private bool calculatePhysics;
-    private Rigidbody _rb;
     [SerializeField] private bool canMoveInLoading;
+    
+    private Rigidbody _rb;
     private GameModeBase _gm;
 
     public Vector3 TransposePoint(Vector3 localPoint, float time)
@@ -36,7 +37,6 @@ public class Rotator : MonoBehaviour
         if (_gm != null)
         {
             _gm.OnRacePlayerConfirmation += ActivateMovement;
-            Debug.Log("gm good");
         }
         
     }
@@ -60,6 +60,5 @@ public class Rotator : MonoBehaviour
     private void ActivateMovement()
     {
         canMoveInLoading = true;
-        Debug.Log("can move true");
     }
 }
