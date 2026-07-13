@@ -106,8 +106,9 @@ namespace MortierFu
                 
                 AugmentPickup pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
-                pickupNewAugment.Reset();       
+                pickupNewAugment.Reset();
 
+                
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupNewAugment);
                 pickupVFX.SetActive(false);
@@ -198,6 +199,7 @@ namespace MortierFu
                 });
 
                 _pickups[i].SetAugmentVisual(augment);
+                _pickups[i].SetIconCardVisual(augment);
                 _pickupsVFX[i].SetAugmentVisual(augment);
             }
 

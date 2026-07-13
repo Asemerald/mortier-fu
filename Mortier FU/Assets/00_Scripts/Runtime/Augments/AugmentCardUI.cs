@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
 
 namespace MortierFu
 {
-    public class AugmentCardUI : MonoBehaviour
+    public class AugmentCardUI : AugmentVisual
     {
         [SerializeField] private SO_RaritySpritesFactory _raritySpritesFactory;
 
@@ -23,7 +24,7 @@ namespace MortierFu
         [SerializeField] private Image _augmentCard;
         [SerializeField] private Image _augmentBack;
         [SerializeField] private RarityData[] _rarityData;
-        
+        [SerializeField] private Transform anchor;
         [SerializeField] private CanvasGroup _canvasGroup;
 
         [SerializeField] private RectTransform _infoRoot;
@@ -33,10 +34,14 @@ namespace MortierFu
         [SerializeField] private float _showExplosionDelay = 0.1f;
         [SerializeField] private float _hideInfoDelay = 0.2f;
 
+        [Header("IconAugment")]
+        [SerializeField] private Vector3 _sizeIcon = new Vector3(.3f, .3f,.3f);
+        
         private FaceCamera _faceCamera;
-
+        private GameObject _vfxInstance;
         private Quaternion _initialRotation;
         private Vector3 _initialScale;
+        private Vector3 _visualRotationIcon = new Vector3(250f, 0f, 0f);
         private Vector2 _initialInfoPos;
         private float _initialCanvasAlpha;
 
@@ -170,12 +175,24 @@ namespace MortierFu
             _augmentCard.sprite = augment.CardSprite;
         }
 
+        public void SetIconCardVisual(SO_Augment augment)
+        {
+            _vfxInstance = SetAugmentVisualIcon(augment, Vector3.zero, Quaternion.Euler(_visualRotationIcon),
+                anchor, _sizeIcon, true);
+
+            var children = _vfxInstance.GetComponentsInChildren<Transform>(true);
+            foreach (var child in children)
+            {
+                child.gameObject.layer = 3;
+            }
+        }
+
         private RarityData GetRarityData(E_AugmentRarity augmentRarity) =>
             Array.Find(_rarityData, data => data.Rarity == augmentRarity);
 
         public void SetFaceCameraEnabled(bool enable) => _faceCamera.enabled = enable;
 
-        private async UniTask PlayBoonDropTransition()
+        private async UniTask PlayBoonDropTransition(AugmentPickup pickupVFX)
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
@@ -194,13 +211,14 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(_hideInfoDelay), cancellationToken: token);
             DisableObjects();
+            pickupVFX.gameObject.SetActive(true);
         }
 
         public void DisableObjectsOnFlip()
         {
             _titleImageBg.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
-
+            _vfxInstance.SetActive(false);
             _augmentBack.gameObject.SetActive(true);
             _augmentIcon.gameObject.SetActive(true);
         }
@@ -216,9 +234,9 @@ namespace MortierFu
             _augmentBorder.gameObject.SetActive(false);
         }
 
-        public async UniTask PlayRevealSequence()
+        public async UniTask PlayRevealSequence(AugmentPickup pickupVFX)
         {
-            await PlayBoonDropTransition();
+            await PlayBoonDropTransition(pickupVFX);
         }
 
         public void Show() => gameObject.SetActive(true);
@@ -228,7 +246,7 @@ namespace MortierFu
             _cts?.Cancel();
             gameObject.SetActive(false);
         }
-
+        
         public void ResetUI()
         {
             transform.localRotation = _initialRotation;
