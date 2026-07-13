@@ -15,11 +15,7 @@ namespace MortierFu
         public int ScoreToWin { get; private set; }
         public PlayerTeam GameVictor { get; private set; }
 
-        public ScoreController(
-            SO_GameModeData data,
-            IReadOnlyList<PlayerTeam> teams,
-            int scoreToWin,
-            AnalyticsSystem analyticsSystem = null)
+        public ScoreController(SO_GameModeData data, IReadOnlyList<PlayerTeam> teams, int scoreToWin, AnalyticsSystem analyticsSystem = null)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _teams = teams ?? throw new ArgumentNullException(nameof(teams));
@@ -29,15 +25,7 @@ namespace MortierFu
             GameVictor = null;
         }
 
-        public void SetScoreToWin(int scoreToWin)
-        {
-            ScoreToWin = scoreToWin;
-        }
-
-        public void Reset()
-        {
-            GameVictor = null;
-        }
+        public void SetScoreToWin(int scoreToWin) => ScoreToWin = scoreToWin;
 
         public bool IsGameOver(out PlayerTeam victor)
         {
@@ -56,9 +44,7 @@ namespace MortierFu
                 if (team.Score >= ScoreToWin)
                 {
                     if (team.Rank == 1)
-                    {
                         GameVictor = team;
-                    }
 
                     continue;
                 }
@@ -67,15 +53,13 @@ namespace MortierFu
                 team.Score = Math.Min(team.Score + earnedScore, ScoreToWin);
 
                 if (team.Score != previousScore)
-                {
                     NotifyScoreChanged(team);
-                }
             }
 
             return GameVictor;
         }
 
-        public int CalculateEarnedScore(PlayerTeam team)
+        private int CalculateEarnedScore(PlayerTeam team)
         {
             if (team == null)
                 return 0;
@@ -83,59 +67,29 @@ namespace MortierFu
             return GetScorePerRank(team.Rank) + CalculateKillBonus(team);
         }
 
-        public int GetScorePerRank(int teamRank)
+        private int GetScorePerRank(int teamRank)
         {
             if (teamRank <= 0)
                 return 0;
 
             int playerCount = _teams?.Count ?? 0;
 
-            if (playerCount > 0)
-            {
-                if (teamRank == 1 && _data.FirstRankBonusByPlayerCount != null && playerCount < _data.FirstRankBonusByPlayerCount.Length)
-                {
-                    return _data.FirstRankBonusByPlayerCount[playerCount-1];
-                }
-
-                if (teamRank == 2 && _data.SecondRankBonusByPlayerCount != null && playerCount < _data.SecondRankBonusByPlayerCount.Length)
-                {
-                    return _data.SecondRankBonusByPlayerCount[playerCount-1];
-                }
-
-                if (teamRank == 3 && _data.ThirdRankBonusByPlayerCount != null && playerCount < _data.ThirdRankBonusByPlayerCount.Length)
-                {
-                    return _data.ThirdRankBonusByPlayerCount[playerCount-1];
-                }
-            }
-
-            return 0;
+            return _data.GetPlacementReward(playerCount, teamRank).Score;
         }
 
         private int CalculateKillBonus(PlayerTeam team)
         {
             int killBonusScore = 0;
 
-            foreach (var member in team.Members)
+            foreach (PlayerManager member in team.Members)
             {
                 var roundKills = member.Metrics.RoundKills;
+
                 if (roundKills == null)
                     continue;
 
-                foreach (var deathCause in roundKills)
-                {
-                    killBonusScore += _data.KillBonusScore;
-
-                    switch (deathCause)
-                    {
-                        case E_DeathCause.Fall:
-                            killBonusScore += _data.KillPushBonusScore;
-                            break;
-
-                        case E_DeathCause.VehicleCrash:
-                            killBonusScore += _data.KillCarCrashBonusScore;
-                            break;
-                    }
-                }
+                foreach (E_DeathCause deathCause in roundKills)
+                    killBonusScore += _data.GetKillReward(deathCause).Score;
             }
 
             return killBonusScore;
@@ -149,17 +103,14 @@ namespace MortierFu
             if (team.Members == null || team.Members.Count == 0)
                 return;
 
-            var firstMember = team.Members[0];
+            PlayerManager firstMember = team.Members[0];
             if (firstMember == null || firstMember.Character == null)
                 return;
 
             _analyticsSystem.OnScoreChanged(firstMember.Character, team.Score);
         }
 
-        public List<PlayerTeam> GetOrderWinners(List<PlayerTeam> teams)
-        {
-            return teams.OrderByDescending(t => t.Score).ToList();
-        }
+        public List<PlayerTeam> GetOrderWinners(List<PlayerTeam> teams) => teams.OrderByDescending(t => t.Score).ToList();
 
         public void UpdatePlayerVisualsAfterRound(List<PlayerTeam> teams)
         {
@@ -174,7 +125,7 @@ namespace MortierFu
             //reset visuals
             for (int i = 0; i < count; i++)
             {
-                foreach (var member in teams[i].Members)
+                foreach (PlayerManager member in teams[i].Members)
                 {
                     if (!member || !member.Character || !member.Character.CustomizationVisual)
                         return;
@@ -183,7 +134,7 @@ namespace MortierFu
                 }
             }
 
-            List<PlayerTeam> winners = GetOrderWinners(teams);
+            var winners = GetOrderWinners(teams);
 
             if (winners.Count == 0 || winners[0] == null)
             {
@@ -194,7 +145,7 @@ namespace MortierFu
             PlayerTeam winner = winners[0];
 
             //apply visuals to winner team
-            foreach (var playerWin in winner.Members)
+            foreach (PlayerManager playerWin in winner.Members)
             {
                 if (!playerWin || !playerWin.Character || !playerWin.Character.CustomizationVisual)
                     return;

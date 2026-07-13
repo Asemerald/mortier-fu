@@ -761,37 +761,6 @@ namespace MortierFu
             await CircleTransition.Instance.OpenAsync(0.3f);
         }
 
-        private void ApplyPreviousRoundWinnerRaceGiant()
-        {
-            if (!FlowSettings || !FlowSettings.EnablePreviousRoundWinnerRaceGiant)
-                return;
-
-            var previousRoundWinner = GetPreviousRoundWinnerCharacterForRace();
-
-            if (!previousRoundWinner)
-                return;
-
-            _previousRoundWinnerRaceSizeController?.Apply(previousRoundWinner, FlowSettings.PreviousRoundWinnerRaceTargetSize);
-        }
-
-        private PlayerCharacter GetPreviousRoundWinnerCharacterForRace()
-        {
-            if (_currentRound.RoundIndex <= 0)
-                return null;
-
-            var winningTeam = _currentRound.WinningTeam;
-
-            if (winningTeam?.Members is not { Count: > 0 })
-                return null;
-
-            var winnerManager = winningTeam.Members[0];
-
-            if (!winnerManager || !winnerManager.Character)
-                return null;
-
-            return winnerManager.Character;
-        }
-        
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());
 
         private void ResetPlayersForRace() => ForEachCurrentPlayerCharacter(character => character.ResetForRace());
