@@ -85,7 +85,7 @@ namespace MortierFu
 
         public bool IsDashInteractable => true;
         public bool IsBombshellInteractable => true;
-
+        
         private async UniTask ShatterPiecesCleanUp()
         {
             var token = this.GetCancellationTokenOnDestroy();

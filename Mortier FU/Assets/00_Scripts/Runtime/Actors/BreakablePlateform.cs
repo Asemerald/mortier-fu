@@ -6,13 +6,14 @@ using UnityEngine;
 
 public class BreakablePlateform : Breakable
 {
-    [SerializeField] [Range(0, 1)] private float _hurtPercent;
-    [SerializeField] [Range(0, 1)] private float _badlyHurtPercent;
+    [SerializeField] private int _hurtHp;
+    [SerializeField] private int _badlyHurtHp;
     [SerializeField] private GameObject _hurtMesh;
     [SerializeField] private GameObject _badlyHurtMesh;
 
     private GameObject _currentMesh;
-    private int maxHealth;
+    
+    //FAUT SET LE ISDASHINTERACTABLE EN FALSE POUR LES PLATFORMs
 
     protected override void Awake()
     {
@@ -24,19 +25,17 @@ public class BreakablePlateform : Breakable
         
         _currentMesh = _intactMesh;
 
-        maxHealth = _life;
     }
-    
     public override void Interact(Vector3 contactPoint)
     {
         
         _life--;
-        if (_life == Mathf.RoundToInt(maxHealth*_hurtPercent))
+        if (_life == _hurtHp)
         {
            ChangeCurrentMesh(_hurtMesh);
            return;
         }
-        if (_life == Mathf.RoundToInt(maxHealth*_badlyHurtPercent))
+        if (_life == _badlyHurtHp)
         {
             ChangeCurrentMesh(_badlyHurtMesh);
             return;
