@@ -46,7 +46,7 @@ namespace MortierFu
                 return;
 
             float aimSpeed = CharacterStats.AimWidgetSpeed.Value;
-            if (IsKeyboardAndMouseControlScheme())
+            if (mortar.Character.Owner.IsKeyboardAndMouseControlScheme())
             {
                 aimSpeed *= CharacterStats.KeyboardAndMouseAimWidgetSpeedMultiplier;
             }
@@ -92,13 +92,6 @@ namespace MortierFu
             _enableShoot = false;
         }
 
-        private bool IsKeyboardAndMouseControlScheme()
-        {
-            return mortar.Character?.PlayerInput != null
-                && string.Equals(
-                    mortar.Character.PlayerInput.currentControlScheme,
-                    "Keyboard and Mouse",
-                    System.StringComparison.Ordinal);
-        }
+        
     }
 }
