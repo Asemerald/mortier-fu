@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
@@ -5,12 +6,14 @@ using UnityEngine;
 
 public class BreakablePlateform : Breakable
 {
-    [SerializeField] private int _hurtPercent;
-    [SerializeField] private int _badlyHurtPercent;
+    [SerializeField] private int _hurtHp;
+    [SerializeField] private int _badlyHurtHp;
     [SerializeField] private GameObject _hurtMesh;
     [SerializeField] private GameObject _badlyHurtMesh;
 
     private GameObject _currentMesh;
+    
+    //FAUT SET LE ISDASHINTERACTABLE EN FALSE POUR LES PLATFORMs
 
     protected override void Awake()
     {
@@ -21,17 +24,18 @@ public class BreakablePlateform : Breakable
             _badlyHurtMesh?.SetActive(false);
         
         _currentMesh = _intactMesh;
+
     }
-    
     public override void Interact(Vector3 contactPoint)
     {
+        
         _life--;
-        if (_life == _hurtPercent)
+        if (_life == _hurtHp)
         {
            ChangeCurrentMesh(_hurtMesh);
            return;
         }
-        if (_life == _badlyHurtPercent)
+        if (_life == _badlyHurtHp)
         {
             ChangeCurrentMesh(_badlyHurtMesh);
             return;
@@ -39,6 +43,11 @@ public class BreakablePlateform : Breakable
          
         if (_life > 0) return;
         AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint).Forget();
+
+        if (gameObject.GetComponent<BoxCollider>())
+        {
+            gameObject.GetComponent<BoxCollider>().enabled = false;
+        }
         
         _currentMesh.SetActive(false);
         Destruct(contactPoint);
