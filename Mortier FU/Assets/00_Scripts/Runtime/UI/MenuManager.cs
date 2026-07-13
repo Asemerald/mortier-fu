@@ -1,5 +1,4 @@
 using System;
-using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using PrimeTween;
@@ -31,7 +30,6 @@ namespace MortierFu
         [field: SerializeField] public Button MailButton { get; private set; }
         
         [SerializeField] private GameObject _animatedCharacter;
-        [SerializeField] private GameObject _animatedOutlineCharacter;
         [SerializeField] private GameObject BetaTest;
 
         [Header("Animation")] [SerializeField] private Image _background;
@@ -456,9 +454,6 @@ namespace MortierFu
         {
             if (_animatedCharacter)
                 _animatedCharacter.SetActive(visible);
-
-            if (_animatedOutlineCharacter)
-                _animatedOutlineCharacter.SetActive(visible);
         }
 
         private bool TryCancelCurrentPanel()
