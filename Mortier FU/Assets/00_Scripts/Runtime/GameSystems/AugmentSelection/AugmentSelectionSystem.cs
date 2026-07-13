@@ -199,6 +199,7 @@ namespace MortierFu
                 });
 
                 _pickups[i].SetAugmentVisual(augment);
+                _pickups[i].SetIconCardVisual(augment);
                 _pickupsVFX[i].SetAugmentVisual(augment);
             }
 

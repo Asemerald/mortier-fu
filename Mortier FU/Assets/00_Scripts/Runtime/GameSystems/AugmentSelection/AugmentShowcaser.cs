@@ -90,8 +90,6 @@ namespace MortierFu
                 
                 await GrowPickup(pickup, cardScale, ct);
 
-                pickupVFX.transform.position = pickup.AnchorIncon.position;
-                pickupVFX.HideVfx();
                 
                 float stagger = _system.Settings.CardPopInStagger.GetRandomValue();
                 await UniTask.Delay(TimeSpan.FromSeconds(stagger), cancellationToken: ct);
@@ -150,20 +148,11 @@ namespace MortierFu
                 AugmentCardUI pickup = _pickups[idx];
                 AugmentPickup pickupVFX = _pickupsVFX[idx];
 
-                pickup.PlayRevealSequence().Forget();
+                pickup.PlayRevealSequence(pickupVFX).Forget();
 
                 float t = (shuffled.Length - j) / (float)shuffled.Length;
 
                 await UniTask.Delay(TimeSpan.FromSeconds(t * t * shuffled.Length * 0.05f + _system.Settings.VFXStagger), cancellationToken: ct);
-                
-                pickupVFX.gameObject.SetActive(true);
-                pickupVFX.SetVfx();
-                
-                var children = pickupVFX.GetComponentsInChildren<Transform>(true);
-                foreach (var child in children)
-                {
-                    child.gameObject.layer = 0;
-                }
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(_system.Settings.BoonDelay), cancellationToken: ct);

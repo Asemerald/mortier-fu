@@ -1,16 +1,16 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 
 namespace MortierFu
 {
-    public class AugmentPickup : MonoBehaviour
+    public class AugmentPickup : AugmentVisual
     {
         [SerializeField] private E_AugmentRarity _rarity;
 
-        [SerializeField] private AugmentPickupVisual[] _augmentVFXRarityPrototypes;
         [SerializeField] private GameObject[] _pickupVFX;
 
         private Transform _attachmentPoint;
@@ -196,17 +196,9 @@ namespace MortierFu
                 _vfxInstance = null;
                 _visualInstance = null;
             }
-
-            _vfxInstance = Instantiate(prototype.gameObject, transform.position, transform.rotation, transform);
-
-            _vfxInstance.transform.localPosition = Vector3.zero;
-            _vfxInstance.transform.localRotation = Quaternion.identity;
-            _vfxInstance.transform.localScale = Vector3.one;
-
-            _visualInstance = _vfxInstance.GetComponent<AugmentPickupVisual>();
-
-            if (_visualInstance)
-                _visualInstance.SetLogoSprite(augment.SmallSprite);
+            
+            Logs.Log(prototype.name);
+            _vfxInstance = SetAugmentVisualIcon(augment,Vector3.zero,  Quaternion.identity, transform, Vector3.one);
 
             _rarity = prototype.Rarity;
 
@@ -236,19 +228,7 @@ namespace MortierFu
 
             transform.position = _attachmentPoint.TransformPoint(_attachmentLocalOffset);
         }
-
-        private AugmentPickupVisual GetVFXRarityPrototype(E_AugmentRarity rarity)
-        {
-            foreach (AugmentPickupVisual prototype in _augmentVFXRarityPrototypes)
-            {
-                if (rarity != prototype.Rarity)
-                    continue;
-
-                return prototype;
-            }
-
-            throw new Exception($"Prototype not found for rarity {rarity}");
-        }
+        
 
         private void SetRenderersEnabled(bool enabled)
         {
