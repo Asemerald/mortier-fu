@@ -31,8 +31,8 @@ namespace MortierFu
 
     public class AspectCharacterComponent : CharacterComponent
     {
-        private const int k_playerMaterialSlot = 0;
-        private const int k_outlineMaterialSlot = 1;
+        private const int k_materialFirstSlot = 0;
+        private const int k_materialSecondSlot = 1;
 
         private Sequence _blinkTween;
         private Sequence _reloadWidgetTween;
@@ -108,16 +108,16 @@ namespace MortierFu
 
         private void ApplyRuntimeMaterials()
         {
-            SetMaterialSlot(AspectMaterials.PlayerMesh, k_playerMaterialSlot, _materialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerMesh, k_materialFirstSlot, _outlineMaterialInstance);
+            
+            SetMaterialSlot(AspectMaterials.PlayerMesh, k_materialSecondSlot, _materialInstance);
 
-            SetMaterialSlot(AspectMaterials.PlayerMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerCrownMesh, k_materialSecondSlot, _outlineMaterialInstance);
 
-            SetMaterialSlot(AspectMaterials.PlayerCrownMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerCustomMesh, k_materialSecondSlot, _outlineMaterialInstance);
 
-            SetMaterialSlot(AspectMaterials.PlayerCustomMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
-
-            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_playerMaterialSlot, _materialInstance);
-            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_outlineMaterialSlot, _outlineMaterialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_materialFirstSlot, _materialInstance);
+            SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_materialSecondSlot, _outlineMaterialInstance);
         }
 
         private static void SetMaterialSlot(Renderer renderer, int slotIndex, Material material)

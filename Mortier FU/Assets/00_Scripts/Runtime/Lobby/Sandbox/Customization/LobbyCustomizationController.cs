@@ -22,7 +22,7 @@ namespace MortierFu
         [SerializeField] private UIIntStepperItem _hatItem;
 
         [Header("Customization Limits")]
-        [SerializeField] private int _skinCount = 13;
+        [SerializeField] private int _skinCount = 16;
         [SerializeField] private int _faceColumnCount = 4;
         [SerializeField] private int _faceRowCount = 4;
 
