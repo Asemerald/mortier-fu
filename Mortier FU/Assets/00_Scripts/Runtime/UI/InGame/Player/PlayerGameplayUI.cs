@@ -93,6 +93,11 @@ public class PlayerGameplayUI : MonoBehaviour
             _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
             _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
         }
+        
+        Material strikeMat = new Material(_strikeCdImage.material);
+        _strikeCdImage.material = strikeMat;
+        Material reloadMat = new Material(_reloadCdImage.material);
+        _reloadCdImage.material = reloadMat;
     }
 
     private void OnDisable()
@@ -322,8 +327,6 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void OnDashChargeUpdated()
     {
-        int dashCharges = Mathf.RoundToInt(_character.Stats.DashCharges.Value);
-        
         UpdateDashChargeSprite();
     }
 
@@ -337,6 +340,7 @@ public class PlayerGameplayUI : MonoBehaviour
             return;
  
         _currentDashCharges = dashCharges;
+        BlinkUI(_strikeCdImage, 0.07f);
 
         if (_character.Stats.DashCharges.Value < 2 || _currentDashCharges == 0)
         {
@@ -349,5 +353,12 @@ public class PlayerGameplayUI : MonoBehaviour
         Rect rect = _dashChargeTiledImg.uvRect;
         rect.x = 1f / k_maxDashCharges * dashCharges;
         _dashChargeTiledImg.uvRect = rect;
+    }
+
+    private async UniTask BlinkUI(Image sprite, float duration)
+    {
+        sprite.material.SetFloat("_BlinkFactor", 0.9f);
+        await UniTask.Delay(TimeSpan.FromSeconds(duration));
+        sprite.material.SetFloat("_BlinkFactor", 0);
     }
 }
