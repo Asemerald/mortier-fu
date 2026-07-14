@@ -21,8 +21,6 @@ namespace MortierFu
         
         [TypeFilter(typeof(IAugment))]
         public SerializableType AugmentType;
-        
-        public GameObject AugmentVFX;
 
         [HideInInspector]
         public string ModBundlePath; // chemin vers l'asset bundle si mod

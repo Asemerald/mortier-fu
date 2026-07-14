@@ -34,10 +34,7 @@ namespace MortierFu
             bool healed = owner.Health.Heal(db.VampireParams.HealMod.Value, owner);
 
             if (healed)
-            {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
-                InstantiateVFX();
-            }
         }
 
         private bool CanProc(TriggerHit evt)
@@ -64,7 +61,6 @@ namespace MortierFu
 
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
-            ClearVFXInstance(); 
         }
     }
 }

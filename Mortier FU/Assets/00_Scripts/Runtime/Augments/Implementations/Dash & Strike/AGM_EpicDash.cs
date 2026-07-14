@@ -42,9 +42,7 @@ namespace MortierFu
         private void RefreshMoveSpeedBuff()
         {
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-            ClearVFXInstance();
             stats.MoveSpeed.AddModifier(db.EpicDashParams.MoveSpeedMod.ToMod(this));
-            InstantiateVFX();
 
             _epicDashTimer.Stop();
             _epicDashTimer.Reset();
@@ -80,7 +78,6 @@ namespace MortierFu
 
             stats.DashCooldown.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-            ClearVFXInstance();
         }
     }
 }
