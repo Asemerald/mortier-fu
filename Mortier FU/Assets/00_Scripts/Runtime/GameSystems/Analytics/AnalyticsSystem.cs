@@ -59,7 +59,8 @@ namespace MortierFu.Analytics
             _gameData = new AnalyticsData()
             {
                 gameId = System.Guid.NewGuid().ToString(),
-                date = System.DateTime.UtcNow.ToString("o"),
+                date = System.DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ssZ"), 
+                // Custom Format
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds

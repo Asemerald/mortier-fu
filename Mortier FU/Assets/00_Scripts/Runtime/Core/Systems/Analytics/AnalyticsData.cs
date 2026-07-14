@@ -10,10 +10,12 @@ namespace MortierFu
         public string gameId;       // ex: GF-20251218-001
         public string date;
         public int numberOfPlayers;
-        public string gameVersion;  // hash du commit ou version
+        public string gameVersion;  // hash du commit ou version -> Après la release il faudrait que ça doit v1, etc
         public AnalyticsRoundData[] rounds;
         public string winner;       // Player ID
         public int roundsPlayed;
+        // public int scoreToWIn // Public Int du Joueur 
+        // timeDuration (HH:MM:SS
     }
 
     public class AnalyticsRoundData
