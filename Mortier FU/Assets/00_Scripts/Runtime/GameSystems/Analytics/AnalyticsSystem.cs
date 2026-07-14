@@ -316,6 +316,12 @@ namespace MortierFu.Analytics
         {
             if (roundData == null || roundData.players == null) return;
 
+            // Build sécurité
+            #if UNITY_EDITOR
+            await UniTask.CompletedTask;
+            return;
+            #endif
+            
             foreach (var player in roundData.players)
             {
                 try
