@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
@@ -10,54 +7,52 @@ using UnityEngine.UI;
 
 namespace MortierFu
 {
-
     public class PlayerLobbyTutorial
     {
-        private List<SO_Tutorial> _tutorialBinding;
-
-        private Image _tutorialSlot;
-        
-        private TextMeshProUGUI _tutorialText;
+        private readonly List<SO_Tutorial> _tutorialBinding;
+        private readonly Image _tutorialSlot;
+        private readonly TextMeshProUGUI _tutorialText;
+        private readonly PlayerManager _playerCharacter;
+        private readonly CountdownTimer _timer;
 
         private InputActionReference _currentInputToPress;
-        
         private InputActionReference _aimToggleInputReference;
-
-        private PlayerManager _playerCharacter;
-        
-        private int index = 0;
-        
         private InputActionMap _currentInputMap;
-        
-        CountdownTimer timer;
+
+        private int _index;
+        private bool _isSubscribed;
+        private const float timeInputDisable = 0.3f;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
         {
-            if (pTutorialBinding.Count == 0)
+            if (pTutorialBinding == null || pTutorialBinding.Count == 0)
                 return;
-            
-            timer = new CountdownTimer(0.3f);
-            timer.OnTimerStop += InitTuto;
-            timer.Start();
-            
+
             _tutorialBinding = pTutorialBinding;
             _tutorialSlot = pCharacter.Character.TutorialImage;
             _tutorialText = pCharacter.Character.TutorialText;
             _playerCharacter = pCharacter;
-            _tutorialSlot.gameObject.SetActive(true);
-            _tutorialText.gameObject.SetActive(true);
+
+            SetVisible(true);
+
+            _timer = new CountdownTimer(timeInputDisable);
+            _timer.OnTimerStop += InitTuto;
+            _timer.Start();
         }
 
         private void InitTuto()
         {
-            timer.OnTimerStop -= InitTuto;
-            //save the active aim input in case the player skip it unintentionally
-            _aimToggleInputReference = _tutorialBinding[1].inputAction;
+            _timer.OnTimerStop -= InitTuto;
+
+            // save the active aim input in case the player skips it unintentionally
+            if (_tutorialBinding.Count > 1)
+                _aimToggleInputReference = _tutorialBinding[1].inputAction;
 
             UpdateVisual();
-            
+
             _currentInputMap = _playerCharacter.PlayerInput.currentActionMap;
             _currentInputMap.actionTriggered += UpdateStepTuto;
+            _isSubscribed = true;
         }
 
         private void UpdateStepTuto(InputAction.CallbackContext ctx)
@@ -66,60 +61,71 @@ namespace MortierFu
             {
                 if (ctx.action.name != _currentInputToPress.action.name)
                     return;
-            
-                if (index != _tutorialBinding.Count - 1 )
+
+                if (_index != _tutorialBinding.Count - 1)
                 {
-                    index++;
+                    _index++;
                     UpdateVisual();
                 }
                 else
                 {
-                    _playerCharacter.PlayerInput.currentActionMap.actionTriggered -= UpdateStepTuto;
-                    _tutorialSlot.gameObject.SetActive(false);
-                    _tutorialText.gameObject.SetActive(false);
+                    Unsubscribe();
+                    SetVisible(false);
                 }
             }
             else if (ctx.canceled)
             {
                 HoldCheck(ctx);
             }
-            
         }
 
         private void UpdateVisual()
         {
-            _currentInputToPress = _tutorialBinding[index].inputAction;
+            bool isKbm = _playerCharacter.IsKeyboardAndMouseControlScheme();
 
-            _tutorialSlot.sprite = _tutorialBinding[index]
-                .GetSpriteByInput(_playerCharacter.IsKeyboardAndMouseControlScheme());
-            
-            Vector2 newSize = _tutorialBinding[index]
-                .GetSizeByInput(_playerCharacter.IsKeyboardAndMouseControlScheme());
-
-            _tutorialSlot.rectTransform.sizeDelta = new Vector2(newSize.x, newSize.y);
-            
-            _tutorialText.text = _tutorialBinding[index].explanationText;
+            _currentInputToPress = _tutorialBinding[_index].inputAction;
+            _tutorialSlot.sprite = _tutorialBinding[_index].GetSpriteByInput(isKbm);
+            _tutorialSlot.rectTransform.sizeDelta = _tutorialBinding[_index].GetSizeByInput(isKbm);
+            _tutorialText.text = _tutorialBinding[_index].explanationText;
         }
 
         private void HoldCheck(InputAction.CallbackContext ctx)
         {
-            if (ctx.action.name == _aimToggleInputReference.action.name && index !=0)
+            if (_aimToggleInputReference == null)
+                return;
+
+            if (ctx.action.name == _aimToggleInputReference.action.name && _index != 0)
             {
-                index = 1;
+                _index = 1;
                 UpdateVisual();
             }
+        }
+
+        private void SetVisible(bool visible)
+        {
+            if(!_tutorialSlot) return;
+            
+            _tutorialSlot.gameObject.SetActive(visible);
+            _tutorialText.gameObject.SetActive(visible);
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_isSubscribed)
+                return;
+
+            _currentInputMap.actionTriggered -= UpdateStepTuto;
+            _isSubscribed = false;
         }
 
         public void Disconnect()
         {
             if (_tutorialBinding == null)
                 return;
-            
-            timer.OnTimerStop -= InitTuto;
-            _currentInputMap.actionTriggered -= UpdateStepTuto;
-            _tutorialSlot.gameObject.SetActive(false);
-            _tutorialText.gameObject.SetActive(false);
+
+            _timer.OnTimerStop -= InitTuto;
+            Unsubscribe();
+            SetVisible(false);
         }
     }
 }
-
