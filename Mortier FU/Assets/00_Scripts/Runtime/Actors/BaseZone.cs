@@ -38,11 +38,7 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            Logs.LogWarning("OUINN");
-
             if (!player || !_counters.Remove(player)) return;
-            
-            Logs.LogWarning("OUINNNN");
             
             if (!IsPlayerValid(player))
             {
@@ -51,31 +47,8 @@ namespace MortierFu
                 return;
             }
 
-            Logs.LogWarning("OUINNNNN");
-            
-            //if (CheckOtherZone(other)) return;
-            
-            Logs.LogWarning("OUINNNNNNNNNN");
-            
             ApplyEffectZoneExit(player,other);
         }
-
-        protected virtual bool CheckOtherZone(Collider other)
-        {
-            Vector3 center = other.bounds.center;
-            Vector3 halfExtents = other.bounds.extents;
-            
-            Collider[] hitColliders = Physics.OverlapBox(center, halfExtents,other.transform.rotation);
-            foreach (var hitCollider in hitColliders)
-            {
-                if (hitCollider.isTrigger && hitCollider.gameObject != gameObject && ((1 << hitCollider.gameObject.layer) & _layerToIgnore) != 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        
 
         private void Update() => ApplyEffectZoneTick();
 
