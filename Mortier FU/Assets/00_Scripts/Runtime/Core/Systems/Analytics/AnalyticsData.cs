@@ -14,6 +14,7 @@ namespace MortierFu
         public AnalyticsRoundData[] rounds;
         public string winner;       // Player ID
         public int roundsPlayed;
+        public int durationSeconds;
     }
 
     public class AnalyticsRoundData
