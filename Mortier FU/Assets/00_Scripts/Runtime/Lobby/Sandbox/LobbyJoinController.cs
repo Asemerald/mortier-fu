@@ -376,12 +376,11 @@ namespace MortierFu
 
         public bool ShouldShowPromptForSlot(int slotIndex)
         {
-            if (slotIndex < 0 || slotIndex >= _maxPlayers)
-                return false;
-
-            if (slotIndex >= GetConnectedGamepadCount())
-                return false;
-
+            if (slotIndex < 0 || slotIndex >= _maxPlayers) return false;
+            
+            if (slotIndex >= GetAllDevicesConnected()) return false;
+            
+            //TODO make sure keyboard pass this shit
             return !IsPlayerIndexAccepted(slotIndex);
         }
 
@@ -395,7 +394,7 @@ namespace MortierFu
                 if (player.PlayerIndex == playerIndex)
                     return true;
             }
-
+            
             return false;
         }
 
@@ -417,6 +416,16 @@ namespace MortierFu
             }
 
             return Mathf.Min(count, _maxPlayers);
+        }
+
+        private int GetConnectedKeyboard()
+        {
+            return Keyboard.current != null ? 1 : 0;
+        }
+
+        private int GetAllDevicesConnected()
+        {
+            return GetConnectedKeyboard() + GetConnectedGamepadCount();
         }
 
         private int GetKnownPlayerCount()

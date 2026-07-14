@@ -1,7 +1,6 @@
 using PrimeTween;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -11,11 +10,12 @@ namespace MortierFu
         [SerializeField] private GameObject _root;
 
         [Header("UI")]
-        [SerializeField] private Image _inputImage;
+        [SerializeField] private RectTransform _inputImage;
         [SerializeField] private TextMeshProUGUI _label;
 
         [Header("Animation")]
-        [SerializeField] private float _pulseFinalScale = 0.7f;
+        [SerializeField] private Vector3 _pulseInitScale = Vector3.one;
+        [SerializeField] private Vector3 _pulseTargetScale = Vector3.one * 0.7f;
         [SerializeField] private float _pulseDuration = 0.45f;
         [SerializeField] private Ease _pulseEase = Ease.InOutQuad;
 
@@ -23,15 +23,10 @@ namespace MortierFu
         private bool _isVisible;
         private string _currentText;
 
-        private Vector3 _initialInputScale;
-        private Vector3 _pulseTargetScale;
-
         private void Awake()
         {
             if (!_root)
                 _root = gameObject;
-
-            CacheInitialScale();
 
             Hide();
         }
@@ -85,24 +80,6 @@ namespace MortierFu
                 _root.SetActive(false);
         }
 
-        private void CacheInitialScale()
-        {
-            if (!_inputImage)
-            {
-                _initialInputScale = Vector3.one;
-                _pulseTargetScale = Vector3.one * _pulseFinalScale;
-                return;
-            }
-
-            _initialInputScale = _inputImage.rectTransform.localScale;
-
-            _pulseTargetScale = new Vector3(
-                _pulseFinalScale,
-                _pulseFinalScale,
-                _initialInputScale.z
-            );
-        }
-
         private void StartPulse()
         {
             StopPulse();
@@ -113,7 +90,7 @@ namespace MortierFu
             ResetInputScale();
 
             _pulseTween = Tween.Scale(
-                target: _inputImage.rectTransform,
+                target: _inputImage,
                 endValue: _pulseTargetScale,
                 duration: _pulseDuration,
                 ease: _pulseEase,
@@ -127,7 +104,7 @@ namespace MortierFu
             if (!_inputImage)
                 return;
 
-            _inputImage.rectTransform.localScale = _initialInputScale;
+            _inputImage.localScale = _pulseInitScale;
         }
 
         private void StopPulse()

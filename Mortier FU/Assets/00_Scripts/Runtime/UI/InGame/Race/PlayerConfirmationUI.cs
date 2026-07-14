@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 using PrimeTween;
@@ -194,11 +195,14 @@ namespace MortierFu
 
         public void ShowConfirmation(int activePlayerCount)
         {
+            InitializeSlots(activePlayerCount);
+            
             _raceGameObject.SetActive(false);
 
             foreach (var slot in _playerSlots)
             {
-                slot.AButtonImage.gameObject.SetActive(false);
+                slot.GamePadInputImage.gameObject.SetActive(false);
+                slot.KeyBoardInputImage.gameObject.SetActive(false);
                 slot.OkImage.gameObject.SetActive(false);
                 slot.Animator.enabled = false;
                 slot.IsActive = false;
@@ -269,7 +273,7 @@ namespace MortierFu
 
             if (gm == null)
                 return;
-
+            
             await WaitForConfirmationHideAsync(ct);
 
             float delayAfterConfirmation = gm.FlowSettings.AugmentRaceStartDelayAfterConfirmation;
@@ -299,7 +303,7 @@ namespace MortierFu
                 slot.IsActive = i < playerCount;
 
                 slot.Animator.gameObject.SetActive(slot.IsActive);
-                slot.AButtonImage.gameObject.SetActive(slot.IsActive);
+                slot.ConfirmationButtonImageTarget.gameObject.SetActive(slot.IsActive);
                 slot.OkImage.gameObject.SetActive(false);
 
                 if (slot.ATween.isAlive)
@@ -313,7 +317,7 @@ namespace MortierFu
                     _actionButtonEaseOut);
 
                 slot.ATween = Tween.Scale(
-                    target: slot.AButtonImage.rectTransform,
+                    target: slot.ConfirmationButtonImageTarget.rectTransform,
                     Vector3.one * _pulseScale,
                     duration: _pulseDuration,
                     ease: _actionImageEaseInOut,
@@ -332,16 +336,51 @@ namespace MortierFu
             if (slot.ATween.isAlive)
                 slot.ATween.Stop();
 
-            slot.AButtonImage.gameObject.SetActive(false);
+            slot.ConfirmationButtonImageTarget.gameObject.SetActive(false);
             slot.Animator.enabled = true;
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
+        private void InitializeSlots(int activePLayerCount)
+        {
+            if (_gm == null)
+            {
+                Logs.LogError("No Game Mode Base found");
+                return;
+            }
+
+            //init necessary because crash otherwise
+            foreach (var t in _playerSlots)
+            {
+                t.ConfirmationButtonImageTarget = t.GamePadInputImage;
+            }
+
+            for (int i = 0; i < activePLayerCount; i++)
+            {
+                bool isActive = i < _playerSlots.Count - 1;
+
+                if (isActive)
+                {
+                    bool isKeyboardUser = _gm.Teams[i].Members[0].IsKeyboardAndMouseControlScheme();
+                    
+                    _playerSlots[i].ConfirmationButtonImageTarget = isKeyboardUser
+                        ? _playerSlots[i].KeyBoardInputImage
+                        : _playerSlots[i].GamePadInputImage;
+                }
+                
+                _playerSlots[i].KeyBoardInputImage.gameObject.SetActive(false);
+                _playerSlots[i].GamePadInputImage.gameObject.SetActive(false);
+            }
+        }
+
         [Serializable]
         public class PlayerSlot
         {
-            public Image AButtonImage;
+            [HideInInspector] public Image ConfirmationButtonImageTarget;
+            
+            public Image GamePadInputImage;
+            public Image KeyBoardInputImage;
 
             public Image OkImage;
 
