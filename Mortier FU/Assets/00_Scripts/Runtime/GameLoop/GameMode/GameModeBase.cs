@@ -467,11 +467,9 @@ namespace MortierFu
                 LevelSystem = levelSystem,
                 PlayerSpawnController = _playerSpawnController,
                 AugmentSelectionSystem = augmentSelectionSys,
-                FlowSettings = FlowSettings,
 
                 SetAllPlayersControlContext = SetPlayersControlContext,
-                ApplyBullySize = (character, size) =>
-                    _previousRoundWinnerRaceSizeController?.Apply(character, size, applyControlContext: false),
+                ApplyBullySize = (character, size) => _previousRoundWinnerRaceSizeController?.Apply(character, size, applyControlContext: false),
                 ClearBullySize = () => _previousRoundWinnerRaceSizeController?.Clear()
             };
         }

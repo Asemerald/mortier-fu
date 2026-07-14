@@ -39,10 +39,7 @@ namespace MortierFu
                 {
                     PlayerManager player = team.Members[memberIndex];
 
-                    if (!player)
-                        continue;
-
-                    if (!Definition.BullyCanPickAugment && IsBully(player))
+                    if (!player || IsBully(player))
                         continue;
 
                     pickers.Add(player);
@@ -62,8 +59,9 @@ namespace MortierFu
         
         public virtual void BeginGameplay()
         {
-            ApplyPlayerContexts();
+            ApplyBullyStatsOverrideIfNeeded();
             ApplyBullySizeIfNeeded();
+            ApplyPlayerContexts();
         }
 
         public virtual void Tick(float deltaTime)
@@ -71,7 +69,11 @@ namespace MortierFu
 
         public virtual float GetRaceDuration(float defaultDuration) => Definition.ResolveRaceDuration(defaultDuration);
 
-        public virtual void End() => Context.ClearBullySize?.Invoke();
+        public virtual void End()
+        {
+            Context.ClearBullySize?.Invoke();
+            RestoreBullyStatsOverrideIfNeeded();
+        }
 
         public virtual void Dispose()
         { }
@@ -87,10 +89,7 @@ namespace MortierFu
 
             PlayerTeam winnerTeam = Context.PreviousRoundWinnerTeam;
 
-            if (winnerTeam?.Members is not { Count: > 0 })
-                return null;
-
-            return winnerTeam.Members[0];
+            return winnerTeam?.Members is not { Count: > 0 } ? null : winnerTeam.Members[0];
         }
 
         protected virtual void ApplyPlayerContexts()
@@ -112,9 +111,7 @@ namespace MortierFu
                     if (!player)
                         continue;
 
-                    PlayerControlContext context = IsBully(player)
-                        ? Definition.BullyContext
-                        : Definition.RacerContext;
+                    PlayerControlContext context = IsBully(player) ? Definition.BullyContext : Definition.RacerContext;
 
                     player.SetControlContext(context);
                 }
@@ -128,11 +125,31 @@ namespace MortierFu
             if (!bullyCharacter)
                 return;
 
-            if (!Definition.ShouldApplyBullySize(Context.FlowSettings))
+            float targetSize = Definition.ResolveBullyTargetSize();
+            Context.ApplyBullySize?.Invoke(bullyCharacter, targetSize);
+        }
+        
+        protected virtual void ApplyBullyStatsOverrideIfNeeded()
+        {
+            PlayerCharacter bullyCharacter = BullyCharacter;
+
+            if (!bullyCharacter)
                 return;
 
-            float targetSize = Definition.ResolveBullyTargetSize(Context.FlowSettings);
-            Context.ApplyBullySize?.Invoke(bullyCharacter, targetSize);
+            if (!Definition.BullyStatsOverride)
+                return;
+
+            bullyCharacter.ApplyTemporaryRaceStats(Definition.BullyStatsOverride);
+        }
+
+        protected virtual void RestoreBullyStatsOverrideIfNeeded()
+        {
+            PlayerCharacter bullyCharacter = BullyCharacter;
+
+            if (!bullyCharacter)
+                return;
+
+            bullyCharacter.RestoreBaseStats();
         }
     }
 }

@@ -24,7 +24,6 @@ namespace MortierFu
         private void Reset()
         {
             UsePreviousRoundWinnerAsBully = true;
-            BullyCanPickAugment = false;
             BullyContext = PlayerControlContext.AugmentRaceBullyClassic;
             RacerContext = PlayerControlContext.AugmentRace;
         }

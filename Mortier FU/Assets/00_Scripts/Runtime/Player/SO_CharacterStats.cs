@@ -139,5 +139,48 @@ namespace MortierFu
             StrikeKnockbackDuration.ClearModifiers();
             KnockbackStunDuration.ClearModifiers();
         }
+        
+        public void CopyBaseValuesFrom(SO_CharacterStats source)
+        {
+            if (!source)
+                return;
+        
+            ClearAllModifiers();
+        
+            MaxHealth.BaseValue = source.MaxHealth.BaseValue;
+            MoveSpeed.BaseValue = source.MoveSpeed.BaseValue;
+            Accel.BaseValue = source.Accel.BaseValue;
+            Decel.BaseValue = source.Decel.BaseValue;
+            AvatarSize.BaseValue = source.AvatarSize.BaseValue;
+        
+            BombshellDamage.BaseValue = source.BombshellDamage.BaseValue;
+            BombshellSize.BaseValue = source.BombshellSize.BaseValue;
+            BombshellImpactRadius.BaseValue = source.BombshellImpactRadius.BaseValue;
+            BombshellBounces.BaseValue = source.BombshellBounces.BaseValue;
+            FireRate.BaseValue = source.FireRate.BaseValue;
+            ShotRange.BaseValue = source.ShotRange.BaseValue;
+            BombshellSpeed.BaseValue = source.BombshellSpeed.BaseValue;
+            AimWidgetSpeed.BaseValue = source.AimWidgetSpeed.BaseValue;
+        
+            StrikeDamage.BaseValue = source.StrikeDamage.BaseValue;
+            DashCharges.BaseValue = source.DashCharges.BaseValue;
+            DashCooldown.BaseValue = source.DashCooldown.BaseValue;
+            DashDuration.BaseValue = source.DashDuration.BaseValue;
+            DashForce.BaseValue = source.DashForce.BaseValue;
+            StrikeRadius.BaseValue = source.StrikeRadius.BaseValue;
+            StrikePushForce.BaseValue = source.StrikePushForce.BaseValue;
+            StrikeKnockbackDuration.BaseValue = source.StrikeKnockbackDuration.BaseValue;
+            KnockbackStunDuration.BaseValue = source.KnockbackStunDuration.BaseValue;
+        
+            KeyboardAndMouseAimWidgetSpeedMultiplier = source.KeyboardAndMouseAimWidgetSpeedMultiplier;
+            StrikePushForceOffset = source.StrikePushForceOffset;
+        
+            MaxHealthToAvatarSizeFactor = source.MaxHealthToAvatarSizeFactor;
+            StrikePushForceToStrikeRadiusFactor = source.StrikePushForceToStrikeRadiusFactor;
+            AvatarSizeToStrikeRadiusFactor = source.AvatarSizeToStrikeRadiusFactor;
+            BombshellImpactRadiusToShotRangeFactor = source.BombshellImpactRadiusToShotRangeFactor;
+            BombshellImpactRadiusToBombshellSizeFactor = source.BombshellImpactRadiusToBombshellSizeFactor;
+            AvatarSizeToForceMitigationFactor = source.AvatarSizeToForceMitigationFactor;
+        }
     }
 }

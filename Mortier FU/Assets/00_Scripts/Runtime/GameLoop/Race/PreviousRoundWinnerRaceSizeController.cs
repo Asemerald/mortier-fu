@@ -20,14 +20,14 @@ namespace MortierFu
 
             float flatDelta = CalculateAvatarFlatDeltaForTargetFinalSize(character.Stats, targetFinalSize);
 
-            if (Mathf.Approximately(flatDelta, 0f))
-                return;
+            if (!Mathf.Approximately(flatDelta, 0f))
+                character.Stats.AvatarSize.AddModifier(new StatModifier(flatDelta, E_StatModType.Flat, _modifierSource));
 
-            character.Stats.AvatarSize.AddModifier(new StatModifier(flatDelta, E_StatModType.Flat, _modifierSource));
+            character.Aspect?.Reset();
 
             if (applyControlContext)
                 character.SetControlContext(PlayerControlContext.AugmentRaceBullyClassic);
-            
+
             _activeCharacter = character;
         }
         
@@ -40,6 +40,8 @@ namespace MortierFu
             }
 
             _activeCharacter.Stats.AvatarSize.RemoveAllModifiersFromSource(_modifierSource);
+            _activeCharacter.Aspect?.Reset();
+
             _activeCharacter = null;
         }
 

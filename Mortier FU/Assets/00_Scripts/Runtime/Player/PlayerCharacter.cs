@@ -56,6 +56,9 @@ namespace MortierFu
         private InputAction _tauntAction2;
         private InputAction _tauntAction3;
         private InputAction _tauntAction4;
+        
+        private SO_CharacterStats _baseStatsInstance;
+        private bool _hasTemporaryRaceStats;
 
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
@@ -110,7 +113,8 @@ namespace MortierFu
             SafeGround = new SafeGroundCharacterComponent(this);
             
             // Create a unique instance of CharacterData for this character
-            Stats = Instantiate(_characterStatsTemplate);
+            _baseStatsInstance = Instantiate(_characterStatsTemplate);
+            Stats = _baseStatsInstance;
 
             // Handle augments
             OwnedAugments = _ownedAugments.AsReadOnly();
@@ -170,7 +174,7 @@ namespace MortierFu
             Aspect?.Dispose();
             Mortar?.Dispose();
             SafeGround?.Dispose();
-            
+
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
 
@@ -183,9 +187,15 @@ namespace MortierFu
             if (_tauntAction4 != null)
                 _tauntAction4.started -= Taunt4;
 
-            if (_toggleAimAction == null || Mortar == null) return;
-            _toggleAimAction.started -= Mortar.BeginAiming;
-            _toggleAimAction.canceled -= Mortar.EndAiming;
+            if (_toggleAimAction != null && Mortar != null)
+            {
+                _toggleAimAction.started -= Mortar.BeginAiming;
+                _toggleAimAction.canceled -= Mortar.EndAiming;
+            }
+
+            if (!_baseStatsInstance) return;
+            Destroy(_baseStatsInstance);
+            _baseStatsInstance = null;
         }
 
         public void Initialize(PlayerManager owner)
@@ -355,6 +365,43 @@ namespace MortierFu
             action = PlayerInput.actions.FindAction(actionName, isEditor);
             if (action == null)
                 Logs.LogError($"[PlayerCharacter]: Input Action '{actionName}' not found in PlayerInput actions.");
+        }
+        
+        public void ApplyTemporaryRaceStats(SO_CharacterStats statsTemplate)
+        {
+            if (!statsTemplate || !Stats)
+                return;
+
+            Stats.CopyBaseValuesFrom(statsTemplate);
+            _hasTemporaryRaceStats = true;
+
+            RefreshRuntimeAfterStatsChanged();
+        }
+
+        public void RestoreBaseStats()
+        {
+            if (!_hasTemporaryRaceStats || !Stats || !_characterStatsTemplate)
+                return;
+
+            Stats.CopyBaseValuesFrom(_characterStatsTemplate);
+            _hasTemporaryRaceStats = false;
+
+            RefreshRuntimeAfterStatsChanged();
+        }
+
+        private void RefreshRuntimeAfterStatsChanged()
+        {
+            Health?.RefreshFromStats();
+            Health?.Reset();
+
+            Controller?.Reset();
+            Aspect?.Reset();
+            Mortar?.Reset();
+            _dashState?.Reset();
+
+            _speedMultiplier.Reset();
+            _accelMultiplier.Reset();
+            _decelMultiplier.Reset();
         }
 
         #region Augments

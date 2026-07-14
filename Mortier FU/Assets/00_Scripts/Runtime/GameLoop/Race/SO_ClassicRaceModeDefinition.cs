@@ -7,12 +7,9 @@ namespace MortierFu
     {
         private void Reset()
         {
-            DisplayName = "Classic";
             UsePreviousRoundWinnerAsBully = true;
-            BullyCanPickAugment = false;
             BullyContext = PlayerControlContext.AugmentRaceBullyClassic;
             RacerContext = PlayerControlContext.AugmentRace;
-            UseGameFlowBullySize = true;
         }
 
         public override RaceModeRuntimeBase CreateRuntime() => new ClassicRaceModeRuntime();
