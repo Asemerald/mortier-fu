@@ -164,7 +164,7 @@ MonoBehaviour:
     Enabled: 1
     DefaultMode: 1
   DefaultBlend:
-    Style: 7
+    Style: 0
     Time: 2
     CustomCurve:
       serializedVersion: 2
@@ -540,6 +540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::TEMP_CameraHandler
   _cinemachineCamera: {fileID: 783346269155377468}
+  _cinemachineBrain: {fileID: 6303062500743406194}
   _targetGroup: {fileID: 4839283198232207134}
   _shakeController: {fileID: 8569257766003188856}
   _virtualTarget: {fileID: 1364309725040297222}
@@ -639,7 +640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
     BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
+    PositionDamping: {x: 0, y: 0, z: 0}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
@@ -736,7 +737,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
     BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
+    PositionDamping: {x: 0, y: 0, z: 0}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1

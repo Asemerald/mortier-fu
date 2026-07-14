@@ -24,7 +24,7 @@ namespace MortierFu
         public float AugmentRaceDuration = 20f;
         
         [Header("Augment Summary")]
-        [Tooltip("Durée minimale de l'augment summary après la race avant de passer au round.")]
+        [Tooltip("Durée de l'augment summary après la race avant de passer au round.")]
         public float AugmentSummaryDuration = 4f;
 
         [Header("Round Start")]
@@ -37,9 +37,15 @@ namespace MortierFu
         
         [Tooltip("Durée du zoom sur le joueur.")]
         public float CameraZoomOnWinnerDuration = 1f;
+
+        [Tooltip("Durée avant de faire la transition d'ouverture sur la race.")]
+        public float RacePreloadDelay = 0.5f;
         
         [Tooltip("Valeur ajoutée à CameraZoomOnWinnerDuration avant de montrer le scoreboard.")]
-        public float ShowScoreboardDelayFactor = 5f;
+        public float ShowScoreboardDelayFactor = 0.5f;
+        
+        [Tooltip("Durée de chaque transition.")]
+        public float TransitionDuration = 0.3f;
 
         [Header("Race Modes")]
         public SO_RaceModeDefinition DefaultRaceModeDefinition;

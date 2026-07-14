@@ -300,7 +300,7 @@ namespace MortierFu
 
             InitializeEndRound();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.CameraZoomOnWinnerDuration + 0.5f), cancellationToken: cancellationToken);
+            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.CameraZoomOnWinnerDuration + FlowSettings.ShowScoreboardDelayFactor), cancellationToken: cancellationToken);
             
             var matchWillEnd = IsGameOver(out gameVictor);
 
@@ -429,7 +429,7 @@ namespace MortierFu
 
             _currentRound.WinningTeam = _roundController.WinningTeam;
             
-            cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform, FlowSettings.CameraZoomOnWinnerDuration);
+            cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform, FlowSettings.CameraZoomOnWinnerDuration, _gameplayCancellation?.Token ?? CancellationToken.None).Forget();
             
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
             
@@ -618,7 +618,10 @@ namespace MortierFu
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
             _isRaceScenePrepared = false;
-
+           
+            await cameraSystem.Controller.ApplyRaceCameraMapConfigAsync(cancellationToken);  
+            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
+            
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -637,8 +640,6 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
         }
-
-        private float GetAugmentSummaryMinimumDuration() => FlowSettings ? Mathf.Max(0f, FlowSettings.AugmentSummaryDuration) : 4f;
 
         private async UniTask PreloadArenaMapDuringAugmentSummaryAsync(CancellationToken cancellationToken)
         {
@@ -678,7 +679,7 @@ namespace MortierFu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UniTask minimumDurationTask = UniTask.Delay(TimeSpan.FromSeconds(GetAugmentSummaryMinimumDuration()), cancellationToken: cancellationToken);
+            UniTask minimumDurationTask = UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.AugmentSummaryDuration), cancellationToken: cancellationToken);
 
             UniTask loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
 
@@ -706,7 +707,7 @@ namespace MortierFu
         {
             if (_isRaceScenePrepared)
                 return;
-
+            
             EnablePlayerGravity(false);
 
             audioService.SetPhase(1);
@@ -714,9 +715,6 @@ namespace MortierFu
             UpdateGameState(GameState.AugmentIntro);
 
             StartRace();
-
-            cameraSystem.Controller.ApplyRaceCameraMapConfigInstant();
-            cameraSystem.Controller?.ResetToMainCamera();
 
             _isRaceScenePrepared = true;
         }
@@ -742,7 +740,7 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(0.3f);
+            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
             
             await levelSystem.LoadRaceMap();
 
@@ -750,15 +748,17 @@ namespace MortierFu
             _isArenaMapLoaded = false;
             _isRaceScenePrepared = false;
 
+            await cameraSystem.Controller.ApplyRaceCameraMapConfigAsync(cancellationToken);  
+            
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
             
             HideScores();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1.3f), cancellationToken: cancellationToken);
+            await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(0.3f);
+            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
         }
 
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());

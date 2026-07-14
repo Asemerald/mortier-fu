@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Cysharp.Threading.Tasks;
 using Unity.Cinemachine;
@@ -18,7 +19,7 @@ namespace MortierFu
 
         [Header("Cinemachine")] [SerializeField]
         private CinemachineCamera _cinemachineCamera;
-
+        [SerializeField] private CinemachineBrain _cinemachineBrain;
         [SerializeField] private CinemachineTargetGroup _targetGroup;
         [SerializeField] private CameraShakeController _shakeController;
         [SerializeField] private Transform _virtualTarget;
@@ -73,21 +74,17 @@ namespace MortierFu
                     _isInLobby = false;
                 }
             };
-            
         }
 
-        public void SetArenaMode(bool isArena)
-        {
-            _isArenaMap = isArena;
-        }
+        public void SetArenaMode(bool isArena) => _isArenaMap = isArena;
 
-        private void LateUpdate()
-        {
-            if (_isStaticRaceCamera) return;
-
-            if (!_targetGroup.IsEmpty)
-                UpdateCameraForTargets();
-        }
+            private void LateUpdate() 
+            { 
+                if (_isStaticRaceCamera) return; 
+                
+                if (!_targetGroup.IsEmpty)
+                UpdateCameraForTargets(); 
+            }
 
         public void PopulateTargetGroup(Transform[] playerTransforms, float weight = 1f, float radius = 0f)
         {
@@ -148,35 +145,28 @@ namespace MortierFu
 
         private void HandleArenaFallback(Vector3 center, float extent)
         {
-            if (_arenaMode == ArenaCameraMode.FollowingPlayers &&
-                extent > _cameraSettings.ArenaStopFollowExtent)
+            switch (_arenaMode)
             {
-                _arenaMode = ArenaCameraMode.StaticMapView;
-                _virtualTarget.position = Camera.transform.position -
-                                          _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
-            }
-            else if (_arenaMode == ArenaCameraMode.StaticMapView &&
-                     extent < _cameraSettings.ArenaResumeFollowExtent)
-            {
-                _actualLerpSpeed = _cameraSettings.MinPositionLerpSpeed;
-                _arenaMode = ArenaCameraMode.FollowingPlayers;
+                case ArenaCameraMode.FollowingPlayers when
+                    extent > _cameraSettings.ArenaStopFollowExtent:
+                    _arenaMode = ArenaCameraMode.StaticMapView;
+                    _virtualTarget.position = Camera.transform.position - _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
+                    break;
+                case ArenaCameraMode.StaticMapView when extent < _cameraSettings.ArenaResumeFollowExtent:
+                    _actualLerpSpeed = _cameraSettings.MinPositionLerpSpeed;
+                    _arenaMode = ArenaCameraMode.FollowingPlayers;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             HandleBoundBox();
 
             if (_arenaMode == ArenaCameraMode.StaticMapView)
             {
-                _virtualTarget.position = Vector3.Lerp(
-                    _virtualTarget.position,
-                    _levelSystem.CurrentCameraMapConfig.PositionForMap,
-                    Time.deltaTime * _cameraSettings.MinPositionLerpSpeed
-                );
+                _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _levelSystem.CurrentCameraMapConfig.PositionForMap, Time.deltaTime * _cameraSettings.MinPositionLerpSpeed);
 
-                _currentOrthoSize = Mathf.Lerp(
-                    _currentOrthoSize,
-                    _levelSystem.CurrentCameraMapConfig.OrthoSize,
-                    Time.deltaTime * _cameraSettings.ZoomLerpSpeed
-                );
+                _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _levelSystem.CurrentCameraMapConfig.OrthoSize, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
 
                 ApplyLens();
             }
@@ -186,53 +176,26 @@ namespace MortierFu
             }
         }
 
-        private void HandleBoundBox()
-        {
-            _boundbox.size = new Vector3((_maxArenaOrthoSize - _currentOrthoSize + _dampingBound) * _camera.aspect,
-                _maxArenaOrthoSize - _currentOrthoSize + _dampingBound, 1);
-        }
+        private void HandleBoundBox() => _boundbox.size = new Vector3((_maxArenaOrthoSize - _currentOrthoSize + _dampingBound) * _camera.aspect, _maxArenaOrthoSize - _currentOrthoSize + _dampingBound, 1);
 
         private void FollowPlayers(Vector3 center, float extent)
         {
-            _actualLerpSpeed = Mathf.Lerp(_actualLerpSpeed, _cameraSettings.MaxPositionLerpSpeed,
-                Time.deltaTime * _cameraSettings.LerpSpeed);
+            _actualLerpSpeed = Mathf.Lerp(_actualLerpSpeed, _cameraSettings.MaxPositionLerpSpeed, Time.deltaTime * _cameraSettings.LerpSpeed);
 
-            _virtualTarget.position = Vector3.Lerp(
-                _virtualTarget.position,
-                center,
-                Time.deltaTime * _actualLerpSpeed
-            );
+            _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, center, Time.deltaTime * _actualLerpSpeed);
+            
+            float clampedExtent = Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
 
+            float t = Mathf.InverseLerp(_cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent, clampedExtent);
 
-            float clampedExtent = Mathf.Clamp(
-                extent,
-                _cameraSettings.MinPlayersExtent,
-                _cameraSettings.MaxPlayersExtent
-            );
+            float targetOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _levelSystem.CurrentCameraMapConfig.OrthoSize, t);
 
-            float t = Mathf.InverseLerp(
-                _cameraSettings.MinPlayersExtent,
-                _cameraSettings.MaxPlayersExtent,
-                clampedExtent
-            );
-
-            float targetOrtho = Mathf.Lerp(
-                _cameraSettings.MinOrthoSize,
-                _levelSystem.CurrentCameraMapConfig.OrthoSize,
-                t
-            );
-
-            _currentOrthoSize = Mathf.Lerp(
-                _currentOrthoSize,
-                targetOrtho,
-                Time.deltaTime * _cameraSettings.ZoomLerpSpeed
-            );
+            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
 
-        public async UniTask ApplyCameraMapConfigAsync(float tolerance = 0.01f,
-            float maxWaitSeconds = 2f)
+        public async UniTask ApplyCameraMapConfigAsync(float tolerance = 0.01f, float maxWaitSeconds = 2f)
         {
             _isStaticRaceCamera = true;
             ClearTargetGroupMember();
@@ -269,7 +232,7 @@ namespace MortierFu
                 }
             }
         }
-
+        
         public void ApplyRaceCameraMapConfigInstant()
         {
             if (!_cinemachineCamera || !_virtualTarget || _levelSystem == null)
@@ -326,11 +289,7 @@ namespace MortierFu
                 _virtualTarget.position = b.center;
             }
 
-            float midOrtho = Mathf.Lerp(
-                _cameraSettings.MinOrthoSize,
-                _cameraSettings.MaxOrthoSize,
-                0.5f
-            );
+            float midOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _cameraSettings.MaxOrthoSize, 0.5f);
 
             _currentOrthoSize = midOrtho;
             ApplyLens();
@@ -342,19 +301,11 @@ namespace MortierFu
             _boundbox.transform.position = position + _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
         }
 
-        public void Shake(float aoeRange, float power, float travelTime, float delay = 0f)
-        {
-            _shakeController?.CallCameraShake(aoeRange, power, travelTime, delay);
-        }
-
-        public void PunchZoom(float intensity, float duration)
-        {
-            _shakeController?.CallZoomPulse(intensity, duration);
-        }
+        public void Shake(float aoeRange, float power, float travelTime, float delay = 0f) => _shakeController?.CallCameraShake(aoeRange, power, travelTime, delay);
 
         private void ApplyLens()
         {
-            float shakeFovOffset = _shakeController != null ? _shakeController.AddedFOV : 0f;
+            float shakeFovOffset = _shakeController ? _shakeController.AddedFOV : 0f;
             float newOrthographicSize = _currentOrthoSize + shakeFovOffset;
 
             _cinemachineCamera.Lens.OrthographicSize = newOrthographicSize;
@@ -370,7 +321,7 @@ namespace MortierFu
 
             foreach (var t in targets)
             {
-                if (t.Object == null) continue;
+                if (!t.Object) continue;
 
                 if (!firstFound)
                 {
@@ -398,39 +349,94 @@ namespace MortierFu
             _endFightTarget = go.transform;
         }
 
-        public void EndFightCameraMovement(Transform playerWin, float zoomDuration = 1f)
+        public async UniTask EndFightCameraMovement(Transform playerWin, float zoomDuration, CancellationToken cancellationToken = default)
         {
-            //TODO Refacto en UniTask pour Victor
+            if (!playerWin || !zoomCineCam)
+                return;
+
             InitEndFightTarget();
 
             _endFightTarget.position = playerWin.position + _offset;
-                
+
             zoomCineCam.Target.TrackingTarget = _endFightTarget;
-            zoomCineCam.gameObject.SetActive(true);
 
-            float startOrtho = _cinemachineCamera.Lens.OrthographicSize;
-            float targetOrtho = startOrtho * 0.7f;
-            float elapsed = 0f;
-            
-            while (elapsed < zoomDuration)
+            float duration = Mathf.Max(0.01f, zoomDuration);
+
+            CinemachineBlendDefinition previousBlend = default;
+            bool hasBrain = _cinemachineBrain != null;
+
+            if (hasBrain)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / zoomDuration);
-
-                float newOrtho = Mathf.Lerp(startOrtho, targetOrtho, t * t);
-                _cinemachineCamera.Lens.OrthographicSize = newOrtho;
-                _renderOnTopCamera.orthographicSize = newOrtho;
+                previousBlend = _cinemachineBrain.DefaultBlend;
+                _cinemachineBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Custom, duration);
             }
-            
-            var cameraForward = zoomCineCam.transform.forward;
-            cameraForward.y = 0;
-            
-            playerWin.transform.LookAt(cameraForward);
+
+            float startRenderOrtho = _renderOnTopCamera ? _renderOnTopCamera.orthographicSize : 0f;
+            float targetRenderOrtho = zoomCineCam.Lens.OrthographicSize;
+
+            try
+            {
+                zoomCineCam.gameObject.SetActive(true);
+
+                float elapsed = 0f;
+
+                while (elapsed < duration)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    elapsed += Time.deltaTime;
+
+                    float t = Mathf.Clamp01(elapsed / duration);
+                    float easedT = t * t * (3f - 2f * t);
+
+                    if (_renderOnTopCamera)
+                        _renderOnTopCamera.orthographicSize = Mathf.Lerp(startRenderOrtho, targetRenderOrtho, easedT);
+
+                    await UniTask.Yield();
+                }
+
+                if (_renderOnTopCamera)
+                    _renderOnTopCamera.orthographicSize = targetRenderOrtho;
+
+                FaceWinnerTowardCamera(playerWin);
+            }
+            finally
+            {
+                if (hasBrain)
+                    _cinemachineBrain.DefaultBlend = previousBlend;
+            }
+        }
+        
+        private void FaceWinnerTowardCamera(Transform playerWin)
+        {
+            if (!playerWin || !_camera)
+                return;
+
+            Vector3 direction = _camera.transform.position - playerWin.position;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.001f)
+                return;
+
+            playerWin.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         }
 
         public void ResetToMainCamera()
         {
+            if (!zoomCineCam)
+                return;
+
             zoomCineCam.gameObject.SetActive(false);
+        }
+        
+        public async UniTask ApplyRaceCameraMapConfigAsync(CancellationToken cancellationToken)
+        {
+            ResetToMainCamera();
+            ApplyRaceCameraMapConfigInstant();
+
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, cancellationToken);
+
+            ApplyRaceCameraMapConfigInstant();
         }
     }
 }
