@@ -7,6 +7,7 @@ namespace MortierFu
     {
         [SerializeField] private bool _isAutomatic = true;
         [SerializeField] private bool destroyOnEnd = true;
+        [SerializeField] private bool _waitForRaceStart;
 
         public Transform _target;
         public float _speed;
@@ -17,17 +18,33 @@ namespace MortierFu
         private bool _isActivated = false;
         private Action<Movable> _releaseCallback;
 
+        private GameModeBase _gm;
+
         private void Start()
         {
+            //récup le gamemode et lie la fonction ActiveMovement au début de la race et que le _waitForRaceStart est en true
+            _gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gm == null)
+                return;
+            _gm.OnRacePlayerConfirmation += ActivateMovement;
+            //SIMON
+            
             if (!_target)
                 return;
 
             InitializeMovementPoints();
         }
+        //SIMON
+        private void ActivateMovement()
+        {
+            _waitForRaceStart = false;
+        }
+        //SIMON
 
         private void Update()
         {
-            if (!_target || (!_isAutomatic && !_isActivated))
+            if (!_target || (!_isAutomatic && !_isActivated) || _waitForRaceStart)
                 return;
 
             transform.position = Vector3.MoveTowards(transform.position, _targetPoint, _speed / 1000);
