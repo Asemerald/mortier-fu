@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -37,10 +38,12 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            
+            Logs.LogWarning("OUINN");
 
             if (!player || !_counters.Remove(player)) return;
-
+            
+            Logs.LogWarning("OUINNNN");
+            
             if (!IsPlayerValid(player))
             {
                 _playersCache.Remove(player);
@@ -48,7 +51,11 @@ namespace MortierFu
                 return;
             }
 
-            if (CheckOtherZone(other)) return;
+            Logs.LogWarning("OUINNNNN");
+            
+            //if (CheckOtherZone(other)) return;
+            
+            Logs.LogWarning("OUINNNNNNNNNN");
             
             ApplyEffectZoneExit(player,other);
         }
@@ -66,10 +73,7 @@ namespace MortierFu
                     return true;
                 }
             }
-
             return false;
-            
-            
         }
         
 

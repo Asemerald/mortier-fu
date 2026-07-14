@@ -57,6 +57,7 @@ namespace MortierFu
         private InputAction _tauntAction3;
         private InputAction _tauntAction4;
 
+        public PlayerFlags Properties { get; private set; } = new PlayerFlags();
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
         public ControllerCharacterComponent Controller { get; private set; }
@@ -75,7 +76,7 @@ namespace MortierFu
 
         public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
-
+    
         public bool AreAugmentsActive { get; private set; }
 
         // Assets specified by player color.
