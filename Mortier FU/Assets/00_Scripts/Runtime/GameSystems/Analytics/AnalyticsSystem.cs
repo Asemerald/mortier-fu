@@ -60,7 +60,7 @@ namespace MortierFu.Analytics
             _gameData = new AnalyticsData()
             {
                 gameId = System.Guid.NewGuid().ToString(),
-                date = System.DateTime.UtcNow.ToString("o"),
+                date = System.DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds
@@ -316,6 +316,12 @@ namespace MortierFu.Analytics
         {
             if (roundData == null || roundData.players == null) return;
 
+            // Build sécurité
+            #if UNITY_EDITOR
+            await UniTask.CompletedTask;
+            return;
+            #endif
+            
             foreach (var player in roundData.players)
             {
                 try
