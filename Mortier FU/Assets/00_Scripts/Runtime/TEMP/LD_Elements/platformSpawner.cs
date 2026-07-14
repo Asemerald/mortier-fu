@@ -21,6 +21,7 @@ namespace MortierFu
 
         [FormerlySerializedAs("targetPoint")]
         [SerializeField] private Transform _targetPoint;
+        [SerializeField] private Transform _firstSpawnPoint;
 
         [FormerlySerializedAs("spawnTimeDelay")]
         [SerializeField] private Vector2 _spawnDelayRange = new(1f, 3f);
@@ -43,6 +44,7 @@ namespace MortierFu
 
         private float _spawnTimer;
         private bool _isInitialized;
+        private Transform _startPoint;
 
         private void Awake()
         {
@@ -52,6 +54,13 @@ namespace MortierFu
         private void OnEnable()
         {
             _spawnTimer = _spawnImmediately ? 0f : GetRandomSpawnDelay();
+            
+            //Ajouter cette ligne pour définir un point de spawn plus avancé lors du premier spawn de la platform, pour éviter qu'un joueur soit exclu
+            if (_firstSpawnPoint != null)
+            {
+                _startPoint = _firstSpawnPoint;
+            }
+            //
         }
 
         private void Update()
@@ -171,8 +180,15 @@ namespace MortierFu
             Movable platform = entry.Pool.Get();
 
             platform.transform.SetParent(transform);
-            platform.transform.SetPositionAndRotation(transform.position, transform.rotation);
+            platform.transform.SetPositionAndRotation(_startPoint.position, transform.rotation);
             platform.Configure(_targetPoint, _platformSpeed);
+            
+            //Reset le spawn au transform actual après la première apparrition
+            if (_startPoint == _firstSpawnPoint)
+            {
+                _startPoint = transform;
+            }
+            //
         }
 
         private PlatformPoolEntry GetRandomPoolEntry() => _poolEntries.Count == 0 ? null : _poolEntries[Random.Range(0, _poolEntries.Count)];
