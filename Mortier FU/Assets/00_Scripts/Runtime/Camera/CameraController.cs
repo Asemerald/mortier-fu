@@ -89,7 +89,6 @@ namespace MortierFu
 
         private void LateUpdate()
         {
-            Logs.LogError($"{_arenaMode.ToString()}");
             if (_isStaticRaceCamera) return;
 
             if (!_targetGroup.IsEmpty)

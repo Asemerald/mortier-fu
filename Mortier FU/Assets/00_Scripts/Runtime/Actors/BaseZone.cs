@@ -21,7 +21,7 @@ namespace MortierFu
         private void OnTriggerEnter(Collider other)
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
-
+            
             if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
 
             if (!IsPlayerValid(player))
