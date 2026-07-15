@@ -45,6 +45,7 @@ namespace MortierFu
             {
                 _playersCache.Remove(player);
                 _counters.Remove(player);
+                ApplyEffectZoneExit(player, null);
                 return;
             }
 
@@ -81,6 +82,7 @@ namespace MortierFu
                 {
                     _playersCache.Remove(player);
                     _counters.Remove(player);
+                    ApplyEffectZoneExit(player, null);
                     return;
                 }
                 
