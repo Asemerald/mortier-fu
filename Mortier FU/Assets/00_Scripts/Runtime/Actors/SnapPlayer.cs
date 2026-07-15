@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace MortierFu
         private Vector3 _oldPivot;
 
         private readonly HashSet<PlayerCharacter> _playersOnPlatform = new();
+        
 
         #endregion
 
@@ -21,6 +23,22 @@ namespace MortierFu
         void Awake()
         {
             _lastPosition = transform.position;
+        }
+
+        private void OnEnable()
+        {
+            if (GameService.CurrentGameMode is GameModeBase gameModeBase)
+            {
+                gameModeBase.OnRoundStarted += ResetPlatform;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (GameService.CurrentGameMode is GameModeBase gameModeBase)
+            {
+                gameModeBase.OnRoundStarted -= ResetPlatform;
+            }
         }
 
         void FixedUpdate()
@@ -94,6 +112,11 @@ namespace MortierFu
 
             Vector3 newPos = controller.rigidbody.position + (transform.position - _oldPivot);
             controller.rigidbody.MovePosition(newPos);
+        }
+
+        private void ResetPlatform(RoundInfo info)
+        {
+            _playersOnPlatform.Clear();
         }
     }
 }
