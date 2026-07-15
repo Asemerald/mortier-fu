@@ -78,9 +78,6 @@ namespace MortierFu
                 Character = character,
             });
             
-            if (debug)
-                Logs.Log("Entering Dash State");
-
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Dash, character.transform.position);
             //character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
@@ -115,9 +112,6 @@ namespace MortierFu
             if (_trailInstance)
                 _trailInstance.emitting = false;
 
-            if (debug)
-                Logs.Log("Exiting Dash State");
-            
             EventBus<TriggerEndDash>.Raise(new TriggerEndDash()
             {
                 Character = character,

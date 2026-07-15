@@ -9,9 +9,11 @@ namespace MortierFu
 
         protected bool debug = false;
         
+        protected static readonly int DashHash = Animator.StringToHash("Dash");
+        protected static readonly int DeathHash = Animator.StringToHash("Death");
         protected static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
         protected static readonly int ShootHash = Animator.StringToHash("Shoot");
-        protected static readonly int DashHash = Animator.StringToHash("Dash");
+        protected static readonly int StunHash = Animator.StringToHash("Stun");
         
         protected const float k_crossFadeDuration = 0.1f; 
         

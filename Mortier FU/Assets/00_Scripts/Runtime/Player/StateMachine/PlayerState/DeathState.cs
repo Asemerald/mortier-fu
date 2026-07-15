@@ -10,15 +10,14 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            if(debug) Logs.Log("Entering Death State");
-            
             character.Controller.ResetVelocity();
+            
+            animator.CrossFade(DeathHash, k_crossFadeDuration, 0);
+            
             character.Owner.DespawnInGame();
         }
         
         public override void OnExit()
-        {
-            if (debug) Logs.Log("Exiting Death State");
-        }
+        { }
     }
 }
