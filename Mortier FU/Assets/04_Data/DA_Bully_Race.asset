@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f16de4948096c64cb53c1ffdb7e747d, type: 3}
+  m_Name: DA_Bully_Race
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.DA_CharacterData
+  <MaxHealth>k__BackingField:
+    baseValue: 100
+    clamp: 1
+    valueRange: {x: 1, y: 3.402823e+38}
+  <MoveSpeed>k__BackingField:
+    baseValue: 9.15
+    clamp: 1
+    valueRange: {x: 4, y: 24}
+  <Accel>k__BackingField:
+    baseValue: 120
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <Decel>k__BackingField:
+    baseValue: 60
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <AvatarSize>k__BackingField:
+    baseValue: 1
+    clamp: 1
+    valueRange: {x: 0.1, y: 10}
+  <BombshellDamage>k__BackingField:
+    baseValue: 40
+    clamp: 1
+    valueRange: {x: 5, y: 3.4028235e+38}
+  <BombshellSize>k__BackingField:
+    baseValue: 0.6
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <BombshellImpactRadius>k__BackingField:
+    baseValue: 4.5
+    clamp: 1
+    valueRange: {x: 1.2, y: 17.5}
+  <BombshellBounces>k__BackingField:
+    baseValue: 0
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <FireRate>k__BackingField:
+    baseValue: 5
+    clamp: 1
+    valueRange: {x: 1, y: 30}
+  <ShotRange>k__BackingField:
+    baseValue: 25
+    clamp: 1
+    valueRange: {x: 5, y: 70}
+  <BombshellSpeed>k__BackingField:
+    baseValue: 37
+    clamp: 1
+    valueRange: {x: 5, y: 120}
+  <AimWidgetSpeed>k__BackingField:
+    baseValue: 40
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <KeyboardAndMouseAimWidgetSpeedMultiplier>k__BackingField: 0.05
+  <StrikeDamage>k__BackingField:
+    baseValue: 0
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <DashCharges>k__BackingField:
+    baseValue: 1
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <DashCooldown>k__BackingField:
+    baseValue: 4
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <DashDuration>k__BackingField:
+    baseValue: 0.2
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <DashForce>k__BackingField:
+    baseValue: 8
+    clamp: 1
+    valueRange: {x: 8, y: 12}
+  <StrikeRadius>k__BackingField:
+    baseValue: 2.4
+    clamp: 1
+    valueRange: {x: 1.5, y: 8}
+  <StrikePushForce>k__BackingField:
+    baseValue: 11
+    clamp: 1
+    valueRange: {x: 5, y: 16}
+  StrikePushForceOffset: 0
+  <StrikeKnockbackDuration>k__BackingField:
+    baseValue: 0.4
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <KnockbackStunDuration>k__BackingField:
+    baseValue: 0.5
+    clamp: 0
+    valueRange: {x: -3.4028235e+38, y: 3.4028235e+38}
+  <MaxHealthToAvatarSizeFactor>k__BackingField: 0.005
+  <StrikePushForceToStrikeRadiusFactor>k__BackingField: 0.2
+  <AvatarSizeToStrikeRadiusFactor>k__BackingField: 1
+  <BombshellImpactRadiusToShotRangeFactor>k__BackingField: 1.2
+  <BombshellImpactRadiusToBombshellSizeFactor>k__BackingField: 0.1
+  <AvatarSizeToForceMitigationFactor>k__BackingField: 0.225
