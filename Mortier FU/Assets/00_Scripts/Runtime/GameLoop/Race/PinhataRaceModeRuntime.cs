@@ -17,7 +17,8 @@ namespace MortierFu
 
         private SO_PinhataRaceModeDefinition PinhataDefinition => Definition as SO_PinhataRaceModeDefinition;
 
-        public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex, Transform fallback)
+        public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex,
+            Transform fallback)
         {
             if (!Reporter)
                 return fallback;
@@ -25,37 +26,16 @@ namespace MortierFu
             if (IsBully(player))
                 return Reporter.BullySpawnPoint ? Reporter.BullySpawnPoint : fallback;
 
-            Transform racerSpawn = Reporter.GetRacerSpawnPoint(racerIndex);
+            var racerSpawn = Reporter.GetRacerSpawnPoint(racerIndex);
             return racerSpawn ? racerSpawn : fallback;
         }
 
-        public override RaceAugmentLayout BuildAugmentLayout(int augmentCount)
-        {
-            if (augmentCount <= 0)
-                return base.BuildAugmentLayout(augmentCount);
-
-            PlayerCharacter bullyCharacter = BullyCharacter;
-
-            if (!bullyCharacter)
-            {
-                Logs.LogWarning("[PinhataRaceModeRuntime] Missing bully character. Falling back to LevelReporter layout.");
-                return base.BuildAugmentLayout(augmentCount);
-            }
-
-            Vector3 bodyPosition = GetBullyBodyWorldPosition();
-            var points = new Vector3[augmentCount];
-
-            for (int i = 0; i < points.Length; i++)
-                points[i] = bodyPosition;
-
-            return new RaceAugmentLayout(bullyCharacter.transform, points, parentPointsToPivot: true, useRotatorPrediction: false, heightOffset: 0f);
-        }
-
-        public override void AfterShowcaseCompleted() => PrepareHiddenPickupsInsideBully();
+        public override UniTask AfterShowcaseCompleted(CancellationToken cancellationToken) => PrepareHiddenPickupsInsideBully(cancellationToken);
 
         public override void BeginGameplay()
         {
             base.BeginGameplay();
+
             RegisterStrikeListener();
         }
 
@@ -75,12 +55,12 @@ namespace MortierFu
             _hiddenPickupIndexes.Clear();
         }
 
-        private void PrepareHiddenPickupsInsideBully()
+        private async UniTask PrepareHiddenPickupsInsideBully(CancellationToken cancellationToken)
         {
             _hiddenPickupIndexes.Clear();
 
-            AugmentSelectionSystem selectionSystem = Context?.AugmentSelectionSystem;
-            PlayerCharacter bullyCharacter = BullyCharacter;
+            var selectionSystem = Context?.AugmentSelectionSystem;
+            var bullyCharacter = BullyCharacter;
 
             if (selectionSystem == null || !bullyCharacter)
                 return;
@@ -88,18 +68,21 @@ namespace MortierFu
             CancelDrops();
             _dropCancellation = new CancellationTokenSource();
 
-            int pickupCount = selectionSystem.PickupCount;
+            var token = _dropCancellation.Token;
+            var pickupCount = selectionSystem.PickupCount;
 
-            for (int i = 0; i < pickupCount; i++)
+            var tasks = new List<UniTask>();
+
+            for (var i = 0; i < pickupCount; i++)
             {
-                selectionSystem.AttachPickupTo(i, bullyCharacter.transform, new Vector3(bullyCharacter.transform.position.x, GetInsideBullyLocalOffset(), bullyCharacter.transform.position.z));
-                selectionSystem.SetPickupInteractable(i, false);
-                selectionSystem.SetPickupVisible(i, false);
+                var pickupIndex = i;
 
-                _hiddenPickupIndexes.Enqueue(i);
+                tasks.Add(selectionSystem.AttachPickupToAsync(pickupIndex, bullyCharacter.transform, Vector3.zero, PinhataDefinition.InhalePickupDuration, token));
+
+                _hiddenPickupIndexes.Enqueue(pickupIndex);
             }
 
-            Logs.Log($"[PinhataRaceModeRuntime] Hidden {pickupCount} pickups inside bully.");
+            await UniTask.WhenAll(tasks);
         }
 
         private void RegisterStrikeListener()
@@ -169,12 +152,14 @@ namespace MortierFu
 
             try
             {
-                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, GetDropHeight(), GetDropDuration(), _dropCancellation?.Token ?? CancellationToken.None);
+                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, GetDropHeight(), GetDropDuration(),
+                    _dropCancellation?.Token ?? CancellationToken.None);
 
                 Logs.Log($"[PinhataRaceModeRuntime] Dropped pickup {pickupIndex}.");
             }
             catch (OperationCanceledException)
-            { }
+            {
+            }
         }
 
         private Vector3 GetDropPosition(PlayerCharacter striker)
@@ -204,23 +189,6 @@ namespace MortierFu
 
             return position;
         }
-
-        private Vector3 GetBullyBodyWorldPosition()
-        {
-            PlayerCharacter bullyCharacter = BullyCharacter;
-
-            if (!bullyCharacter)
-                return Vector3.zero;
-
-            Vector3 position = bullyCharacter.transform.TransformPoint(new Vector3(bullyCharacter.transform.position.x, GetInsideBullyLocalOffset(), bullyCharacter.transform.position.z));
-
-            if (PinhataDefinition && PinhataDefinition.OverrideInsideBullyWorldY)
-                position.y = PinhataDefinition.InsideBullyWorldY;
-
-            return position;
-        }
-
-        private float GetInsideBullyLocalOffset() => PinhataDefinition ? PinhataDefinition.InsideBullyWorldY : 1.2f;
 
         private float GetDropHeight() => PinhataDefinition ? Mathf.Max(0f, PinhataDefinition.DropHeight) : 1.2f;
 

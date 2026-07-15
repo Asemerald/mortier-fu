@@ -13,11 +13,9 @@ namespace MortierFu
         [Min(0f)] public float DropHeight = 1.2f;
         [Min(0.05f)] public float DropDuration = 0.35f;
         [Min(0f)] public float HitCooldown = 0.25f;
+        [Min(0f)] public float InhalePickupDuration = 0.45f;
         
         [Header("Pinhata Pickup Positions")]
-        public bool OverrideInsideBullyWorldY = false;
-        public float InsideBullyWorldY = 1.2f;
-
         public bool OverrideDropWorldY = false;
         public float DropWorldY = 0.5f;
 
