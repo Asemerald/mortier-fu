@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MortierFu.Shared;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
@@ -17,9 +18,11 @@ namespace MortierFu
         [SerializeField] private GameObject _redLight;
 
         [Header("Traffic Light")]
-        [SerializeField] private bool _startWithRedLight = true;
-        [SerializeField] private float _greenTimeDuration = 10f;
-        [SerializeField] private float _redTimeDuration = 4.5f;
+        [SerializeField] private bool _useTrafficLights = true;
+        [ShowIf("_useTrafficLights")][SerializeField] private bool _startWithRedLight = true;
+        [ShowIf("_useTrafficLights")][SerializeField] private float _greenTimeDuration = 10f;
+        [ShowIf("_useTrafficLights")][SerializeField] private float _redTimeDuration = 4.5f;
+        
 
         [Header("Spawn")]
         [SerializeField] private float _vehicleSpawnCooldown = 0.9f;
@@ -66,17 +69,21 @@ namespace MortierFu
         {
             if (!_isInitialized)
                 return;
-
-            SetTrafficLight(_startWithRedLight);
+            if (_useTrafficLights)
+            {
+                SetTrafficLight(_startWithRedLight);
+            }
+            
         }
 
         private void Update()
         {
             if (!_isInitialized)
                 return;
-
-            UpdateTrafficLight();
-
+            if (_useTrafficLights)
+            {
+                UpdateTrafficLight();
+            }
             if (_isRed)
                 return;
 
