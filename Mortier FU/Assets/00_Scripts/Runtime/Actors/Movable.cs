@@ -42,7 +42,7 @@ namespace MortierFu
         }
         //SIMON
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (!_target || (!_isAutomatic && !_isActivated) || _waitForRaceStart)
                 return;
