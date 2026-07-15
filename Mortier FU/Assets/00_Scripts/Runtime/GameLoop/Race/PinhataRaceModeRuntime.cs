@@ -14,6 +14,25 @@ namespace MortierFu
         private CancellationTokenSource _dropCancellation;
         private float _lastDropTime = -999f;
 
+        private static readonly float[] DropAngleOffsets =
+        {
+            0f,
+            25f, -25f,
+            50f, -50f,
+            75f, -75f,
+            110f, -110f,
+            145f, -145f,
+            180f
+        };
+
+        private static readonly float[] DropRadiusMultipliers =
+        {
+            1f,
+            0.75f,
+            0.5f,
+            1.25f
+        };
+
         private SO_PinhataRaceModeDefinition PinhataDefinition => Definition as SO_PinhataRaceModeDefinition;
 
         public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex,
@@ -76,7 +95,8 @@ namespace MortierFu
             {
                 var pickupIndex = i;
 
-                tasks.Add(selectionSystem.AttachPickupToAsync(pickupIndex, bullyCharacter.transform, Vector3.zero, PinhataDefinition.InhalePickupDuration, token));
+                tasks.Add(selectionSystem.AttachPickupToAsync(pickupIndex, bullyCharacter.transform, Vector3.zero,
+                    PinhataDefinition.InhalePickupDuration, token));
 
                 _hiddenPickupIndexes.Enqueue(pickupIndex);
             }
@@ -151,7 +171,8 @@ namespace MortierFu
 
             try
             {
-                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, PinhataDefinition.DropHeight, PinhataDefinition.DropDuration, _dropCancellation?.Token ?? CancellationToken.None);
+                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, PinhataDefinition.DropHeight,
+                    PinhataDefinition.DropDuration, _dropCancellation?.Token ?? CancellationToken.None);
             }
             catch (OperationCanceledException)
             { }
@@ -159,30 +180,80 @@ namespace MortierFu
 
         private Vector3 GetDropPosition(PlayerCharacter striker)
         {
-            var bullyCharacter = BullyCharacter;
+            PlayerCharacter bullyCharacter = BullyCharacter;
 
             if (!bullyCharacter)
                 return Vector3.zero;
 
-            var center = bullyCharacter.transform.position;
-            var direction = striker ? center - striker.transform.position : UnityEngine.Random.insideUnitSphere;
+            Vector3 center = bullyCharacter.transform.position;
+            Vector3 preferredDirection = GetPreferredDropDirection(center, striker);
+
+            float radius = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropRadius) : 2.5f;
+
+            return ResolveSafeDropPosition(center, preferredDirection, radius);
+        }
+
+        private Vector3 GetPreferredDropDirection(Vector3 center, PlayerCharacter striker)
+        {
+            Vector3 direction = striker ? striker.transform.position - center : UnityEngine.Random.insideUnitSphere;
+            
             direction.y = 0f;
 
             if (direction.sqrMagnitude < 0.001f)
                 direction = UnityEngine.Random.insideUnitSphere;
 
             direction.y = 0f;
-
             direction.Normalize();
 
-            var radius = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropRadius) : 2.5f;
-            var position = center + direction * radius;
+            return direction;
+        }
+
+        private Vector3 ResolveSafeDropPosition(Vector3 center, Vector3 preferredDirection, float radius)
+        {
+            for (int radiusIndex = 0; radiusIndex < DropRadiusMultipliers.Length; radiusIndex++)
+            {
+                float currentRadius = radius * DropRadiusMultipliers[radiusIndex];
+
+                for (int angleIndex = 0; angleIndex < DropAngleOffsets.Length; angleIndex++)
+                {
+                    Vector3 direction = Quaternion.AngleAxis(DropAngleOffsets[angleIndex], Vector3.up) * preferredDirection;
+                    Vector3 candidate = center + direction * currentRadius;
+
+                    candidate = ApplyDropY(candidate, center);
+
+                    if (IsSafeDropPosition(center, candidate))
+                        return candidate;
+                }
+            }
+
+            Vector3 fallback = center + preferredDirection * Mathf.Min(radius, 1f);
+            return ApplyDropY(fallback, center);
+        }
+
+        private Vector3 ApplyDropY(Vector3 position, Vector3 center)
+        {
             position.y = center.y;
 
             if (PinhataDefinition && PinhataDefinition.OverrideDropWorldY)
                 position.y = PinhataDefinition.DropWorldY;
 
             return position;
+        }
+
+        private bool IsSafeDropPosition(Vector3 center, Vector3 candidate)
+        {
+            if (!PinhataDefinition || PinhataDefinition.DropBlockingMask.value == 0)
+                return true;
+
+            Vector3 probeOffset = Vector3.up * PinhataDefinition.DropProbeHeight;
+
+            Vector3 from = center + probeOffset;
+            Vector3 to = candidate + probeOffset;
+
+            if (Physics.Linecast(from, to, PinhataDefinition.DropBlockingMask, QueryTriggerInteraction.Ignore))
+                return false;
+
+            return !Physics.CheckSphere(to, PinhataDefinition.DropClearanceRadius, PinhataDefinition.DropBlockingMask, QueryTriggerInteraction.Ignore);
         }
 
         private void CancelDrops()
