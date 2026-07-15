@@ -204,9 +204,7 @@ namespace MortierFu
                 await _augmentShowcaser.Showcase(layout, _augmentCount);
             }
             finally
-            {
-                //Noop
-            }
+            { }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -268,8 +266,7 @@ namespace MortierFu
 
                 if (remainingAugments.Count == 0)
                 {
-                    Logs.LogWarning(
-                        "[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
+                    Logs.LogWarning("[AugmentSelectionSystem] No more augments available to assign to remaining pickers !");
                     break;
                 }
 
@@ -281,13 +278,11 @@ namespace MortierFu
 
                 randomAugment.IsPicked = true;
 
-                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick,
-                    picker.Character.transform.position);
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick, picker.Character.transform.position);
                 _shakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
 
                 var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)randomAugment.Augment.Rarity];
-                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f),
-                    Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
+                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
 
                 remainingAugments.Remove(randomAugment);
 
@@ -339,8 +334,7 @@ namespace MortierFu
             character.AddAugment(augment.Augment);
 
             GameObject prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f),
-                character.transform);
+            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), character.transform);
             bool particle = particleGO.TryGetComponent(out _particleSystem);
             
             if (particle)
@@ -348,6 +342,7 @@ namespace MortierFu
             
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
+        
             _pickedAugments[character].Add(augment.Augment);
 
             _augmentProviderSys?.ApplyDamping(augment.Augment);

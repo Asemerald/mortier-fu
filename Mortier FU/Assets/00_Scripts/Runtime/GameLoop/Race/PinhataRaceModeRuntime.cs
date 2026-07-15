@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -108,7 +107,7 @@ namespace MortierFu
             if (!IsValidPinhataHit(evt))
                 return;
 
-            float cooldown = PinhataDefinition ? Mathf.Max(0f, PinhataDefinition.HitCooldown) : 0.25f;
+            var cooldown = PinhataDefinition ? Mathf.Max(0f, PinhataDefinition.HitCooldown) : 0.25f;
 
             if (Time.time - _lastDropTime < cooldown)
                 return;
@@ -119,8 +118,8 @@ namespace MortierFu
 
         private bool IsValidPinhataHit(TriggerStrike evt)
         {
-            PlayerCharacter striker = evt.Character;
-            PlayerCharacter bullyCharacter = BullyCharacter;
+            var striker = evt.Character;
+            var bullyCharacter = BullyCharacter;
 
             if (!striker || !bullyCharacter)
                 return false;
@@ -131,7 +130,7 @@ namespace MortierFu
             if (evt.HitCharacters == null || evt.HitCharacters.Length == 0)
                 return false;
 
-            for (int i = 0; i < evt.HitCharacters.Length; i++)
+            for (var i = 0; i < evt.HitCharacters.Length; i++)
             {
                 if (ReferenceEquals(evt.HitCharacters[i], bullyCharacter))
                     return true;
@@ -142,35 +141,31 @@ namespace MortierFu
 
         private async UniTaskVoid DropNextPickup(PlayerCharacter striker)
         {
-            AugmentSelectionSystem selectionSystem = Context?.AugmentSelectionSystem;
+            var selectionSystem = Context?.AugmentSelectionSystem;
 
             if (selectionSystem == null || _hiddenPickupIndexes.Count == 0)
                 return;
 
-            int pickupIndex = _hiddenPickupIndexes.Dequeue();
-            Vector3 dropPosition = GetDropPosition(striker);
+            var pickupIndex = _hiddenPickupIndexes.Dequeue();
+            var dropPosition = GetDropPosition(striker);
 
             try
             {
-                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, GetDropHeight(), GetDropDuration(),
-                    _dropCancellation?.Token ?? CancellationToken.None);
-
-                Logs.Log($"[PinhataRaceModeRuntime] Dropped pickup {pickupIndex}.");
+                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, PinhataDefinition.DropHeight, PinhataDefinition.DropDuration, _dropCancellation?.Token ?? CancellationToken.None);
             }
             catch (OperationCanceledException)
-            {
-            }
+            { }
         }
 
         private Vector3 GetDropPosition(PlayerCharacter striker)
         {
-            PlayerCharacter bullyCharacter = BullyCharacter;
+            var bullyCharacter = BullyCharacter;
 
             if (!bullyCharacter)
                 return Vector3.zero;
 
-            Vector3 center = bullyCharacter.transform.position;
-            Vector3 direction = striker ? center - striker.transform.position : UnityEngine.Random.insideUnitSphere;
+            var center = bullyCharacter.transform.position;
+            var direction = striker ? center - striker.transform.position : UnityEngine.Random.insideUnitSphere;
             direction.y = 0f;
 
             if (direction.sqrMagnitude < 0.001f)
@@ -180,8 +175,8 @@ namespace MortierFu
 
             direction.Normalize();
 
-            float radius = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropRadius) : 2.5f;
-            Vector3 position = center + direction * radius;
+            var radius = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropRadius) : 2.5f;
+            var position = center + direction * radius;
             position.y = center.y;
 
             if (PinhataDefinition && PinhataDefinition.OverrideDropWorldY)
@@ -189,10 +184,6 @@ namespace MortierFu
 
             return position;
         }
-
-        private float GetDropHeight() => PinhataDefinition ? Mathf.Max(0f, PinhataDefinition.DropHeight) : 1.2f;
-
-        private float GetDropDuration() => PinhataDefinition ? Mathf.Max(0.05f, PinhataDefinition.DropDuration) : 0.35f;
 
         private void CancelDrops()
         {

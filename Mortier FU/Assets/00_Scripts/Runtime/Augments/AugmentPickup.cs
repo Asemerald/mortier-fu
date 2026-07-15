@@ -143,12 +143,6 @@ namespace MortierFu
             }
         }
 
-        public void MoveTo(Vector3 position)
-        {
-            AttachToPoint(null);
-            transform.position = position;
-        }
-
         public void AttachToPoint(Transform point) => AttachTo(point, Vector3.zero);
 
         private void AttachTo(Transform point, Vector3 localOffset)
@@ -182,23 +176,38 @@ namespace MortierFu
 
         public async UniTask DropToAsync(Vector3 targetPosition, float jumpHeight, float duration, CancellationToken cancellationToken)
         {
-            duration = Mathf.Max(0.05f, duration);
-            jumpHeight = Mathf.Max(0f, jumpHeight);
-
             AttachToPoint(null);
             SetInteractable(false);
             SetVisible(true);
             SetVfx();
-            
-            Vector3 startPosition = transform.position;
-            Vector3 midPosition = Vector3.Lerp(startPosition, targetPosition, 0.5f) + Vector3.up * jumpHeight;
-            float halfDuration = duration * 0.5f;
 
-            await Tween.Position(transform, midPosition, halfDuration, Ease.OutQuad).ToUniTask(cancellationToken: cancellationToken);
+            var startPosition = transform.position;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            var elapsed = 0f;
 
-            await Tween.Position(transform, targetPosition, halfDuration, Ease.InQuad).ToUniTask(cancellationToken: cancellationToken);
+            while (elapsed < duration)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                elapsed += Time.deltaTime;
+
+                var t = Mathf.Clamp01(elapsed / duration);
+
+                var easedT = t * t * (3f - 2f * t);
+
+                var position = Vector3.Lerp(startPosition, targetPosition, easedT);
+
+                var height = Mathf.Sin(t * Mathf.PI) * jumpHeight;
+                position.y += height;
+
+                transform.position = position;
+
+                await UniTask.Yield();
+            }
+
+            transform.position = targetPosition;
+
+            await PlayDropLandingFeedback(cancellationToken);
 
             SetInteractable(true);
         }
@@ -226,16 +235,19 @@ namespace MortierFu
             SetRenderersEnabled(true);
             SetInteractable(false);
         }
-
-        public void HideVfx()
+        
+        private async UniTask PlayDropLandingFeedback(CancellationToken cancellationToken)
         {
-            StopParticles();
+            Vector3 baseScale = transform.localScale;
+
+            await Tween.PunchScale(transform, baseScale * 0.12f, 0.18f, cycles: 1).ToUniTask(cancellationToken: cancellationToken);
+
+            transform.localScale = baseScale;
         }
 
-        public void SetVfx()
-        {
-            PlayParticles();
-        }
+        private void HideVfx() => StopParticles();
+
+        private void SetVfx() => PlayParticles();
         
         private void Update()
         {
