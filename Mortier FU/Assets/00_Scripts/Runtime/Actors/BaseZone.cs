@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -37,10 +38,8 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            
-
             if (!player || !_counters.Remove(player)) return;
-
+            
             if (!IsPlayerValid(player))
             {
                 _playersCache.Remove(player);
@@ -48,30 +47,8 @@ namespace MortierFu
                 return;
             }
 
-            if (CheckOtherZone(other)) return;
-            
             ApplyEffectZoneExit(player,other);
         }
-
-        protected virtual bool CheckOtherZone(Collider other)
-        {
-            Vector3 center = other.bounds.center;
-            Vector3 halfExtents = other.bounds.extents;
-            
-            Collider[] hitColliders = Physics.OverlapBox(center, halfExtents,other.transform.rotation);
-            foreach (var hitCollider in hitColliders)
-            {
-                if (hitCollider.isTrigger && hitCollider.gameObject != gameObject && ((1 << hitCollider.gameObject.layer) & _layerToIgnore) != 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-            
-            
-        }
-        
 
         private void Update() => ApplyEffectZoneTick();
 

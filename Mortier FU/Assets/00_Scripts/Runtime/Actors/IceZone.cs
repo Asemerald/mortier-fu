@@ -13,6 +13,8 @@ namespace MortierFu
 
         protected override void ApplyEffectZoneEnter(PlayerCharacter player)
         {
+            player.Properties.Add(EntityProperties.ice);
+            
             player.SetExternalSpeedMultiplier
                 (speedSettingsSpeedMultiplier.speedFactor, speedSettingsSpeedMultiplier.transitionDuration);
 
@@ -25,6 +27,15 @@ namespace MortierFu
 
         protected override void ApplyEffectZoneExit(PlayerCharacter player, Collider other)
         {
+            
+            player.Properties.Remove(EntityProperties.ice);
+            //Check if he's still on another ice zone, if true we dont remove the effect
+            if(player.Properties.HasAndRemove(EntityProperties.mud))
+            {
+                ApplyEffectZoneEnter(player);
+                return;
+            }
+            
             player.SetExternalSpeedMultiplier
                 (1, speedSettingsSpeedMultiplier.transitionDuration);
 

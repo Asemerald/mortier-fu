@@ -60,6 +60,7 @@ namespace MortierFu
         private SO_CharacterStats _baseStatsInstance;
         private bool _hasTemporaryRaceStats;
 
+        public PlayerFlags Properties { get; private set; } = new PlayerFlags();
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
         public ControllerCharacterComponent Controller { get; private set; }
@@ -78,7 +79,7 @@ namespace MortierFu
 
         public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
-
+    
         public bool AreAugmentsActive { get; private set; }
 
         // Assets specified by player color.

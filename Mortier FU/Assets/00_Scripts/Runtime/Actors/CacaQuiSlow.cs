@@ -12,13 +12,22 @@ namespace MortierFu
 
         protected override void ApplyEffectZoneEnter(PlayerCharacter player)
         {
-            
+            player.Properties.Add(EntityProperties.mud);
             player.SetExternalSpeedMultiplier(slowMultiplier, transitionDuration);
             
         }
 
         protected override void ApplyEffectZoneExit(PlayerCharacter player, Collider other)
         {
+            player.Properties.Remove(EntityProperties.mud);
+            
+            //Check if he's still on another mud zone, if true we dont remove the effect
+            if(player.Properties.HasAndRemove(EntityProperties.mud))
+            {
+                ApplyEffectZoneEnter(player);
+                return;
+            }
+            
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
         }
 
