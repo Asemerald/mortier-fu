@@ -55,8 +55,10 @@ namespace MortierFu.Analytics
             EventBus<TriggerEndRound>.Register(_triggerEndRoundBinding);
         }
         
+        private System.DateTime _gameStartTime;
         private void CreateNewGameData()
         {
+            _gameStartTime = System.DateTime.Now;
             _gameData = new AnalyticsData()
             {
                 gameId = System.Guid.NewGuid().ToString(),
@@ -307,6 +309,9 @@ namespace MortierFu.Analytics
                 string winnerId = GetPlayerIdFromCharacter(playerWins.Members[0]);
                 _gameData.winner = winnerId;
             }
+
+            var duration = System.DateTime.UtcNow - _gameStartTime;
+            _gameData.durationSeconds = (int)duration.TotalSeconds;
             
             // Exporter vers Excel (backup local)
             ExportToExcel();
