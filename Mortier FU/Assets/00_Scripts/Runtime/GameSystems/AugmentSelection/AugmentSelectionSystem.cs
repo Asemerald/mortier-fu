@@ -144,24 +144,12 @@ namespace MortierFu
             return pickup;
         }
 
-        public void SetPickupVisible(int index, bool visible)
+        public async UniTask AttachPickupToAsync(int index, Transform target, Vector3 localOffset, float duration, CancellationToken cancellationToken = default)
         {
             if (TryGetPickup(index, out AugmentPickup pickup))
-                pickup.SetVisible(visible);
+                await pickup.AttachToAsync(target, localOffset, duration, cancellationToken);
         }
-
-        public void SetPickupInteractable(int index, bool interactable)
-        {
-            if (TryGetPickup(index, out AugmentPickup pickup))
-                pickup.SetInteractable(interactable);
-        }
-
-        public void AttachPickupTo(int index, Transform target, Vector3 localOffset)
-        {
-            if (TryGetPickup(index, out AugmentPickup pickup))
-                pickup.AttachTo(target, localOffset);
-        }
-
+        
         public UniTask DropPickupAsync(int index, Vector3 position, float jumpHeight, float duration, CancellationToken cancellationToken) => 
             !TryGetPickup(index, out AugmentPickup pickup) ? UniTask.CompletedTask : pickup.DropToAsync(position, jumpHeight, duration, cancellationToken);
         

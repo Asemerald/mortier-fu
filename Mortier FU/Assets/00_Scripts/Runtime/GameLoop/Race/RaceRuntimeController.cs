@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 
 namespace MortierFu
@@ -71,6 +73,6 @@ namespace MortierFu
             return fallbackDefinition;
         }
         
-        public void AfterShowcaseCompleted() => _runtime?.AfterShowcaseCompleted();
+        public UniTask AfterShowcaseCompleted(CancellationToken cancellationToken) => _runtime?.AfterShowcaseCompleted(cancellationToken) ?? UniTask.CompletedTask;
     }
 }

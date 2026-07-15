@@ -211,7 +211,7 @@ namespace MortierFu
                 augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
                 
                 await _augmentRaceController.PrepareSelectionAsync(cancellationToken, FlowSettings.AugmentStartShowcaseDelay);
-                _raceRuntimeController?.AfterShowcaseCompleted();
+                await _raceRuntimeController.AfterShowcaseCompleted(cancellationToken);
                 
                 cancellationToken.ThrowIfCancellationRequested();
 

@@ -151,13 +151,33 @@ namespace MortierFu
 
         public void AttachToPoint(Transform point) => AttachTo(point, Vector3.zero);
 
-        public void AttachTo(Transform point, Vector3 localOffset)
+        private void AttachTo(Transform point, Vector3 localOffset)
         {
             _attachmentPoint = point;
             _attachmentLocalOffset = localOffset;
 
             if (point)
                 transform.position = point.TransformPoint(localOffset);
+        }
+
+        public async UniTask AttachToAsync(Transform point, Vector3 localOffset, float duration, CancellationToken cancellationToken = default)
+        {
+            if (!point)
+                return;
+
+            AttachToPoint(null);
+
+            SetInteractable(false);
+            SetVisible(true);
+
+            var targetPosition = point.TransformPoint(localOffset);
+
+            await Tween.Position(transform, targetPosition, duration, Ease.InQuad).ToUniTask(cancellationToken: cancellationToken);
+
+            AttachTo(point, localOffset);
+
+            SetInteractable(false);
+            SetVisible(false);
         }
 
         public async UniTask DropToAsync(Vector3 targetPosition, float jumpHeight, float duration, CancellationToken cancellationToken)
