@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -54,8 +56,7 @@ namespace MortierFu
 
         public virtual RaceAugmentLayout BuildAugmentLayout(int augmentCount) => RaceAugmentLayout.FromLevelSystem(Context.LevelSystem, augmentCount);
 
-        public virtual void AfterShowcaseCompleted()
-        { }
+        public virtual UniTask AfterShowcaseCompleted(CancellationToken cancellationToken) => UniTask.CompletedTask;
         
         public virtual void BeginGameplay()
         {
