@@ -42,7 +42,7 @@ namespace MortierFu
             return _settingsPanel && _stateController.CanUseSettingsStation(player);
         }
 
-        protected override void Interact(PlayerManager player)
+        protected override void OnPlayerEntered(PlayerManager player)
         {
             if (!player)
                 return;
@@ -70,6 +70,11 @@ namespace MortierFu
                 _cameraFocusController.FocusSettings();
 
             _settingsPanel.Open(player, OnSettingsClosed);
+        }
+
+        protected override void Interact(PlayerManager player)
+        {
+            
         }
 
         private void OnSettingsClosed(PlayerManager player)

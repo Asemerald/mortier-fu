@@ -1,16 +1,35 @@
+using System;
+using System.Collections.Generic;
+using MortierFu;
 using UnityEngine;
 
-public class TEMP_GearActivation : MonoBehaviour
+public abstract class TEMP_GearActivation : LobbyInteractionZone
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+   [SerializeField] private Animator _animator;
+   private List<PlayerManager> _activePlayers;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+   private void Awake()
+   {
+      _activePlayers = new List<PlayerManager>();
+   }
+
+   protected override void OnPlayerEntered(PlayerManager player)
+   {
+      _activePlayers.Add(player);
+      if (_activePlayers.Count == 1)
+      {
+         Debug.Log("in");
+      }
+      
+      
+   }
+
+   protected override void OnPlayerExited(PlayerManager player)
+   {
+      _activePlayers.Remove(player);
+      if (_activePlayers.Count == 0)
+      {
+         Debug.Log("exit");
+      }
+   }
 }
