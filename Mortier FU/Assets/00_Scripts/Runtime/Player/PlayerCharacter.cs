@@ -689,10 +689,7 @@ namespace MortierFu
 
         public bool CanPlayerInteractWithBombShell()
         {
-            if (!Health.IsAlive) return false;
-            return ControlContext is not (PlayerControlContext.AugmentRaceBullyClassic 
-                or PlayerControlContext.AugmentRaceBullyMoveOnly 
-                or PlayerControlContext.AugmentRaceBullyShootOnly);
+            return Health.IsAlive && ActionPermissions.CanBeStun;
         }
     }
 }
