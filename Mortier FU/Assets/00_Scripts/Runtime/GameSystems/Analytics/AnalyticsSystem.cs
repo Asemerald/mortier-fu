@@ -230,6 +230,12 @@ namespace MortierFu.Analytics
         
         private void OnTriggerEndRound(TriggerEndRound endRound)
         {
+            if (IsGameOver())
+            {
+                var duration = System.DateTime.UtcNow - _gameStartTime;
+                _gameData.durationSeconds =  (int)duration.TotalSeconds;
+            }
+            
             FinalizeCurrentRound();
             
             _currentRoundIndex++;
@@ -310,8 +316,8 @@ namespace MortierFu.Analytics
                 _gameData.winner = winnerId;
             }
 
-            var duration = System.DateTime.UtcNow - _gameStartTime;
-            _gameData.durationSeconds = (int)duration.TotalSeconds;
+           /* var duration = System.DateTime.UtcNow - _gameStartTime;
+            _gameData.durationSeconds = (int)duration.TotalSeconds; */
             
             // Exporter vers Excel (backup local)
             ExportToExcel();
@@ -320,12 +326,6 @@ namespace MortierFu.Analytics
         private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
         {
             if (roundData == null || roundData.players == null) return;
-
-            // Build sécurité
-            #if UNITY_EDITOR
-            await UniTask.CompletedTask;
-            return;
-            #endif
             
             foreach (var player in roundData.players)
             {
@@ -337,6 +337,7 @@ namespace MortierFu.Analytics
                     form.AddField("gameId", _gameData.gameId);
                     form.AddField("date", _gameData.date);
                     form.AddField("gameVersion", _gameData.gameVersion);
+                    form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                     form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
                     form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
                     form.AddField("winner", _gameData.winner);
@@ -362,9 +363,20 @@ namespace MortierFu.Analytics
 
                     using (UnityWebRequest www = UnityWebRequest.Post(GOOGLE_SHEETS_URL, form))
                     {
+                        www.redirectLimit = 0;
                         await www.SendWebRequest();
 
-                        if (www.result != UnityWebRequest.Result.Success)
+                        if (www.responseCode == 302)
+                        {
+                            string redirectUrl = www.GetResponseHeader("Location");
+                            using (UnityWebRequest redirected = UnityWebRequest.Post(redirectUrl, form))
+                            {
+                                await redirected.SendWebRequest();
+                                if (redirected.result != UnityWebRequest.Result.Success) Logs.LogError($"Error (redirected): {redirected.error}");
+                                else Logs.Log($"Successfully sent data for player {player.playerId}");
+                            }
+                        }
+                        else if (www.result != UnityWebRequest.Result.Success)
                         {
                             Logs.LogError($"Error sending data to Google Sheets: {www.error}");
                         }
@@ -387,11 +399,11 @@ namespace MortierFu.Analytics
         private void ExportToExcel()
         {
             // if in editor return
-            if (Application.isEditor)
+            /*if (Application.isEditor)
             {
                 Logs.Log("Analytics export skipped in editor.");
                 return;
-            }
+            }*/
             
             // Backup local en JSON
             Logs.Log($"Exporting game data: {_gameData.gameId}");
