@@ -39,8 +39,6 @@ namespace MortierFu
             {
                 if (TryProjectToValidGround(context.DeathPosition, out GhostSpawnResult mortarResult))
                     return mortarResult;
-
-                return ValidateOrFallback(character, GetDefaultDeathResult(character, context), context);
             }
 
             return ValidateOrFallback(character, GetDefaultDeathResult(character, context), context);
