@@ -8,6 +8,7 @@ namespace MortierFu
         public readonly bool CanDash;
         public readonly bool CanTaunt;
         public readonly bool CanInteract;
+        public readonly bool CanBeStun;
 
         public readonly bool CanPause;
         public readonly bool CanNavigateUI;
@@ -21,10 +22,12 @@ namespace MortierFu
             bool canDash,
             bool canTaunt,
             bool canInteract,
+            bool canBeStun,
             bool canPause,
             bool canNavigateUI,
             bool canConfirmUI,
-            bool canCancelUI)
+            bool canCancelUI
+            )
         {
             CanMove = canMove;
             CanAim = canAim;
@@ -32,6 +35,7 @@ namespace MortierFu
             CanDash = canDash;
             CanTaunt = canTaunt;
             CanInteract = canInteract;
+            CanBeStun = canBeStun;
 
             CanPause = canPause;
             CanNavigateUI = canNavigateUI;
@@ -50,6 +54,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -63,6 +68,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -76,6 +82,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -89,6 +96,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canInteract: true,
+                    canBeStun: true,
                     canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -102,6 +110,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -115,6 +124,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -128,6 +138,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -141,6 +152,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -154,6 +166,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: true,
@@ -167,6 +180,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: true,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -180,6 +194,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -193,6 +208,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -206,6 +222,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -219,6 +236,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -232,6 +250,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -245,6 +264,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: true,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -258,6 +278,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -271,6 +292,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: true,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
@@ -284,6 +306,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
@@ -297,11 +320,13 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
                 ),
+                
 
                 _ => new PlayerActionPermissions(
                     canMove: false,
@@ -310,6 +335,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canInteract: false,
+                    canBeStun: false,
                     canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
