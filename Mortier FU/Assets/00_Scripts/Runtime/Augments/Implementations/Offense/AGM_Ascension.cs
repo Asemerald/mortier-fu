@@ -77,7 +77,7 @@ namespace MortierFu
             stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedMod.ToMod(this));
             stats.FireRate.AddModifier(db.AscensionParams.FireRateMod.ToMod(this));
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
-            InstantiateVFX();
+            ShowVFX();
         }
 
         private void OnEndRound(TriggerEndRound evt)
@@ -106,7 +106,7 @@ namespace MortierFu
             stats.FireRate.AddModifier(db.AscensionParams.FireRateModPreproc.ToMod(this));
             stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedModPreproc.ToMod(this));
             _isActive = false;
-            ClearVFXInstance(); 
+            HideVFX(); 
         }
 
         public override void Dispose()
@@ -122,7 +122,7 @@ namespace MortierFu
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
             stats.FireRate.RemoveAllModifiersFromSource(this);
-            ClearVFXInstance(); 
+            HideVFX(); 
             base.Dispose();
         }
     }

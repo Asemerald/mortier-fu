@@ -36,7 +36,7 @@ namespace MortierFu
             if (healed)
             {
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Buff, owner.transform.position);
-                InstantiateVFX();
+                ShowVFX();
             }
         }
 
@@ -64,7 +64,7 @@ namespace MortierFu
 
             stats.BombshellDamage.RemoveAllModifiersFromSource(this);
             stats.MaxHealth.RemoveAllModifiersFromSource(this);
-            ClearVFXInstance(); 
+            HideVFX(); 
         }
     }
 }

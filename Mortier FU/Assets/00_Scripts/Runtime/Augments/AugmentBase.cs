@@ -1,10 +1,12 @@
-﻿using MortierFu.Shared;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MortierFu
 {
     public abstract class AugmentBase : IAugment 
     {
+        private GameObject _activeVfxPrefab;
+        private bool _hasActiveVfx;
+
         protected SO_Augment augmentData;
         protected PlayerCharacter owner;
         protected SO_CharacterStats stats;
@@ -31,26 +33,30 @@ namespace MortierFu
         public virtual void Dispose()
         { }
 
-        public void InstantiateVFX()
+        protected void ShowVFX()
         {
-            if (augmentData == null)
+            if (_hasActiveVfx)
                 return;
-            
-            if (augmentData.AugmentVFX == null)
+
+            if (!augmentData || !augmentData.AugmentVFX || !owner || !owner.AugmentVfxController)
                 return;
-            
-            ClearVFXInstance();
-            
-            //Logs.LogError($"InstantiateVFX");
-            ps = Object.Instantiate(augmentData.AugmentVFX, owner.transform);
+
+            _activeVfxPrefab = augmentData.AugmentVFX;
+            _hasActiveVfx = true;
+
+            owner.AugmentVfxController.Show(_activeVfxPrefab);
         }
 
-        public void ClearVFXInstance()
+        protected void HideVFX()
         {
-            if (ps == null)
+            if (!_hasActiveVfx)
                 return;
-            
-            Object.Destroy(ps);
+
+            if (owner && owner.AugmentVfxController && _activeVfxPrefab)
+                owner.AugmentVfxController.Hide(_activeVfxPrefab);
+
+            _activeVfxPrefab = null;
+            _hasActiveVfx = false;
         }
     }
 }
