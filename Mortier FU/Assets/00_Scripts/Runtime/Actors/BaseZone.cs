@@ -21,13 +21,14 @@ namespace MortierFu
         private void OnTriggerEnter(Collider other)
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
-
+            
             if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
 
             if (!IsPlayerValid(player))
             {
                 _playersCache.Remove(player);
-                _counters.Remove(player);
+                if (_counters.Remove(player))
+                    ApplyEffectZoneExit(player, null);
                 return;
             }
             
@@ -110,6 +111,10 @@ namespace MortierFu
 
         protected virtual void ClearPlayersCache()
         {
+            foreach (var player in _playersCache)
+            {
+                if (player) ApplyEffectZoneExit(player, null);
+            }
             _playersCache.Clear();
             _counters.Clear();
         }

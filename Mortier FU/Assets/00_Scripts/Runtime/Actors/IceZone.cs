@@ -1,4 +1,5 @@
 using System;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -30,20 +31,21 @@ namespace MortierFu
             
             player.Properties.Remove(EntityProperties.ice);
             //Check if he's still on another ice zone, if true we dont remove the effect
-            if(player.Properties.HasAndRemove(EntityProperties.mud))
+            if(player.Properties.HasAndRemove(EntityProperties.ice))
             {
                 ApplyEffectZoneEnter(player);
                 return;
             }
-            
-            player.SetExternalSpeedMultiplier
-                (1, speedSettingsSpeedMultiplier.transitionDuration);
-
             player.SetExternalAccelerationMultiplier
                 (1, accelSettingsSpeedMultiplier.transitionDuration);
 
             player.SetExternalDecelerationMultiplier
                 (1, decelSettingsSpeedMultiplier.transitionDuration);
+
+            if (player.Properties.Has(EntityProperties.mud))
+                return;
+            player.SetExternalSpeedMultiplier
+                (1, speedSettingsSpeedMultiplier.transitionDuration);
         }
 
         private void OnEnable()
