@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using MortierFu;
 using UnityEngine;
 
-public abstract class TEMP_GearActivation : LobbyInteractionZone
+public sealed class TEMP_GearActivation : LobbyInteractionZone
 {
-   [SerializeField] private Animator _animator;
+   [SerializeField] Animator _animator;
    private List<PlayerManager> _activePlayers;
 
    private void Awake()
@@ -18,10 +18,14 @@ public abstract class TEMP_GearActivation : LobbyInteractionZone
       _activePlayers.Add(player);
       if (_activePlayers.Count == 1)
       {
-         Debug.Log("in");
+         _animator.SetBool("IsActive", true);
       }
       
-      
+   }
+
+   protected override void Interact(PlayerManager player)
+   {
+      throw new NotImplementedException();
    }
 
    protected override void OnPlayerExited(PlayerManager player)
@@ -29,7 +33,7 @@ public abstract class TEMP_GearActivation : LobbyInteractionZone
       _activePlayers.Remove(player);
       if (_activePlayers.Count == 0)
       {
-         Debug.Log("exit");
+         _animator.SetBool("IsActive", false);
       }
    }
 }
