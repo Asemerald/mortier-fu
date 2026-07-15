@@ -52,6 +52,8 @@ namespace MortierFu
         public Camera Camera => _camera;
 
         private bool _isInLobby = true;
+        
+        private CancellationTokenSource _winnerTrackerTokenSource;
 
         private void Start()
         {
@@ -381,24 +383,30 @@ namespace MortierFu
             float startRenderOrtho = _renderOnTopCamera ? _renderOnTopCamera.orthographicSize : 0f;
             float targetRenderOrtho = zoomCineCam.Lens.OrthographicSize;
 
+            _winnerTrackerTokenSource?.Cancel();
+            _winnerTrackerTokenSource?.Dispose();
+            _winnerTrackerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            
+            TrackWinnerPosition(playerWin,_winnerTrackerTokenSource).Forget();
+            
             try
             {
                 zoomCineCam.gameObject.SetActive(true);
 
                 float elapsed = 0f;
-
+                
                 while (elapsed < duration)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
+                    
                     elapsed += Time.deltaTime;
 
                     float t = Mathf.Clamp01(elapsed / duration);
                     float easedT = t * t * (3f - 2f * t);
-
+                    
                     if (_renderOnTopCamera)
                         _renderOnTopCamera.orthographicSize = Mathf.Lerp(startRenderOrtho, targetRenderOrtho, easedT);
-
+                    
                     await UniTask.Yield();
                 }
 
@@ -428,11 +436,35 @@ namespace MortierFu
             playerWin.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         }
 
+        private async UniTaskVoid TrackWinnerPosition(Transform playerWin , CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                while (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    if (!playerWin) break;
+                    
+                    _endFightTarget.position = playerWin.position + _offset;
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                
+            }
+            
+        }
+        
+
         public void ResetToMainCamera()
         {
             if (!zoomCineCam)
                 return;
 
+            _winnerTrackerTokenSource?.Cancel();
+            _winnerTrackerTokenSource?.Dispose();
+            _winnerTrackerTokenSource = null;
+            
             zoomCineCam.gameObject.SetActive(false);
         }
 
