@@ -29,6 +29,14 @@ namespace MortierFu
         public Material DashTrailMaterial;
     }
 
+    public enum PlayerColorState
+    {
+        Blue,
+        Red,
+        Green,
+        Yellow,
+    }
+
     public class AspectCharacterComponent : CharacterComponent
     {
         private const int k_materialFirstSlot = 0;
@@ -39,6 +47,7 @@ namespace MortierFu
 
         private Material _materialInstance;
         private Material _outlineMaterialInstance;
+        private Material _customsMaterialInstance;
 
         private ParticleSystem _particleSystemInstance;
         private GameObject _spawnVFXInstance;
@@ -47,9 +56,17 @@ namespace MortierFu
         private Color _startingOutlineColor;
 
         private ShakeService _shakeService;
+        
+        private PlayerColorState _playerColorState;
+
+        public PlayerColorState PlayerColorState =>  _playerColorState;
+        
+        private static readonly int ShaderPropColor = Shader.PropertyToID("_PlayerColor");
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        { }
+        {
+            
+        }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;
@@ -69,14 +86,19 @@ namespace MortierFu
 
             _materialInstance = new Material(AspectMaterials.PlayerMaterial);
             _outlineMaterialInstance = new Material(AspectMaterials.PlayerOutlineMaterial);
-
+            
+            _playerColorState = (PlayerColorState)character.Owner.PlayerIndex;
+            _customsMaterialInstance = new Material(character.CustomizationVisual.CustomsMaterial);
+            
             ApplyRuntimeMaterials();
 
             _startingColor = _materialInstance.color;
             _startingOutlineColor = _outlineMaterialInstance.color;
 
+            InitializeMaterialColorCustoms();
+            
             InitializeSpawnVfx();
-
+            
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             if (character.ControlContext == PlayerControlContext.LobbySandbox)
@@ -117,7 +139,10 @@ namespace MortierFu
             SetMaterialSlot(AspectMaterials.PlayerCustomMesh, k_materialSecondSlot, _outlineMaterialInstance);
 
             SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_materialFirstSlot, _materialInstance);
+            
             SetMaterialSlot(AspectMaterials.PlayerTailMesh, k_materialSecondSlot, _outlineMaterialInstance);
+            
+            SetMaterialSlot(AspectMaterials.PlayerCustomMesh, k_materialFirstSlot, _customsMaterialInstance);
         }
 
         private static void SetMaterialSlot(Renderer renderer, int slotIndex, Material material)
@@ -150,6 +175,11 @@ namespace MortierFu
 
             _spawnVFXInstance.SetActive(false);
             _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
+        }
+
+        private void InitializeMaterialColorCustoms()
+        {
+            _customsMaterialInstance.SetInt(ShaderPropColor, (int)_playerColorState);
         }
 
         public void PlayDamageBlink(Color blinkColor, int blinkCount = 5, float blinkDuration = 0.08f)
