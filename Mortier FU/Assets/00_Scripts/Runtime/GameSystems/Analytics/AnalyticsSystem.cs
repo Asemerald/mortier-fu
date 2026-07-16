@@ -69,6 +69,7 @@ namespace MortierFu.Analytics
                 date = System.DateTime.UtcNow.ToString("yyyy-MM-ddT HH:mm:ss"),
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
+                officialGameVersion = "b.1",
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds
                 winner = "",
                 roundsPlayed = 0
@@ -386,6 +387,7 @@ namespace MortierFu.Analytics
                     form.AddField("gameId", _gameData.gameId);
                     form.AddField("date", _gameData.date);
                     form.AddField("gameVersion", _gameData.gameVersion);
+                    form.AddField("officialGameVersion", _gameData.officialGameVersion.ToString());
                     form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                     form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
                     form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
