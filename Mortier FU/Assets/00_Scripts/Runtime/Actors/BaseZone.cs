@@ -7,7 +7,6 @@ namespace MortierFu
 {
     public abstract class BaseZone : MonoBehaviour
     {
-        [SerializeField] protected LayerMask _layerToIgnore;
         [SerializeField] protected float vfxFootPrintDuration;
 
         private readonly Dictionary<PlayerCharacter, float> _counters = new();

@@ -1,7 +1,5 @@
-using System;
 using Cysharp.Threading.Tasks;
 using MortierFu;
-using MortierFu.Shared;
 using UnityEngine;
 
 public class BreakablePlateform : Breakable
@@ -12,12 +10,12 @@ public class BreakablePlateform : Breakable
     [SerializeField] private GameObject _badlyHurtMesh;
 
     private GameObject _currentMesh;
-    
-    //FAUT SET LE ISDASHINTERACTABLE EN FALSE POUR LES PLATFORMs
+    public override bool IsDashInteractable => false;
 
     protected override void Awake()
     {
         base.Awake();
+        
         if(_hurtMesh)
             _hurtMesh?.SetActive(false);
         if(_badlyHurtMesh)
@@ -28,13 +26,14 @@ public class BreakablePlateform : Breakable
     }
     public override void Interact(Vector3 contactPoint)
     {
-        
         _life--;
+        
         if (_life == _hurtHp)
         {
            ChangeCurrentMesh(_hurtMesh);
            return;
         }
+        
         if (_life == _badlyHurtHp)
         {
             ChangeCurrentMesh(_badlyHurtMesh);
@@ -50,6 +49,7 @@ public class BreakablePlateform : Breakable
         }
         
         _currentMesh.SetActive(false);
+        
         Destruct(contactPoint);
     }
 

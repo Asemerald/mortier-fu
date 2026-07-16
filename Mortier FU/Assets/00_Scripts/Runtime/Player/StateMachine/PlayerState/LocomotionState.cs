@@ -10,9 +10,6 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            if(debug) 
-                Logs.Log("Entering Locomotion State");
-            
             animator.CrossFade(LocomotionHash, k_crossFadeDuration);
         }
         
@@ -27,9 +24,6 @@ namespace MortierFu
         }
         
         public override void OnExit()
-        {
-            if(debug)
-                Logs.Log("Exiting Locomotion State");
-        }
+        { }
     }
 }

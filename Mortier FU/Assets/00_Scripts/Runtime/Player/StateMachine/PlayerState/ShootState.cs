@@ -22,9 +22,6 @@ namespace MortierFu
         
         public override void OnEnter()
         {
-            if(debug) 
-                Logs.Log("Entering Shoot State");
-
             animator.CrossFade(ShootHash, k_crossFadeDuration, 0);
         }
         
@@ -41,9 +38,6 @@ namespace MortierFu
         
         public override void OnExit()
         {
-            if(debug)
-                Logs.Log("Exiting Shoot State");
-            
             character.Mortar.StopShooting();
         }
     }

@@ -31,20 +31,19 @@ namespace MortierFu
         
         public override void OnEnter()
         {
+            animator.CrossFade(StunHash, k_crossFadeDuration, 0);
+            
             character.Controller.ResetVelocity();
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
             
-            _fxService.PlayStunFX(character.gameObject);
+            _fxService.PlayStunFX(character);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {
                 Character = character,
             });
-            
-            if(debug)
-                Logs.Log("Entering Stun State");
         }
         
         public override void FixedUpdate()
@@ -55,9 +54,6 @@ namespace MortierFu
         public override void OnExit()
         {
             _stunTimer.Stop();
-            
-            if(debug) 
-                Logs.Log("Exiting Stun State");
         }
     }
 }

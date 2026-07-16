@@ -46,7 +46,6 @@ namespace MortierFu
         [SerializeField] private LayerMask _ghostSpawnBlockingMask;
         
         [Header("Layers")] [SerializeField] private LayerMask _groundMask;
-        [SerializeField] private LayerMask _ghostBoundaryMask;
         [SerializeField] private LayerMask _placementBlockingMask;
         [SerializeField] private LayerMask _waterLayerMask;
 
@@ -75,9 +74,7 @@ namespace MortierFu
         public float VehicleSpawnSearchRadius => _vehicleSpawnSearchRadius;
         public int VehicleSpawnSearchSteps => _vehicleSpawnSearchSteps;
         public LayerMask GhostSpawnBlockingMask => _ghostSpawnBlockingMask;
-        
         public LayerMask GroundMask => _groundMask;
-        public LayerMask GhostBoundaryMask => _ghostBoundaryMask;
         public LayerMask PlacementBlockingMask => _placementBlockingMask;
         public LayerMask WaterLayerMask  => _waterLayerMask;
 

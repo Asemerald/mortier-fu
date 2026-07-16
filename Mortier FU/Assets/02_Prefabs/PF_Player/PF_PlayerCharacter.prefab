@@ -250,6 +250,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &639620005096687710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1048071946361708084}
+  m_Layer: 0
+  m_Name: AugmentVFXRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1048071946361708084
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639620005096687710}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5910405665845529266}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &773358791341149288
 GameObject:
   m_ObjectHideFlags: 0
@@ -327,37 +358,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!1 &915849693614462037
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7196616009030875240}
-  m_Layer: 11
-  m_Name: FirePoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7196616009030875240
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 915849693614462037}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.50000006, y: -0.50000006, z: -0.49999985, w: 0.50000006}
-  m_LocalPosition: {x: 0, y: 3.4286323, z: 0.03594987}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5085259443043028963}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1182539819020372319
 GameObject:
   m_ObjectHideFlags: 0
@@ -531,7 +531,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7136404212544225045}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: FeetPosition
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -717,6 +717,7 @@ GameObject:
   - component: {fileID: 8047922189435491126}
   - component: {fileID: 7540939271376141447}
   - component: {fileID: 6139260222370270294}
+  - component: {fileID: 1300814118797214782}
   m_Layer: 11
   m_Name: PF_PlayerCharacter
   m_TagString: Untagged
@@ -1083,6 +1084,7 @@ MonoBehaviour:
   _characterStatsTemplate: {fileID: 11400000, guid: 2165c774e2db6fd4a8c01f9c75148564, type: 2}
   _strikePoint: {fileID: 3774432769024524082}
   _feetPoint: {fileID: 7136404212544225045}
+  _augmentVfxController: {fileID: 1300814118797214782}
   _customizationVisual: {fileID: 6139260222370270294}
   <Stats>k__BackingField: {fileID: 0}
   TutorialImage: {fileID: 2882676395004836494}
@@ -1206,6 +1208,19 @@ MonoBehaviour:
   _columnPropertyName: _Column
   _rowPropertyName: _Row
   _showDebugLogs: 0
+--- !u!114 &1300814118797214782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2480035117616147565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73420fb73ffd34a4ab2d68cc6fe8954a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.PlayerAugmentVFXController
+  _vfxRoot: {fileID: 1048071946361708084}
 --- !u!1 &2880022406255162882
 GameObject:
   m_ObjectHideFlags: 0
@@ -1304,7 +1319,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3774432769024524082}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: StrikePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1665,7 +1680,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 2.7}
+  m_AnchoredPosition: {x: 0, y: 3.83}
   m_SizeDelta: {x: 4, y: 4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3791462769197036747
@@ -1715,7 +1730,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 739302919052619580}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: DashTrailParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1835,7 +1850,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5910405665845529266}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1859,6 +1874,7 @@ Transform:
   - {fileID: 3774432769024524082}
   - {fileID: 739302919052619580}
   - {fileID: 7136404212544225045}
+  - {fileID: 1048071946361708084}
   m_Father: {fileID: 4235952571684798799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7340661288863467833
@@ -2375,7 +2391,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.31}
+  m_AnchoredPosition: {x: 0, y: 1.27}
   m_SizeDelta: {x: 7.296357, y: 2.0223}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3053052692693696476
@@ -3066,10 +3082,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 319618473332799223, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
-      insertIndex: 0
-      addedObject: {fileID: 7196616009030875240}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
 --- !u!137 &666062362365981564 stripped
@@ -3107,8 +3120,8 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 9033688448939901739, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
   m_PrefabInstance: {fileID: 4827291227523168532}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &5085259443043028963 stripped
+--- !u!4 &7196616009030875240 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 319618473332799223, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2387611395874881916, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
   m_PrefabInstance: {fileID: 4827291227523168532}
   m_PrefabAsset: {fileID: 0}

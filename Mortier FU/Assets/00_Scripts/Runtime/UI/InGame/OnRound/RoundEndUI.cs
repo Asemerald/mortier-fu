@@ -80,6 +80,9 @@ namespace MortierFu
         [SerializeField] private Ease _hideKillEase = Ease.InBack;
         [SerializeField] private Ease _goldenBombshellScaleUp = Ease.OutBack;
         [SerializeField] private Ease _goldenBombshellScaleDown = Ease.InBack;
+        
+        [Header("Fx")]
+        [SerializeField] private RectTransform _fxPrefabWinner;
 
         private GameModeBase _gm;
         private CancellationTokenSource _lifetimeCancellation;
@@ -594,6 +597,8 @@ namespace MortierFu
                 _playerIcons[idx].sprite = isWinner
                     ? _playerWinnerIcons[idx]
                     : _playerDefaultSprites[idx];
+
+                SpawnFxWinner( _playerIcons[idx].transform, isWinner);
             }
 
             _winnerIconPlayerIndexes.Clear();
@@ -604,6 +609,16 @@ namespace MortierFu
             }
 
             return UniTask.CompletedTask;
+        }
+
+        //TODO FIX HARD CODED 10F 
+        private void SpawnFxWinner(Transform winnerTransform,bool isWinner)
+        {
+            if (!isWinner || !_fxPrefabWinner) return;
+            
+            RectTransform fx = Instantiate(_fxPrefabWinner,  Vector3.zero, Quaternion.identity, winnerTransform);
+            fx.SetLocalPositionAndRotation(Vector2.zero, Quaternion.identity);
+            Destroy(fx.gameObject,10f);
         }
 
         private async UniTask ShowGoldenBombshellIndicator(CancellationToken cancellationToken)

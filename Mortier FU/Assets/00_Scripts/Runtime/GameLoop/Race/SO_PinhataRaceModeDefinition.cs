@@ -11,13 +11,18 @@ namespace MortierFu
         [Header("Drop")]
         [Min(0.1f)] public float DropRadius = 2.5f;
         [Min(0f)] public float DropHeight = 1.2f;
-        [Min(0.05f)] public float DropDuration = 0.35f;
+        [Min(0.1f)] public float DropDuration = 0.35f;
         [Min(0f)] public float HitCooldown = 0.25f;
         [Min(0f)] public float InhalePickupDuration = 0.45f;
         
         [Header("Pinhata Pickup Positions")]
         public bool OverrideDropWorldY = false;
-        public float DropWorldY = 0.5f;
+        public float DropWorldY = 1.93f;
+        
+        [Header("Drop Safety")]
+        public LayerMask DropBlockingMask;
+        [Min(0.05f)] public float DropClearanceRadius = 0.6f;
+        [Min(0f)] public float DropProbeHeight = 0.6f;
 
         private void Reset()
         {

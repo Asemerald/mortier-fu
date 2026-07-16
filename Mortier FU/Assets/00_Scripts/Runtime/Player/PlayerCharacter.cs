@@ -43,6 +43,8 @@ namespace MortierFu
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
         
+        [SerializeField] private PlayerAugmentVFXController _augmentVfxController;
+        
         [Header("Customization")]
         [SerializeField] private PlayerCustomizationVisual _customizationVisual;
 
@@ -96,6 +98,7 @@ namespace MortierFu
 
         public PlayerInput PlayerInput => Owner?.PlayerInput;
         public ShakeService ShakeService => _shakeService;
+        public PlayerAugmentVFXController AugmentVfxController => _augmentVfxController;
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
@@ -279,6 +282,10 @@ namespace MortierFu
             _speedMultiplier.Reset();
             _accelMultiplier.Reset();
             _decelMultiplier.Reset();
+            
+            FXService fxService = ServiceManager.Instance.Get<FXService>();
+            fxService?.Reset(this);
+
             
             RefreshRuntimeAfterAugmentStateChanged();
         }
