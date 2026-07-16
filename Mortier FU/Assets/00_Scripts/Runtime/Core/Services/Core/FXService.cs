@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using PrimeTween;
@@ -13,11 +14,20 @@ namespace MortierFu
 
         private FXSceneLibrary _library;
 
+        /// <summary>
+        /// Will be used to stored fx on player and not fx spawn by player like BombShellPreview.
+        /// A good exemple is like stun fx
+        /// </summary>
+        private readonly List<GameObject>[] _stockingPlayersFxs = new List<GameObject>[4];
+
         public bool IsInitialized { get; set; }
 
         public UniTask OnInitialize()
         {
             Logs.Log("[FXService] Initialized.");
+
+            InitializeFxStock();
+            
             return UniTask.CompletedTask;
         }
 
@@ -161,9 +171,9 @@ namespace MortierFu
             Object.Destroy(strikeFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
         }
 
-        public void PlayStunFX(GameObject stunnedPlayer)
+        public void PlayStunFX(PlayerCharacter playerCharacter)
         {
-            if (!stunnedPlayer)
+            if (!playerCharacter)
                 return;
 
             if (!TryGetLibrary(out FXSceneLibrary library))
@@ -175,9 +185,11 @@ namespace MortierFu
                 return;
             }
 
-            ParticleSystem stunFX = Object.Instantiate(library.Stun, stunnedPlayer.transform);
+            ParticleSystem stunFX = Object.Instantiate(library.Stun, playerCharacter.gameObject.transform);
             stunFX.transform.localPosition = new Vector3(0f, 3f, 0f);
             stunFX.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+            
+            AddElementToFxStock(playerCharacter.Owner.PlayerIndex, stunFX.gameObject);
 
             ParticleSystem.MainModule main = stunFX.main;
             Object.Destroy(stunFX.gameObject, main.duration + main.startLifetime.constantMax + 1f);
@@ -246,6 +258,35 @@ namespace MortierFu
         {
             _library = null;
             Logs.Log("[FXService] Disposed.");
+        }
+
+        private void AddElementToFxStock(int index, GameObject fx)
+        {
+            CheckForFxNull(index);
+            _stockingPlayersFxs[index].Add(fx);
+        }
+        
+        private void CheckForFxNull(int index)
+        {
+            _stockingPlayersFxs[index].RemoveAll(s => !s);
+        }
+
+        private void InitializeFxStock()
+        {
+            int count =  _stockingPlayersFxs.Length;
+            for (int i = 0; i < count; i++)
+                _stockingPlayersFxs[i] = new List<GameObject>();
+        }
+        
+        public void Reset(PlayerCharacter playerCharacter)
+        {
+            int count = _stockingPlayersFxs[playerCharacter.Owner.PlayerIndex].Count;
+            int index = playerCharacter.Owner.PlayerIndex;
+            
+            for (int i = 0; i < count; i++)
+                Object.Destroy(_stockingPlayersFxs[index][i]);
+            
+            _stockingPlayersFxs[index].Clear();
         }
     }
 }
