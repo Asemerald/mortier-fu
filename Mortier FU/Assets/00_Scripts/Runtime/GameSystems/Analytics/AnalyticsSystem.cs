@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 using System.Collections.Generic;
 using System.Linq;
 using MortierFu.Shared;
+using UnityEditor;
 
 namespace MortierFu.Analytics
 {
@@ -22,7 +23,7 @@ namespace MortierFu.Analytics
         private AnalyticsData _gameData;
         private int _currentRoundIndex = 0;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
-
+        
         public UniTask OnInitialize()
         {
             RegisterEvents();
@@ -53,21 +54,30 @@ namespace MortierFu.Analytics
             
             _triggerEndRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_triggerEndRoundBinding);
+            
+            if (GameService.CurrentGameMode != null)
+                    GameService.CurrentGameMode.OnGameEnded += OnGameEndedHandler;
+            else
+                Logs.LogWarning("[AnalyticsSystem] CurrentGameMode est null à l'initialisation, donc pas reçu");
+            
         }
+        
         
         private System.DateTime _gameStartTime;
         private void CreateNewGameData()
         {
-            _gameStartTime = System.DateTime.Now;
+            _gameStartTime = System.DateTime.UtcNow;
             _gameData = new AnalyticsData()
             {
                 gameId = System.Guid.NewGuid().ToString(),
-                date = System.DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                date = System.DateTime.UtcNow.ToString("yyyy-MM-ddT HH:mm:ss"),
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
+                scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
+                officialGameVersion = "b.1",
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds
                 winner = "",
-                roundsPlayed = 0
+                roundsPlayed = 0,
             };
             
             StartNewRound();
@@ -235,15 +245,7 @@ namespace MortierFu.Analytics
             _currentRoundIndex++;
             _gameData.roundsPlayed++;
             
-            // Si le jeu continue, démarrer un nouveau round
-            if (!IsGameOver())
-            {
-                StartNewRound();
-            }
-            else
-            {
-                FinalizeGame();
-            }
+            StartNewRound();
         }
 
         private void FinalizeCurrentRound()
@@ -265,11 +267,29 @@ namespace MortierFu.Analytics
             
             // Assigner les rangs
             AssignRanks(currentRound.players);
-            
-            // Envoyer les données du round à Google Sheets
-            SendRoundDataToGoogleSheets(currentRound).Forget();
+        }
+        
+        private void OnGameEndedHandler(int winnerPlayerIndex)
+        {
+            var duration = System.DateTime.UtcNow - _gameStartTime;
+            _gameData.durationSeconds = (int)duration.TotalSeconds;
+    
+            FinalizeGame();
+
+            SendAllRoundsToGoogleSheets().Forget();
         }
 
+        private async UniTask SendAllRoundsToGoogleSheets()
+        {
+            for (int i = 0; i < _gameData.roundsPlayed; i++)
+            {
+                var round = _gameData.rounds[i];
+                if (round == null) continue;
+        
+                await SendRoundDataToGoogleSheets(round);
+            }
+        }
+        
         private void AssignRanks(List<AnalyticsPlayerData> players)
         {
             var sortedPlayers = players.OrderByDescending(p => p.score)
@@ -293,12 +313,7 @@ namespace MortierFu.Analytics
             var playerData = GetOrCreatePlayerData(character);
             playerData.score = newScore;
         }
-
-        private bool IsGameOver()
-        {
-            return GameService.CurrentGameMode.IsGameOver(out _);
-        }
-
+        
         private void FinalizeGame()
         {
             // Déterminer le gagnant global
@@ -309,23 +324,63 @@ namespace MortierFu.Analytics
                 string winnerId = GetPlayerIdFromCharacter(playerWins.Members[0]);
                 _gameData.winner = winnerId;
             }
-
-            var duration = System.DateTime.UtcNow - _gameStartTime;
-            _gameData.durationSeconds = (int)duration.TotalSeconds;
             
             // Exporter vers Excel (backup local)
             ExportToExcel();
         }
+        private async UniTask<bool> SendFormWithRedirectHandling(string url, WWWForm form, string playerId)
+        {
+            using (UnityWebRequest www = UnityWebRequest.Post(url, form))
+            {
+                www.redirectLimit = 0;
 
+                try
+                {
+                    await www.SendWebRequest();
+
+                    if (www.result == UnityWebRequest.Result.Success)
+                    {
+                        Logs.Log($"Successfully sent data for player {playerId} to Google Sheets");
+                        return true;
+                    }
+
+                    Logs.LogError($"Error sending data to Google Sheets: {www.error}");
+                    return false;
+                }
+                catch (System.Exception)
+                {
+                    string redirectUrl = www.GetResponseHeader("Location");
+                    if (string.IsNullOrEmpty(redirectUrl))
+                    {
+                        Logs.LogError("Redirection détectée mais impossible de récupérer l'URL de destination.");
+                        return false;
+                    }
+
+                    using (UnityWebRequest redirected = UnityWebRequest.Get(redirectUrl))
+                    {
+                        await redirected.SendWebRequest();
+
+                        if (redirected.result != UnityWebRequest.Result.Success)
+                        {
+                            Logs.LogError($"Error (redirected): {redirected.error}");
+                            return false;
+                        }
+
+                        Logs.Log($"Successfully sent data for player {playerId} to Google Sheets (redirected). Response: {redirected.downloadHandler.text}");
+                        return true;
+                    }
+                }
+            }
+        }
         private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
         {
             if (roundData == null || roundData.players == null) return;
-
-            // Build sécurité
-            #if UNITY_EDITOR
-            await UniTask.CompletedTask;
-            return;
-            #endif
+            
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics send skipped in editor.");
+                return;
+            }
             
             foreach (var player in roundData.players)
             {
@@ -337,8 +392,11 @@ namespace MortierFu.Analytics
                     form.AddField("gameId", _gameData.gameId);
                     form.AddField("date", _gameData.date);
                     form.AddField("gameVersion", _gameData.gameVersion);
+                    form.AddField("officialGameVersion", _gameData.officialGameVersion.ToString());
+                    form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                     form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
                     form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
+                    form.AddField("scoreToWin", _gameData.scoreToWin);
                     form.AddField("winner", _gameData.winner);
                     form.AddField("roundNumber", roundData.roundNumber.ToString());
                     form.AddField("roundWinner", roundData.roundWinner);
@@ -360,19 +418,7 @@ namespace MortierFu.Analytics
                     form.AddField("bumpsMade", player.bumpsMade.ToString());
                     form.AddField("deathCause", player.deathCause.ToString());
 
-                    using (UnityWebRequest www = UnityWebRequest.Post(GOOGLE_SHEETS_URL, form))
-                    {
-                        await www.SendWebRequest();
-
-                        if (www.result != UnityWebRequest.Result.Success)
-                        {
-                            Logs.LogError($"Error sending data to Google Sheets: {www.error}");
-                        }
-                        else
-                        {
-                            Logs.Log($"Successfully sent data for player {player.playerId} to Google Sheets");
-                        }
-                    }
+                   await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, player.playerId);
                 }
                 catch (System.Exception ex)
                 {
@@ -384,10 +430,19 @@ namespace MortierFu.Analytics
             }
         }
 
+        private bool ShouldSkipAnalyticsInEditor()
+        {
+            #if UNITY_EDITOR
+                return Application.isEditor && !UnityEditor.EditorPrefs.GetBool("AnalyticsInEditor", false);
+            #else
+                return false;
+            #endif
+        }
+
         private void ExportToExcel()
         {
             // if in editor return
-            if (Application.isEditor)
+            if (ShouldSkipAnalyticsInEditor())
             {
                 Logs.Log("Analytics export skipped in editor.");
                 return;
@@ -418,6 +473,10 @@ namespace MortierFu.Analytics
             EventBus<TriggerStrike>.Deregister(_triggerStrikeBinding);
             EventBus<EventPlayerDeath>.Deregister(_triggerDeathBinding);
             EventBus<TriggerEndRound>.Deregister(_triggerEndRoundBinding);
+
+            if (GameService.CurrentGameMode != null)
+                GameService.CurrentGameMode.OnGameEnded -= OnGameEndedHandler;
+
             
             // Sauvegarder les données avant de disposer
             if (_gameData != null && _gameData.roundsPlayed > 0)

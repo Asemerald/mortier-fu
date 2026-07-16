@@ -11,6 +11,8 @@ namespace MortierFu
         public string date;
         public int numberOfPlayers;
         public string gameVersion;  // hash du commit ou version
+        public string officialGameVersion; // nom de la version release (pour Steam)
+        public int scoreToWin;
         public AnalyticsRoundData[] rounds;
         public string winner;       // Player ID
         public int roundsPlayed;
