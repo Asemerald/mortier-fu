@@ -18,12 +18,14 @@ namespace MortierFu
         [SerializeField] private GameObject _shatteredMesh;
         [SerializeField] protected float durationCleanUp = 1.5f;
 
-        //TODO en sah trois listes j'abuse faudra refacto ma grosse daronne
         private readonly List<Rigidbody> _shatteredRbChildren = new();
         private readonly List<Collider> _shatteredColliderChildren = new();
         private readonly List<GameObject> _shatteredMeshChildren = new();
 
         private readonly CancellationTokenSource _cts = new();
+        
+        public virtual bool IsDashInteractable => true;
+        public virtual bool IsBombshellInteractable => true;
 
         protected virtual void Awake()
         {
@@ -82,9 +84,6 @@ namespace MortierFu
             ShatterPiecesCleanUp().Forget();
             
         }
-
-        public bool IsDashInteractable => true;
-        public bool IsBombshellInteractable => true;
         
         private async UniTask ShatterPiecesCleanUp()
         {
