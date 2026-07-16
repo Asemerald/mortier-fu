@@ -276,7 +276,8 @@ namespace MortierFu.Analytics
     
             FinalizeGame();
 
-            SendAllRoundsToGoogleSheets().Forget();
+            SendGameOverviewToGoogleSheets().Forget();
+            //SendAllRoundsToGoogleSheets().Forget();
         }
 
         private async UniTask SendAllRoundsToGoogleSheets()
@@ -370,6 +371,36 @@ namespace MortierFu.Analytics
                         return true;
                     }
                 }
+            }
+        }
+
+        private async UniTask SendGameOverviewToGoogleSheets()
+        {
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics send skipped in editor.");
+                return;
+            }
+
+            try
+            {
+                WWWForm form = new WWWForm();
+                form.AddField("dataType", "game");
+                form.AddField("gameId", _gameData.gameId);
+                form.AddField("date", _gameData.date);
+                form.AddField("gameVersion", _gameData.gameVersion);
+                form.AddField("officialGameVersion", _gameData.officialGameVersion.ToString());
+                form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
+                form.AddField("numberOfPlayers", _gameData.numberOfPlayers);
+                form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
+                form.AddField("scoreToWin", _gameData.scoreToWin.ToString());
+                form.AddField("winner", _gameData.winner);
+                
+                await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "gameoverview");
+            }
+            catch (System.Exception ex)
+            {
+                Logs.LogError($"Exception while sending game summary to Google Sheets: {ex.Message}");
             }
         }
         private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
