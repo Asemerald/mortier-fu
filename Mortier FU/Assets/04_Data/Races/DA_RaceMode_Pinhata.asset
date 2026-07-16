@@ -21,7 +21,7 @@ MonoBehaviour:
   BullyStatsOverride: {fileID: 11400000, guid: 52f4a770eb52e2a45bc7b626655fa570, type: 2}
   DropRadius: 7
   DropHeight: 1.8
-  DropDuration: 0.7
+  DropDuration: 0.5
   HitCooldown: 0.25
   InhalePickupDuration: 0.45
   OverrideDropWorldY: 1
@@ -31,3 +31,16 @@ MonoBehaviour:
     m_Bits: 2177
   DropClearanceRadius: 0.6
   DropProbeHeight: 0.6
+  DefaultPickupsPerHit: 1
+  MultiDropDelay: 0.03
+  MultiDropAngleStep: 25
+  DropRules:
+  - PlayerCount: 2
+    PickupsPerHit: 99
+    DropAllRemaining: 1
+  - PlayerCount: 3
+    PickupsPerHit: 2
+    DropAllRemaining: 0
+  - PlayerCount: 4
+    PickupsPerHit: 1
+    DropAllRemaining: 0
