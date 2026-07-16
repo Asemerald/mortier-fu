@@ -83,6 +83,7 @@ namespace MortierFu
         private InputAction _cancelAction;
 
         private bool _isLoadingLobby;
+        [HideInInspector] public Button LastButton;
 
         public static MenuManager Instance { get; private set; }
 
@@ -178,6 +179,8 @@ namespace MortierFu
         {
             if (PlayButton)
                 PlayButton.onClick.AddListener(LoadLobbyScene);
+            
+            
 
             if (SettingsButton)
                 SettingsButton.onClick.AddListener(OpenSettingsPanel);
@@ -421,6 +424,13 @@ namespace MortierFu
         private void OpenDiscordInvit()
         {
            Application.OpenURL(discordURL); 
+        }
+
+        public void ChangeDiscordSelectOnLeftButton(Button button)
+        {
+            Navigation nav = DiscordButton.navigation;
+            nav.selectOnLeft = button;
+            DiscordButton.navigation = nav;
         }
 
         private void OpenSteamPage()
