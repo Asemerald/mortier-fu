@@ -38,7 +38,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Stun, character.transform.position);
             character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
             
-            _fxService.PlayStunFX(character.gameObject);
+            _fxService.PlayStunFX(character);
             
             EventBus<TriggerBumpedByPlayer>.Raise(new TriggerBumpedByPlayer()
             {

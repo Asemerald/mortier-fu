@@ -283,6 +283,10 @@ namespace MortierFu
             _accelMultiplier.Reset();
             _decelMultiplier.Reset();
             
+            FXService fxService = ServiceManager.Instance.Get<FXService>();
+            fxService?.Reset(this);
+
+            
             RefreshRuntimeAfterAugmentStateChanged();
         }
 
