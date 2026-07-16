@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -33,12 +34,15 @@ namespace MortierFu
 
         public async UniTask ShowAsync(
             PlayerCustomizationData customization,
+            int colorIndex,
             CancellationToken cancellationToken
         )
         {
             if (_root)
                 _root.SetActive(true);
 
+            SetCustomColor(colorIndex);
+            
             Apply(customization);
 
             PlayState(_enterStateName);
@@ -86,6 +90,16 @@ namespace MortierFu
                 return;
 
             _animator.Play(stateName, 0, 0f);
+        }
+
+        public void SetCustomColor(int index)
+        {
+            if (_customizationVisual is null)
+            {
+                Logs.LogError("Customization Visual is null");
+                return;
+            }
+            _customizationVisual.SetCustom(index);
         }
     }
 }

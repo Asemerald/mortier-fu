@@ -9,7 +9,8 @@ namespace MortierFu
         [SerializeField] private SkinnedMeshRenderer _customSkinMeshRenderer;
         [SerializeField] private Mesh[] _availableSkins;
         [SerializeField] private GameObject _crownInstance;
-
+        [SerializeField] private Material _customizationMaterial;
+        
         [Header("Face")]
         [SerializeField] private SkinnedMeshRenderer _bodySkinnedMeshRenderer;
         [SerializeField] private string _columnPropertyName = "_Column";
@@ -17,17 +18,22 @@ namespace MortierFu
 
         [Header("Debug")]
         [SerializeField] private bool _showDebugLogs;
-
+        
         private Material _faceMaterialInstance;
+        private Material _customMaterialInstance;
 
+        public  Material CustomsMaterial => _customizationMaterial;
         public int SkinCount => _availableSkins?.Length ?? 0;
 
         private GameModeBase _gameModeBase;
+        
+        private static readonly int ShaderPropColor = Shader.PropertyToID("_PlayerColor");
 
         private void Awake()
         {
             UpdateVisualsAfterRound(false);
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+            EnsureInitialized();
         }
 
         private void OnEnable()
@@ -68,12 +74,6 @@ namespace MortierFu
                 customization.FaceColumn,
                 customization.FaceRow
             );
-        }
-
-        public void Apply(int skinIndex, int faceColumn, int faceRow)
-        {
-            ApplySkin(skinIndex);
-            ApplyFace(faceColumn, faceRow);
         }
 
         private void ApplySkin(int skinIndex)
@@ -122,6 +122,30 @@ namespace MortierFu
                 Logs.LogWarning($"[PlayerCustomizationVisual] Material has no property '{_rowPropertyName}'.", this);
 
             DebugLog($"[PlayerCustomizationVisual] Applied face Column={column}, Row={row}.");
+        }
+
+        public void SetCustom(int index)
+        {
+            EnsureInitialized();
+            _customMaterialInstance.SetInt(ShaderPropColor, index);
+        }
+
+        public void Apply(int skinIndex, int faceColumn, int faceRow)
+        {
+            EnsureInitialized();
+            ApplySkin(skinIndex);
+            ApplyFace(faceColumn, faceRow);
+        }
+        
+        private void EnsureInitialized()
+        {
+            if (_customMaterialInstance)
+                return;
+
+            _customMaterialInstance = new Material(_customizationMaterial);
+            var mats = _customSkinMeshRenderer.materials;
+            mats[0] = _customMaterialInstance;
+            _customSkinMeshRenderer.materials = mats;
         }
 
         private void DebugLog(string message)
