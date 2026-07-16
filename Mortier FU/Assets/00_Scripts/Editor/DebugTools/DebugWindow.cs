@@ -17,7 +17,9 @@ namespace MortierFu.Editor {
         private BalancingStatsTab _balancingStatsTab;
         private AugmentDebugTab _augmentDebugTab;
         
+        
         private const string k_skipMenuEnabled = "SkipMenuEnabled";
+        private const string k_analyticsInEditor = "AnalyticsInEditor";
         private const string k_countdownSpeedMultiplier = "CountdownSpeedMult";
         private const string k_overrideArenaMapAddress = "OverrideArenaMapAddress";
         private const string k_overrideRaceMapAddress = "OverrideRaceMapAddress";
@@ -26,7 +28,13 @@ namespace MortierFu.Editor {
         private static bool SkipMenuEnabled {
             get => EditorPrefs.GetBool(k_skipMenuEnabled, false);
             set => EditorPrefs.SetBool(k_skipMenuEnabled, value);
-        }   
+        }
+
+        private static bool AnalyticsInEditor
+        {
+            get => EditorPrefs.GetBool(k_analyticsInEditor, false);
+            set => EditorPrefs.SetBool(k_analyticsInEditor, value);
+        }
 
         private static int CountdownSpeedMultiplier
         {
@@ -119,6 +127,15 @@ namespace MortierFu.Editor {
             skipMenuToggle.RegisterValueChangedCallback(evt => SkipMenuEnabled = evt.newValue);
             skipMenuToggle.labelElement.style.minWidth = 200;
             skipMenuToggle.labelElement.style.width = 200;
+
+            var analyticsInEditor = new Toggle("Analytics in Editor")
+            {
+                tooltip = "If toggled, analytics will be send to sheet at the end of the game",
+                value = AnalyticsInEditor
+            };
+            analyticsInEditor.RegisterValueChangedCallback(evt => AnalyticsInEditor = evt.newValue);
+            analyticsInEditor.labelElement.style.minWidth = 200;
+            analyticsInEditor.labelElement.style.width = 200;
             
             var speedMultiplierSlider = new SliderInt("Countdown Speed Multiplier", 1, 10)
             {
@@ -140,6 +157,7 @@ namespace MortierFu.Editor {
             
             _contentContainer.AddHeader("GLOBAL");
             _contentContainer.Add(skipMenuToggle);
+            _contentContainer.Add(analyticsInEditor);
             _contentContainer.Add(speedMultiplierSlider);
             _contentContainer.Add(dummyDebugToolToggle);
             

@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 using System.Collections.Generic;
 using System.Linq;
 using MortierFu.Shared;
+using UnityEditor;
 
 namespace MortierFu.Analytics
 {
@@ -22,7 +23,7 @@ namespace MortierFu.Analytics
         private AnalyticsData _gameData;
         private int _currentRoundIndex = 0;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
-
+        
         public UniTask OnInitialize()
         {
             RegisterEvents();
@@ -369,6 +370,12 @@ namespace MortierFu.Analytics
         {
             if (roundData == null || roundData.players == null) return;
             
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics send skipped in editor.");
+                return;
+            }
+            
             foreach (var player in roundData.players)
             {
                 try
@@ -415,14 +422,23 @@ namespace MortierFu.Analytics
             }
         }
 
+        private bool ShouldSkipAnalyticsInEditor()
+        {
+            #if UNITY_EDITOR
+                return Application.isEditor && !UnityEditor.EditorPrefs.GetBool("AnalyticsInEditor", false);
+            #else
+                return false;
+            #endif
+        }
+
         private void ExportToExcel()
         {
             // if in editor return
-            /*if (Application.isEditor)
+            if (ShouldSkipAnalyticsInEditor())
             {
                 Logs.Log("Analytics export skipped in editor.");
                 return;
-            }*/
+            }
             
             // Backup local en JSON
             Logs.Log($"Exporting game data: {_gameData.gameId}");
