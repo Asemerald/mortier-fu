@@ -73,9 +73,7 @@ namespace MortierFu
         }
 
         protected override void Interact(PlayerManager player)
-        {
-            
-        }
+        { }
 
         private void OnSettingsClosed(PlayerManager player)
         {

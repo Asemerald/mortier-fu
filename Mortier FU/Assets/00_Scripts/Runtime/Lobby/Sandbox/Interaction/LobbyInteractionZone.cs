@@ -7,12 +7,11 @@ namespace MortierFu
     {
         private readonly HashSet<PlayerManager> _playersInside = new();
 
-        private PlayerInteractionService InteractionService =>
-            ServiceManager.Instance?.Get<PlayerInteractionService>();
+        private PlayerInteractionService InteractionService => ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!TryGetPlayer(other, out PlayerManager player))
+            if (!TryGetPlayer(other, out var player))
                 return;
 
             if (!_playersInside.Add(player) || InteractionService == null)
@@ -25,7 +24,7 @@ namespace MortierFu
 
         private void OnTriggerExit(Collider other)
         {
-            if (!TryGetPlayer(other, out PlayerManager player))
+            if (!TryGetPlayer(other, out var player))
                 return;
 
             if (!_playersInside.Remove(player) || InteractionService == null)
@@ -73,7 +72,7 @@ namespace MortierFu
             if(InteractionService == null)
                 return;
             
-            foreach (PlayerManager player in players)
+            foreach (var player in players)
                 InteractionService.Unregister(player, this);
         }
 
@@ -84,7 +83,7 @@ namespace MortierFu
             if (!other)
                 return false;
 
-            PlayerCharacter character = other.GetComponentInParent<PlayerCharacter>();
+            var character = other.GetComponentInParent<PlayerCharacter>();
 
             if (!character || !character.Owner)
                 return false;
