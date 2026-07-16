@@ -101,11 +101,11 @@ namespace MortierFu
             if (_gamePauseSystem is null || !_gamePauseSystem.IsPaused)
                 return;
 
-            if (_pauseTopText)
-                ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
+       //     if (_pauseTopText)
+          //      ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
 
-            if (_pauseBottomText)
-                ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
+      //      if (_pauseBottomText)
+         //       ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
         }
 
         private void InitReferences()
@@ -431,11 +431,11 @@ namespace MortierFu
             if (_blackPanel)
                 _blackPanel.SetActive(true);
 
-            if (_pauseTopText && _pauseTopText.transform.parent)
-                _pauseTopText.transform.parent.gameObject.SetActive(true);
+           // if (_pauseTopText && _pauseTopText.transform.parent)
+             //   _pauseTopText.transform.parent.gameObject.SetActive(true);
 
-            if (_pauseBottomText && _pauseBottomText.transform.parent)
-                _pauseBottomText.transform.parent.gameObject.SetActive(true);
+//            if (_pauseBottomText && _pauseBottomText.transform.parent)
+  //              _pauseBottomText.transform.parent.gameObject.SetActive(true);
 
             SafeCancelCts(ref _animateCancellation);
             _animateCancellation = new CancellationTokenSource();
@@ -464,11 +464,11 @@ namespace MortierFu
             if (_quitGameConfirmationPanel)
                 _quitGameConfirmationPanel.SetActive(false);
 
-            if (_pauseTopText && _pauseTopText.transform.parent)
-                _pauseTopText.transform.parent.gameObject.SetActive(false);
+         //   if (_pauseTopText && _pauseTopText.transform.parent)
+           //     _pauseTopText.transform.parent.gameObject.SetActive(false);
 
-            if (_pauseBottomText && _pauseBottomText.transform.parent)
-                _pauseBottomText.transform.parent.gameObject.SetActive(false);
+         //   if (_pauseBottomText && _pauseBottomText.transform.parent)
+         //       _pauseBottomText.transform.parent.gameObject.SetActive(false);
 
             StopAllActiveAnimations();
         }
