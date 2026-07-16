@@ -134,7 +134,7 @@ namespace MortierFu
 
             if (killerPlayer == null || victimPlayer == null)
                 return;
-
+            
             if (killerPlayer != victimPlayer)
             {
                 killerPlayer.Metrics.RoundKills.Add(evt.Context.DeathCause);

@@ -90,7 +90,10 @@ namespace MortierFu
                     continue;
 
                 foreach (E_DeathCause deathCause in roundKills)
-                    killBonusScore += _data.GetKillReward(deathCause).Score;
+                {
+                     killBonusScore += _data.GetKillReward(deathCause).Score;
+                }
+                   
             }
 
             return killBonusScore;

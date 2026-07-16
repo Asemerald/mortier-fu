@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using MortierFu.Shared;
+using UnityEngine.TextCore.Text;
 
 namespace MortierFu
 {
@@ -9,7 +11,8 @@ namespace MortierFu
         Unknown,
         BombshellExplosion,
         Fall,
-        VehicleCrash
+        VehicleCrash,
+        FallAfterExplosion
     }
 
     public struct DeathContext
@@ -26,7 +29,10 @@ namespace MortierFu
 
         private float _currentHealth;
         private float _maxHealth;
-
+        private float _lastBombShellDamageTime;
+        
+        private PlayerCharacter _lastDamageCause; 
+        
         public Action<object> OnDeath;
 
         /// Sent every time health changes. Provide the old health and the new health.
@@ -50,6 +56,8 @@ namespace MortierFu
         public override void Initialize()
         {
             Stats.MaxHealth.OnDirtyUpdated += UpdateHealth;
+            _lastDamageCause = null;
+            _lastBombShellDamageTime = float.NegativeInfinity;
             UpdateHealth();
         }
 
@@ -65,6 +73,8 @@ namespace MortierFu
 
             if (damageAmount <= 0f)
                 return false;
+            
+            
 
             var previousHealth = _currentHealth;
             _currentHealth = Mathf.Clamp(_currentHealth - damageAmount, 0f, _maxHealth);
@@ -76,6 +86,12 @@ namespace MortierFu
                 blinkCount: 5,
                 blinkDuration: 0.08f
             );
+
+            if (!isLethal)
+            {
+                _lastBombShellDamageTime = Time.time;
+                _lastDamageCause = source as PlayerCharacter;
+            }
 
             EventBus<TriggerHealthChanged>.Raise(new TriggerHealthChanged()
             {
@@ -118,7 +134,7 @@ namespace MortierFu
             if (source is DeathTrigger)
             {
                 var kn = character.KnockbackState;
-
+                
                 // Only consider recent push
                 if (kn.ComputeLastBumpElapsedTime() < 4f)
                 {
@@ -133,6 +149,11 @@ namespace MortierFu
                         AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
                         return CreateDeathContext(character, source, kn.LastPusher, E_DeathCause.Fall);
                     }
+                }
+
+                if (Time.time - _lastBombShellDamageTime < 4f)
+                {
+                    return CreateDeathContext(character, source, _lastDamageCause , E_DeathCause.FallAfterExplosion);
                 }
             }
 
@@ -196,6 +217,8 @@ namespace MortierFu
         {
             var previousHealth = _currentHealth;
             _currentHealth = _maxHealth;
+            _lastDamageCause = null;
+            _lastBombShellDamageTime = float.NegativeInfinity;
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
         }
 

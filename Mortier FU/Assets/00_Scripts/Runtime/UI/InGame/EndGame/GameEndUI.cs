@@ -23,15 +23,6 @@ namespace MortierFu
         [SerializeField] private Sprite[] _newGameSprites;
         [SerializeField] private Sprite[] _mainMenuSprites;
 
-        [Header("Winner Preview")]
-        [SerializeField] private GameObject _winPlayer;
-        [SerializeField] private SkinnedMeshRenderer[] _playerMeshes;
-        [SerializeField] private SkinnedMeshRenderer[] _playerOutlineMeshes;
-        [SerializeField] private Material[] _playerOutlineMaterials;
-        [SerializeField] private Material[] _playerMaterials;
-
-        [SerializeField] private Camera _renderCamera;
-
         private GameModeBase _gm;
         private GameService _gameService;
         private EventSystem _eventSystem;
@@ -106,7 +97,6 @@ namespace MortierFu
             }
 
             ApplyWinnerSprites(playerIndex);
-            ApplyWinnerMaterials(playerIndex);
             ShowWinnerPresentation();
 
             if (_eventSystem != null && _mainMenuButton != null)
@@ -130,12 +120,6 @@ namespace MortierFu
                 return false;
 
             if (_mainMenuSprites == null || playerIndex >= _mainMenuSprites.Length)
-                return false;
-
-            if (_playerMaterials == null || playerIndex >= _playerMaterials.Length)
-                return false;
-
-            if (_playerOutlineMaterials == null || playerIndex >= _playerOutlineMaterials.Length)
                 return false;
 
             return true;
@@ -164,53 +148,16 @@ namespace MortierFu
             }
         }
 
-        private void ApplyWinnerMaterials(int playerIndex)
-        {
-            if (_playerMeshes != null)
-            {
-                foreach (var mesh in _playerMeshes)
-                {
-                    if (mesh != null)
-                    {
-                        mesh.material = _playerMaterials[playerIndex];
-                    }
-                }
-            }
-
-            if (_playerOutlineMeshes != null)
-            {
-                foreach (var outlineMesh in _playerOutlineMeshes)
-                {
-                    if (outlineMesh != null)
-                    {
-                        outlineMesh.material = _playerOutlineMaterials[playerIndex];
-                    }
-                }
-            }
-        }
-
         private void ShowWinnerPresentation()
         {
             if (_winnerImageBackground != null)
                 _winnerImageBackground.gameObject.SetActive(true);
-
-            if (_renderCamera != null)
-                _renderCamera.gameObject.SetActive(true);
-
-            if (_winPlayer != null)
-                _winPlayer.SetActive(true);
         }
 
         private void HideWinnerPresentation()
         {
-            if (_renderCamera != null)
-                _renderCamera.gameObject.SetActive(false);
-
             if (_winnerImageBackground != null)
                 _winnerImageBackground.gameObject.SetActive(false);
-
-            if (_winPlayer != null)
-                _winPlayer.SetActive(false);
         }
     }
 }
