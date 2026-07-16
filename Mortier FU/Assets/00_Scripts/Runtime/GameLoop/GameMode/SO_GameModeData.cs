@@ -73,6 +73,12 @@ namespace MortierFu
             Text = "+30"
         };
 
+        public ScoreRewardData BombshellFallKillReward = new ScoreRewardData
+        {
+            Score = 30,
+            Text = "+30"
+        };
+        
         public ScoreRewardData PushKillReward = new ScoreRewardData
         {
             Score = 40,
@@ -106,6 +112,7 @@ namespace MortierFu
         {
             return cause switch
             {
+                E_DeathCause.FallAfterExplosion => BombshellFallKillReward,
                 E_DeathCause.BombshellExplosion => BombshellKillReward,
                 E_DeathCause.Fall => PushKillReward,
                 E_DeathCause.VehicleCrash => VehicleCrashKillReward,

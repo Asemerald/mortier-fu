@@ -45,7 +45,7 @@ namespace MortierFu {
                     
                     break;
                 }
-                case E_DeathCause.Fall:
+                case E_DeathCause.Fall or E_DeathCause.FallAfterExplosion:
                 {
                     Vector3 characterPos = evt.Character.transform.position;
                     

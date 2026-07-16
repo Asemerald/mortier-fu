@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using PrimeTween;
 using TMPro;
 using UnityEngine;
@@ -411,7 +412,10 @@ namespace MortierFu
                 ScoreRewardData reward = GetKillReward(kills[killRound]);
 
                 if (!reward.ShouldDisplay())
+                {
                     continue;
+                }
+                    
 
                 TextMeshProUGUI scoreText = _scoreTexts[idx];
 
@@ -835,6 +839,7 @@ namespace MortierFu
         {
             return cause switch
             {
+                E_DeathCause.FallAfterExplosion =>_bombshellKillContextSprite,
                 E_DeathCause.BombshellExplosion => _bombshellKillContextSprite,
                 E_DeathCause.Fall => _fallKillContextSprite,
                 E_DeathCause.VehicleCrash => _vehicleCrashKillContextSprite,
