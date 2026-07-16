@@ -54,8 +54,12 @@ namespace MortierFu.Analytics
             
             _triggerEndRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_triggerEndRoundBinding);
-
-            GameService.CurrentGameMode.OnGameEnded += OnGameEndedHandler;
+            
+            if (GameService.CurrentGameMode != null)
+                    GameService.CurrentGameMode.OnGameEnded += OnGameEndedHandler;
+            else
+                Logs.LogWarning("[AnalyticsSystem] CurrentGameMode est null à l'initialisation, donc pas reçu");
+            
         }
         
         
@@ -69,10 +73,11 @@ namespace MortierFu.Analytics
                 date = System.DateTime.UtcNow.ToString("yyyy-MM-ddT HH:mm:ss"),
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
+                scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
                 officialGameVersion = "b.1",
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds
                 winner = "",
-                roundsPlayed = 0
+                roundsPlayed = 0,
             };
             
             StartNewRound();
@@ -391,6 +396,7 @@ namespace MortierFu.Analytics
                     form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                     form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
                     form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
+                    form.AddField("scoreToWin", _gameData.scoreToWin);
                     form.AddField("winner", _gameData.winner);
                     form.AddField("roundNumber", roundData.roundNumber.ToString());
                     form.AddField("roundWinner", roundData.roundWinner);
@@ -468,7 +474,9 @@ namespace MortierFu.Analytics
             EventBus<EventPlayerDeath>.Deregister(_triggerDeathBinding);
             EventBus<TriggerEndRound>.Deregister(_triggerEndRoundBinding);
 
-            GameService.CurrentGameMode.OnGameEnded -= OnGameEndedHandler;
+            if (GameService.CurrentGameMode != null)
+                GameService.CurrentGameMode.OnGameEnded -= OnGameEndedHandler;
+
             
             // Sauvegarder les données avant de disposer
             if (_gameData != null && _gameData.roundsPlayed > 0)
