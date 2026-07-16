@@ -31,9 +31,9 @@ namespace MortierFu
             base.OnDisable();
         }
 
-        protected override bool CanInteract(PlayerManager player)
+        protected override bool CanEnter(PlayerManager player)
         {
-            if (!base.CanInteract(player))
+            if (!base.CanEnter(player))
                 return false;
 
             if (_activePlayer || !_stateController)
@@ -64,16 +64,11 @@ namespace MortierFu
 
             _activePlayer = player;
 
-            Logs.Log($"[LobbySettingsStation] Player {player.PlayerIndex + 1} entered settings.");
-
             if (_focusCameraWhileSettingsOpen && _cameraFocusController)
                 _cameraFocusController.FocusSettings();
 
             _settingsPanel.Open(player, OnSettingsClosed);
         }
-
-        protected override void Interact(PlayerManager player)
-        { }
 
         private void OnSettingsClosed(PlayerManager player)
         {
@@ -121,8 +116,6 @@ namespace MortierFu
                 _stateController.TryExitSettings(player);
             else if (lockPlayer)
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
-
-            Logs.Log($"[LobbySettingsStation] Player {player.PlayerIndex + 1} left settings.");
         }
     }
 }

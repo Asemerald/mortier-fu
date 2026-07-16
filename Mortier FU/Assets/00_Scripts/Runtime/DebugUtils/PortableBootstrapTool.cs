@@ -213,9 +213,6 @@ namespace MortierFu
             if (ServiceManager.Instance.Get<PlayerUIInputService>() is null)
                 Logs.LogWarning("[PortableBootstrapTool] PlayerUIInputService is missing.", this);
 
-            if (ServiceManager.Instance.Get<PlayerInteractionService>() is null)
-                Logs.LogWarning("[PortableBootstrapTool] PlayerInteractionService is missing.", this);
-
             if (SystemManager.Instance.Get<GamePauseSystem>() is null)
                 Logs.LogWarning("[PortableBootstrapTool] GamePauseSystem is missing.", this);
 
@@ -235,11 +232,7 @@ namespace MortierFu
                 Logs.LogWarning("[PortableBootstrapTool] AugmentSelectionSystem is missing.", this);
 
             if (!Camera.main)
-            {
-                Logs.LogWarning(
-                    "[PortableBootstrapTool] No Camera tagged MainCamera found. Add a MainCamera for audio/camera tests.",
-                    this);
-            }
+                Logs.LogWarning("[PortableBootstrapTool] No Camera tagged MainCamera found. Add a MainCamera for audio/camera tests.", this);
         }
     }
 }

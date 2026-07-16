@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using MortierFu;
 using UnityEngine;
@@ -20,12 +19,6 @@ public sealed class TEMP_GearActivation : LobbyInteractionZone
       {
          _animator.SetBool("IsActive", true);
       }
-      
-   }
-
-   protected override void Interact(PlayerManager player)
-   {
-      throw new NotImplementedException();
    }
 
    protected override void OnPlayerExited(PlayerManager player)
