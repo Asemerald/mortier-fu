@@ -59,14 +59,10 @@ namespace MortierFu
         
         private PlayerColorState _playerColorState;
 
-        public PlayerColorState PlayerColorState =>  _playerColorState;
-        
         private static readonly int ShaderPropColor = Shader.PropertyToID("_PlayerColor");
 
         public AspectCharacterComponent(PlayerCharacter character) : base(character)
-        {
-            
-        }
+        { }
 
         public Color PlayerColor => AspectMaterials.PlayerColor;
         private GameObject SpawnVFXPrefab => AspectMaterials.SpawnVFXPrefab;

@@ -16,14 +16,10 @@ namespace MortierFu
         [SerializeField] private string _columnPropertyName = "_Column";
         [SerializeField] private string _rowPropertyName = "_Row";
 
-        [Header("Debug")]
-        [SerializeField] private bool _showDebugLogs;
-        
         private Material _faceMaterialInstance;
         private Material _customMaterialInstance;
 
         public  Material CustomsMaterial => _customizationMaterial;
-        public int SkinCount => _availableSkins?.Length ?? 0;
 
         private GameModeBase _gameModeBase;
         
@@ -69,18 +65,13 @@ namespace MortierFu
             if (customization is null)
                 return;
 
-            Apply(
-                customization.SkinIndex,
-                customization.FaceColumn,
-                customization.FaceRow
-            );
+            Apply(customization.SkinIndex, customization.FaceColumn, customization.FaceRow);
         }
 
         private void ApplySkin(int skinIndex)
         {
             if (!_customSkinMeshRenderer || _availableSkins.Length == 0)
             {
-                DebugLog("[PlayerCustomizationVisual] No skins assigned.");
                 return;
             }
 
@@ -91,15 +82,12 @@ namespace MortierFu
             }
             
             _customSkinMeshRenderer.sharedMesh = _availableSkins[skinIndex];
-
-            DebugLog($"[PlayerCustomizationVisual] Applied skin {skinIndex}.");
         }
 
         private void ApplyFace(int column, int row)
         {
             if (!_bodySkinnedMeshRenderer)
             {
-                DebugLog("[PlayerCustomizationVisual] No face mesh renderer assigned.");
                 return;
             }
 
@@ -120,8 +108,6 @@ namespace MortierFu
                 _faceMaterialInstance.SetFloat(_rowPropertyName, row);
             else
                 Logs.LogWarning($"[PlayerCustomizationVisual] Material has no property '{_rowPropertyName}'.", this);
-
-            DebugLog($"[PlayerCustomizationVisual] Applied face Column={column}, Row={row}.");
         }
 
         public void SetCustom(int index)
@@ -146,14 +132,6 @@ namespace MortierFu
             var mats = _customSkinMeshRenderer.materials;
             mats[0] = _customMaterialInstance;
             _customSkinMeshRenderer.materials = mats;
-        }
-
-        private void DebugLog(string message)
-        {
-            if (!_showDebugLogs)
-                return;
-
-            Logs.Log(message, this);
         }
 
         public void ResetVisualAfterRound() => UpdateVisualsAfterRound(false);
