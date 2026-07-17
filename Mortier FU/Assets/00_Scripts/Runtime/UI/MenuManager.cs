@@ -29,7 +29,7 @@ namespace MortierFu
         [field: SerializeField] public Button SteamButton { get; private set; }
         [field: SerializeField] public Button MailButton { get; private set; }
         
-        [SerializeField] private GameObject _animatedCharacter;
+        [SerializeField] private GameObject[] _animatedCharacterElements;
         [SerializeField] private GameObject BetaTest;
 
         [Header("Animation")] [SerializeField] private Image _background;
@@ -462,8 +462,10 @@ namespace MortierFu
         
         private void SetCharactersVisible(bool visible)
         {
-            if (_animatedCharacter)
-                _animatedCharacter.SetActive(visible);
+            foreach (var element in _animatedCharacterElements)
+            {
+                element.gameObject.SetActive(visible);
+            }
         }
 
         private bool TryCancelCurrentPanel()

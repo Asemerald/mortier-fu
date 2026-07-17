@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -10,10 +11,21 @@ namespace MortierFu
     {
         private readonly Dictionary<PlayerManager, List<IPlayerUIInputHandler>> _handlersByPlayer = new();
 
+        private readonly Dictionary<PlayerManager, Vector2> _navigationInputByPlayer = new();
+        private readonly List<PlayerManager> _navigationPlayersBuffer = new();
+
+        private CancellationTokenSource _navigationLoopCancellation;
+        
         public bool IsInitialized { get; set; }
 
         public UniTask OnInitialize()
         {
+            _navigationLoopCancellation?.Cancel();
+            _navigationLoopCancellation?.Dispose();
+
+            _navigationLoopCancellation = new CancellationTokenSource();
+            RunNavigationLoop(_navigationLoopCancellation.Token).Forget();
+
             return UniTask.CompletedTask;
         }
 
@@ -27,6 +39,8 @@ namespace MortierFu
                 handlers = new List<IPlayerUIInputHandler>();
                 _handlersByPlayer.Add(player, handlers);
             }
+
+            _navigationInputByPlayer.Remove(player);
 
             RemoveFromList(handlers, handler);
             handlers.Add(handler);
@@ -42,10 +56,10 @@ namespace MortierFu
 
             RemoveFromList(handlers, handler);
 
-            if (handlers.Count == 0)
-            {
-                _handlersByPlayer.Remove(player);
-            }
+            if (handlers.Count != 0) return;
+            
+            _handlersByPlayer.Remove(player);
+            _navigationInputByPlayer.Remove(player);
         }
 
         public void RemoveFromAll(IPlayerUIInputHandler handler)
@@ -78,7 +92,18 @@ namespace MortierFu
             if (!player || !player.CurrentPermissions.CanNavigateUI)
                 return false;
 
-            return TryHandle(player, handler => handler.HandleNavigate(player, direction));
+            if (!_handlersByPlayer.ContainsKey(player))
+                return false;
+
+            if (direction.sqrMagnitude < 0.0001f)
+            {
+                _navigationInputByPlayer.Remove(player);
+                TryHandle(player, handler => handler.HandleNavigate(player, Vector2.zero));
+                return true;
+            }
+
+            _navigationInputByPlayer[player] = direction;
+            return true;
         }
 
         public bool TrySubmit(PlayerManager player)
@@ -131,13 +156,50 @@ namespace MortierFu
 
         private static bool IsInvalidHandler(IPlayerUIInputHandler handler)
         {
-            if (handler is null)
-                return true;
+            switch (handler)
+            {
+                case null:
+                case Object unityObject when !unityObject:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        
+        private async UniTaskVoid RunNavigationLoop(CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    _navigationPlayersBuffer.Clear();
 
-            if (handler is Object unityObject && !unityObject)
-                return true;
+                    foreach (var pair in _navigationInputByPlayer)
+                    {
+                        _navigationPlayersBuffer.Add(pair.Key);
+                    }
 
-            return false;
+                    for (int i = 0; i < _navigationPlayersBuffer.Count; i++)
+                    {
+                        PlayerManager player = _navigationPlayersBuffer[i];
+
+                        if (!player || !player.CurrentPermissions.CanNavigateUI)
+                        {
+                            _navigationInputByPlayer.Remove(player);
+                            continue;
+                        }
+
+                        if (!_navigationInputByPlayer.TryGetValue(player, out Vector2 input))
+                            continue;
+
+                        TryHandle(player, handler => handler.HandleNavigate(player, input));
+                    }
+
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            { }
         }
 
         private static void RemoveFromList(List<IPlayerUIInputHandler> handlers, IPlayerUIInputHandler handler)
@@ -157,10 +219,15 @@ namespace MortierFu
         public void ClearAllHandlers()
         {
             _handlersByPlayer.Clear();
+            _navigationInputByPlayer.Clear();
         }
 
         public void Dispose()
         {
+            _navigationLoopCancellation?.Cancel();
+            _navigationLoopCancellation?.Dispose();
+            _navigationLoopCancellation = null;
+
             ClearAllHandlers();
         }
     }

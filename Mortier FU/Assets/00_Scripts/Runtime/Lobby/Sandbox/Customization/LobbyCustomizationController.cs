@@ -77,6 +77,8 @@ namespace MortierFu
 
             _panelCancellation = new CancellationTokenSource();
 
+            _preview.SetCustomColor(player.PlayerIndex);
+            
             _activePlayer = player;
             _onConfirmed = onConfirmed;
             _isOpen = true;
@@ -102,17 +104,20 @@ namespace MortierFu
 
             int version = ++_visualVersion;
 
-            OpenVisualsAsync(version, _panelCancellation.Token).Forget();
+            OpenVisualsAsync(version,player.PlayerIndex, _panelCancellation.Token).Forget();
 
             Logs.Log($"[LobbyCustomizationPanel] Opened for Player {player.PlayerIndex + 1}.", this);
         }
 
-        private async UniTaskVoid OpenVisualsAsync(int version, CancellationToken ct)
+        private async UniTaskVoid OpenVisualsAsync(int version, int colorIndex, CancellationToken ct)
         {
             try
             {
                 if (_preview && _activePlayer)
-                    await _preview.ShowAsync(_activePlayer.Customization, ct);
+                {
+                    _preview.SetCustomColor(colorIndex); 
+                    await _preview.ShowAsync(_activePlayer.Customization,colorIndex, ct);
+                }
 
                 if (version != _visualVersion)
                     return;

@@ -3,22 +3,24 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    public abstract class LobbyInteractionZone : MonoBehaviour, IPlayerInteractionHandler
+    public abstract class LobbyInteractionZone : MonoBehaviour
     {
         private readonly HashSet<PlayerManager> _playersInside = new();
-
-        private PlayerInteractionService InteractionService =>
-            ServiceManager.Instance?.Get<PlayerInteractionService>();
+        private readonly HashSet<PlayerManager> _ignoredUntilExit = new();
 
         private void OnTriggerEnter(Collider other)
         {
             if (!TryGetPlayer(other, out PlayerManager player))
                 return;
 
-            if (!_playersInside.Add(player) || InteractionService == null)
+            if (!_playersInside.Add(player))
                 return;
 
-            InteractionService.Register(player, this);
+            if (_ignoredUntilExit.Contains(player))
+                return;
+
+            if (!CanEnter(player))
+                return;
 
             OnPlayerEntered(player);
         }
@@ -28,54 +30,33 @@ namespace MortierFu
             if (!TryGetPlayer(other, out PlayerManager player))
                 return;
 
-            if (!_playersInside.Remove(player) || InteractionService == null)
+            if (!_playersInside.Remove(player))
                 return;
-            
-            InteractionService.Unregister(player, this);
+
+            _ignoredUntilExit.Remove(player);
 
             OnPlayerExited(player);
         }
 
         protected virtual void OnDisable()
         {
-            UnregisterAllPlayers();
             _playersInside.Clear();
+            _ignoredUntilExit.Clear();
         }
+
+        protected void IgnorePlayerUntilExit(PlayerManager player)
+        {
+            if (player)
+                _ignoredUntilExit.Add(player);
+        }
+
+        protected virtual bool CanEnter(PlayerManager player) => player && player.ControlContext == PlayerControlContext.LobbySandbox;
 
         protected virtual void OnPlayerEntered(PlayerManager player)
         { }
 
         protected virtual void OnPlayerExited(PlayerManager player)
         { }
-
-        protected virtual bool CanInteract(PlayerManager player) => player && player.ControlContext == PlayerControlContext.LobbySandbox && player.CurrentPermissions.CanInteract;
-
-        protected abstract void Interact(PlayerManager player);
-
-        public bool CanHandleInteraction(PlayerManager player) => player && _playersInside.Contains(player) && CanInteract(player);
-
-        public bool HandleInteract(PlayerManager player)
-        {
-            if (!CanHandleInteraction(player))
-                return false;
-
-            Interact(player);
-            return true;
-        }
-
-        private void UnregisterAllPlayers()
-        {
-            if (_playersInside.Count == 0)
-                return;
-
-            var players = new List<PlayerManager>(_playersInside);
-
-            if(InteractionService == null)
-                return;
-            
-            foreach (PlayerManager player in players)
-                InteractionService.Unregister(player, this);
-        }
 
         private static bool TryGetPlayer(Collider other, out PlayerManager player)
         {

@@ -11,8 +11,11 @@ namespace MortierFu
         [SerializeField] private List<UINavigationItem> _items = new();
 
         [Header("Navigation")]
-        [SerializeField] private float _navigationThreshold = 0.3f;
-        [SerializeField] private float _navigationCooldown = 0.2f;
+        [SerializeField] private float _navigationPressThreshold = 0.55f;
+        [SerializeField] private float _navigationReleaseThreshold = 0.25f;
+        [SerializeField] private float _axisDominanceMargin = 0.2f;
+        [SerializeField] private float _initialRepeatDelay = 0.35f;
+        [SerializeField] private float _repeatCooldown = 0.12f;
         [SerializeField] private bool _wrapVerticalNavigation = true;
 
         private PlayerManager _activePlayer;
@@ -63,8 +66,6 @@ namespace MortierFu
                 inputService.Push(_activePlayer, this);
 
             RefreshSelection();
-
-            Logs.Log($"[UINavigationPanel] Opened for Player {player.PlayerIndex + 1}.", this);
         }
 
         public void Close()
@@ -158,7 +159,7 @@ namespace MortierFu
 
         private void EnsureInitialized()
         {
-            _navigationRepeater ??= new UINavigationRepeater(_navigationThreshold, _navigationCooldown);
+            _navigationRepeater ??= new UINavigationRepeater(_navigationPressThreshold, _navigationReleaseThreshold, _axisDominanceMargin, _initialRepeatDelay, _repeatCooldown);
 
             _items ??= new List<UINavigationItem>();
         }

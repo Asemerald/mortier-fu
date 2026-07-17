@@ -11,7 +11,6 @@ namespace MortierFu
         private readonly Action<InputAction.CallbackContext> _onNavigateUI;
         private readonly Action<InputAction.CallbackContext> _onSubmitUI;
         private readonly Action<InputAction.CallbackContext> _onCancelUI;
-        private readonly Action<InputAction.CallbackContext> _onInteract;
 
         private InputAction _pauseAction;
         private InputAction _unPauseAction;
@@ -20,16 +19,13 @@ namespace MortierFu
         private InputAction _submitUIAction;
         private InputAction _cancelUIAction;
 
-        private InputAction _interactAction;
-
         private bool _callbacksBound;
 
         public PlayerControlContext ControlContext { get; private set; } = PlayerControlContext.Lobby;
 
-        public PlayerActionPermissions CurrentPermissions { get; private set; } =
-            PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
+        public PlayerActionPermissions CurrentPermissions { get; private set; } = PlayerActionPermissions.FromContext(PlayerControlContext.Lobby);
 
-        public PlayerInputRouter(PlayerInput playerInput, Action<InputAction.CallbackContext> onPause, Action<InputAction.CallbackContext> onNavigateUI, Action<InputAction.CallbackContext> onSubmitUI, Action<InputAction.CallbackContext> onCancelUI, Action<InputAction.CallbackContext> onInteract)
+        public PlayerInputRouter(PlayerInput playerInput, Action<InputAction.CallbackContext> onPause, Action<InputAction.CallbackContext> onNavigateUI, Action<InputAction.CallbackContext> onSubmitUI, Action<InputAction.CallbackContext> onCancelUI)
         {
             _playerInput = playerInput ?? throw new ArgumentNullException(nameof(playerInput));
 
@@ -37,7 +33,6 @@ namespace MortierFu
             _onNavigateUI = onNavigateUI ?? throw new ArgumentNullException(nameof(onNavigateUI));
             _onSubmitUI = onSubmitUI ?? throw new ArgumentNullException(nameof(onSubmitUI));
             _onCancelUI = onCancelUI ?? throw new ArgumentNullException(nameof(onCancelUI));
-            _onInteract = onInteract ?? throw new ArgumentNullException(nameof(onInteract));
         }
 
         public void SetContext(PlayerControlContext context, PlayerCharacter character = null)
@@ -57,10 +52,7 @@ namespace MortierFu
             character?.SetControlContext(context);
         }
 
-        public void ApplyCurrentContextTo(PlayerCharacter character)
-        {
-            character?.SetControlContext(ControlContext);
-        }
+        public void ApplyCurrentContextTo(PlayerCharacter character) => character?.SetControlContext(ControlContext);
 
         public void BindInputCallbacks()
         {
@@ -73,8 +65,6 @@ namespace MortierFu
             _navigateUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Navigate);
             _submitUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Submit);
             _cancelUIAction = _playerInput.actions.FindAction(PlayerInputActionNames.Cancel);
-
-            _interactAction = _playerInput.actions.FindAction(PlayerInputActionNames.Interact);
 
             if (_pauseAction is not null)
                 _pauseAction.performed += _onPause;
@@ -93,9 +83,6 @@ namespace MortierFu
 
             if (_cancelUIAction is not null)
                 _cancelUIAction.performed += _onCancelUI;
-
-            if (_interactAction is not null)
-                _interactAction.performed += _onInteract;
 
             _callbacksBound = true;
         }
@@ -123,17 +110,12 @@ namespace MortierFu
             if (_cancelUIAction is not null)
                 _cancelUIAction.performed -= _onCancelUI;
 
-            if (_interactAction is not null)
-                _interactAction.performed -= _onInteract;
-
             _pauseAction = null;
             _unPauseAction = null;
 
             _navigateUIAction = null;
             _submitUIAction = null;
             _cancelUIAction = null;
-
-            _interactAction = null;
 
             _callbacksBound = false;
         }

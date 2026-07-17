@@ -72,14 +72,7 @@ namespace MortierFu
                     return null;
                 }
 
-                _inputRouter ??= new PlayerInputRouter(
-                    _playerInput,
-                    TogglePause,
-                    NavigateUI,
-                    SubmitUI,
-                    CancelUI,
-                    Interact
-                );
+                _inputRouter ??= new PlayerInputRouter(_playerInput, TogglePause, NavigateUI, SubmitUI, CancelUI);
 
                 return _inputRouter;
             }
@@ -99,8 +92,6 @@ namespace MortierFu
         }
 
         private PlayerUIInputService UIInputService => ServiceManager.Instance?.Get<PlayerUIInputService>();
-
-        private PlayerInteractionService InteractionService => ServiceManager.Instance?.Get<PlayerInteractionService>();
 
         private void Awake()
         {
@@ -246,17 +237,6 @@ namespace MortierFu
                 return;
 
             _gamePauseSystem.TogglePause();
-        }
-
-        private void Interact(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed)
-                return;
-
-            if (!CurrentPermissions.CanInteract)
-                return;
-
-            InteractionService?.TryInteract(this);
         }
 
         private void NavigateUI(InputAction.CallbackContext ctx)

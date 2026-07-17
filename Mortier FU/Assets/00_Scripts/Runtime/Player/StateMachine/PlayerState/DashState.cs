@@ -137,7 +137,7 @@ namespace MortierFu
         private void ExecuteStrike()
         {
             var strikePosition = character.GetStrikePoint().position;
-            float radius = character.Stats.GetStrikeRadius();
+            float radius = character.Stats.GetStrikeRadius() * character.transform.localScale.x;
 
             var count = Physics.OverlapSphereNonAlloc(strikePosition, radius,
                 _overlapBuffer, _whatIsStrikable);
@@ -266,5 +266,6 @@ namespace MortierFu
             _dashCooldownTimer.Dispose();
             _dashTriggerTimer.Dispose();
         }
+        
     }
 }

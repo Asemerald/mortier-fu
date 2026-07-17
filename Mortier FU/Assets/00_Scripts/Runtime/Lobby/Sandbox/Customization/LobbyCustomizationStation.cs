@@ -53,9 +53,9 @@ namespace MortierFu
             _stationCancellation = null;
         }
         
-        protected override bool CanInteract(PlayerManager player)
+        protected override bool CanEnter(PlayerManager player)
         {
-            if (!base.CanInteract(player))
+            if (!base.CanEnter(player))
                 return false;
 
             if (_activePanels.ContainsKey(player))
@@ -63,19 +63,11 @@ namespace MortierFu
 
             if (_closingPlayers.Contains(player))
                 return false;
-            
+
             if (!_stateController)
                 return false;
 
-            if (!GetPanelForPlayer(player))
-                return false;
-
-            return _stateController.CanUseCustomizationStation(player);
-        }
-
-        protected override void Interact(PlayerManager player)
-        {
-            throw new NotImplementedException();
+            return GetPanelForPlayer(player) && _stateController.CanUseCustomizationStation(player);
         }
 
         //ENTRE DANS LA CUSTO
@@ -103,8 +95,6 @@ namespace MortierFu
 
             _activePanels[player] = panel;
 
-            Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} entered customization.");
-            
             _animator.SetTrigger("PlayerHasEnter");
             player.Character.gameObject.SetActive(false);
 
@@ -117,12 +107,8 @@ namespace MortierFu
         {
             if (!player)
                 return;
-            ForceCloseCustomizationAsync(
-                player,
-                restoreSandboxControl: true,
-                exitState: true,
-                waitForExitAnimation: true
-            ).Forget();
+            
+            ForceCloseCustomizationAsync(player, restoreSandboxControl: true, exitState: true, waitForExitAnimation: true).Forget();
         }
 
         private void HandleCustomizationInterrupted(PlayerManager player)
@@ -130,12 +116,7 @@ namespace MortierFu
             if (!player)
                 return;
 
-            ForceCloseCustomizationAsync(
-                player,
-                restoreSandboxControl: false,
-                exitState: false,
-                waitForExitAnimation: false
-            ).Forget();
+            ForceCloseCustomizationAsync(player, restoreSandboxControl: false, exitState: false, waitForExitAnimation: false).Forget();
         }
 
         private void ForceCloseAllCustomizations(bool restoreSandboxControl, bool exitState)
@@ -151,15 +132,7 @@ namespace MortierFu
             }
         }
 
-        private void ForceCloseCustomization(PlayerManager player, bool restoreSandboxControl, bool exitState)
-        {
-            ForceCloseCustomizationAsync(
-                player,
-                restoreSandboxControl,
-                exitState,
-                waitForExitAnimation: false
-            ).Forget();
-        }
+        private void ForceCloseCustomization(PlayerManager player, bool restoreSandboxControl, bool exitState) => ForceCloseCustomizationAsync(player, restoreSandboxControl, exitState, waitForExitAnimation: false).Forget();
         
         //SORT DE LA CUSTOMISATION
         private async UniTaskVoid ForceCloseCustomizationAsync(PlayerManager player, bool restoreSandboxControl, bool exitState, bool waitForExitAnimation)
@@ -202,9 +175,9 @@ namespace MortierFu
                 {
                     player.SetControlContext(PlayerControlContext.LobbyLocked);
                 }
-               
-                Logs.Log($"[LobbyCustomizationStation] Player {player.PlayerIndex + 1} left customization.");
-                
+
+                IgnorePlayerUntilExit(player);
+
                 player.Character.gameObject.SetActive(true);
             }
             catch (OperationCanceledException)
@@ -227,7 +200,6 @@ namespace MortierFu
 
         private void RestorePlayerLobbyContext(PlayerManager player)
         {
-            
             if (!player)
                 return;
 

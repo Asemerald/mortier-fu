@@ -42,20 +42,7 @@ namespace MortierFu
         [SerializeField] private Button _confirmQuitGameButton;
         [SerializeField] private Button _cancelQuitGameButton;
 
-        [Header("Mortars")]
-        [SerializeField] private GameObject[] _mortarHands;
-        [SerializeField] private GameObject[] _mortarHeads;
-
         [Header("Animation Settings")]
-        [SerializeField] private float _headYOffset = 80f;
-        [SerializeField] private float _headPulseOffset = 15f;
-        [SerializeField] private float _headMoveDuration = 0.4f;
-        [SerializeField] private float _headPulseDuration = 0.4f;
-        [SerializeField] private float _minRandomDelay = 0.01f;
-        [SerializeField] private float _maxRandomDelay = 0.2f;
-        [SerializeField] private Ease _headMoveEase = Ease.OutCubic;
-        [SerializeField] private Ease _headPulseEase = Ease.InOutSine;
-
         [SerializeField] private float _tilablePauseSpeed = 0.5f;
 
         [Header("Panel Animation Settings")]
@@ -76,10 +63,6 @@ namespace MortierFu
         private PlayerManager _playerManager;
         private GameService _gameService;
 
-        private Vector3[] _mortarHandsInitialPositions;
-        private Vector3[] _mortarHeadsInitialPositions;
-        private Quaternion[] _mortarInitialRotations;
-
         private PlayerControlContext _previousPlayerContext;
         private bool _hasPreviousPlayerContext;
 
@@ -91,7 +74,6 @@ namespace MortierFu
             InitReferences();
             InitUI();
             BindPauseSystemEvents();
-            InitMortars();
             Hide();
         }
 
@@ -112,10 +94,6 @@ namespace MortierFu
             UnbindPauseSystemEvents();
             UnbindUIEvents();
             StopAllActiveAnimations();
-
-            _mortarHandsInitialPositions = null;
-            _mortarHeadsInitialPositions = null;
-            _mortarInitialRotations = null;
         }
 
         private void Update()
@@ -123,11 +101,11 @@ namespace MortierFu
             if (_gamePauseSystem is null || !_gamePauseSystem.IsPaused)
                 return;
 
-            if (_pauseTopText)
-                ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
+       //     if (_pauseTopText)
+          //      ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
 
-            if (_pauseBottomText)
-                ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
+      //      if (_pauseBottomText)
+         //       ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
         }
 
         private void InitReferences()
@@ -270,37 +248,6 @@ namespace MortierFu
 
             if (_cancelQuitGameButton)
                 _cancelQuitGameButton.onClick.RemoveListener(Return);
-        }
-
-        private void InitMortars()
-        {
-            if (_mortarHands is null || _mortarHeads is null)
-                return;
-
-            _mortarHandsInitialPositions = new Vector3[_mortarHands.Length];
-            _mortarHeadsInitialPositions = new Vector3[_mortarHeads.Length];
-            _mortarInitialRotations = new Quaternion[_mortarHands.Length];
-            _activeHeadTweens = new Tween[_mortarHeads.Length];
-
-            for (int i = 0; i < _mortarHands.Length; i++)
-            {
-                if (!_mortarHands[i])
-                    continue;
-
-                _mortarHandsInitialPositions[i] = _mortarHands[i].transform.position;
-                _mortarInitialRotations[i] = _mortarHands[i].transform.rotation;
-
-                _mortarHands[i].SetActive(false);
-            }
-
-            for (int i = 0; i < _mortarHeads.Length; i++)
-            {
-                if (!_mortarHeads[i])
-                    continue;
-
-                _mortarHeadsInitialPositions[i] = _mortarHeads[i].transform.position;
-                _mortarHeads[i].SetActive(false);
-            }
         }
 
         private void OnConfirmEndGame()
@@ -474,7 +421,9 @@ namespace MortierFu
         private void Show()
         {
             if (_pausePanel)
-                _pausePanel.SetActive(true);
+            {
+                AnimatePausePanel().Forget();
+            }
 
             if (_pauseBackground)
                 _pauseBackground.SetActive(true);
@@ -482,16 +431,14 @@ namespace MortierFu
             if (_blackPanel)
                 _blackPanel.SetActive(true);
 
-            if (_pauseTopText && _pauseTopText.transform.parent)
-                _pauseTopText.transform.parent.gameObject.SetActive(true);
+           // if (_pauseTopText && _pauseTopText.transform.parent)
+             //   _pauseTopText.transform.parent.gameObject.SetActive(true);
 
-            if (_pauseBottomText && _pauseBottomText.transform.parent)
-                _pauseBottomText.transform.parent.gameObject.SetActive(true);
+//            if (_pauseBottomText && _pauseBottomText.transform.parent)
+  //              _pauseBottomText.transform.parent.gameObject.SetActive(true);
 
             SafeCancelCts(ref _animateCancellation);
             _animateCancellation = new CancellationTokenSource();
-
-            AnimateMortarsRandomly(_animateCancellation.Token).Forget();
         }
 
         private void Hide()
@@ -517,148 +464,20 @@ namespace MortierFu
             if (_quitGameConfirmationPanel)
                 _quitGameConfirmationPanel.SetActive(false);
 
-            if (_pauseTopText && _pauseTopText.transform.parent)
-                _pauseTopText.transform.parent.gameObject.SetActive(false);
+         //   if (_pauseTopText && _pauseTopText.transform.parent)
+           //     _pauseTopText.transform.parent.gameObject.SetActive(false);
 
-            if (_pauseBottomText && _pauseBottomText.transform.parent)
-                _pauseBottomText.transform.parent.gameObject.SetActive(false);
+         //   if (_pauseBottomText && _pauseBottomText.transform.parent)
+         //       _pauseBottomText.transform.parent.gameObject.SetActive(false);
 
             StopAllActiveAnimations();
-            RestoreMortarsInitialState();
         }
 
-        private void RestoreMortarsInitialState()
+        private async UniTask AnimatePausePanel()
         {
-            if (_mortarHands is not null &&
-                _mortarHandsInitialPositions is not null &&
-                _mortarInitialRotations is not null)
-            {
-                for (int i = 0; i < _mortarHands.Length; i++)
-                {
-                    if (!_mortarHands[i])
-                        continue;
-
-                    _mortarHands[i].SetActive(false);
-                    _mortarHands[i].transform.position = _mortarHandsInitialPositions[i];
-                    _mortarHands[i].transform.rotation = _mortarInitialRotations[i];
-                }
-            }
-
-            if (_mortarHeads is not null && _mortarHeadsInitialPositions is not null)
-            {
-                for (int i = 0; i < _mortarHeads.Length; i++)
-                {
-                    if (!_mortarHeads[i])
-                        continue;
-
-                    _mortarHeads[i].SetActive(false);
-                    _mortarHeads[i].transform.position = _mortarHeadsInitialPositions[i];
-                }
-            }
-        }
-
-        private async UniTask AnimateMortarsRandomly(CancellationToken ct)
-        {
-            if (_activeHeadTweens is null || _mortarHands is null || _mortarHeads is null)
-                return;
-
-            for (int i = 0; i < _activeHeadTweens.Length; i++)
-            {
-                if (_activeHeadTweens[i].isAlive)
-                    _activeHeadTweens[i].Stop();
-            }
-
-            int playerCount = Mathf.Min(
-                _lobbyService?.CurrentPlayerCount ?? 0,
-                _mortarHands.Length,
-                _mortarHeads.Length
-            );
-
-            int[] indices = new int[_mortarHands.Length];
-
-            for (int i = 0; i < indices.Length; i++)
-                indices[i] = i;
-
-            Shuffle(indices);
-
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (ct.IsCancellationRequested)
-                    return;
-
-                int positionIndex = indices[i];
-
-                var hand = _mortarHands[i];
-                var head = _mortarHeads[i];
-
-                if (!hand || !head)
-                    continue;
-
-                bool shouldRotate = (i % 2) != (positionIndex % 2);
-
-                ApplyMortarTransform(
-                    hand,
-                    _mortarHandsInitialPositions[positionIndex],
-                    _mortarInitialRotations[i],
-                    shouldRotate
-                );
-
-                hand.SetActive(true);
-
-                ApplyMortarTransform(
-                    head,
-                    _mortarHeadsInitialPositions[positionIndex],
-                    _mortarInitialRotations[i],
-                    shouldRotate,
-                    _headYOffset * ((positionIndex % 2 == 0) ? -1 : 1)
-                );
-
-                head.SetActive(true);
-
-                await Tween.Position(
-                        head.transform,
-                        _mortarHeadsInitialPositions[positionIndex],
-                        _headMoveDuration,
-                        _headMoveEase,
-                        useUnscaledTime: true
-                    )
-                    .ToUniTask(cancellationToken: ct);
-
-                if (ct.IsCancellationRequested)
-                    return;
-
-                _activeHeadTweens[i] = Tween.Position(
-                    head.transform,
-                    _mortarHeadsInitialPositions[positionIndex] +
-                    (_headPulseOffset * ((positionIndex % 2 == 0) ? -1 : 1) * Vector3.up),
-                    _headPulseDuration,
-                    _headPulseEase,
-                    cycles: -1,
-                    cycleMode: CycleMode.Yoyo,
-                    useUnscaledTime: true
-                );
-
-                float delay = Random.Range(_minRandomDelay, _maxRandomDelay);
-
-                await UniTask.Delay(
-                    TimeSpan.FromSeconds(delay),
-                    ignoreTimeScale: true,
-                    cancellationToken: ct
-                );
-            }
-        }
-
-        private void ApplyMortarTransform(GameObject obj, Vector3 targetPos, Quaternion baseRot, bool rotate, float yOffset = 0f)
-        {
-            if (!obj)
-                return;
-
-            obj.transform.rotation = baseRot;
-
-            if (rotate)
-                obj.transform.Rotate(0f, 0f, 180f);
-
-            obj.transform.position = targetPos + new Vector3(0f, yOffset, 0f);
+            _pausePanel.SetActive(true);
+            
+          //  await Tween.Position(_pausePanel.transform, )
         }
 
         private void Pause()

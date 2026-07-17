@@ -187,8 +187,7 @@ namespace MortierFu
         }
 
         private void HandlePlayerInitialized(PlayerManager player)
-        {
-        }
+        { }
 
         private void HandlePlayerDestroyed(PlayerManager player)
         {

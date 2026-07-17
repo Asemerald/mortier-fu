@@ -35,8 +35,7 @@ namespace MortierFu
 
         private SO_PinhataRaceModeDefinition PinhataDefinition => Definition as SO_PinhataRaceModeDefinition;
 
-        public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex,
-            Transform fallback)
+        public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex, Transform fallback)
         {
             if (!Reporter)
                 return fallback;
@@ -95,8 +94,7 @@ namespace MortierFu
             {
                 var pickupIndex = i;
 
-                tasks.Add(selectionSystem.AttachPickupToAsync(pickupIndex, bullyCharacter.transform, Vector3.zero,
-                    PinhataDefinition.InhalePickupDuration, token));
+                tasks.Add(selectionSystem.AttachPickupToAsync(pickupIndex, bullyCharacter.transform, Vector3.zero, PinhataDefinition.InhalePickupDuration, token));
 
                 _hiddenPickupIndexes.Enqueue(pickupIndex);
             }
@@ -132,8 +130,48 @@ namespace MortierFu
             if (Time.time - _lastDropTime < cooldown)
                 return;
 
+            int pickupsToDrop = ResolvePickupsToDrop();
+
+            if (pickupsToDrop <= 0)
+                return;
+
             _lastDropTime = Time.time;
-            DropNextPickup(evt.Character).Forget();
+            DropNextPickups(evt.Character, pickupsToDrop).Forget();
+        }
+
+        private int ResolvePickupsToDrop()
+        {
+            int remainingPickups = _hiddenPickupIndexes.Count;
+
+            if (remainingPickups <= 0)
+                return 0;
+
+            if (!PinhataDefinition)
+                return Mathf.Min(1, remainingPickups);
+
+            int playerCount = GetActivePlayerCount();
+
+            return PinhataDefinition.ResolvePickupsPerHit(playerCount, remainingPickups);
+        }
+
+        private int GetActivePlayerCount()
+        {
+            if (Context?.Teams == null)
+                return 1;
+
+            int playerCount = 0;
+
+            for (int i = 0; i < Context.Teams.Count; i++)
+            {
+                PlayerTeam team = Context.Teams[i];
+
+                if (team == null || team.Members == null)
+                    continue;
+
+                playerCount += team.Members.Count;
+            }
+
+            return Mathf.Max(1, playerCount);
         }
 
         private bool IsValidPinhataHit(TriggerStrike evt)
@@ -159,26 +197,49 @@ namespace MortierFu
             return false;
         }
 
-        private async UniTaskVoid DropNextPickup(PlayerCharacter striker)
+        private async UniTaskVoid DropNextPickups(PlayerCharacter striker, int amount)
         {
-            var selectionSystem = Context?.AugmentSelectionSystem;
+            AugmentSelectionSystem selectionSystem = Context?.AugmentSelectionSystem;
 
             if (selectionSystem == null || _hiddenPickupIndexes.Count == 0)
                 return;
 
-            var pickupIndex = _hiddenPickupIndexes.Dequeue();
-            var dropPosition = GetDropPosition(striker);
+            amount = Mathf.Clamp(amount, 1, _hiddenPickupIndexes.Count);
+
+            CancellationToken token = _dropCancellation?.Token ?? CancellationToken.None;
+
+            var tasks = new List<UniTask>(amount);
+            var reservedPositions = new List<Vector3>(amount);
+
+            for (int i = 0; i < amount; i++)
+            {
+                int pickupIndex = _hiddenPickupIndexes.Dequeue();
+                Vector3 dropPosition = GetDropPosition(striker, i, reservedPositions);
+
+                reservedPositions.Add(dropPosition);
+
+                float delay = PinhataDefinition ? PinhataDefinition.MultiDropDelay * i : 0f;
+
+                tasks.Add(DropPickupAsync(selectionSystem, pickupIndex, dropPosition, delay, token));
+            }
 
             try
             {
-                await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, PinhataDefinition.DropHeight,
-                    PinhataDefinition.DropDuration, _dropCancellation?.Token ?? CancellationToken.None);
+                await UniTask.WhenAll(tasks);
             }
             catch (OperationCanceledException)
             { }
         }
 
-        private Vector3 GetDropPosition(PlayerCharacter striker)
+        private async UniTask DropPickupAsync(AugmentSelectionSystem selectionSystem, int pickupIndex, Vector3 dropPosition, float delay, CancellationToken cancellationToken)
+        {
+            if (delay > 0f)
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: cancellationToken);
+
+            await selectionSystem.DropPickupAsync(pickupIndex, dropPosition, PinhataDefinition.DropHeight, PinhataDefinition.DropDuration, cancellationToken);
+        }
+
+        private Vector3 GetDropPosition(PlayerCharacter striker, int batchIndex, List<Vector3> reservedPositions)
         {
             PlayerCharacter bullyCharacter = BullyCharacter;
 
@@ -186,17 +247,35 @@ namespace MortierFu
                 return Vector3.zero;
 
             Vector3 center = bullyCharacter.transform.position;
-            Vector3 preferredDirection = GetPreferredDropDirection(center, striker);
-
+            Vector3 baseDirection = GetDropDirection(center, striker, batchIndex);
             float radius = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropRadius) : 2.5f;
 
-            return ResolveSafeDropPosition(center, preferredDirection, radius);
+            for (int radiusIndex = 0; radiusIndex < DropRadiusMultipliers.Length; radiusIndex++)
+            {
+                float currentRadius = radius * DropRadiusMultipliers[radiusIndex];
+
+                for (int angleIndex = 0; angleIndex < DropAngleOffsets.Length; angleIndex++)
+                {
+                    Vector3 direction = Quaternion.AngleAxis(DropAngleOffsets[angleIndex], Vector3.up) * baseDirection;
+                    Vector3 candidate = center + direction * currentRadius;
+
+                    candidate.y = ResolveDropY(center);
+
+                    if (IsSafeDropPosition(center, candidate, reservedPositions))
+                        return candidate;
+                }
+            }
+
+            Vector3 fallback = center;
+            fallback.y = ResolveDropY(center);
+
+            return fallback;
         }
 
-        private Vector3 GetPreferredDropDirection(Vector3 center, PlayerCharacter striker)
+        private Vector3 GetDropDirection(Vector3 center, PlayerCharacter striker, int batchIndex)
         {
             Vector3 direction = striker ? striker.transform.position - center : UnityEngine.Random.insideUnitSphere;
-            
+
             direction.y = 0f;
 
             if (direction.sqrMagnitude < 0.001f)
@@ -205,43 +284,25 @@ namespace MortierFu
             direction.y = 0f;
             direction.Normalize();
 
-            return direction;
+            if (batchIndex <= 0)
+                return direction;
+
+            float angleStep = PinhataDefinition ? PinhataDefinition.MultiDropAngleStep : 25f;
+
+            int pairIndex = (batchIndex + 1) / 2;
+            float sign = batchIndex % 2 == 1 ? 1f : -1f;
+            float angle = sign * pairIndex * angleStep;
+
+            return Quaternion.AngleAxis(angle, Vector3.up) * direction;
         }
 
-        private Vector3 ResolveSafeDropPosition(Vector3 center, Vector3 preferredDirection, float radius)
+        private float ResolveDropY(Vector3 center) => PinhataDefinition && PinhataDefinition.OverrideDropWorldY ? PinhataDefinition.DropWorldY : center.y;
+
+        private bool IsSafeDropPosition(Vector3 center, Vector3 candidate, List<Vector3> reservedPositions)
         {
-            for (int radiusIndex = 0; radiusIndex < DropRadiusMultipliers.Length; radiusIndex++)
-            {
-                float currentRadius = radius * DropRadiusMultipliers[radiusIndex];
+            if (!IsFarEnoughFromReservedPositions(candidate, reservedPositions))
+                return false;
 
-                for (int angleIndex = 0; angleIndex < DropAngleOffsets.Length; angleIndex++)
-                {
-                    Vector3 direction = Quaternion.AngleAxis(DropAngleOffsets[angleIndex], Vector3.up) * preferredDirection;
-                    Vector3 candidate = center + direction * currentRadius;
-
-                    candidate = ApplyDropY(candidate, center);
-
-                    if (IsSafeDropPosition(center, candidate))
-                        return candidate;
-                }
-            }
-
-            Vector3 fallback = center + preferredDirection * Mathf.Min(radius, 1f);
-            return ApplyDropY(fallback, center);
-        }
-
-        private Vector3 ApplyDropY(Vector3 position, Vector3 center)
-        {
-            position.y = center.y;
-
-            if (PinhataDefinition && PinhataDefinition.OverrideDropWorldY)
-                position.y = PinhataDefinition.DropWorldY;
-
-            return position;
-        }
-
-        private bool IsSafeDropPosition(Vector3 center, Vector3 candidate)
-        {
             if (!PinhataDefinition || PinhataDefinition.DropBlockingMask.value == 0)
                 return true;
 
@@ -254,6 +315,27 @@ namespace MortierFu
                 return false;
 
             return !Physics.CheckSphere(to, PinhataDefinition.DropClearanceRadius, PinhataDefinition.DropBlockingMask, QueryTriggerInteraction.Ignore);
+        }
+
+        private bool IsFarEnoughFromReservedPositions(Vector3 candidate, List<Vector3> reservedPositions)
+        {
+            if (reservedPositions == null || reservedPositions.Count == 0)
+                return true;
+
+            float minDistance = PinhataDefinition ? Mathf.Max(0.1f, PinhataDefinition.DropClearanceRadius * 2f) : 1.2f;
+
+            float minSqrDistance = minDistance * minDistance;
+
+            for (int i = 0; i < reservedPositions.Count; i++)
+            {
+                Vector3 delta = candidate - reservedPositions[i];
+                delta.y = 0f;
+
+                if (delta.sqrMagnitude < minSqrDistance)
+                    return false;
+            }
+
+            return true;
         }
 
         private void CancelDrops()
