@@ -17,7 +17,17 @@ namespace MortierFu
         [SerializeField] private float _initialRepeatDelay = 0.35f;
         [SerializeField] private float _repeatCooldown = 0.12f;
         [SerializeField] private bool _wrapVerticalNavigation = true;
-
+        
+        //Stoian
+        [Header("Scroll Settings")]
+        [SerializeField] private float _scrollDistance = 110f;
+        [SerializeField] private int _topIndex = -1;
+        [SerializeField] private int _bottomIndex = 3;
+        
+        [Header("References")]
+        [SerializeField] private RectTransform _scrollArea;
+        //Stoian
+        
         private PlayerManager _activePlayer;
         private UINavigationRepeater _navigationRepeater;
 
@@ -27,6 +37,8 @@ namespace MortierFu
         private int _selectedIndex;
         private bool _isOpen;
         private bool _canNavigate;
+        
+        
 
         private PlayerUIInputService UIInputService => ServiceManager.Instance?.Get<PlayerUIInputService>();
 
@@ -181,6 +193,7 @@ namespace MortierFu
 
                 if (IsItemAvailable(_selectedIndex))
                 {
+                    ScrollSelection(_selectedIndex); //Stoian
                     RefreshSelection();
                     return;
                 }
@@ -230,6 +243,28 @@ namespace MortierFu
                     _items[i].SetSelected(i == _selectedIndex);
             }
         }
+        
+        //Stoian
+        private void ScrollSelection(int index)
+        {
+            if (index >= _bottomIndex)
+            {
+                _scrollArea.anchoredPosition += new Vector2(0f, _scrollDistance);
+                _topIndex++;
+                _bottomIndex++;
+                Logs.LogError(_topIndex + ", " + _bottomIndex);
+            }
+
+            if (index <= _topIndex)
+            {
+                _scrollArea.anchoredPosition -= new Vector2(0f, _scrollDistance);
+                _topIndex--;
+                _bottomIndex--;
+                Logs.LogError(_topIndex + ", " + _bottomIndex);
+            }
+        }
+        //Stoian
+
 
         private void ClearSelection()
         {
