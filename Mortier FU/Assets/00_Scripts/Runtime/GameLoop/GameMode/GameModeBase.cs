@@ -50,9 +50,10 @@ namespace MortierFu
         protected AugmentSelectionSystem augmentSelectionSys => _dependencies?.AugmentSelectionSystem;
         protected LevelSystem levelSystem => _dependencies?.LevelSystem;
         protected BombshellSystem bombshellSys => _dependencies?.BombshellSystem;
+        protected GhostSystem _ghostSystem => _dependencies?.GhostSystem;
         protected CameraSystem cameraSystem => _dependencies?.CameraSystem;
         protected AnalyticsSystem analyticsSystem => _dependencies?.AnalyticsSystem;
-
+        
         protected CountdownTimer timer;
 
         private AsyncOperationHandle<SO_GameModeData> _dataHandle;
@@ -65,7 +66,7 @@ namespace MortierFu
 
         public SO_GameModeData Data => _dataHandle.Result;
         public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
-        
+        public GameState CurrentGameState => currentState;
         public ScoreController ScoreController => _scoreController;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
@@ -706,7 +707,9 @@ namespace MortierFu
         private void PrepareRaceSceneAfterMapLoaded()
         {
             if (_isRaceScenePrepared)
-                return;
+                return; 
+            
+            _ghostSystem.ClearAllGhostElements();
             
             EnablePlayerGravity(false);
 

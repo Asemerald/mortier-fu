@@ -28,6 +28,8 @@ namespace MortierFu
         
         private Transform _ghostPropsParent;
         private Transform _ghostParent;
+        
+        private GameModeBase _gameMode;
 
         public bool IsInitialized { get; set; }
 
@@ -37,6 +39,8 @@ namespace MortierFu
         public async UniTask OnInitialize()
         {
             _settingsHandle = await AddressablesUtils.LazyLoadAsset<SO_GhostSettings>(k_ghostSettingsAddress);
+            _gameMode = GameService.CurrentGameMode as  GameModeBase;
+            
             if (!Settings)
             {
                 Logs.LogError("[GhostSystem] Ghost settings are missing.");
@@ -75,13 +79,7 @@ namespace MortierFu
             CancellationTokenSource cts = new();
             _pendingGhostSpawns[owner] = cts;
 
-            SpawnGhostAfterDelayAsync(
-                owner,
-                deadCharacter,
-                spawnPosition,
-                spawnRotation,
-                cts.Token
-            ).Forget();
+            SpawnGhostAfterDelayAsync(owner, deadCharacter, spawnPosition, spawnRotation, cts.Token).Forget();
         }
 
         private async UniTaskVoid SpawnGhostAfterDelayAsync(PlayerManager owner, PlayerCharacter sourceCharacter, Vector3 spawnPosition, Quaternion spawnRotation, CancellationToken cancellationToken)
@@ -100,12 +98,7 @@ namespace MortierFu
                 if (sourceCharacter.Health == null || sourceCharacter.Health.IsAlive)
                     return;
 
-                SpawnGhost(
-                    owner,
-                    sourceCharacter,
-                    spawnPosition,
-                    spawnRotation
-                );
+                SpawnGhost(owner, sourceCharacter, spawnPosition, spawnRotation);
             }
             catch (OperationCanceledException)
             {
@@ -156,6 +149,11 @@ namespace MortierFu
         }
 
         private void OnEndRound(TriggerEndRound evt)
+        {
+            ClearAllGhostElements();
+        }
+
+        public void ClearAllGhostElements()
         {
             ClearAllGhosts();
             ClearAllSpawnedProps();
