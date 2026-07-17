@@ -24,6 +24,8 @@ namespace MortierFu
         RoundGhost,
         RoundEnded,
         
+        Loading,
+        
         Scoreboard,
         EndGame
     }

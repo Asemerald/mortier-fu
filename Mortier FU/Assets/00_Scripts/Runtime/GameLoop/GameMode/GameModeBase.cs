@@ -614,6 +614,8 @@ namespace MortierFu
             if (_isRaceMapLoaded && levelSystem.IsRaceMap())
                 return;
 
+            SetPlayersControlContext(PlayerControlContext.Loading);
+
             await levelSystem.LoadRaceMap();
 
             _isRaceMapLoaded = true;
@@ -648,6 +650,8 @@ namespace MortierFu
                 return;
 
             cancellationToken.ThrowIfCancellationRequested();
+            
+            SetPlayersControlContext(PlayerControlContext.Loading);
 
             await levelSystem.LoadArenaMap();
 
@@ -744,6 +748,8 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
 
             await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
+            
+            SetPlayersControlContext(PlayerControlContext.Loading);
             
             await levelSystem.LoadRaceMap();
 
