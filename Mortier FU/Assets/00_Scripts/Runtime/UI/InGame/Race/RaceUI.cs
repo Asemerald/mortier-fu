@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using TMPro;
 using UnityEngine;
 
 namespace MortierFu
@@ -11,19 +12,23 @@ namespace MortierFu
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;
         [SerializeField] private AugmentSummaryUI _augmentSummaryUI;
+        [SerializeField] private GameObject _explanation;
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
         private LobbyService _lobbyService;
+        private LevelSystem _levelSystem;
 
         private GameModeBase _gm;
         private bool _isSubscribedToAugmentSelectionSystem;
 
         private void Awake()
         {
+            //SIMON
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            //
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-
             HideRuntimeUI();
         }
 
@@ -65,6 +70,7 @@ namespace MortierFu
                 return;
 
             _gm.OnRaceEndedUI += PlayAugmentSummary;
+            _gm.OnRacePlayerConfirmation += ShowRaceExplanation;
         }
 
         private void UnsubscribeGameMode()
@@ -73,8 +79,21 @@ namespace MortierFu
                 return;
 
             _gm.OnRaceEndedUI -= PlayAugmentSummary;
+            //SIMON
+            _gm.OnRacePlayerConfirmation -= ShowRaceExplanation;
+            //
             _gm = null;
         }
+        
+        //SIMON active l'explication et affiche la bonne explication selon le type de race
+        private void ShowRaceExplanation()
+        {
+            if (_explanation == null)
+                return;
+            _explanation.SetActive(true);
+            _explanation.GetComponentInChildren<TextMeshProUGUI>().text = _levelSystem.CurrentRaceReporter.RaceModeDefinition.RaceExplanationText;
+        }
+        //
 
         private void SubscribeConfirmationService()
         {
@@ -187,6 +206,12 @@ namespace MortierFu
 
             _racePressureUI.StopVignettePressure();
             _racePressureUI.gameObject.SetActive(false);
+
+            //SIMON enlève l'explication de la race
+            if (!_explanation)
+                return;
+            _explanation.SetActive(false);
+            //
         }
 
         private async UniTask PlayAugmentSummary(
