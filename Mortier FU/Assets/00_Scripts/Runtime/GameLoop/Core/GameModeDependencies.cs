@@ -13,6 +13,7 @@ namespace MortierFu
         public BombshellSystem BombshellSystem { get; private set; }
         public LevelSystem LevelSystem { get; private set; }
         public AnalyticsSystem AnalyticsSystem { get; private set; }
+        public GhostSystem GhostSystem { get; private set; }
 
         private GameModeDependencies()
         { }
@@ -34,6 +35,7 @@ namespace MortierFu
             BombshellSystem = SystemManager.Instance.Get<BombshellSystem>();
             LevelSystem = SystemManager.Instance.Get<LevelSystem>();
             AnalyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
+            GhostSystem  = SystemManager.Instance.Get<GhostSystem>();
         }
 
         public bool HasRequiredServices()
@@ -48,7 +50,8 @@ namespace MortierFu
             return AugmentSelectionSystem != null
                    && CameraSystem != null
                    && BombshellSystem != null
-                   && LevelSystem != null;
+                   && LevelSystem != null
+                   && GhostSystem != null;
         }
     }
 }
