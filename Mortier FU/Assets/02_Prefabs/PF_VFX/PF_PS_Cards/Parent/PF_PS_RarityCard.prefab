@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3702963080991388210}
   - component: {fileID: 4484920080245126819}
   - component: {fileID: 3080715821948252415}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_GlowCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4872,7 +4872,7 @@ ParticleSystemRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 50
   m_MaskInteraction: 0
-  m_RenderMode: 3
+  m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
   m_MinParticleSize: 0
@@ -4914,7 +4914,7 @@ GameObject:
   - component: {fileID: 5812419637990598366}
   - component: {fileID: 5993974240336430051}
   - component: {fileID: 8271201057264510168}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Explosion_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9750,21 +9750,21 @@ GameObject:
   - component: {fileID: 6026696943895191868}
   - component: {fileID: 4190605972991677339}
   - component: {fileID: 4008916644936648827}
-  m_Layer: 0
+  - component: {fileID: 7153177942933050980}
+  m_Layer: 3
   m_Name: PF_PS_RarityCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6026696943895191868
-Transform:
+--- !u!224 &6026696943895191868
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2014662148821854737}
-  serializedVersion: 2
   m_LocalRotation: {x: 1, y: 0, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -9782,6 +9782,11 @@ Transform:
   - {fileID: 784003579852642452}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!198 &4190605972991677339
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -14643,6 +14648,14 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!222 &7153177942933050980
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2014662148821854737}
+  m_CullTransparentMesh: 1
 --- !u!1 &3020385760983828581
 GameObject:
   m_ObjectHideFlags: 0
@@ -14654,7 +14667,7 @@ GameObject:
   - component: {fileID: 4861963499187350317}
   - component: {fileID: 1327165898806050194}
   - component: {fileID: 9150153812737400792}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_Reflection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19548,7 +19561,7 @@ GameObject:
   - component: {fileID: 4913987415203728931}
   - component: {fileID: 7231627465596340066}
   - component: {fileID: 3585437469570878508}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_Circle_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24442,7 +24455,7 @@ GameObject:
   - component: {fileID: 784003579852642452}
   - component: {fileID: 1718715093061378702}
   - component: {fileID: 6944392379437056116}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Card
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29345,7 +29358,7 @@ GameObject:
   - component: {fileID: 6394890480324171658}
   - component: {fileID: 5252821051348020274}
   - component: {fileID: 4894498407624793134}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_Circle_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34239,7 +34252,7 @@ GameObject:
   - component: {fileID: 760057497601521272}
   - component: {fileID: 1941479458267441257}
   - component: {fileID: 70227311576437711}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_Star
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39133,7 +39146,7 @@ GameObject:
   - component: {fileID: 1362013337052658997}
   - component: {fileID: 1942198404435415366}
   - component: {fileID: 4596420702325829919}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Explosion_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44027,7 +44040,7 @@ GameObject:
   - component: {fileID: 3545875687850598365}
   - component: {fileID: 373827936794617804}
   - component: {fileID: 4121924892147797397}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_StarDissolve
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -48921,7 +48934,7 @@ GameObject:
   - component: {fileID: 7656425399870191263}
   - component: {fileID: 3354789683003624299}
   - component: {fileID: 6161698838036835027}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PS_Circle_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}

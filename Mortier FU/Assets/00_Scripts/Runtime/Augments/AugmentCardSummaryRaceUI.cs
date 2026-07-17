@@ -10,11 +10,14 @@ namespace MortierFu
     {
         [SerializeField] private RectTransform indicatorPickCard;
         [SerializeField] private float yOffset = 15f;
+        [SerializeField] private float _scaleVfx = 15f;
         
         public void EnableIndicatorCard(bool activeIndicatorCard,CancellationToken ct)
         {
             indicatorPickCard.gameObject.SetActive(activeIndicatorCard);
             ActivateIndicatorCardAnimation(ct);
+            if(_vfxCard)
+                _vfxCard.transform.localScale = Vector3.one * 15f;
         }
         
         private void ActivateIndicatorCardAnimation(CancellationToken ct)

@@ -39,6 +39,7 @@ namespace MortierFu
         
         private FaceCamera _faceCamera;
         private GameObject _vfxInstance;
+        protected GameObject _vfxCard;
         private Quaternion _initialRotation;
         private Vector3 _initialScale;
         private Vector3 _visualRotationIcon = new Vector3(250f, 0f, 0f);
@@ -171,6 +172,17 @@ namespace MortierFu
             
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
             _augmentBack.sprite = _raritySpritesFactory.GetRarityCardBgSpriteFromRarity(augment.Rarity);
+
+            GameObject rarityVfx = _raritySpritesFactory.GetRarityVfxFromRarity(augment.Rarity);
+            if (rarityVfx != null)
+            {
+                _vfxCard = Instantiate(rarityVfx, Vector3.zero, Quaternion.identity, transform);
+                
+                _vfxCard.transform.position = transform.position;
+            }
+
+            
+            
             _augmentIcon.sprite = augment.SmallSprite;
             _augmentCard.sprite = augment.CardSprite;
         }
@@ -219,6 +231,8 @@ namespace MortierFu
             _titleImageBg.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
             _vfxInstance.SetActive(false);
+            if(_vfxCard != null)
+                _vfxCard.SetActive(false);
             _augmentBack.gameObject.SetActive(true);
             _augmentIcon.gameObject.SetActive(true);
         }
