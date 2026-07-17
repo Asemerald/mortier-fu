@@ -63,6 +63,20 @@ namespace MortierFu
             return null;
         }
         
+        public GameObject GetRarityVfxFromRarity(E_AugmentRarity rarity)
+        {
+            foreach (var entry in _spritesPerRarity)
+            {
+                if (entry.Rarity == rarity)
+                {
+                    return entry.cardVfx;
+                }
+            }
+
+            Debug.LogWarning($"RarityBgSpriteFactory: No vfx found for rarity {rarity}. Returning null.");
+            return null;
+        }
+        
         [System.Serializable]
         private struct RaritySpritesEntry
         {
@@ -71,6 +85,7 @@ namespace MortierFu
             public Sprite BgSprite;
             public Sprite CardBgSprite;
             public Texture TitleFilter;
+            public GameObject cardVfx;
         }
     }
 }
