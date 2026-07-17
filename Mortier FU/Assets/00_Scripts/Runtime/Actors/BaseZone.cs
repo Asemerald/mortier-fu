@@ -38,7 +38,11 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            if (!player || !_counters.Remove(player)) return;
+            if (!player || !_counters.Remove(player))
+            {
+                ApplyEffectZoneExit(player, null);
+                return;
+            }
             
             if (!IsPlayerValid(player))
             {
