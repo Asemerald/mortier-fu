@@ -33,8 +33,7 @@ namespace MortierFu
 
         public bool IsInitialized { get; set; }
 
-        public SO_GhostSettings Settings =>
-            _settingsHandle.IsValid() ? _settingsHandle.Result : null;
+        public SO_GhostSettings Settings => _settingsHandle.IsValid() ? _settingsHandle.Result : null;
 
         public async UniTask OnInitialize()
         {
@@ -79,6 +78,9 @@ namespace MortierFu
             CancellationTokenSource cts = new();
             _pendingGhostSpawns[owner] = cts;
 
+            if (_gameMode.CurrentGameState == GameState.AugmentRace) 
+                return;
+            
             SpawnGhostAfterDelayAsync(owner, deadCharacter, spawnPosition, spawnRotation, cts.Token).Forget();
         }
 
@@ -129,16 +131,9 @@ namespace MortierFu
 
             PlayerGhostPawn ghost = Object.Instantiate(Settings.GhostPawnPrefab, spawnPosition, spawnRotation, _ghostParent);
 
-            ghost.Initialize(
-                owner,
-                sourceCharacter,
-                Settings
-            );
+            ghost.Initialize(owner, sourceCharacter, Settings);
 
-            ghost.Teleport(
-                spawnPosition,
-                spawnRotation
-            );
+            ghost.Teleport(spawnPosition, spawnRotation);
 
             _activeGhosts[owner] = ghost;
 
@@ -227,18 +222,6 @@ namespace MortierFu
             }
 
             props.Add(prop);
-        }
-
-        private void ClearSpawnedProps(PlayerManager owner)
-        {
-            if (!owner)
-                return;
-
-            if (!_spawnedPropsByOwner.TryGetValue(owner, out var props))
-                return;
-
-            DestroySpawnedProps(props);
-            _spawnedPropsByOwner.Remove(owner);
         }
 
         private void ClearAllSpawnedProps()
