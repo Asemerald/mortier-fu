@@ -37,8 +37,11 @@ namespace MortierFu
         private float _nextAllowedSpawnTime;
         private bool _didWarnOverlapCapacity;
 
+        private PlayerGhostPawn _owner;
+
         public GhostPropPlacementComponent(PlayerGhostPawn pawn) : base(pawn)
         {
+            _owner = pawn;
         }
 
         public override void Initialize()
@@ -102,12 +105,10 @@ namespace MortierFu
         }
 
         public void ShootPressed()
-        {
-        }
+        { }
 
         public void ShootReleased()
-        {
-        }
+        { }
 
         private void TrySpawnCurrentPreview()
         {
@@ -569,6 +570,8 @@ namespace MortierFu
             if (!_currentProp || !_currentProp.RealPrefab)
                 return;
 
+            _owner.GhostAnimator.SetTrigger("GhostSpawnProps");
+            
             GameObject spawnedProp =
                 Object.Instantiate(_currentProp.RealPrefab, _currentSpawnPosition, _currentSpawnRotation);
 
