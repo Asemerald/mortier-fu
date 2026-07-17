@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -49,10 +48,7 @@ namespace MortierFu
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
             if (!player || !_counters.Remove(player))
-            {
-                ApplyEffectZoneExit(player, null);
                 return;
-            }
 
             if (!IsPlayerValid(player))
             {
@@ -131,8 +127,7 @@ namespace MortierFu
         protected abstract void ApplyEffectZoneExit(PlayerCharacter player, Collider other);
 
         protected virtual void PlayFootprintVFX(PlayerCharacter player)
-        {
-        }
+        { }
 
         protected virtual bool IsPlayerValid(PlayerCharacter player)
         {

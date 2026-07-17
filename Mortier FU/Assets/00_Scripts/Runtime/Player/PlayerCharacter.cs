@@ -65,7 +65,7 @@ namespace MortierFu
         private SO_CharacterStats _baseStatsInstance;
         private bool _hasTemporaryRaceStats;
         
-        public PlayerFlags Properties { get; private set; } = new PlayerFlags();
+        public PlayerFlags Properties { get; private set; } = new ();
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
         public ControllerCharacterComponent Controller { get; private set; }
