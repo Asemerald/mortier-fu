@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,7 +7,7 @@ using UnityEngine.InputSystem;
 public class SO_Tutorial : ScriptableObject
 {
     [Space(10)]
-    public InputActionReference inputAction;
+    public List<InputActionReference> inputAction;
     [Space(10)]
     public String explanationText;
     [Space(10)]

@@ -15,8 +15,8 @@ namespace MortierFu
         private readonly PlayerManager _playerCharacter;
         private readonly CountdownTimer _timer;
 
-        private InputActionReference _currentInputToPress;
-        private InputActionReference _aimToggleInputReference;
+        private List<InputActionReference> _currentInputToPress;
+        private List<InputActionReference> _aimToggleInputReference;
         private InputActionMap _currentInputMap;
 
         private int _index;
@@ -59,7 +59,7 @@ namespace MortierFu
         {
             if (ctx.performed)
             {
-                if (ctx.action.name != _currentInputToPress.action.name)
+                if (!IsActionInList(ctx.action.name, _currentInputToPress))
                     return;
 
                 if (_index != _tutorialBinding.Count - 1)
@@ -79,6 +79,20 @@ namespace MortierFu
             }
         }
 
+        private bool IsActionInList(string actionName, List<InputActionReference> list)
+        {
+            if (list == null)
+                return false;
+
+            foreach (var reference in list)
+            {
+                if (reference != null && reference.action.name == actionName)
+                    return true;
+            }
+
+            return false;
+        }
+
         private void UpdateVisual()
         {
             bool isKbm = _playerCharacter.IsKeyboardAndMouseControlScheme();
@@ -94,7 +108,7 @@ namespace MortierFu
             if (_aimToggleInputReference == null)
                 return;
 
-            if (ctx.action.name == _aimToggleInputReference.action.name && _index != 0)
+            if (IsActionInList(ctx.action.name, _aimToggleInputReference) && _index != 0)
             {
                 _index = 1;
                 UpdateVisual();
