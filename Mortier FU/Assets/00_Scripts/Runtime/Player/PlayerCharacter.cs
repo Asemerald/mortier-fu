@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
@@ -39,6 +40,8 @@ namespace MortierFu
         [Header("References")] [SerializeField]
         private Animator _animator;
 
+        [SerializeField] private List<string> _danceNames;
+        
         [SerializeField] private SO_CharacterStats _characterStatsTemplate;
         [SerializeField] private Transform _strikePoint;
         [SerializeField] private Transform _feetPoint;
@@ -61,8 +64,8 @@ namespace MortierFu
         
         private SO_CharacterStats _baseStatsInstance;
         private bool _hasTemporaryRaceStats;
-
-        public PlayerFlags Properties { get; private set; } = new PlayerFlags();
+        
+        public PlayerFlags Properties { get; private set; } = new ();
         public PlayerManager Owner { get; private set; }
         public HealthCharacterComponent Health { get; private set; }
         public ControllerCharacterComponent Controller { get; private set; }
@@ -613,7 +616,9 @@ namespace MortierFu
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Cant, transform.position);
         }
 
-        public void WinRoundDance() => _animator.CrossFade("WinRound", 0.1f, 0);
+        public void WinRoundDance() => _animator.CrossFade(GetRandomWinDance(), 0.1f, 0);
+
+        private string GetRandomWinDance() => _danceNames.Count == 0 ? string.Empty : _danceNames[Random.Range(0, _danceNames.Count)];
 
         private void UpdateInvincibilityFromControlContext(PlayerControlContext context)
         {
