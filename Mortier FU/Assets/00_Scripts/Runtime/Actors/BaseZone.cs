@@ -8,19 +8,29 @@ namespace MortierFu
     public abstract class BaseZone : MonoBehaviour
     {
         [SerializeField] protected float vfxFootPrintDuration;
-
+        
         private readonly Dictionary<PlayerCharacter, float> _counters = new();
 
         private readonly List<PlayerCharacter> _playersCache = new();
 
-        protected event Action<PlayerCharacter> OnTickZone; 
+        protected event Action<PlayerCharacter> OnTickZone;
+
+        private float _timer = 0f;
+        private bool _ShouldCheckThisFrame;
+
+        private Collider _collider;
 
         #region Unity Lifecycle
 
+        private void Start()
+        {
+            _collider = GetComponent<Collider>();
+        }
+        
         private void OnTriggerEnter(Collider other)
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
-            
+
             if (!player || !_counters.TryAdd(player, vfxFootPrintDuration)) return;
 
             if (!IsPlayerValid(player))
@@ -30,7 +40,7 @@ namespace MortierFu
                     ApplyEffectZoneExit(player, null);
                 return;
             }
-            
+
             ApplyEffectZoneEnter(player);
         }
 
@@ -38,8 +48,12 @@ namespace MortierFu
         {
             PlayerCharacter player = other.GetComponentInParent<PlayerCharacter>();
 
-            if (!player || !_counters.Remove(player)) return;
-            
+            if (!player || !_counters.Remove(player))
+            {
+                ApplyEffectZoneExit(player, null);
+                return;
+            }
+
             if (!IsPlayerValid(player))
             {
                 _playersCache.Remove(player);
@@ -48,7 +62,7 @@ namespace MortierFu
                 return;
             }
 
-            ApplyEffectZoneExit(player,other);
+            ApplyEffectZoneExit(player, other);
         }
 
         private void Update() => ApplyEffectZoneTick();
@@ -58,9 +72,8 @@ namespace MortierFu
 
         private void Reset()
         {
-            Collider col = GetComponent<Collider>();
 
-            if (col) col.isTrigger = true;
+            if (_collider) _collider.isTrigger = true;
         }
 
         #endregion
@@ -74,15 +87,29 @@ namespace MortierFu
             _playersCache.Clear();
             _playersCache.AddRange(_counters.Keys);
 
+            _timer += Time.deltaTime;
+            if (_timer >= 1f)
+            {
+                _ShouldCheckThisFrame = true;
+                _timer = 0f;
+            }
+
             foreach (var player in _playersCache)
             {
-
+                
                 if (!IsPlayerValid(player))
                 {
                     _playersCache.Remove(player);
                     _counters.Remove(player);
                     ApplyEffectZoneExit(player, null);
                     return;
+                }
+                
+                if (_ShouldCheckThisFrame && !_collider.bounds.Contains(player.transform.position))
+                {
+                    _counters.Remove(player);
+                    ApplyEffectZoneExit(player, null);
+                    continue;
                 }
                 
                 if (_counters[player] <= 0f)
@@ -95,13 +122,17 @@ namespace MortierFu
                     _counters[player] -= Time.deltaTime;
                 }
             }
+            if(_ShouldCheckThisFrame)
+                _ShouldCheckThisFrame =  false;
         }
 
         protected abstract void ApplyEffectZoneEnter(PlayerCharacter player);
 
         protected abstract void ApplyEffectZoneExit(PlayerCharacter player, Collider other);
 
-        protected virtual void PlayFootprintVFX(PlayerCharacter player) {}
+        protected virtual void PlayFootprintVFX(PlayerCharacter player)
+        {
+        }
 
         protected virtual bool IsPlayerValid(PlayerCharacter player)
         {
@@ -116,6 +147,7 @@ namespace MortierFu
             {
                 if (player) ApplyEffectZoneExit(player, null);
             }
+
             _playersCache.Clear();
             _counters.Clear();
         }

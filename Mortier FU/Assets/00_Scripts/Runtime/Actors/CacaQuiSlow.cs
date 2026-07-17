@@ -21,11 +21,8 @@ namespace MortierFu
             player.Properties.Remove(EntityProperties.mud);
             
             //Check if he's still on another mud zone, if true we dont remove the effect
-            if(player.Properties.HasAndRemove(EntityProperties.mud))
-            {
-                ApplyEffectZoneEnter(player);
+            if(player.Properties.Has(EntityProperties.mud))
                 return;
-            }
             
             player.SetExternalSpeedMultiplier(1f, transitionDuration);
         }

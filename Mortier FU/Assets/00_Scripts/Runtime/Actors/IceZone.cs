@@ -31,11 +31,9 @@ namespace MortierFu
             
             player.Properties.Remove(EntityProperties.ice);
             //Check if he's still on another ice zone, if true we dont remove the effect
-            if(player.Properties.HasAndRemove(EntityProperties.ice))
-            {
-                ApplyEffectZoneEnter(player);
+            if(player.Properties.Has(EntityProperties.ice))
                 return;
-            }
+            
             player.SetExternalAccelerationMultiplier
                 (1, accelSettingsSpeedMultiplier.transitionDuration);
 
