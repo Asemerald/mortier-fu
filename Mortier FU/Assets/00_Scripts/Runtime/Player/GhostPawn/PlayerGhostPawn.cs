@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using MortierFu.Shared;
 using UnityEngine;
 
@@ -10,7 +8,8 @@ namespace MortierFu
     {
         [Header("References")]
         [SerializeField] private GameObject _rootVisual;
-
+        [SerializeField] private Animator _animator;
+        
         private Rigidbody _rb;
 
         private GhostMovementComponent _movement;
@@ -26,6 +25,7 @@ namespace MortierFu
         public SO_GhostSettings Settings { get; private set; }
         
         public GhostAspectMaterials[] AspectMaterials => _ghostAspectMaterials;
+        public Animator GhostAnimator => _animator;
 
         public Transform PawnTransform => transform;
         public bool IsPawnActive { get; private set; }
