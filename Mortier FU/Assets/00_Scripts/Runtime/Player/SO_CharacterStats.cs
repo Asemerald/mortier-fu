@@ -99,7 +99,11 @@ namespace MortierFu
         
         // Complex stats calculations
         public float GetBombshellSpeed() => BombshellSpeed.Value * 0.1f;
-        public float GetAvatarSize()     => AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
+        public float GetAvatarSize()
+        {
+            float rawSize = AvatarSize.Value + (MaxHealth.Value - MaxHealth.BaseValue) * MaxHealthToAvatarSizeFactor;
+            return AvatarSize.ClampValue(rawSize);
+        }
         public float GetFireRate()       => 10f / FireRate.Value;
         public float GetShotRange()      => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
         public float GetBombshellSize()  => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;

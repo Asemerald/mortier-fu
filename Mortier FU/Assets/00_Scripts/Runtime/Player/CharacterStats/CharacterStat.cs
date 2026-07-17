@@ -148,5 +148,7 @@ namespace MortierFu {
 
             return true;
         } 
+        
+        public float ClampValue(float value)  => clamp ? Mathf.Clamp(value, valueRange.x, valueRange.y) : value;
     }
 }
