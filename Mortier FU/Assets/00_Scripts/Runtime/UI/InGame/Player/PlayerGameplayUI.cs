@@ -207,26 +207,10 @@ public class PlayerGameplayUI : MonoBehaviour
         }
 
         await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
-
-        if (showIcon)
-        {
-            await AnimateIconOut();
-        }
-
+        
         await AnimateHUDIn();
     }
-
-    private async UniTask AnimateIconOut()
-    {
-        await Tween.Scale(
-            _characterIcon.transform,
-            0f,
-            _tweenDuration,
-            _iconInEase
-        );
-
-        _characterIcon.enabled = false;
-    }
+    
 
     private async UniTask AnimateHUDIn()
     {

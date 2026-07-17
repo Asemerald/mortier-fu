@@ -76,6 +76,8 @@ namespace MortierFu
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
 
+        [SerializeField] private Transform _tutorialContainer;
+        public Transform TutorialContainer => _tutorialContainer;
         public Image TutorialImage;
         public TextMeshProUGUI TutorialText;
 

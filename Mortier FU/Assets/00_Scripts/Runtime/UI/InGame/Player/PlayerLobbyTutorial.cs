@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using PrimeTween;
 
 namespace MortierFu
 {
@@ -22,6 +23,9 @@ namespace MortierFu
         private int _index;
         private bool _isSubscribed;
         private const float timeInputDisable = 0.3f;
+        private const float appearTweenDuration = 0.5f;
+        
+        private readonly Transform _tutorialContainer;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
         {
@@ -31,6 +35,7 @@ namespace MortierFu
             _tutorialBinding = pTutorialBinding;
             _tutorialSlot = pCharacter.Character.TutorialImage;
             _tutorialText = pCharacter.Character.TutorialText;
+            _tutorialContainer = pCharacter.Character.TutorialContainer;
             _playerCharacter = pCharacter;
 
             SetVisible(true);
@@ -117,10 +122,28 @@ namespace MortierFu
 
         private void SetVisible(bool visible)
         {
-            if(!_tutorialSlot) return;
-            
-            _tutorialSlot.gameObject.SetActive(visible);
-            _tutorialText.gameObject.SetActive(visible);
+            if (!_tutorialSlot || !_tutorialContainer)
+            {
+                Debug.LogError($"Reference manquante ! Slot: {_tutorialSlot}, Container: {_tutorialContainer}");
+                return;
+            }
+
+            if (visible)
+            {
+                _tutorialSlot.gameObject.SetActive(true);
+                _tutorialText.gameObject.SetActive(true);
+
+                Debug.Log($"Container actif dans la hiérarchie ? {_tutorialContainer.gameObject.activeInHierarchy}");
+
+                _tutorialContainer.localScale = Vector3.zero;
+                Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
+                    .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
+            }
+            else
+            {
+                _tutorialSlot.gameObject.SetActive(false);
+                _tutorialText.gameObject.SetActive(false);
+            }
         }
 
         private void Unsubscribe()
