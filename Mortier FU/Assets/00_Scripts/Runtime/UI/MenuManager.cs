@@ -51,9 +51,7 @@ namespace MortierFu
         [SerializeField] private float _quitButtonEaseDuration = 0.7f;
         [SerializeField] private float _circleTransitionDuration = 1f;
         [SerializeField] private float _contactEaseDuration = 0.7f;
-        [SerializeField] private float _discordLogoScale = 1.25f;
-        [SerializeField] private float _mailLogoScale = 1.1f;
-        [SerializeField] private float _steamScale = 1.1f;
+        [SerializeField] private float _contactScale = 1.25f;
         
         [field: Header("Settings References")]
         [field: SerializeField]
@@ -166,9 +164,9 @@ namespace MortierFu
                 .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
                 .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
             
-            await Tween.Scale(DiscordButton.transform, _discordLogoScale, _contactEaseDuration, _contactEase)
-                .Group(Tween.Scale(SteamButton.transform,_steamScale, _contactEaseDuration, _contactEase))
-                .Group(Tween.Scale(MailButton.transform,_mailLogoScale, _contactEaseDuration, _contactEase))
+            await Tween.Scale(DiscordButton.transform, _contactScale, _contactEaseDuration, _contactEase)
+                .Group(Tween.Scale(SteamButton.transform,_contactScale, _contactEaseDuration, _contactEase))
+                .Group(Tween.Scale(MailButton.transform,_contactScale, _contactEaseDuration, _contactEase))
                 .Group(Tween.Scale(BetaTest.transform, 1.1f, _contactEaseDuration - 0.4f, _contactEase)); // BETA-TEST Note  
 
             if (_eventSystem && PlayButton)
