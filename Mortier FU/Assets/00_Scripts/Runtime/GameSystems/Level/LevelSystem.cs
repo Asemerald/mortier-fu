@@ -45,6 +45,8 @@ namespace MortierFu
         private RaceReporter _boundRaceReporter;
 
         private GameModeBase _gameModeBase;
+
+        private bool IsFirstRound = true;
         
         public bool IsInitialized { get; set; }
         public RaceReporter CurrentRaceReporter => BoundRaceReporter;
@@ -92,7 +94,7 @@ namespace MortierFu
                     return;
                 
                 // If first round, override race map
-                if (arenaMode == false && CurrentRaceReporter != null && CurrentRaceReporter.IsFirstRound)
+                if (!arenaMode && IsFirstRound)
                 {
                     if (IsDebugEnabled)
                         Logs.Log($"[LevelSystem] First round of race, overriding race map with arena map: {DescribeSceneKey(mapLocation)}");
@@ -152,6 +154,8 @@ namespace MortierFu
                     {
                         if (mapOverrideHandle.IsValid())
                             Addressables.Release(mapOverrideHandle);
+                        
+                        IsFirstRound = false;
                     }
                     return;
                 }
@@ -688,6 +692,8 @@ namespace MortierFu
             _raceMapLocations = await LoadMapsByLabel(k_raceMapsLabel);
             
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+
+            IsFirstRound = true;
         }
 
         private static bool IsSceneLocation(IResourceLocation location) => location is not null && location.ResourceType == typeof(SceneInstance);
