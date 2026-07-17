@@ -10,6 +10,8 @@ namespace MortierFu
 
         [Header("Duration")] public bool OverrideRaceDuration;
         [Min(0.1f)] public float RaceDuration = 20f;
+        
+        [Header("Race Explanation")] public string RaceExplanationText;
 
         [Header("Bully Size")] [Min(0.1f)] public float BullyTargetSize = 3.5f;
 
