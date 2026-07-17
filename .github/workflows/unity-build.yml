@@ -26,3 +26,13 @@ jobs:
       - name: Build Unity
         shell: cmd
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
+        
+      - name: Build Unity
+        shell: cmd
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
+
+	- name: Upload Builds
+	  uses: actions/upload-artifact@v4
+	  with:
+	    name: Builds
+	    path: Build/
