@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using PrimeTween;
 
 namespace MortierFu
 {
@@ -15,13 +16,16 @@ namespace MortierFu
         private readonly PlayerManager _playerCharacter;
         private readonly CountdownTimer _timer;
 
-        private InputActionReference _currentInputToPress;
-        private InputActionReference _aimToggleInputReference;
+        private List<InputActionReference> _currentInputToPress;
+        private List<InputActionReference> _aimToggleInputReference;
         private InputActionMap _currentInputMap;
 
         private int _index;
         private bool _isSubscribed;
         private const float timeInputDisable = 0.3f;
+        private const float appearTweenDuration = 0.5f;
+        
+        private readonly Transform _tutorialContainer;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
         {
@@ -31,6 +35,7 @@ namespace MortierFu
             _tutorialBinding = pTutorialBinding;
             _tutorialSlot = pCharacter.Character.TutorialImage;
             _tutorialText = pCharacter.Character.TutorialText;
+            _tutorialContainer = pCharacter.Character.TutorialContainer;
             _playerCharacter = pCharacter;
 
             SetVisible(true);
@@ -59,7 +64,7 @@ namespace MortierFu
         {
             if (ctx.performed)
             {
-                if (ctx.action.name != _currentInputToPress.action.name)
+                if (!IsActionInList(ctx.action.name, _currentInputToPress))
                     return;
 
                 if (_index != _tutorialBinding.Count - 1)
@@ -79,6 +84,20 @@ namespace MortierFu
             }
         }
 
+        private bool IsActionInList(string actionName, List<InputActionReference> list)
+        {
+            if (list == null)
+                return false;
+
+            foreach (var reference in list)
+            {
+                if (reference != null && reference.action.name == actionName)
+                    return true;
+            }
+
+            return false;
+        }
+
         private void UpdateVisual()
         {
             bool isKbm = _playerCharacter.IsKeyboardAndMouseControlScheme();
@@ -94,7 +113,7 @@ namespace MortierFu
             if (_aimToggleInputReference == null)
                 return;
 
-            if (ctx.action.name == _aimToggleInputReference.action.name && _index != 0)
+            if (IsActionInList(ctx.action.name, _aimToggleInputReference) && _index != 0)
             {
                 _index = 1;
                 UpdateVisual();
@@ -103,10 +122,28 @@ namespace MortierFu
 
         private void SetVisible(bool visible)
         {
-            if(!_tutorialSlot) return;
-            
-            _tutorialSlot.gameObject.SetActive(visible);
-            _tutorialText.gameObject.SetActive(visible);
+            if (!_tutorialSlot || !_tutorialContainer)
+            {
+                Debug.LogError($"Reference manquante ! Slot: {_tutorialSlot}, Container: {_tutorialContainer}");
+                return;
+            }
+
+            if (visible)
+            {
+                _tutorialSlot.gameObject.SetActive(true);
+                _tutorialText.gameObject.SetActive(true);
+
+                Debug.Log($"Container actif dans la hiérarchie ? {_tutorialContainer.gameObject.activeInHierarchy}");
+
+                _tutorialContainer.localScale = Vector3.zero;
+                Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
+                    .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
+            }
+            else
+            {
+                _tutorialSlot.gameObject.SetActive(false);
+                _tutorialText.gameObject.SetActive(false);
+            }
         }
 
         private void Unsubscribe()
