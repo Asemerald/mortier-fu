@@ -17,8 +17,28 @@ namespace MortierFu
         public string winner;       // Player ID
         public int roundsPlayed;
         public int durationSeconds;
-    }
+        
+        public AnalyticsFinalPlayerStats[] finalPlayerStats;
 
+        public int totalBombshellKills;
+        public int totalSuicides;
+        public int totalPushKills;
+        public int totalSelfFalls;
+    }
+    
+    [System.Serializable]
+    public class AnalyticsFinalPlayerStats
+    {
+        public string playerId;
+        public int score;
+        public int kills;
+        public int dashesPerformed;
+        public int bumpsMade;
+        public int shotsFired;
+        public int shotsHit;
+        public float damageDealt;
+        public float damageTaken;
+    }
     public class AnalyticsRoundData
     {
         public int roundNumber;

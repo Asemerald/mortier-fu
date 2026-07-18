@@ -74,7 +74,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = "b.1",
+                officialGameVersion = "b.1.1",
                 rounds = new AnalyticsRoundData[1000], // Taille max de rounds
                 winner = "",
                 roundsPlayed = 0,
@@ -252,10 +252,8 @@ namespace MortierFu.Analytics
         {
             var currentRound = _gameData.rounds[_currentRoundIndex];
             
-            // Ajouter tous les joueurs du round
             currentRound.players = _currentRoundPlayers.Values.ToList();
             
-            // Déterminer le gagnant du round (celui avec le plus de kills ou score)
             var winner = currentRound.players.OrderByDescending(p => p.kills)
                                             .ThenByDescending(p => p.score)
                                             .FirstOrDefault();
@@ -313,8 +311,91 @@ namespace MortierFu.Analytics
         {
             var playerData = GetOrCreatePlayerData(character);
             playerData.score = newScore;
+            Logs.Log($"[DEBUG] OnScoreChanged appelé pour {playerData.playerId}, nouveau score = {newScore}, round actuel = {_currentRoundIndex + 1}");
         }
         
+        private void AggregateFinalStats()
+        {
+        var statsByPlayer = new Dictionary<string, AnalyticsFinalPlayerStats>();
+        
+        _gameData.totalBombshellKills = 0;
+        _gameData.totalSuicides = 0;
+        _gameData.totalPushKills = 0;
+        _gameData.totalSelfFalls = 0;
+        
+        // Étape 1 : agréger kills/dashes/etc. depuis les rounds (comme avant)
+        for (int i = 0; i < _gameData.roundsPlayed; i++)
+        {
+            var round = _gameData.rounds[i];
+            if (round?.players == null) continue;
+        
+            foreach (var player in round.players)
+            {
+                if (!statsByPlayer.TryGetValue(player.playerId, out var stats))
+                {
+                    stats = new AnalyticsFinalPlayerStats { playerId = player.playerId };
+                    statsByPlayer[player.playerId] = stats;
+                }
+            
+                stats.kills += player.kills;
+                stats.dashesPerformed += player.dashesPerformed;
+                stats.bumpsMade += player.bumpsMade;
+                stats.shotsFired += player.shotsFired;
+                stats.shotsHit += player.shotsHit;
+                stats.damageDealt += player.damageDealt;
+                stats.damageTaken += player.damageTaken;
+            
+                bool killedBySomeoneElse = player.killerId != -1 
+                    && player.killerId.ToString() != player.playerId;
+            
+                if (player.deathCause == E_DeathCause.BombshellExplosion)
+                {
+                    if (killedBySomeoneElse) _gameData.totalBombshellKills++;
+                    else _gameData.totalSuicides++;
+                }
+                else if (player.deathCause == E_DeathCause.Fall)
+                {
+                    if (killedBySomeoneElse) _gameData.totalPushKills++;
+                    else _gameData.totalSelfFalls++;
+                }
+            }
+        }
+    
+    // Étape 2 : écraser le score avec la valeur réelle et à jour, lue depuis Teams
+        var gameMode = GameService.CurrentGameMode as GameModeBase;
+        if (gameMode != null)
+        {
+          foreach (var team in gameMode.Teams) 
+          {
+            int teamScore = team.Score;
+            
+            foreach (var member in team.Members)
+            {
+                if (member?.Character == null) continue;
+                
+                string playerId = GetPlayerIdFromCharacter(member);
+                
+                if (!statsByPlayer.TryGetValue(playerId, out var stats))
+                {
+                    stats = new AnalyticsFinalPlayerStats { playerId = playerId };
+                    statsByPlayer[playerId] = stats;
+                }
+                
+                stats.score = teamScore; // valeur finale garantie à jour
+            }
+          }
+        }
+        else
+        {
+            Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase, scores finaux non lus depuis Teams.");
+        }
+        
+        _gameData.finalPlayerStats = statsByPlayer.Values
+            .OrderBy(s => s.playerId)
+            .Take(4)
+            .ToArray();
+
+        }       
         private void FinalizeGame()
         {
             // Déterminer le gagnant global
@@ -325,6 +406,8 @@ namespace MortierFu.Analytics
                 string winnerId = GetPlayerIdFromCharacter(playerWins.Members[0]);
                 _gameData.winner = winnerId;
             }
+            
+            AggregateFinalStats();
             
             // Exporter vers Excel (backup local)
             ExportToExcel();
@@ -377,30 +460,63 @@ namespace MortierFu.Analytics
         private async UniTask SendGameOverviewToGoogleSheets()
         {
             if (ShouldSkipAnalyticsInEditor())
-            {
-                Logs.Log("Analytics send skipped in editor.");
-                return;
-            }
+             {
+              Logs.Log("Analytics send skipped in editor.");
+              return;
+             }
 
-            try
-            {
+             try
+             {
                 WWWForm form = new WWWForm();
                 form.AddField("dataType", "game");
                 form.AddField("gameId", _gameData.gameId);
                 form.AddField("date", _gameData.date);
                 form.AddField("gameVersion", _gameData.gameVersion);
-                form.AddField("officialGameVersion", _gameData.officialGameVersion.ToString());
+                form.AddField("officialGameVersion", _gameData.officialGameVersion);
                 form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
-                form.AddField("numberOfPlayers", _gameData.numberOfPlayers);
+                form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
                 form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
                 form.AddField("scoreToWin", _gameData.scoreToWin.ToString());
                 form.AddField("winner", _gameData.winner);
-                
-                await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "gameoverview");
-            }
+                form.AddField("totalBombshellKills", _gameData.totalBombshellKills.ToString());
+                form.AddField("totalSuicides", _gameData.totalSuicides.ToString());
+                form.AddField("totalPushKills", _gameData.totalPushKills.ToString());
+                form.AddField("totalSelfFalls", _gameData.totalSelfFalls.ToString());
+
+                for (int i = 0; i < 4; i++)
+                    {
+                        string prefix = $"player{i}";
+
+                        if (_gameData.finalPlayerStats != null && i < _gameData.finalPlayerStats.Length)
+                        {
+                            var stats = _gameData.finalPlayerStats[i];
+                            form.AddField($"{prefix}Score", stats.score.ToString());
+                            form.AddField($"{prefix}Kills", stats.kills.ToString());
+                            form.AddField($"{prefix}Dashes", stats.dashesPerformed.ToString());
+                            form.AddField($"{prefix}Bumps", stats.bumpsMade.ToString());
+                            form.AddField($"{prefix}ShotsFired", stats.shotsFired.ToString());
+                            form.AddField($"{prefix}ShotsHit", stats.shotsHit.ToString());
+                            form.AddField($"{prefix}DamageDealt", stats.damageDealt.ToString("F2"));
+                            form.AddField($"{prefix}DamageTaken", stats.damageTaken.ToString("F2"));
+                         }
+                         else
+                        {
+                            form.AddField($"{prefix}Score", "");
+                            form.AddField($"{prefix}Kills", "");
+                            form.AddField($"{prefix}Dashes", "");
+                            form.AddField($"{prefix}Bumps", "");
+                            form.AddField($"{prefix}ShotsFired", "");
+                            form.AddField($"{prefix}ShotsHit", "");
+                            form.AddField($"{prefix}DamageDealt", "");
+                            form.AddField($"{prefix}DamageTaken", "");
+                        }
+                     }
+
+                    await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "gameoverview");
+             }
             catch (System.Exception ex)
             {
-                Logs.LogError($"Exception while sending game summary to Google Sheets: {ex.Message}");
+                 Logs.LogError($"Exception while sending game summary to Google Sheets: {ex.Message}");
             }
         }
         private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
