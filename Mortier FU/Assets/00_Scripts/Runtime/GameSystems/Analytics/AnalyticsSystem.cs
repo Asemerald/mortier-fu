@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MortierFu.Shared;
 using UnityEditor;
+using UnityEngine.UIElements;
 
 namespace MortierFu.Analytics
 {
@@ -19,9 +20,11 @@ namespace MortierFu.Analytics
         private EventBinding<TriggerStrike> _triggerStrikeBinding;
         private EventBinding<EventPlayerDeath> _triggerDeathBinding;
         private EventBinding<TriggerEndRound> _triggerEndRoundBinding;
+        private EventBinding<TriggerSuccessfulPush> _triggerSuccessfulPushBinding;
         
         private AnalyticsData _gameData;
         private int _currentRoundIndex = 0;
+        private GameState _currentGameState;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
         
         public UniTask OnInitialize()
@@ -54,16 +57,34 @@ namespace MortierFu.Analytics
             
             _triggerEndRoundBinding = new EventBinding<TriggerEndRound>(OnTriggerEndRound);
             EventBus<TriggerEndRound>.Register(_triggerEndRoundBinding);
-            
+
+            _triggerSuccessfulPushBinding = new EventBinding<TriggerSuccessfulPush>(OnTriggerSuccessfulPush);
+            EventBus<TriggerSuccessfulPush>.Register(_triggerSuccessfulPushBinding);
+
             if (GameService.CurrentGameMode != null)
-                    GameService.CurrentGameMode.OnGameEnded += OnGameEndedHandler;
+            {
+                GameService.CurrentGameMode.OnGameEnded += OnGameEndedHandler;
+                GameService.CurrentGameMode.OnGameStateChanged += OnGameStateChangedHandler;
+                _currentGameState = GameService.CurrentGameMode.CurrentGameState;
+            }
             else
                 Logs.LogWarning("[AnalyticsSystem] CurrentGameMode est null à l'initialisation, donc pas reçu");
             
         }
-        
-        
+
+        private void OnGameStateChangedHandler(GameState newState)
+        {
+            _currentGameState = newState;
+            Logs.Log($"[DEBUG] GameState changé vers : {newState}");
+           
+        }
+
+        private bool IsInCombatPhase()
+        {
+            return _currentGameState != GameState.AugmentIntro && _currentGameState != GameState.AugmentRace && _currentGameState != GameState.EndAugmentRace;
+        }
         private System.DateTime _gameStartTime;
+        
         private void CreateNewGameData()
         {
             _gameStartTime = System.DateTime.UtcNow;
@@ -165,6 +186,7 @@ namespace MortierFu.Analytics
 
         private void OnTriggerShootBombshell(TriggerShootBombshell shootBombshell)
         {
+            if (!IsInCombatPhase()) return;
             if (shootBombshell.Character == null) return;
             
             var playerData = GetOrCreatePlayerData(shootBombshell.Character);
@@ -173,6 +195,7 @@ namespace MortierFu.Analytics
 
         private void OnTriggerHit(TriggerHit hit)
         {
+            if (!IsInCombatPhase()) return;
             if (hit.ShooterId == null) return;
             
             var shooterData = GetOrCreatePlayerData(hit.ShooterId);
@@ -203,6 +226,7 @@ namespace MortierFu.Analytics
         
         private void OnTriggerDash(TriggerDash dash)
         {
+            if (!IsInCombatPhase()) return;
             if (dash.Character == null) return;
             
             var playerData = GetOrCreatePlayerData(dash.Character);
@@ -211,6 +235,7 @@ namespace MortierFu.Analytics
         
         private void OnTriggerStrike(TriggerStrike strike)
         {
+            if (!IsInCombatPhase()) return;
             if (strike.Character == null) return;
             
             var playerData = GetOrCreatePlayerData(strike.Character);
@@ -246,6 +271,21 @@ namespace MortierFu.Analytics
             _gameData.roundsPlayed++;
             
             StartNewRound();
+        }
+
+        private void OnTriggerSuccessfulPush(TriggerSuccessfulPush push)
+        {
+            if (!IsInCombatPhase()) return;
+            if (push.Character == null) return;
+            
+            var victimData = GetOrCreatePlayerData(push.Character);
+            victimData.stunsUnderwented++;
+
+            if (push.Source is PlayerCharacter instigator && instigator != push.Character)
+            {
+                var instigatorData = GetOrCreatePlayerData(instigator);
+                instigatorData.stunsPerformed++;
+            }
         }
 
         private void FinalizeCurrentRound()
@@ -344,6 +384,8 @@ namespace MortierFu.Analytics
                 stats.shotsHit += player.shotsHit;
                 stats.damageDealt += player.damageDealt;
                 stats.damageTaken += player.damageTaken;
+                stats.stunsPerformed += player.stunsPerformed;
+                stats.stunsUnderwented += player.stunsUnderwented;
             
                 bool killedBySomeoneElse = player.killerId != -1 
                     && player.killerId.ToString() != player.playerId;
@@ -360,42 +402,40 @@ namespace MortierFu.Analytics
                 }
             }
         }
-    
-    // Étape 2 : écraser le score avec la valeur réelle et à jour, lue depuis Teams
+        
         var gameMode = GameService.CurrentGameMode as GameModeBase;
         if (gameMode != null)
-        {
-          foreach (var team in gameMode.Teams) 
-          {
-            int teamScore = team.Score;
-            
-            foreach (var member in team.Members)
-            {
-                if (member?.Character == null) continue;
-                
-                string playerId = GetPlayerIdFromCharacter(member);
-                
-                if (!statsByPlayer.TryGetValue(playerId, out var stats))
+            { 
+                 foreach (var team in gameMode.Teams) 
                 {
-                    stats = new AnalyticsFinalPlayerStats { playerId = playerId };
-                    statsByPlayer[playerId] = stats;
-                }
+                     int teamScore = team.Score;
+            
+                    foreach (var member in team.Members)
+                         { 
+                             if (member?.Character == null) continue;
                 
-                stats.score = teamScore; // valeur finale garantie à jour
+                             string playerId = GetPlayerIdFromCharacter(member);
+                
+                             if (!statsByPlayer.TryGetValue(playerId, out var stats))
+                                {
+                                    stats = new AnalyticsFinalPlayerStats { playerId = playerId };
+                                    statsByPlayer[playerId] = stats;
+                                }
+                
+                            stats.score = teamScore;
+                         }
+                 }
             }
-          }
-        }
         else
-        {
-            Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase, scores finaux non lus depuis Teams.");
-        }
-        
+            {
+                 Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase, scores finaux non lus depuis Teams."); 
+            }
+    
         _gameData.finalPlayerStats = statsByPlayer.Values
-            .OrderBy(s => s.playerId)
-            .Take(4)
-            .ToArray();
-
-        }       
+        .OrderBy(s => s.playerId)
+        .Take(4)
+        .ToArray();
+        }    
         private void FinalizeGame()
         {
             // Déterminer le gagnant global
@@ -468,6 +508,7 @@ namespace MortierFu.Analytics
              try
              {
                 WWWForm form = new WWWForm();
+                // Global Game Innfo
                 form.AddField("dataType", "game");
                 form.AddField("gameId", _gameData.gameId);
                 form.AddField("date", _gameData.date);
@@ -478,11 +519,14 @@ namespace MortierFu.Analytics
                 form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
                 form.AddField("scoreToWin", _gameData.scoreToWin.ToString());
                 form.AddField("winner", _gameData.winner);
+                
+                // Total Kills Actions
                 form.AddField("totalBombshellKills", _gameData.totalBombshellKills.ToString());
                 form.AddField("totalSuicides", _gameData.totalSuicides.ToString());
                 form.AddField("totalPushKills", _gameData.totalPushKills.ToString());
                 form.AddField("totalSelfFalls", _gameData.totalSelfFalls.ToString());
 
+                // Players Summary
                 for (int i = 0; i < 4; i++)
                     {
                         string prefix = $"player{i}";
@@ -494,6 +538,8 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}Kills", stats.kills.ToString());
                             form.AddField($"{prefix}Dashes", stats.dashesPerformed.ToString());
                             form.AddField($"{prefix}Bumps", stats.bumpsMade.ToString());
+                            form.AddField($"{prefix}StunsPerformed", stats.stunsPerformed.ToString());
+                            form.AddField($"{prefix}StunsUnderwented", stats.stunsUnderwented.ToString());
                             form.AddField($"{prefix}ShotsFired", stats.shotsFired.ToString());
                             form.AddField($"{prefix}ShotsHit", stats.shotsHit.ToString());
                             form.AddField($"{prefix}DamageDealt", stats.damageDealt.ToString("F2"));
@@ -505,6 +551,8 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}Kills", "");
                             form.AddField($"{prefix}Dashes", "");
                             form.AddField($"{prefix}Bumps", "");
+                            form.AddField($"{prefix}StunsPerformed", "");
+                            form.AddField($"{prefix}StunsUnderwented", "");
                             form.AddField($"{prefix}ShotsFired", "");
                             form.AddField($"{prefix}ShotsHit", "");
                             form.AddField($"{prefix}DamageDealt", "");
@@ -512,7 +560,7 @@ namespace MortierFu.Analytics
                         }
                      }
 
-                    await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "gameoverview");
+                    await SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "GameOverview");
              }
             catch (System.Exception ex)
             {
@@ -620,9 +668,13 @@ namespace MortierFu.Analytics
             EventBus<TriggerStrike>.Deregister(_triggerStrikeBinding);
             EventBus<EventPlayerDeath>.Deregister(_triggerDeathBinding);
             EventBus<TriggerEndRound>.Deregister(_triggerEndRoundBinding);
+            EventBus<TriggerSuccessfulPush>.Deregister(_triggerSuccessfulPushBinding);
 
             if (GameService.CurrentGameMode != null)
+            {
                 GameService.CurrentGameMode.OnGameEnded -= OnGameEndedHandler;
+                GameService.CurrentGameMode.OnGameStateChanged -= OnGameStateChangedHandler;
+            }
 
             
             // Sauvegarder les données avant de disposer

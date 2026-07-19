@@ -34,6 +34,8 @@ namespace MortierFu
         public int kills;
         public int dashesPerformed;
         public int bumpsMade;
+        public int stunsPerformed;
+        public int stunsUnderwented;
         public int shotsFired;
         public int shotsHit;
         public float damageDealt;
@@ -61,6 +63,8 @@ namespace MortierFu
         public int shotsHit;
         public int dashesPerformed;
         public int bumpsMade;
+        public int stunsPerformed;
+        public int stunsUnderwented;
         public int killerId;
         public E_DeathCause deathCause;
     }
