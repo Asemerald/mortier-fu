@@ -104,4 +104,9 @@ namespace MortierFu
     {
         public PlayerCharacter Character;
     }
+
+    public struct TriggerAugmentsShown : ITrigger
+    {
+        public SO_Augment[] Augments;
+    }
 }

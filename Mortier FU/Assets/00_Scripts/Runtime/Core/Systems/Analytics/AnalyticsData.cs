@@ -69,6 +69,14 @@ namespace MortierFu
         public E_DeathCause deathCause;
     }
 
+    public class AnalyticsAugmentEntry
+    {
+        public int augmentId;
+        public string augmentName;
+        public int timesShown;
+        public int timesPicked;
+    }
+    
     public enum DeathCause
     {
         None,
