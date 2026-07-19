@@ -2,10 +2,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    [CreateAssetMenu(
-        fileName = "DA_GhostPlaceableProp",
-        menuName = "Mortier Fu/Ghost/Ghost Placeable Prop"
-    )]
+    [CreateAssetMenu(fileName = "DA_GhostPlaceableProp", menuName = "Mortier Fu/Ghost/Ghost Placeable Prop")]
     public sealed class SO_GhostPlaceableProp : ScriptableObject
     {
         [Header("Prefabs")]
@@ -28,5 +25,6 @@ namespace MortierFu
 
         public Vector3 ValidationBoxCenter => _validationBoxCenter;
         public Vector3 ValidationBoxHalfExtents => _validationBoxSize * 0.5f;
+        public Vector3 ValidationBoxSize => _validationBoxSize;
     }
 }
