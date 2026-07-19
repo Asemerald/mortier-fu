@@ -93,6 +93,9 @@ namespace MortierFu.Analytics
                 WWWForm form = new WWWForm();
                 form.AddField("dataType", "augments");
                 form.AddField("gameId", _gameData.gameId);
+                form.AddField("date", _gameData.date);
+                form.AddField("gameVersion", _gameData.gameVersion);
+                form.AddField("officialGameVersion", _gameData.officialGameVersion);
 
                 foreach (var entry in _augmentStats.Values.OrderBy(e => e.augmentId))
                 {
