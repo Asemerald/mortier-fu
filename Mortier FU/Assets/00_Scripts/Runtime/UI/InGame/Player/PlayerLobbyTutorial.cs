@@ -66,7 +66,7 @@ namespace MortierFu
             {
                 if (!IsActionInList(ctx.action.name, _currentInputToPress))
                     return;
-
+                
                 if (_index != _tutorialBinding.Count - 1)
                 {
                     _index++;
@@ -113,7 +113,7 @@ namespace MortierFu
             if (_aimToggleInputReference == null)
                 return;
 
-            if (IsActionInList(ctx.action.name, _aimToggleInputReference) && _index != 0)
+            if (IsActionInList(ctx.action.name, _aimToggleInputReference) && (_index == 2  || _index == 3))
             {
                 _index = 1;
                 UpdateVisual();
@@ -141,6 +141,7 @@ namespace MortierFu
             }
             else
             {
+                _tutorialContainer.gameObject.SetActive(false);
                 _tutorialSlot.gameObject.SetActive(false);
                 _tutorialText.gameObject.SetActive(false);
             }
