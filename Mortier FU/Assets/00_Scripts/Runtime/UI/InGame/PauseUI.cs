@@ -13,15 +13,15 @@ namespace MortierFu
 {
     public class PauseUI : MonoBehaviour, IPlayerUIInputHandler
     {
-        [Header("Toggles & Sliders")]
-        [SerializeField] private Toggle _fullscreenToggle;
+        [Header("Toggles & Sliders")] [SerializeField]
+        private Toggle _fullscreenToggle;
+
         [SerializeField] private Toggle _vSyncToggle;
         [SerializeField] private Slider _masterVolumeSlider;
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
 
-        [Header("Panels")]
-        [SerializeField] private GameObject _pausePanel;
+        [Header("Panels")] [SerializeField] private GameObject _pausePanel;
         [SerializeField] private GameObject _pauseBackground;
         [SerializeField] private GameObject _blackPanel;
         [SerializeField] private GameObject _settingsPanel;
@@ -29,11 +29,10 @@ namespace MortierFu
         [SerializeField] private GameObject _endGameConfirmationPanel;
         [SerializeField] private GameObject _quitGameConfirmationPanel;
 
-        [SerializeField] private RawImage _pauseTopText;
-        [SerializeField] private RawImage _pauseBottomText;
+        //[SerializeField] private RawImage _pauseTopText;
+        //[SerializeField] private RawImage _pauseBottomText;
 
-        [Header("Buttons")]
-        [SerializeField] private Button _settingsButton;
+        [Header("Buttons")] [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _endGameButton;
         [SerializeField] private Button _quitButton;
@@ -42,13 +41,16 @@ namespace MortierFu
         [SerializeField] private Button _confirmQuitGameButton;
         [SerializeField] private Button _cancelQuitGameButton;
 
-        [Header("Animation Settings")]
-        [SerializeField] private float _tilablePauseSpeed = 0.5f;
+        /*[Header("Animation Settings")] [SerializeField]
+        private float _tilablePauseSpeed = 0.5f;*/
 
-        [Header("Panel Animation Settings")]
-        [SerializeField] private float _panelScaleDuration = 0.5f;
+        [Header("Panel Animation Settings")] [SerializeField]
+        private float _panelScaleDuration = 0.5f;
+
         [SerializeField] private Ease _panelScaleEase = Ease.OutElastic;
 
+        [SerializeField] private LobbyReturnToMainMenuController  _lobbyReturnToMainMenuController;
+        
         private CancellationTokenSource _controlPanelCTS;
         private CancellationTokenSource _endGamePanelCTS;
         private CancellationTokenSource _quitPanelCTS;
@@ -96,6 +98,7 @@ namespace MortierFu
             StopAllActiveAnimations();
         }
 
+        /*
         private void Update()
         {
             if (_gamePauseSystem is null || !_gamePauseSystem.IsPaused)
@@ -107,6 +110,7 @@ namespace MortierFu
       //      if (_pauseBottomText)
          //       ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
         }
+        */
 
         private void InitReferences()
         {
@@ -148,7 +152,10 @@ namespace MortierFu
         private void InitUI()
         {
             if (_gamePauseSystem is null)
+            {
+                Logs.LogError("[PauseUI] GamePauseSystem was not found.]");
                 return;
+            }
 
             _gamePauseSystem.RestoreSettingsFromSave();
 
@@ -175,7 +182,9 @@ namespace MortierFu
                 _controlsButton.onClick.AddListener(OpenControlPanel);
 
             if (_endGameButton)
+            {
                 _endGameButton.onClick.AddListener(OpenEndGamePanel);
+            }
 
             if (_quitButton)
                 _quitButton.onClick.AddListener(OpenQuitPanel);
@@ -196,7 +205,7 @@ namespace MortierFu
                 _sfxVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
 
             if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.AddListener(OnConfirmEndGame);
+                _confirmEndGameButton.onClick.AddListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
 
             if (_cancelEndGameButton)
                 _cancelEndGameButton.onClick.AddListener(Return);
@@ -238,7 +247,7 @@ namespace MortierFu
                 _sfxVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
 
             if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.RemoveListener(OnConfirmEndGame);
+                _confirmEndGameButton.onClick.RemoveListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
 
             if (_cancelEndGameButton)
                 _cancelEndGameButton.onClick.RemoveListener(Return);
@@ -260,6 +269,18 @@ namespace MortierFu
             }
 
             _gameService?.ReturnToLobby();
+        }
+
+        private void OnConfirmReturnToMainMenu()
+        {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+
+            if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
+            {
+                _gamePauseSystem.TogglePause();
+            }
+
+            _lobbyReturnToMainMenuController.ConfirmReturnToMainMenu();
         }
 
         private void ScrollRawImageUV(RawImage image, float speed)
@@ -431,11 +452,11 @@ namespace MortierFu
             if (_blackPanel)
                 _blackPanel.SetActive(true);
 
-           // if (_pauseTopText && _pauseTopText.transform.parent)
-             //   _pauseTopText.transform.parent.gameObject.SetActive(true);
+            // if (_pauseTopText && _pauseTopText.transform.parent)
+            //   _pauseTopText.transform.parent.gameObject.SetActive(true);
 
 //            if (_pauseBottomText && _pauseBottomText.transform.parent)
-  //              _pauseBottomText.transform.parent.gameObject.SetActive(true);
+            //              _pauseBottomText.transform.parent.gameObject.SetActive(true);
 
             SafeCancelCts(ref _animateCancellation);
             _animateCancellation = new CancellationTokenSource();
@@ -464,11 +485,11 @@ namespace MortierFu
             if (_quitGameConfirmationPanel)
                 _quitGameConfirmationPanel.SetActive(false);
 
-         //   if (_pauseTopText && _pauseTopText.transform.parent)
-           //     _pauseTopText.transform.parent.gameObject.SetActive(false);
+            /*if (_pauseTopText && _pauseTopText.transform.parent)
+                _pauseTopText.transform.parent.gameObject.SetActive(false);
 
-         //   if (_pauseBottomText && _pauseBottomText.transform.parent)
-         //       _pauseBottomText.transform.parent.gameObject.SetActive(false);
+            if (_pauseBottomText && _pauseBottomText.transform.parent)
+                _pauseBottomText.transform.parent.gameObject.SetActive(false);*/
 
             StopAllActiveAnimations();
         }
@@ -476,8 +497,8 @@ namespace MortierFu
         private async UniTask AnimatePausePanel()
         {
             _pausePanel.SetActive(true);
-            
-          //  await Tween.Position(_pausePanel.transform, )
+
+            //  await Tween.Position(_pausePanel.transform, )
         }
 
         private void Pause()
@@ -629,7 +650,10 @@ namespace MortierFu
         private void BindPauseSystemEvents()
         {
             if (_gamePauseSystem is null)
+            {
+                Logs.LogError("[PauseUI] GamePauseSystem is null]");
                 return;
+            }
 
             _gamePauseSystem.Paused -= Pause;
             _gamePauseSystem.Resumed -= UnPause;

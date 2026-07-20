@@ -90,7 +90,7 @@ namespace MortierFu
                     canDash: true,
                     canTaunt: true,
                     canBeStun: true,
-                    canPause: false,
+                    canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: false
@@ -103,7 +103,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: false,
+                    canPause: true,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -116,7 +116,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: false,
+                    canPause: true,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -129,7 +129,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: false,
+                    canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: false
@@ -142,7 +142,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: false,
+                    canPause: true,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
