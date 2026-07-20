@@ -199,8 +199,9 @@ namespace MortierFu.Analytics
             if (death.Character == null) return;
 
             var victimData = GetOrCreatePlayerData(death.Character);
+            bool isSelfKill = death.Context.Killer && death.Context.Killer == death.Character;
 
-            if (death.Context.Killer)
+            if (death.Context.Killer && !isSelfKill)
             {
                 var killerData = GetOrCreatePlayerData(death.Context.Killer);
                 killerData.kills++;
