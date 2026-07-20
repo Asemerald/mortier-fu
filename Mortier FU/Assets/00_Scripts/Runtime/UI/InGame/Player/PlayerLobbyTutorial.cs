@@ -130,6 +130,7 @@ namespace MortierFu
 
             if (visible)
             {
+                _tutorialContainer.gameObject.SetActive(true);
                 _tutorialSlot.gameObject.SetActive(true);
                 _tutorialText.gameObject.SetActive(true);
 
