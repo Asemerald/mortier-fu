@@ -590,8 +590,11 @@ MonoBehaviour:
   _items:
   - {fileID: 1503636316829631314}
   - {fileID: 7774995715230778356}
-  _navigationThreshold: 0.3
-  _navigationCooldown: 0.2
+  _navigationPressThreshold: 0.55
+  _navigationReleaseThreshold: 0.25
+  _axisDominanceMargin: 0.2
+  _initialRepeatDelay: 0.35
+  _repeatCooldown: 0.12
   _wrapVerticalNavigation: 1
 --- !u!1 &8887413936584953537
 GameObject:
@@ -703,7 +706,6 @@ MonoBehaviour:
   _bodySkinnedMeshRenderer: {fileID: 8563517508809214567}
   _columnPropertyName: _Column
   _rowPropertyName: _Row
-  _showDebugLogs: 0
 --- !u!114 &2984828235087880591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -784,7 +786,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1730139205179396775, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+    - {fileID: 2756406362194943415, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1091089241000586317, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
