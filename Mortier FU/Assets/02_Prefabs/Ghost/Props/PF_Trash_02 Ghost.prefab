@@ -14,15 +14,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1560145112843970302, guid: 130a85215d2634646a6cda89307c5970, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.43666
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1560145112843970302, guid: 130a85215d2634646a6cda89307c5970, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.52493
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1560145112843970302, guid: 130a85215d2634646a6cda89307c5970, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.4699
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1560145112843970302, guid: 130a85215d2634646a6cda89307c5970, type: 3}
       propertyPath: m_LocalRotation.w
@@ -81,9 +81,10 @@ MonoBehaviour:
   rb: {fileID: 8159247928196344406}
   groundMask:
     serializedVersion: 2
-    m_Bits: 64
-  detectionDistance: 0.84
+    m_Bits: 2112
+  detectionDistance: 0.96
   offsetAdjustment: {x: 0, y: 0.46, z: 0}
+  _isGrounded: 1
 --- !u!54 &8159247928196344406 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 1991071444002843394, guid: 130a85215d2634646a6cda89307c5970, type: 3}

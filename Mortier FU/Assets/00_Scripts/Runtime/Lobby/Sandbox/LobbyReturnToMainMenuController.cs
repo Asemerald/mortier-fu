@@ -254,7 +254,7 @@ namespace MortierFu
             EventSystem.current?.SetSelectedGameObject(selectable.gameObject);
         }
 
-        private void ConfirmReturnToMainMenu()
+        public void ConfirmReturnToMainMenu()
         {
             if (_isReturning)
                 return;

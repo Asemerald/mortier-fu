@@ -32,7 +32,7 @@ namespace MortierFu
         public event Action OnGlobalLockStarted;
         public event Action OnGlobalLockEnded;
 
-        private void Start()
+        private void Awake()
         {
             InitializeAsync().Forget();
         }

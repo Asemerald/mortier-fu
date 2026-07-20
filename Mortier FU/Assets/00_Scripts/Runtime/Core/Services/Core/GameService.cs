@@ -81,8 +81,6 @@ namespace MortierFu
 
             await StartCurrentGameModeAsync();
 
-            //_sceneService.HideLoadingScreen();   
-
             Logs.Log("[GameService] Gameplay pipeline done.");
         }
 
@@ -122,7 +120,6 @@ namespace MortierFu
         
         public async UniTaskVoid LoadLobbySceneAsync()
         {
-
             var sceneService = ServiceManager.Instance.Get<SceneService>();
 
             if (sceneService is null)
