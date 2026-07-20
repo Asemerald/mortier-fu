@@ -36,11 +36,11 @@ namespace MortierFu
             _gameMode = GameService.CurrentGameMode;
             if (_gameMode != null)
             {
-                _gameMode.OnRoundStarted += OnRoundStarted;
+                _gameMode.OnRoundGameplayStarted  += OnRoundGameplayStarted;
             }
         }
 
-        private void OnRoundStarted(RoundInfo roundInfo)
+        private void OnRoundGameplayStarted(RoundInfo roundInfo)
         {
             StartThresholdTimer();
         }
@@ -113,7 +113,7 @@ namespace MortierFu
         {
             if (_gameMode != null)
             {
-                _gameMode.OnRoundStarted -= OnRoundStarted;
+                _gameMode.OnRoundGameplayStarted -= OnRoundGameplayStarted;
                 _gameMode = null;
             }
 

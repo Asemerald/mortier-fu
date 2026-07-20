@@ -97,6 +97,7 @@ namespace MortierFu
         public event Action<PlayerManager, PlayerManager> OnPlayerKilled;
         public event Action OnGameStarted;
         public event Action<RoundInfo> OnRoundStarted;
+        public event Action<RoundInfo> OnRoundGameplayStarted;
         public event Func<CancellationToken, UniTask> OnRoundStartPresentationAsync;
         public event Action OnScoreDisplayOver;
         public event Action<RoundInfo> OnRoundEnded;
@@ -294,6 +295,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
 
             SetPlayersControlContext(PlayerControlContext.RoundGameplay);
+            OnRoundGameplayStarted?.Invoke(_currentRound);
 
             await WaitUntilRoundOverAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
