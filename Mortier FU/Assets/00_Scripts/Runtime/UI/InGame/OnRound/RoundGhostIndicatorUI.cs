@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace MortierFu
     {
         [SerializeField] private List<Image> ghostIndicators;
 
-        [SerializeField] private float screenEdgeOffset = 32f;
+        [SerializeField] private float screenEdgeOffset = 16f;
 
         private CameraSystem _cameraSystem;
         private GameModeBase _gameMode;
@@ -34,31 +35,39 @@ namespace MortierFu
                 return;
             }
 
+            _gameMode.OnRoundEnded += CleanGhostUiAfterRound;
+
             if (_ghostSystem == null)
             {
                 Logs.LogError("[RoundGhostIndicatorUI]: Ghost System is null.");
                 return;
             }
             
-            Logs.LogError($"Screen H : {Screen.height} Screen W : {Screen.width}");
+        }
+
+        private void OnDestroy()
+        {
+            _gameMode.OnRoundEnded -= CleanGhostUiAfterRound;
         }
 
         private void Update()
         {
-            if (!_cameraSystem.Controller || _ghostSystem == null)
-                return;
+            HandleGhostIndicatorUI();
+        }
 
-            foreach (PlayerGhostPawn ghostPawn in _ghostSystem.ActiveGhostsPawns)
+        private void HandleGhostIndicatorUI()
+        {
+            if (!_cameraSystem.Controller || _ghostSystem == null) return;
+            
+            foreach (PlayerGhostPawn ghost in _ghostSystem.ActiveGhostsPawns)
             {
-                if (!ghostPawn || !ghostPawn.Owner)
-                    continue;
-
-                int index = ghostPawn.Owner.PlayerIndex;
+                if (!ghost || !ghost.Owner) continue;
                 
-                if (index < 0 || index >= ghostIndicators.Count || !ghostIndicators[index])
-                    continue;
+                int index = ghost.Owner.PlayerIndex;
+                
+                if(!IsIndexValid(index)) continue;
 
-                UpdateGhostUI(ghostPawn.PawnTransform, index);
+                UpdateGhostUI(ghost.PawnTransform, index);
             }
         }
 
@@ -66,25 +75,17 @@ namespace MortierFu
         {
             Camera cam = _cameraSystem.Controller.Camera;
 
-            Vector3 flatTargetPos = new Vector3(ghostT.position.x, _cameraSystem.Controller.transform.position.y, ghostT.position.z);
-
-            Vector3 screenPosition = cam.WorldToScreenPoint(flatTargetPos);
-            bool behindCamera = screenPosition.z < 0f;
-
-            if (behindCamera)
-            {
-                screenPosition.x = Screen.width - screenPosition.x;
-                screenPosition.y = Screen.height - screenPosition.y;
-            }
-
-            bool onScreen = !behindCamera && IsInCameraView(screenPosition);
+            Vector3 screenPosition = cam.WorldToScreenPoint(ghostT.position);
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
             Image indicator = ghostIndicators[index];
 
-            if (!onScreen)
+            if (!IsGhostOnScreen(screenPosition))
             {
-                Vector2 clamped = ClampToScreen(screenPosition);
-                indicator.rectTransform.position = clamped;
+                Vector2 fromCenter = (Vector2)screenPosition - screenCenter;
+                Vector2 clampedPosition = GetScreenEdgePosition(fromCenter, screenCenter, screenEdgeOffset);
+
+                indicator.rectTransform.position = clampedPosition;
                 indicator.gameObject.SetActive(true);
             }
             else
@@ -93,18 +94,39 @@ namespace MortierFu
             }
         }
 
-        private bool IsInCameraView(Vector2 screenPosition)
+        private Vector2 GetScreenEdgePosition(Vector2 fromCenter, Vector2 screenCenter, float offset)
         {
-            return screenPosition.x > 0 && screenPosition.x < Screen.width &&
-                   screenPosition.y > 0 && screenPosition.y < Screen.height;
+            float maxX = screenCenter.x - offset;
+            float maxY = screenCenter.y - offset;
+
+            float divX = Mathf.Abs(fromCenter.x) < 0.0001f ? 0.0001f : Mathf.Abs(fromCenter.x);
+            float divY = Mathf.Abs(fromCenter.y) < 0.0001f ? 0.0001f : Mathf.Abs(fromCenter.y);
+
+            float scaleX = maxX / divX;
+            float scaleY = maxY / divY;
+
+            float scale = Mathf.Min(scaleX, scaleY);
+
+            return screenCenter + (fromCenter * scale);
         }
 
-        private Vector2 ClampToScreen(Vector2 screenPosition)
+        private bool IsIndexValid(int index)
         {
-            screenPosition.x = Mathf.Clamp(screenPosition.x, screenEdgeOffset, Screen.width - screenEdgeOffset);
-            screenPosition.y = Mathf.Clamp(screenPosition.y, screenEdgeOffset, Screen.height - screenEdgeOffset);
+            return index >= 0 && index < ghostIndicators.Count && ghostIndicators[index];
+        }
 
-            return screenPosition;
+        private bool IsGhostOnScreen(Vector2 screenPosition)
+        {
+            return screenPosition.x >= screenEdgeOffset && 
+                            screenPosition.x <= Screen.width - screenEdgeOffset &&
+                            screenPosition.y >= screenEdgeOffset && 
+                            screenPosition.y <= Screen.height - screenEdgeOffset;
+        }
+
+        private void CleanGhostUiAfterRound(RoundInfo roundInfo)
+        {
+            foreach (Image ghostIndicator in ghostIndicators)
+                ghostIndicator.gameObject.SetActive(false);
         }
     }
 }
