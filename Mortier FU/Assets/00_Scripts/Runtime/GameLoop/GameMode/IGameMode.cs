@@ -91,5 +91,7 @@ namespace MortierFu
         public void SetMatchConfig(MatchConfig config);
 
         public void SetScoreToWin(int scoreToWin);
+        
+        public GameState CurrentGameState { get; }
     }
 }
