@@ -26,6 +26,7 @@ jobs:
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
 
       - name: Build Linux
+        if: github.ref == 'refs/heads/main'
         shell: cmd
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
 
