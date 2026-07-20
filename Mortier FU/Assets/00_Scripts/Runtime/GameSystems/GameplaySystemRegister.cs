@@ -13,14 +13,14 @@ namespace MortierFu
                 return;
             }
 
-            systemManager.CreateAndRegisterIfMissing<GamePauseSystem>();
-            systemManager.CreateAndRegisterIfMissing<GhostSystem>();
-            systemManager.CreateAndRegisterIfMissing<CameraSystem>();
-            systemManager.CreateAndRegisterIfMissing<LevelSystem>();
-            systemManager.CreateAndRegisterIfMissing<BombshellSystem>();
-            systemManager.CreateAndRegisterIfMissing<AugmentProviderSystem>();
-            systemManager.CreateAndRegisterIfMissing<AugmentSelectionSystem>();
-            systemManager.CreateAndRegisterIfMissing<AnalyticsSystem>();
+            systemManager.CreateAndRegister<GamePauseSystem>();
+            systemManager.CreateAndRegister<GhostSystem>();
+            systemManager.CreateAndRegister<CameraSystem>();
+            systemManager.CreateAndRegister<LevelSystem>();
+            systemManager.CreateAndRegister<BombshellSystem>();
+            systemManager.CreateAndRegister<AugmentProviderSystem>();
+            systemManager.CreateAndRegister<AugmentSelectionSystem>();
+            systemManager.CreateAndRegister<AnalyticsSystem>();
 
             Logs.Log("[GameplaySystemRegistrar] Gameplay systems registered.");
         }

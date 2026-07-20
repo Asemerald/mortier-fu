@@ -7,8 +7,6 @@ namespace MortierFu
 {
     public class RoundGhostIndicatorUI : MonoBehaviour
     {
-        [SerializeField] private RectTransform canvasGhostIndicatorRecT;
-
         [SerializeField] private List<Image> ghostIndicators;
 
         [SerializeField] private float screenEdgeOffset = 32f;
@@ -17,15 +15,14 @@ namespace MortierFu
         private GameModeBase _gameMode;
         private GhostSystem _ghostSystem;
 
-        private Transform _cameraTransformCache;
 
-        private void OnEnable()
+        private void Start()
         {
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _gameMode = GameService.CurrentGameMode as GameModeBase;
             _ghostSystem = SystemManager.Instance.Get<GhostSystem>();
 
-            if (_cameraSystem == null || !_cameraSystem.Controller)
+            if (_cameraSystem == null)
             {
                 Logs.LogError("[RoundGhostIndicatorUI]: Missing Camera System or Missing CameraSystem.Controller].");
                 return;
@@ -42,13 +39,13 @@ namespace MortierFu
                 Logs.LogError("[RoundGhostIndicatorUI]: Ghost System is null.");
                 return;
             }
-
-            _cameraTransformCache = _cameraSystem.Controller.transform;
+            
+            Logs.LogError($"Screen H : {Screen.height} Screen W : {Screen.width}");
         }
 
         private void Update()
         {
-            if (!_cameraTransformCache || _ghostSystem == null)
+            if (!_cameraSystem.Controller || _ghostSystem == null)
                 return;
 
             foreach (PlayerGhostPawn ghostPawn in _ghostSystem.ActiveGhostsPawns)
@@ -69,7 +66,7 @@ namespace MortierFu
         {
             Camera cam = _cameraSystem.Controller.Camera;
 
-            Vector3 flatTargetPos = new Vector3(ghostT.position.x, _cameraTransformCache.position.y, ghostT.position.z);
+            Vector3 flatTargetPos = new Vector3(ghostT.position.x, _cameraSystem.Controller.transform.position.y, ghostT.position.z);
 
             Vector3 screenPosition = cam.WorldToScreenPoint(flatTargetPos);
             bool behindCamera = screenPosition.z < 0f;
