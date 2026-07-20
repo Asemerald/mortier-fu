@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - develop
-    
+
 concurrency:
   group: unity-build-${{ github.ref }}
   cancel-in-progress: true
@@ -18,19 +18,19 @@ jobs:
       - windows
 
     steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  - name: Build Windows
-    shell: cmd
-    run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
+      - name: Build Windows
+        shell: cmd
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildWindows -logFile -'
 
-  - name: Build Linux
-    shell: cmd
-    run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
+      - name: Build Linux
+        shell: cmd
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
 
-  - name: Upload Builds
-    uses: actions/upload-artifact@v4
-    with:
-      name: Builds
-      path: Build/
+      - name: Upload Builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: Builds
+          path: Build/
