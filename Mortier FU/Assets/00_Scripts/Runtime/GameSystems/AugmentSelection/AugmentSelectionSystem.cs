@@ -174,6 +174,12 @@ namespace MortierFu
             _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber, _playerCount);
             _augmentBag.Clear();
 
+            EventBus<TriggerAugmentsShown>.Raise(new TriggerAugmentsShown
+            {
+                Augments = (SO_Augment[])_selectedAugments.Clone()
+            });
+            
+
             for (var i = 0; i < _selectedAugments.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
