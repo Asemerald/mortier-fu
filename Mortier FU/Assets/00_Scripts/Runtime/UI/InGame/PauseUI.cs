@@ -443,7 +443,7 @@ namespace MortierFu
         {
             if (_pausePanel)
             {
-                AnimatePausePanel().Forget();
+                AnimatePausePanel();    
             }
 
             if (_pauseBackground)
@@ -494,7 +494,7 @@ namespace MortierFu
             StopAllActiveAnimations();
         }
 
-        private async UniTask AnimatePausePanel()
+        private void AnimatePausePanel()
         {
             _pausePanel.SetActive(true);
 

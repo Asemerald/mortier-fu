@@ -9,20 +9,21 @@ namespace MortierFu
 {
     public sealed class ConfirmationService : IGameService, IPlayerUIInputHandler
     {
+        private readonly HashSet<PlayerManager> _participants = new();
         private readonly HashSet<PlayerManager> _pendingPlayers = new();
+        private readonly List<PlayerManager> _playersBuffer = new(4);
 
         private LobbyService _lobbyService;
         private PlayerUIInputService _uiInputService;
         private ShakeService _shakeService;
 
         private TaskCompletionSource<bool> _completionSource;
-
         private bool _isWaitingForConfirmation;
-        private int _confirmationCount;
 
         public bool IsInitialized { get; set; }
 
         public event Action<int> OnPlayerConfirmed;
+        public event Action<int> OnPlayerConfirmedAgain;
         public event Action OnAllPlayersConfirmed;
         public event Action<int> OnStartConfirmation;
 
@@ -43,7 +44,7 @@ namespace MortierFu
 
         public async Task<bool> WaitUntilAllConfirmed()
         {
-            var players = GetAvailablePlayers();
+            List<PlayerManager> players = GetAvailablePlayers();
 
             if (players.Count == 0)
             {
@@ -65,14 +66,14 @@ namespace MortierFu
             return true;
         }
 
-        public void ResetRuntimeState() => ClearConfirmation(confirmationResult: false);
+        public void ResetRuntimeState() => FinishConfirmation(false);
 
         private void BeginConfirmation(IEnumerable<PlayerManager> players)
         {
             if (_isWaitingForConfirmation)
             {
                 Logs.LogWarning("[ConfirmationService] A confirmation was already active. It has been canceled.");
-                ClearConfirmation(confirmationResult: false);
+                FinishConfirmation(false);
             }
 
             if (_uiInputService is null)
@@ -82,29 +83,31 @@ namespace MortierFu
             }
 
             _completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _participants.Clear();
             _pendingPlayers.Clear();
 
-            foreach (var player in players)
+            foreach (PlayerManager player in players)
             {
                 if (!player)
                     continue;
 
-                if (!_pendingPlayers.Add(player))
+                if (!_participants.Add(player))
                     continue;
 
+                _pendingPlayers.Add(player);
                 _uiInputService.Push(player, this);
             }
 
-            _confirmationCount = _pendingPlayers.Count;
-            _isWaitingForConfirmation = _confirmationCount > 0;
+            _isWaitingForConfirmation = _pendingPlayers.Count > 0;
 
             if (!_isWaitingForConfirmation)
             {
-                CompleteConfirmation();
+                FinishConfirmation(true);
                 return;
             }
 
-            Logs.Log($"[ConfirmationService] Waiting for {_confirmationCount} player confirmation(s).");
+            Logs.Log($"[ConfirmationService] Waiting for {_pendingPlayers.Count} player confirmation(s).");
         }
 
         private async Task<bool> WaitForCompletion()
@@ -117,77 +120,56 @@ namespace MortierFu
 
         private void ConfirmPlayer(PlayerManager player)
         {
-            if (!_isWaitingForConfirmation)
-                return;
-
-            if (!player)
+            if (!_isWaitingForConfirmation || !player)
                 return;
 
             if (!_pendingPlayers.Remove(player))
                 return;
 
-            _uiInputService?.Remove(player, this);
-
-            _confirmationCount = _pendingPlayers.Count;
-
             OnPlayerConfirmed?.Invoke(player.PlayerIndex);
+            _shakeService?.ShakeController(player, ShakeService.ShakeType.MID);
 
-            if (_shakeService is not null)
-            {
-                _shakeService.ShakeController(player, ShakeService.ShakeType.MID);
-            }
+            Logs.Log($"[ConfirmationService] Player {player.PlayerIndex + 1} confirmed. Remaining: {_pendingPlayers.Count}.");
 
-            Logs.Log($"[ConfirmationService] Player {player.PlayerIndex + 1} confirmed. Remaining: {_confirmationCount}.");
-
-            if (_confirmationCount <= 0)
-            {
-                CompleteConfirmation();
-            }
+            if (_pendingPlayers.Count <= 0)
+                FinishConfirmation(true);
         }
 
-        private void CompleteConfirmation()
+        private void FinishConfirmation(bool result)
         {
             if (!_isWaitingForConfirmation && _completionSource is null)
                 return;
 
             _isWaitingForConfirmation = false;
-            _confirmationCount = 0;
 
-            ClearPendingPlayerHandlers();
+            ClearPlayerHandlers();
 
-            _completionSource?.TrySetResult(true);
+            _completionSource?.TrySetResult(result);
             _completionSource = null;
         }
 
-        private void ClearConfirmation(bool confirmationResult)
+        private void ClearPlayerHandlers()
         {
-            _isWaitingForConfirmation = false;
-            _confirmationCount = 0;
-
-            ClearPendingPlayerHandlers();
-
-            _completionSource?.TrySetResult(confirmationResult);
-            _completionSource = null;
-        }
-
-        private void ClearPendingPlayerHandlers()
-        {
-            if (_pendingPlayers.Count == 0)
-                return;
-
-            var players = new List<PlayerManager>(_pendingPlayers);
-
-            for (int i = 0; i < players.Count; i++)
+            if (_participants.Count > 0)
             {
-                var player = players[i];
+                _playersBuffer.Clear();
 
-                if (!player)
-                    continue;
+                foreach (PlayerManager player in _participants)
+                {
+                    if (player)
+                        _playersBuffer.Add(player);
+                }
 
-                _uiInputService?.Remove(player, this);
+                for (int i = 0; i < _playersBuffer.Count; i++)
+                {
+                    _uiInputService?.Remove(_playersBuffer[i], this);
+                }
+
+                _playersBuffer.Clear();
             }
 
             _pendingPlayers.Clear();
+            _participants.Clear();
         }
 
         private List<PlayerManager> GetAvailablePlayers()
@@ -197,11 +179,11 @@ namespace MortierFu
             if (_lobbyService is null)
                 return result;
 
-            var players = _lobbyService.GetPlayers();
+            IReadOnlyList<PlayerManager> players = _lobbyService.GetPlayers();
 
             for (int i = 0; i < players.Count; i++)
             {
-                var player = players[i];
+                PlayerManager player = players[i];
 
                 if (!player)
                     continue;
@@ -213,37 +195,22 @@ namespace MortierFu
             return result;
         }
 
-        private PlayerManager GetPlayerByIndex(int playerIndex)
-        {
-            if (_lobbyService is null)
-                return null;
-
-            var players = _lobbyService.GetPlayers();
-
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-
-                if (!player)
-                    continue;
-
-                if (player.PlayerIndex == playerIndex)
-                    return player;
-            }
-
-            return null;
-        }
-
-        public bool CanHandleUIInput(PlayerManager player) => _isWaitingForConfirmation && player && _pendingPlayers.Contains(player);
+        public bool CanHandleUIInput(PlayerManager player) => _isWaitingForConfirmation && player && _participants.Contains(player);
 
         public bool HandleNavigate(PlayerManager player, Vector2 direction) => false;
-
+        
         public bool HandleSubmit(PlayerManager player)
         {
             if (!CanHandleUIInput(player))
                 return false;
 
-            ConfirmPlayer(player);
+            if (_pendingPlayers.Contains(player))
+            {
+                ConfirmPlayer(player);
+                return true;
+            }
+
+            OnPlayerConfirmedAgain?.Invoke(player.PlayerIndex);
             return true;
         }
 
@@ -251,9 +218,10 @@ namespace MortierFu
 
         public void Dispose()
         {
-            ClearConfirmation(confirmationResult: false);
+            FinishConfirmation(false);
 
             OnPlayerConfirmed = null;
+            OnPlayerConfirmedAgain = null;
             OnAllPlayersConfirmed = null;
             OnStartConfirmation = null;
         }

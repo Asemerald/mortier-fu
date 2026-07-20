@@ -42,6 +42,13 @@ namespace MortierFu
         [SerializeField] private float _readyStartingScale = 0.8f;
         [SerializeField] private float _readyScaleUp = 1.4f;
         [SerializeField] private float _readyFadeOutDuration = 0.3f;
+        
+        [Header("Confirmed Spam Feedback")]
+        [SerializeField] private float _confirmedSpamScaleDown = 0.82f;
+        [SerializeField] private float _confirmedSpamDownDuration = 0.05f;
+        [SerializeField] private float _confirmedSpamUpDuration = 0.12f;
+        [SerializeField] private Ease _confirmedSpamDownEase = Ease.InQuad;
+        [SerializeField] private Ease _confirmedSpamUpEase = Ease.OutBack;
 
         private ShakeService _shakeService;
         private GameModeBase _gm;
@@ -76,6 +83,8 @@ namespace MortierFu
 
             CleanupTweens();
 
+            _isHidingConfirmation = false;
+            
             _confirmationHideCompletion?.TrySetResult(true);
             _confirmationHideCompletion = null;
 
@@ -124,8 +133,12 @@ namespace MortierFu
         
         private static void StopSlotTweens(PlayerSlot slot)
         {
+            if (slot == null)
+                return;
+
             slot.ATween.Stop();
             slot.ScaleTween.Stop();
+            slot.ConfirmedFeedbackTween.Stop();
         }
 
         private async UniTask PlayCountdown(GameModeBase gm, CancellationToken ct, int seconds = 0)
@@ -330,6 +343,8 @@ namespace MortierFu
             if (!slot.IsActive)
                 return;
 
+            slot.HasConfirmed = true;
+
             slot.ATween.Stop();
 
             if (slot.ConfirmationButtonImageTarget)
@@ -337,6 +352,9 @@ namespace MortierFu
                 slot.ConfirmationButtonImageTarget.rectTransform.localScale = Vector3.one;
                 slot.ConfirmationButtonImageTarget.gameObject.SetActive(false);
             }
+
+            if (slot.OkImage)
+                slot.OkImage.rectTransform.localScale = Vector3.one;
 
             if (slot.Animator)
             {
@@ -347,6 +365,38 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
+        public void NotifyConfirmedPlayerPressedAgain(int playerIndex)
+        {
+            if (_isHidingConfirmation)
+                return;
+
+            if (playerIndex < 0 || playerIndex >= _playerSlots.Count)
+                return;
+
+            PlayerSlot slot = _playerSlots[playerIndex];
+
+            if (!slot.IsActive || !slot.HasConfirmed)
+                return;
+
+            Transform feedbackTarget = ResolveConfirmedFeedbackTarget(slot);
+
+            if (!feedbackTarget)
+                return;
+
+            slot.ConfirmedFeedbackTween.Stop();
+
+            feedbackTarget.localScale = Vector3.one;
+
+            slot.ConfirmedFeedbackTween = Tween.Scale(feedbackTarget, Vector3.one * _confirmedSpamScaleDown, _confirmedSpamDownDuration, _confirmedSpamDownEase)
+                .OnComplete(() =>
+            {
+                if (!feedbackTarget)
+                    return;
+
+                slot.ConfirmedFeedbackTween = Tween.Scale(feedbackTarget, Vector3.one, _confirmedSpamUpDuration, _confirmedSpamUpEase);
+            });
+        }
+        
         private void InitializeSlots(int activePlayerCount)
         {
             if (_gm == null)
@@ -394,6 +444,7 @@ namespace MortierFu
             StopSlotTweens(slot);
 
             slot.IsActive = false;
+            slot.HasConfirmed = false;
 
             if (slot.Animator)
                 slot.Animator.enabled = false;
@@ -423,6 +474,14 @@ namespace MortierFu
                 slot.ConfirmationButtonImageTarget = slot.GamePadInputImage;
         }
 
+        private static Transform ResolveConfirmedFeedbackTarget(PlayerSlot slot)
+        {
+            if (slot.OkImage && slot.OkImage.gameObject.activeInHierarchy)
+                return slot.OkImage.rectTransform;
+
+            return slot.AnimatorTransform;
+        }
+        
         [Serializable]
         public class PlayerSlot
         {
@@ -437,9 +496,11 @@ namespace MortierFu
             public Transform AnimatorTransform;
 
             public bool IsActive;
+            public bool HasConfirmed;
 
             public Tween ATween;
             public Tween ScaleTween;
+            public Tween ConfirmedFeedbackTween;
         }
     }
 }
