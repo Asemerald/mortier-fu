@@ -35,30 +35,6 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public async Task<bool> WaitUntilHostConfirmed()
-        {
-            var host = GetPlayerByIndex(0);
-
-            if (!host)
-            {
-                Logs.LogError("[ConfirmationService] No PlayerManager found for host Player 1.");
-                return false;
-            }
-
-            BeginConfirmation(new[] { host });
-
-            bool confirmed = await WaitForCompletion();
-
-            if (!confirmed)
-                return false;
-
-            OnAllPlayersConfirmed?.Invoke();
-
-            Logs.Log("[ConfirmationService] Host confirmed.");
-
-            return true;
-        }
-
         public void ShowConfirmation(int activePlayers)
         {
             OnStartConfirmation?.Invoke(activePlayers);
@@ -89,10 +65,7 @@ namespace MortierFu
             return true;
         }
 
-        public void ResetRuntimeState()
-        {
-            ClearConfirmation(confirmationResult: false);
-        }
+        public void ResetRuntimeState() => ClearConfirmation(confirmationResult: false);
 
         private void BeginConfirmation(IEnumerable<PlayerManager> players)
         {
@@ -261,17 +234,9 @@ namespace MortierFu
             return null;
         }
 
-        public bool CanHandleUIInput(PlayerManager player)
-        {
-            return _isWaitingForConfirmation &&
-                   player &&
-                   _pendingPlayers.Contains(player);
-        }
+        public bool CanHandleUIInput(PlayerManager player) => _isWaitingForConfirmation && player && _pendingPlayers.Contains(player);
 
-        public bool HandleNavigate(PlayerManager player, Vector2 direction)
-        {
-            return false;
-        }
+        public bool HandleNavigate(PlayerManager player, Vector2 direction) => false;
 
         public bool HandleSubmit(PlayerManager player)
         {
@@ -282,10 +247,7 @@ namespace MortierFu
             return true;
         }
 
-        public bool HandleCancel(PlayerManager player)
-        {
-            return false;
-        }
+        public bool HandleCancel(PlayerManager player) => false;
 
         public void Dispose()
         {
