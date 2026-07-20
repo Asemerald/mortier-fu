@@ -26,6 +26,9 @@ namespace MortierFu
         
         [Header("References")]
         [SerializeField] private RectTransform _scrollArea;
+        
+        private int _initialTopIndex;
+        private int _initialBottomIndex;
         //Stoian
         
         private PlayerManager _activePlayer;
@@ -44,6 +47,11 @@ namespace MortierFu
 
         private void Awake()
         {
+            //Stoian
+            _initialTopIndex = _topIndex;
+            _initialBottomIndex = _bottomIndex;
+            //Stoian
+            
             EnsureInitialized();
             RefreshSelection();
         }
@@ -247,12 +255,23 @@ namespace MortierFu
         //Stoian
         private void ScrollSelection(int index)
         {
-            if (index >= _bottomIndex)
+            if (index >= _items.Count - 1)
+            {
+                _scrollArea.anchoredPosition += new Vector2(0f, _scrollDistance * (_items.Count - _bottomIndex));
+                _topIndex += _items.Count - _bottomIndex;
+                _bottomIndex += _items.Count - _bottomIndex;
+            }
+            else if (index >= _bottomIndex)
             {
                 _scrollArea.anchoredPosition += new Vector2(0f, _scrollDistance);
                 _topIndex++;
                 _bottomIndex++;
-                Logs.LogError(_topIndex + ", " + _bottomIndex);
+            }
+            else if (index <= 0)
+            {
+                _scrollArea.anchoredPosition = Vector2.zero;
+                _topIndex = _initialTopIndex;
+                _bottomIndex = _initialBottomIndex;
             }
 
             if (index <= _topIndex)
@@ -260,7 +279,6 @@ namespace MortierFu
                 _scrollArea.anchoredPosition -= new Vector2(0f, _scrollDistance);
                 _topIndex--;
                 _bottomIndex--;
-                Logs.LogError(_topIndex + ", " + _bottomIndex);
             }
         }
         //Stoian
