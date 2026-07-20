@@ -15,8 +15,14 @@ public class GhostProp : MonoBehaviour
     [SerializeField] private float detectionDistance = 1f;
     [SerializeField] private Vector3 offsetAdjustment;
     
-    private bool _isGrounded = true;
-    
+    [SerializeField] private bool _isGrounded = true;
+
+    private void Awake()
+    {
+        _isGrounded = true;
+        rb.isKinematic = true;
+        rb.useGravity = true;
+    }
 
     private bool IsPropGrounded()
     {
@@ -31,6 +37,7 @@ public class GhostProp : MonoBehaviour
         
         _isGrounded = false;
         rb.isKinematic = false;
+        rb.useGravity = true;
     }
 
     private void Update()

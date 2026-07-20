@@ -10,19 +10,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1794298305327361378, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
       propertyPath: m_Name
-      value: PF_Bench Variant
+      value: PF_Bench Ghost
       objectReference: {fileID: 0}
     - target: {fileID: 1894346846195719506, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.47067
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1894346846195719506, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.52493
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1894346846195719506, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.66522
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1894346846195719506, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
       propertyPath: m_LocalRotation.w
@@ -81,9 +81,10 @@ MonoBehaviour:
   rb: {fileID: 5816173573797378445}
   groundMask:
     serializedVersion: 2
-    m_Bits: 0
-  detectionDistance: 0.5
-  offsetAdjustment: {x: -0.18, y: 0, z: 0}
+    m_Bits: 2112
+  detectionDistance: 0.96
+  offsetAdjustment: {x: -0.18, y: 0.31, z: 0}
+  _isGrounded: 1
 --- !u!54 &5816173573797378445 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: -4543495109113527904, guid: edea8455d73b84a4ba4b2077715297b7, type: 3}
