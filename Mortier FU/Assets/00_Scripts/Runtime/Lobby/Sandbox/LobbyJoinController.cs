@@ -79,6 +79,7 @@ namespace MortierFu
 
         private void StartInitialization()
         {
+            
             CancelInitialization();
 
             _initializeCancellation = new CancellationTokenSource();
@@ -123,7 +124,7 @@ namespace MortierFu
                     AutoJoinConnectedGamepads();
 
                 NotifyPromptStateChanged();
-
+                
                 DebugLog("[LobbyJoinController] Initialized.");
             }
             catch (OperationCanceledException)

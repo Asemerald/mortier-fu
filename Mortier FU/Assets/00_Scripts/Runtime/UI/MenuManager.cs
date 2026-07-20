@@ -77,6 +77,7 @@ namespace MortierFu
 
         private EventSystem _eventSystem;
         private PlayerManager _player1;
+        private GameService _gameService;
         private InputSystemUIInputModule _uiInputModule;
         private InputAction _cancelAction;
 
@@ -109,6 +110,7 @@ namespace MortierFu
         private void Start()
         {
             _eventSystem = EventSystem.current;
+            _gameService = ServiceManager.Instance.Get<GameService>();
 
             if (!_eventSystem)
             {
@@ -295,7 +297,8 @@ namespace MortierFu
         {
             if (_isLoadingLobby)
                 return;
-
+            
+            _isLoadingLobby = true;
             TryCancelCurrentPanel();
         }
 
@@ -324,29 +327,9 @@ namespace MortierFu
             if (_isLoadingLobby)
                 return;
 
-            LoadLobbySceneAsync().Forget();
-        }
-
-        private async UniTaskVoid LoadLobbySceneAsync()
-        {
             _isLoadingLobby = true;
-
-            var sceneService = ServiceManager.Instance.Get<SceneService>();
-
-            if (sceneService is null)
-            {
-                Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.", this);
-                _isLoadingLobby = false;
-                return;
-            }
-
             UIInputService?.RemoveFromAll(this);
-
-            if (PlayerInputBridge.Instance)
-                PlayerInputBridge.Instance.CanJoin(false);
-
-            await sceneService.LoadScene("Lobby", setAsActiveScene: true);
-            await sceneService.UnloadScene("MainMenu");
+            _gameService?.LoadLobbySceneAsync().Forget();
         }
 
         public void OpenSettingsPanel()

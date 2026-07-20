@@ -59,6 +59,7 @@ namespace MortierFu
             {
                 SyncLobbyPlayers();
             }
+            
         }
         
         public void SpawnJoinedPlayer(PlayerManager player)
@@ -68,7 +69,7 @@ namespace MortierFu
 
             if (_spawnedPlayers.Contains(player))
                 return;
-
+            
             SpawnPlayer(player, player.PlayerIndex);
         }
 

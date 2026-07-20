@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3109419406154115180
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -6.4467
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.52493
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.10712
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3533699136081474132, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5105145202112277349, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      propertyPath: m_Name
+      value: PF_Tuktuk Ghost
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5105145202112277349, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 943741504822697827}
+  m_SourcePrefab: {fileID: 100100000, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+--- !u!54 &5297070166967283448 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 7107833847955506836, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+  m_PrefabInstance: {fileID: 3109419406154115180}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7926334222702510857 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5105145202112277349, guid: ec2b7bcc52f6b4846a2f2d284fc1c5f6, type: 3}
+  m_PrefabInstance: {fileID: 3109419406154115180}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &943741504822697827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7926334222702510857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6297adcde648ca4cb28d7631d45d7a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::GhostProp
+  settings: {fileID: 11400000, guid: 717ed2ebf544ef04fa6a8d0806dbecfe, type: 2}
+  rb: {fileID: 5297070166967283448}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 64
+  detectionDistance: 0.73
+  offsetAdjustment: {x: 0, y: 0.39, z: -0.41}
