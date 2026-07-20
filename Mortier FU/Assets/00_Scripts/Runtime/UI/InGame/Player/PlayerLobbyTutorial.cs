@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
@@ -24,6 +26,7 @@ namespace MortierFu
         private bool _isSubscribed;
         private const float timeInputDisable = 0.3f;
         private const float appearTweenDuration = 0.5f;
+        private const float _startFadeDelay = 2f;
         
         private readonly Transform _tutorialContainer;
 
@@ -136,9 +139,7 @@ namespace MortierFu
 
                 Debug.Log($"Container actif dans la hiérarchie ? {_tutorialContainer.gameObject.activeInHierarchy}");
 
-                _tutorialContainer.localScale = Vector3.zero;
-                Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
-                    .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
+                ShowPlayerTuto().Forget();
             }
             else
             {
@@ -146,6 +147,17 @@ namespace MortierFu
                 _tutorialSlot.gameObject.SetActive(false);
                 _tutorialText.gameObject.SetActive(false);
             }
+        }
+        
+        private async UniTask ShowPlayerTuto()
+        {
+            await UniTask.Yield();
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
+        
+            _tutorialContainer.localScale = Vector3.zero;
+            Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
+                .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
         }
 
         private void Unsubscribe()
