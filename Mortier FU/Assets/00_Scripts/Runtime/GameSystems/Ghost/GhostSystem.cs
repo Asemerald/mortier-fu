@@ -36,7 +36,7 @@ namespace MortierFu
 
         public SO_GhostSettings Settings => _settingsHandle.IsValid() ? _settingsHandle.Result : null;
         
-        public IEnumerable ActiveGhostsPawns => _activeGhosts.Keys;
+        public IEnumerable<PlayerGhostPawn> ActiveGhostsPawns => _activeGhosts.Values;
 
         public async UniTask OnInitialize()
         {
