@@ -28,7 +28,7 @@ namespace MortierFu
             _processedRoots = new HashSet<GameObject>();
             _hitCharacters = new HashSet<PlayerCharacter>();
 
-            _dashCooldownTimer = new CountdownTimer(character.Stats.GetDashCooldown());
+            _dashCooldownTimer = new CountdownTimer(character.Stats.GetDashCooldownDuration());
             _dashCooldownTimer.OnTimerStop += OnCooldownTimerStop;
             _dashTriggerTimer = new CountdownTimer(character.Stats.DashDuration.Value);
 
@@ -215,7 +215,7 @@ namespace MortierFu
 
         private void UpdateDashCooldown()
         {
-            float dashCooldown = character.Stats.GetDashCooldown();
+            float dashCooldown = character.Stats.GetDashCooldownDuration();
             _dashCooldownTimer.DynamicUpdate(dashCooldown);
         }
 

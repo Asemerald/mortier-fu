@@ -508,12 +508,12 @@ namespace MortierFu.Editor
             AddRaw("Dash", "Strike Push Force", s => s.StrikePushForce);
             AddRaw("Dash", "Strike Knockback Duration", s => s.StrikeKnockbackDuration);
 
-            AddComputed("Computed", "Real Fire Cooldown", s => s.GetFireRate());
+            AddComputed("Computed", "Real Fire Cooldown", s => s.GetFireCooldownDuration());
             AddComputed("Computed", "Real Bombshell Speed", s => s.GetBombshellSpeed());
             AddComputed("Computed", "Real Avatar Size", s => s.GetAvatarSize());
             AddComputed("Computed", "Real Shot Range", s => s.GetShotRange());
             AddComputed("Computed", "Real Bombshell Size", s => s.GetBombshellSize());
-            AddComputed("Computed", "Real Dash Cooldown", s => s.GetDashCooldown());
+            AddComputed("Computed", "Real Dash Cooldown", s => s.GetDashCooldownDuration());
             AddComputed("Computed", "Real Dash Push Force", s => s.GetDashPushForce());
             AddComputed("Computed", "Real Strike Radius", s => s.GetStrikeRadius());
             AddComputed("Computed", "Real Knockback Stun Duration", s => s.GetKnockbackStunDuration());

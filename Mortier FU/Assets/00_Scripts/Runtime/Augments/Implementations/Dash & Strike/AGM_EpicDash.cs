@@ -59,7 +59,7 @@ namespace MortierFu
 
         private float GetBuffDuration()
         {
-            float dashCooldown = stats.GetDashCooldown();
+            float dashCooldown = stats.GetDashCooldownDuration();
             float maxDuration = dashCooldown * k_maxBuffDurationToCooldownRatio;
 
             return Mathf.Clamp(db.EpicDashParams.EpicDashDuration, 0f, maxDuration);

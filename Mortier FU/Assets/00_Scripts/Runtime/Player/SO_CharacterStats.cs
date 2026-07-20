@@ -40,7 +40,7 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Maximum effective range of mortar shots.")]
         public CharacterStat ShotRange { get; private set; } = new(20.0f);
 
-        [field: SerializeField, Tooltip("Speed of the bombshell after being fired.")]
+        [field: SerializeField, Tooltip("Bombshell speed tuning value. Runtime speed = value * 0.1.")]
         public CharacterStat BombshellSpeed { get; private set; } = new(10.0f);
 
         [field: SerializeField, Tooltip("Speed at which the aim widget moves.")]
@@ -61,7 +61,7 @@ namespace MortierFu
         [field: SerializeField, Tooltip("Duration of the Strike attack.")]
         public CharacterStat DashDuration { get; private set; } = new(0.2f);
 
-        [field: SerializeField, Tooltip("Duration of the Strike attack.")]
+        [field: SerializeField, Tooltip("Dash propulsion force multiplier. Combined with move speed by the controller.")]
         public CharacterStat DashForce { get; private set; } = new(8f);
 
         [field: SerializeField, Tooltip("Radius of the Strike while dashing.")]
@@ -106,13 +106,17 @@ namespace MortierFu
             return AvatarSize.ClampValue(rawSize);
         }
 
-        public float GetFireRate() => 10f / FireRate.Value;
+        public float GetFireCooldownDuration()
+        {
+            float value = Mathf.Max(0.01f, FireRate.Value);
+            return 10f / value;
+        }
 
         public float GetShotRange() => ShotRange.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToShotRangeFactor;
 
         public float GetBombshellSize() => BombshellSize.Value + (BombshellImpactRadius.Value - BombshellImpactRadius.BaseValue) * BombshellImpactRadiusToBombshellSizeFactor;
 
-        public float GetDashCooldown()
+        public float GetDashCooldownDuration()
         {
             float value = Mathf.Max(0.01f, DashCooldown.Value);
             return 10f / value;
@@ -124,8 +128,15 @@ namespace MortierFu
 
         public float GetKnockbackStunDuration()
         {
-            float factor = KnockbackStunDuration.Value / (StrikePushForce.BaseValue + StrikePushForceOffset);
-            return KnockbackStunDuration.Value + StrikePushForce.Value * factor;
+            float denominator = StrikePushForce.BaseValue + StrikePushForceOffset;
+
+            if (Mathf.Abs(denominator) < 0.01f)
+                return Mathf.Max(0f, KnockbackStunDuration.Value);
+
+            float factor = KnockbackStunDuration.Value / denominator;
+            float rawDuration = KnockbackStunDuration.Value + StrikePushForce.Value * factor;
+
+            return KnockbackStunDuration.ClampValue(Mathf.Max(0f, rawDuration));
         }
 
         public void ClearAllModifiers()
