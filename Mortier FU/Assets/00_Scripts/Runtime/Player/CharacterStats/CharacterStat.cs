@@ -149,6 +149,23 @@ namespace MortierFu {
             return true;
         } 
         
+        public void CopyDefinitionFrom(CharacterStat source)
+        {
+            if (source == null)
+                return;
+
+            baseValue = source.baseValue;
+            clamp = source.clamp;
+            valueRange = source.valueRange;
+
+            statModifiers.Clear();
+
+            isDirty = true;
+            lastBaseValue = float.MinValue;
+
+            OnDirtyUpdated?.Invoke();
+        }
+        
         public float ClampValue(float value)  => clamp ? Mathf.Clamp(value, valueRange.x, valueRange.y) : value;
     }
 }
