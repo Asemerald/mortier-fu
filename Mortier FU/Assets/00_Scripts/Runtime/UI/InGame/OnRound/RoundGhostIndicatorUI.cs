@@ -1,24 +1,30 @@
-using System;
+using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
     public class RoundGhostIndicatorUI : MonoBehaviour
     {
         [SerializeField] private RectTransform canvasGhostIndicatorRecT;
-        
+
+        [SerializeField] private List<Image> ghostIndicators;
+
+        [SerializeField] private float screenEdgeOffset = 32f;
+
         private CameraSystem _cameraSystem;
         private GameModeBase _gameMode;
-        
+        private GhostSystem _ghostSystem;
+
         private Transform _cameraTransformCache;
 
         private void OnEnable()
         {
-            _cameraSystem = ServiceManager.Instance.Get<CameraSystem>();
+            _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _gameMode = GameService.CurrentGameMode as GameModeBase;
-            
+            _ghostSystem = SystemManager.Instance.Get<GhostSystem>();
+
             if (_cameraSystem == null || !_cameraSystem.Controller)
             {
                 Logs.LogError("[RoundGhostIndicatorUI]: Missing Camera System or Missing CameraSystem.Controller].");
@@ -30,33 +36,78 @@ namespace MortierFu
                 Logs.LogError("[RoundGhostIndicatorUI]: GameMode is null.");
                 return;
             }
-            
+
+            if (_ghostSystem == null)
+            {
+                Logs.LogError("[RoundGhostIndicatorUI]: Ghost System is null.");
+                return;
+            }
+
             _cameraTransformCache = _cameraSystem.Controller.transform;
         }
 
-        /*private Vector2 GetGhostInUiSpace(Transform target)
+        private void Update()
         {
-            Vector3 forwardCamera = _cameraTransformCache.forward;
-            forwardCamera.y = 0;
-            forwardCamera.Normalize();
-            
-            Vector3 rightCamera = _cameraTransformCache.right;
-            rightCamera.y = 0;
-            rightCamera.Normalize();
-            
-            Vector3 direction = target.position - _cameraTransformCache.position;
-            
-            float forwardDot = Vector3.Dot(forwardCamera, direction);
-            float rightDot = Vector3.Dot(rightCamera, direction);
-            
-            return new Vector2(rightDot, forwardDot).normalized;
-        }*/
+            if (!_cameraTransformCache || _ghostSystem == null)
+                return;
 
-        private void Test(Transform target, RectTransform indicator)
+            foreach (PlayerGhostPawn ghostPawn in _ghostSystem.ActiveGhostsPawns)
+            {
+                if (!ghostPawn || !ghostPawn.Owner)
+                    continue;
+
+                int index = ghostPawn.Owner.PlayerIndex;
+                
+                if (index < 0 || index >= ghostIndicators.Count || !ghostIndicators[index])
+                    continue;
+
+                UpdateGhostUI(ghostPawn.PawnTransform, index);
+            }
+        }
+
+        private void UpdateGhostUI(Transform ghostT, int index)
         {
-            Vector3 screenPosition = _cameraSystem.Controller.Camera.WorldToScreenPoint(target.position);
-            
-            bool isTargetOffScreen = screenPosition.x <= 0 || screenPosition.x >= 1 || screenPosition.y <= 0 || screenPosition.y >= 1;
+            Camera cam = _cameraSystem.Controller.Camera;
+
+            Vector3 flatTargetPos = new Vector3(ghostT.position.x, _cameraTransformCache.position.y, ghostT.position.z);
+
+            Vector3 screenPosition = cam.WorldToScreenPoint(flatTargetPos);
+            bool behindCamera = screenPosition.z < 0f;
+
+            if (behindCamera)
+            {
+                screenPosition.x = Screen.width - screenPosition.x;
+                screenPosition.y = Screen.height - screenPosition.y;
+            }
+
+            bool onScreen = !behindCamera && IsInCameraView(screenPosition);
+
+            Image indicator = ghostIndicators[index];
+
+            if (!onScreen)
+            {
+                Vector2 clamped = ClampToScreen(screenPosition);
+                indicator.rectTransform.position = clamped;
+                indicator.gameObject.SetActive(true);
+            }
+            else
+            {
+                indicator.gameObject.SetActive(false);
+            }
+        }
+
+        private bool IsInCameraView(Vector2 screenPosition)
+        {
+            return screenPosition.x > 0 && screenPosition.x < Screen.width &&
+                   screenPosition.y > 0 && screenPosition.y < Screen.height;
+        }
+
+        private Vector2 ClampToScreen(Vector2 screenPosition)
+        {
+            screenPosition.x = Mathf.Clamp(screenPosition.x, screenEdgeOffset, Screen.width - screenEdgeOffset);
+            screenPosition.y = Mathf.Clamp(screenPosition.y, screenEdgeOffset, Screen.height - screenEdgeOffset);
+
+            return screenPosition;
         }
     }
 }

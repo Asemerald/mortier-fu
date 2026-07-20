@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -34,6 +35,8 @@ namespace MortierFu
         public bool IsInitialized { get; set; }
 
         public SO_GhostSettings Settings => _settingsHandle.IsValid() ? _settingsHandle.Result : null;
+        
+        public IEnumerable ActiveGhostsPawns => _activeGhosts.Keys;
 
         public async UniTask OnInitialize()
         {
