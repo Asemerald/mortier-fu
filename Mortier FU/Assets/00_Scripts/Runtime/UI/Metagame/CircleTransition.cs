@@ -33,10 +33,11 @@ namespace MortierFu
         public async UniTask OpenAsync(float duration)
         {
             _image.gameObject.SetActive(true);
-
+            
+            _material.SetFloat("_Progress", 0);
+            
             await Tween.MaterialProperty(_material, Shader.PropertyToID("_Progress"), 1f, duration, Ease.InOutQuad);
             
-            _image.gameObject.SetActive(false);
         }
 
         public async UniTask CloseAsync(float duration)
