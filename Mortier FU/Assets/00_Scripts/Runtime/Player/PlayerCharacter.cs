@@ -354,7 +354,7 @@ namespace MortierFu
 
             Any(_knockbackState, new FuncPredicate(() => _knockbackState.IsActive && !_stunState.IsActive && Health.IsAlive));
 
-            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive));
+            Any(_stunState, new FuncPredicate(() => _stunState.IsActive && Health.IsAlive && ActionPermissions.CanBeStun));
 
             // Set initial state
             _stateMachine.SetState(_locomotionState);
