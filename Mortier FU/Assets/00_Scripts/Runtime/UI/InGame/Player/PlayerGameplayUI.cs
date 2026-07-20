@@ -34,7 +34,6 @@ public class PlayerGameplayUI : MonoBehaviour
     [SerializeField] private float _tweenDuration = 0.5f;
     [SerializeField] private float _startFadeDelay = 2f;
 
-    [SerializeField] private Ease _iconInEase = Ease.InBack;
     [SerializeField] private Ease _healthBarEase = Ease.OutBack;
     
     [SerializeField] private Image _reloadCdImage;
@@ -324,7 +323,7 @@ public class PlayerGameplayUI : MonoBehaviour
             return;
  
         _currentDashCharges = dashCharges;
-        BlinkUI(_strikeCdImage, 0.07f);
+        BlinkUI(_strikeCdImage, 0.07f).Forget();
 
         if (_character.Stats.DashCharges.Value < 2 || _currentDashCharges == 0)
         {

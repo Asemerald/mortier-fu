@@ -17,7 +17,6 @@ namespace MortierFu
         private Vector3 _attachmentLocalOffset;
 
         private GameObject _vfxInstance;
-        private AugmentPickupVisual _visualInstance;
 
         private Renderer[] _renderers;
         private Collider[] _colliders;
@@ -223,7 +222,6 @@ namespace MortierFu
             {
                 Destroy(_vfxInstance);
                 _vfxInstance = null;
-                _visualInstance = null;
             }
             
             Logs.Log(prototype.name);

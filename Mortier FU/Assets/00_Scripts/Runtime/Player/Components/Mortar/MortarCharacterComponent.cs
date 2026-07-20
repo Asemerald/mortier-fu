@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -108,7 +109,7 @@ namespace MortierFu
         private void OnShootCooldownComplete()
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_ReloadComplete, character.transform.position);
-            Character.Aspect.ReloadCompleteFeedback();
+            Character.Aspect.ReloadCompleteFeedback().Forget();
         }
 
         private void UpdateFireRate()

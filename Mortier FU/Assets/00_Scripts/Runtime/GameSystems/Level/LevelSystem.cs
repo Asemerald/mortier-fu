@@ -741,7 +741,7 @@ namespace MortierFu
                 if (_boundRaceReporter)
                     return _boundRaceReporter;
 
-                RaceReporter reporter = Object.FindFirstObjectByType<RaceReporter>();
+                RaceReporter reporter = Object.FindAnyObjectByType<RaceReporter>(FindObjectsInactive.Exclude);
 
                 if (!reporter)
                     return null;
@@ -762,7 +762,7 @@ namespace MortierFu
 
                 Logs.LogWarning("[LevelSystem] No LevelReporter bound to the LevelSystem.");
 
-                LevelReporter reporter = Object.FindFirstObjectByType<LevelReporter>();
+                LevelReporter reporter = Object.FindAnyObjectByType<LevelReporter>(FindObjectsInactive.Exclude);
 
                 if (reporter == null)
                     return null;

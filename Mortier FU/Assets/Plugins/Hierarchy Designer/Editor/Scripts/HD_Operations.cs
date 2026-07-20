@@ -34,7 +34,7 @@ namespace HierarchyDesigner
         public static bool FolderExists(string folderName)
         {
             #if UNITY_6000_0_OR_NEWER
-            Transform[] allTransforms = GameObject.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+            Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
             #else
             Transform[] allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>(true);
             #endif
@@ -79,7 +79,7 @@ namespace HierarchyDesigner
             string fullSeparatorName = HD_Constants.SeparatorPrefix + separatorName;
 
             #if UNITY_6000_0_OR_NEWER
-            Transform[] allTransforms = GameObject.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Transform[] allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
             #else
             Transform[] allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>(true);
             #endif
@@ -1198,7 +1198,7 @@ namespace HierarchyDesigner
             }
 
             #if UNITY_6000_0_OR_NEWER
-            GameObject[] allGameObjects = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            GameObject[] allGameObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
             #else
             GameObject[] allGameObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             #endif

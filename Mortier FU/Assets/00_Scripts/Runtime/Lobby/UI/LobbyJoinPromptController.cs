@@ -17,10 +17,7 @@ namespace MortierFu
         [Header("Text")]
         [SerializeField] private string _joinText = "Press A to join";
 
-        private void Awake()
-        {
-            HideAll();
-        }
+        private void Awake() => HideAll();
 
         private void OnEnable()
         {
@@ -55,31 +52,32 @@ namespace MortierFu
 
             for (int i = 0; i < _slots.Length; i++)
             {
-                if (_joinController && _joinController.ShouldShowPromptForSlot(i))
-                {
-                    hasVisibleSlot = true;
-                    break;
-                }
+                if (!_joinController || !_joinController.ShouldShowPromptForSlot(i)) continue;
+                
+                hasVisibleSlot = true;
+                break;
             }
 
-            if (_visualRoot)
-                _visualRoot.SetActive(hasVisibleSlot);
+            if (hasVisibleSlot && _visualRoot)
+                _visualRoot.SetActive(true);
 
             for (int i = 0; i < _slots.Length; i++)
             {
-                var slot = _slots[i];
+                LobbyJoinPromptSlot slot = _slots[i];
 
                 if (!slot)
                     continue;
 
-                bool shouldShow = _joinController &&
-                                  _joinController.ShouldShowPromptForSlot(i);
+                bool shouldShow = _joinController && _joinController.ShouldShowPromptForSlot(i);
 
                 if (shouldShow)
                     slot.Show(_joinText);
                 else
                     slot.Hide();
             }
+
+            if (!hasVisibleSlot && _visualRoot)
+                _visualRoot.SetActive(false);
         }
 
         private void HideAll()

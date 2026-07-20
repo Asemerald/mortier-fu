@@ -334,8 +334,8 @@ namespace MortierFu.Editor
                 }
             }
 
-            var characters = UnityEngine.Object.FindObjectsByType<PlayerCharacter>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-
+            var characters = UnityEngine.Object.FindObjectsByType<PlayerCharacter>(FindObjectsInactive.Exclude);
+            
             for (int i = 0; i < characters.Length; i++)
             {
                 PlayerCharacter character = characters[i];

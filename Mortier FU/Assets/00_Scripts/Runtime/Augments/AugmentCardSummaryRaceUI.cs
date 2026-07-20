@@ -10,7 +10,6 @@ namespace MortierFu
     {
         [SerializeField] private RectTransform indicatorPickCard;
         [SerializeField] private float yOffset = 15f;
-        [SerializeField] private float _scaleVfx = 15f;
         
         public void EnableIndicatorCard(bool activeIndicatorCard,CancellationToken ct)
         {

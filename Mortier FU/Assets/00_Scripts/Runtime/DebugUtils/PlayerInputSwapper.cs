@@ -35,13 +35,13 @@ namespace MortierFu
 
         private void Start()
         {
-            // Active uniquement le premier player au démarrage
-            var firstPlayer = FindFirstObjectByType<PlayerInput>(FindObjectsInactive.Exclude);
-            if (firstPlayer != null)
-            {
-                activePlayer = firstPlayer;
-                UpdateActivePlayer();
-            }
+            PlayerInput[] players = GetPlayerInputs();
+
+            if (players.Length == 0)
+                return;
+
+            activePlayer = players[0];
+            UpdateActivePlayer();
         }
 
         void Update()
@@ -90,7 +90,7 @@ namespace MortierFu
 
         void CycleControl()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+            PlayerInput[] allPlayers = GetPlayerInputs();
 
             if (allPlayers.Length <= 1)
                 return;
@@ -113,7 +113,7 @@ namespace MortierFu
 
         public void UpdateActivePlayer()
         {
-            var allPlayers = FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+            PlayerInput[] allPlayers = GetPlayerInputs();
 
             // Désactive TOUS les players
             foreach (var player in allPlayers)
@@ -126,6 +126,11 @@ namespace MortierFu
             {
                 activePlayer.ActivateInput();
             }
+        }
+        
+        private static PlayerInput[] GetPlayerInputs()
+        {
+            return FindObjectsByType<PlayerInput>(FindObjectsInactive.Exclude).OrderBy(player => player.playerIndex).ThenBy(player => player.name).ToArray();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace MortierFu
         [Header("Animation")]
         [SerializeField] private Vector3 _pulseInitScale = Vector3.one;
         [SerializeField] private Vector3 _pulseTargetScale = Vector3.one * 0.7f;
-        [SerializeField] private float _pulseDuration = 0.45f;
+        [SerializeField] private float _pulseDuration = 0.6f;
         [SerializeField] private Ease _pulseEase = Ease.InOutQuad;
 
         private Tween _pulseTween;
@@ -33,14 +33,13 @@ namespace MortierFu
 
         private void OnDisable()
         {
+            _isVisible = false;
+
             StopPulse();
             ResetInputScale();
         }
 
-        private void OnDestroy()
-        {
-            StopPulse();
-        }
+        private void OnDestroy() => StopPulse();
 
         public void Show(string text)
         {
@@ -87,16 +86,12 @@ namespace MortierFu
             if (!_inputImage)
                 return;
 
+            if (!_inputImage.gameObject.activeInHierarchy)
+                return;
+
             ResetInputScale();
 
-            _pulseTween = Tween.Scale(
-                target: _inputImage,
-                endValue: _pulseTargetScale,
-                duration: _pulseDuration,
-                ease: _pulseEase,
-                cycles: -1,
-                cycleMode: CycleMode.Yoyo
-            );
+            _pulseTween = Tween.Scale(target: _inputImage, endValue: _pulseTargetScale, duration: _pulseDuration, ease: _pulseEase, cycles: -1, cycleMode: CycleMode.Yoyo);
         }
 
         private void ResetInputScale()

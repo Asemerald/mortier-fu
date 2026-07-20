@@ -29,7 +29,7 @@ public class TriangleCounter : MonoBehaviour
         long totalTris = 0;
 
         // MeshFilters
-        var meshFilters = FindObjectsByType<MeshFilter>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        var meshFilters = FindObjectsByType<MeshFilter>(FindObjectsInactive.Exclude);
         foreach (var mf in meshFilters)
         {
             var mesh = mf.sharedMesh;
@@ -60,8 +60,7 @@ public class TriangleCounter : MonoBehaviour
         // SkinnedMeshRenderers
         if (includeSkinnedMeshes)
         {
-            var skinnedRenderers =
-                FindObjectsByType<SkinnedMeshRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var skinnedRenderers = FindObjectsByType<SkinnedMeshRenderer>(FindObjectsInactive.Exclude);
             foreach (var smr in skinnedRenderers)
             {
                 var mesh = smr.sharedMesh;

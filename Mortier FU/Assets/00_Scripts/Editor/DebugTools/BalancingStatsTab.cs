@@ -375,10 +375,7 @@ namespace MortierFu.Editor
                 }
             }
 
-            var allCharacters = Object.FindObjectsByType<PlayerCharacter>(
-                FindObjectsInactive.Exclude,
-                FindObjectsSortMode.None
-            );
+            var allCharacters = Object.FindObjectsByType<PlayerCharacter>(FindObjectsInactive.Exclude);
 
             for (int i = 0; i < allCharacters.Length; i++)
             {

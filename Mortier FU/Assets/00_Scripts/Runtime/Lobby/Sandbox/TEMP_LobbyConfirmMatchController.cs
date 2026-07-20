@@ -21,10 +21,6 @@ namespace MortierFu
         [SerializeField] private Button _cancelButton;
         [SerializeField] private Button _defaultSelectedButton;
 
-        [Header("Options")]
-        [SerializeField] private bool _despawnLobbyCharacters = true;
-        [SerializeField] private bool _disableJoining = true;
-
         [Header("Navigation")]
         [SerializeField] private float _navigationDeadZone = 0.5f;
 
@@ -41,10 +37,7 @@ namespace MortierFu
         private bool _hasStoredUiInputModuleState;
         private bool _previousUiInputModuleEnabled;
         
-        private bool _isLaunching;
-
-        private PlayerUIInputService UIInputService =>
-            ServiceManager.Instance?.Get<PlayerUIInputService>();
+        private PlayerUIInputService UIInputService => ServiceManager.Instance?.Get<PlayerUIInputService>();
 
         private void Awake()
         {
@@ -282,15 +275,12 @@ namespace MortierFu
 
         private async UniTaskVoid LaunchMatchAsync()
         {
-            _isLaunching = true;
-
             Logs.Log("[LobbyMatchLauncher] Launching match from sandbox lobby.");
 
             if (_stateController != null)
             {
                 if (!_stateController.TryBeginLaunching())
                 {
-                    _isLaunching = false;
                     return;
                 }
             }
@@ -312,7 +302,6 @@ namespace MortierFu
             if (gameService == null)
             {
                 Logs.LogError("[LobbyMatchLauncher] GameService is missing. Cannot launch match.");
-                _isLaunching = false;
                 return;
             }
             

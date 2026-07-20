@@ -89,6 +89,9 @@ namespace MortierFu
             if (!Rigidbody)
                 return;
 
+            if (Rigidbody.isKinematic)
+                return;
+
             Rigidbody.angularVelocity = Vector3.zero;
         }
 

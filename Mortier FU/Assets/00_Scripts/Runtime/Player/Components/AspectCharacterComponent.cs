@@ -70,10 +70,7 @@ namespace MortierFu
 
         public CharacterAspectMaterials AspectMaterials { get; private set; }
 
-        public void SetAspectMaterials(CharacterAspectMaterials aspectMaterials)
-        {
-            AspectMaterials = aspectMaterials;
-        }
+        public void SetAspectMaterials(CharacterAspectMaterials aspectMaterials) => AspectMaterials = aspectMaterials;
 
         public override void Initialize()
         {
@@ -115,13 +112,11 @@ namespace MortierFu
                 return false;
             }
 
-            if (!AspectMaterials.PlayerMesh)
-            {
-                Logs.LogError("[AspectCharacterComponent] PlayerMesh is missing.", character);
-                return false;
-            }
+            if (AspectMaterials.PlayerMesh) return true;
+            
+            Logs.LogError("[AspectCharacterComponent] PlayerMesh is missing.", character);
+            return false;
 
-            return true;
         }
 
         private void ApplyRuntimeMaterials()
@@ -150,11 +145,7 @@ namespace MortierFu
 
             if (slotIndex < 0 || slotIndex >= materials.Length)
             {
-                Logs.LogWarning(
-                    $"[AspectCharacterComponent] Renderer '{renderer.name}' has no material slot {slotIndex}.",
-                    renderer
-                );
-
+                Logs.LogWarning($"[AspectCharacterComponent] Renderer '{renderer.name}' has no material slot {slotIndex}.", renderer);
                 return;
             }
 
@@ -173,10 +164,7 @@ namespace MortierFu
             _particleSystemInstance = _spawnVFXInstance.GetComponent<ParticleSystem>();
         }
 
-        private void InitializeMaterialColorCustoms()
-        {
-            _customsMaterialInstance.SetInt(ShaderPropColor, (int)_playerColorState);
-        }
+        private void InitializeMaterialColorCustoms() => _customsMaterialInstance.SetInt(ShaderPropColor, (int)_playerColorState);
 
         public void PlayDamageBlink(Color blinkColor, int blinkCount = 5, float blinkDuration = 0.08f)
         {
@@ -186,41 +174,31 @@ namespace MortierFu
             if (_blinkTween.isAlive)
                 _blinkTween.Stop();
 
-            if (_materialInstance.color == blinkColor && _outlineMaterialInstance.color == blinkColor)
-                return;
-
             _materialInstance.color = _startingColor;
             _outlineMaterialInstance.color = _startingOutlineColor;
 
-            _blinkTween = Sequence.Create()
-                .Group(
-                    Tween.MaterialColor(
-                        _materialInstance,
-                        blinkColor,
-                        blinkDuration,
-                        ease: Ease.InBack,
-                        cycles: blinkCount * 2,
-                        cycleMode: CycleMode.Yoyo
-                    )
-                )
-                .Group(
-                    Tween.MaterialColor(
-                        _outlineMaterialInstance,
-                        blinkColor,
-                        blinkDuration,
-                        ease: Ease.InBack,
-                        cycles: blinkCount * 2,
-                        cycleMode: CycleMode.Yoyo
-                    )
-                )
-                .OnComplete(() =>
-                {
-                    if (_materialInstance)
-                        _materialInstance.color = _startingColor;
+            bool shouldBlinkMaterial = !ColorsApproximatelyEqual(_materialInstance.color, blinkColor);
+            bool shouldBlinkOutline = !ColorsApproximatelyEqual(_outlineMaterialInstance.color, blinkColor);
 
-                    if (_outlineMaterialInstance)
-                        _outlineMaterialInstance.color = _startingOutlineColor;
-                });
+            if (!shouldBlinkMaterial && !shouldBlinkOutline)
+                return;
+
+            Sequence sequence = Sequence.Create();
+
+            if (shouldBlinkMaterial)
+                sequence = sequence.Group(Tween.MaterialColor(_materialInstance, blinkColor, blinkDuration, ease: Ease.InBack, cycles: blinkCount * 2, cycleMode: CycleMode.Yoyo));
+
+            if (shouldBlinkOutline)
+                sequence = sequence.Group(Tween.MaterialColor(_outlineMaterialInstance, blinkColor, blinkDuration, ease: Ease.InBack, cycles: blinkCount * 2, cycleMode: CycleMode.Yoyo));
+
+            _blinkTween = sequence.OnComplete(() =>
+            {
+                if (_materialInstance)
+                    _materialInstance.color = _startingColor;
+
+                if (_outlineMaterialInstance)
+                    _outlineMaterialInstance.color = _startingOutlineColor;
+            });
         }
 
         public async UniTask ReloadCompleteFeedback()
@@ -228,23 +206,23 @@ namespace MortierFu
             if (_reloadWidgetTween.isAlive)
                 _reloadWidgetTween.Stop();
 
-            var startColor = Character.Mortar.AimWidget.MaterialInstance.color;
-            var finalColor = startColor + new Color(0.25f, 0.25f, 0.25f);
+            Material material = Character.Mortar.AimWidget.MaterialInstance;
+
+            if (!material)
+                return;
+
+            Color startColor = material.color;
+            Color finalColor = new (Mathf.Clamp01(startColor.r + 0.25f), Mathf.Clamp01(startColor.g + 0.25f), Mathf.Clamp01(startColor.b + 0.25f), startColor.a);
+
+            if (ColorsApproximatelyEqual(startColor, finalColor))
+                return;
 
             _reloadWidgetTween = Sequence.Create()
-                .Group(
-                    Tween.MaterialColor(
-                        Character.Mortar.AimWidget.MaterialInstance,
-                        finalColor,
-                        0.08f,
-                        ease: Ease.InOutSine,
-                        cycles: 2,
-                        cycleMode: CycleMode.Yoyo
-                    )
-                )
+                .Group(Tween.MaterialColor(material, finalColor, 0.08f, ease: Ease.InOutSine, cycles: 2, cycleMode: CycleMode.Yoyo))
                 .OnComplete(() =>
                 {
-                    Character.Mortar.AimWidget.MaterialInstance.color = startColor;
+                    if (material)
+                        material.color = startColor;
                 });
 
             await UniTask.CompletedTask;
@@ -263,10 +241,7 @@ namespace MortierFu
                 _spawnVFXInstance.transform.position = playerCharacter.transform.position;
                 _spawnVFXInstance.SetActive(true);
 
-                AudioService.PlayOneShot(
-                    AudioService.FMODEvents.SFX_Player_Summon,
-                    playerCharacter.transform.position
-                );
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Summon, playerCharacter.transform.position);
 
                 _shakeService?.ShakeController(playerCharacter.Owner, ShakeService.ShakeType.MID);
 
@@ -309,11 +284,19 @@ namespace MortierFu
                 _outlineMaterialInstance = null;
             }
 
+            if (_customsMaterialInstance)
+            {
+                Object.Destroy(_customsMaterialInstance);
+                _customsMaterialInstance = null;
+            }
+            
             if (!_spawnVFXInstance) return;
             
             Object.Destroy(_spawnVFXInstance);
             _spawnVFXInstance = null;
             _particleSystemInstance = null;
         }
+        
+        private static bool ColorsApproximatelyEqual(Color a, Color b) => Mathf.Approximately(a.r, b.r) && Mathf.Approximately(a.g, b.g) && Mathf.Approximately(a.b, b.b) && Mathf.Approximately(a.a, b.a);
     }
 }
