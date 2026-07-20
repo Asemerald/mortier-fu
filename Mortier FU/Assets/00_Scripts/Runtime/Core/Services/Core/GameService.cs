@@ -120,6 +120,30 @@ namespace MortierFu
             Logs.Log("[GameService] Restart pipeline done.");
         }
         
+        public async UniTaskVoid LoadLobbySceneAsync()
+        {
+
+            var sceneService = ServiceManager.Instance.Get<SceneService>();
+
+            if (sceneService is null)
+            {
+                Logs.LogError("[MenuManager] Cannot load lobby because SceneService is missing.");
+                return;
+            }
+
+            if (PlayerInputBridge.Instance)
+                PlayerInputBridge.Instance.CanJoin(false);
+
+            _sceneService.ShowLoadingScreen();
+            
+            
+            await sceneService.LoadScene("Lobby", setAsActiveScene: true);
+            await sceneService.UnloadScene("MainMenu");
+            
+            _sceneService.HideLoadingScreen();
+            await CircleTransition.Instance.OpenAsync(1f);
+        }
+        
         public void ReturnToLobby()
         {
             if (_isSceneTransitionInProgress)
@@ -148,7 +172,7 @@ namespace MortierFu
             _sceneService.HideLoadingScreen();
 
             _isSceneTransitionInProgress = false;
-
+            
             Logs.Log("[GameService] Returned to lobby.");
         }
         
@@ -241,6 +265,7 @@ namespace MortierFu
             deviceService?.ClearPlayers();
 
             await UniTask.Yield();
+            
 
             Logs.Log("[GameService] Player session reset for main menu.");
         }

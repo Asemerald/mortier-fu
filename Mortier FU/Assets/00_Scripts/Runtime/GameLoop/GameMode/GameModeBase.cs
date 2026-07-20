@@ -139,7 +139,8 @@ namespace MortierFu
             _teamSetupController = new PlayerTeamSetupController();
 
             var players = lobbyService.GetPlayers();
-
+            
+            
             teams = CreateTeamsForMatch(players);
             Teams = teams.AsReadOnly();
 
@@ -172,7 +173,7 @@ namespace MortierFu
         public virtual async UniTask StartGame()
         {
             ResolveGameplayDependencies();
-
+            
             CreateTeams();
 
             CreateControllers();
@@ -346,7 +347,9 @@ namespace MortierFu
                 audioService.StartMusic(AudioService.FMODEvents.MUS_Gameplay).Forget();
 
                 await RunMatchLoopAsync(cancellationToken);
-
+                
+                // cancel transition
+                
                 cancellationToken.ThrowIfCancellationRequested();
 
                 EndGame();
