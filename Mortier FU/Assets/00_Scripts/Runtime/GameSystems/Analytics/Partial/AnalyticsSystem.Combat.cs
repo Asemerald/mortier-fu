@@ -184,14 +184,16 @@ namespace MortierFu.Analytics
             if (!IsInCombatPhase()) return;
             if (push.Character == null) return;
 
+            bool causedByPlayer = push.Source is PlayerCharacter instigator && instigator != push.Character;
+            if (!causedByPlayer) return;
+
             var victimData = GetOrCreatePlayerData(push.Character);
             victimData.stunsUnderwented++;
 
-            if (push.Source is PlayerCharacter instigator && instigator != push.Character)
-            {
-                var instigatorData = GetOrCreatePlayerData(instigator);
+            var instigatorPlayer = (PlayerCharacter)push.Source;
+            var instigatorData = GetOrCreatePlayerData(instigatorPlayer);
                 instigatorData.stunsPerformed++;
-            }
+            
         }
 
         private void OnTriggerDeath(EventPlayerDeath death)
@@ -199,8 +201,9 @@ namespace MortierFu.Analytics
             if (death.Character == null) return;
 
             var victimData = GetOrCreatePlayerData(death.Character);
+            bool isSelfKill = death.Context.Killer && death.Context.Killer == death.Character;
 
-            if (death.Context.Killer)
+            if (death.Context.Killer && !isSelfKill)
             {
                 var killerData = GetOrCreatePlayerData(death.Context.Killer);
                 killerData.kills++;

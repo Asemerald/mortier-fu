@@ -35,7 +35,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = "b.1.1",
+                officialGameVersion = "b.1.2",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
@@ -179,12 +179,12 @@ namespace MortierFu.Analytics
                     bool killedBySomeoneElse = player.killerId != -1
                         && player.killerId.ToString() != player.playerId;
 
-                    if (player.deathCause == E_DeathCause.BombshellExplosion)
+                    if (player.deathCause == E_DeathCause.BombshellExplosion || player.deathCause == E_DeathCause.FallAfterExplosion)
                     {
                         if (killedBySomeoneElse) _gameData.totalBombshellKills++;
                         else _gameData.totalSuicides++;
                     }
-                    else if (player.deathCause == E_DeathCause.Fall)
+                    else if (player.deathCause == E_DeathCause.Fall || player.deathCause == E_DeathCause.VehicleCrash)
                     {
                         if (killedBySomeoneElse) _gameData.totalPushKills++;
                         else _gameData.totalSelfFalls++;

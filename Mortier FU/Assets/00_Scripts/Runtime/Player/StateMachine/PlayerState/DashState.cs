@@ -140,16 +140,18 @@ namespace MortierFu
             float radius = character.Stats.GetStrikeRadius() * character.transform.localScale.x;
 
             var count = Physics.OverlapSphereNonAlloc(strikePosition, radius,
-                _overlapBuffer, _whatIsStrikable);
+            _overlapBuffer, _whatIsStrikable);
+
+             var newlyHitCharacters = new List<PlayerCharacter>(); // NOUVEAU : uniquement les touches de CETTE frame
 
             for (var i = 0; i < count; i++)
             {
                 var hit = _overlapBuffer[i];
-                if (hit == null) continue;
-
+                 if (hit == null) continue;
+                 
                 var root = hit.attachedRigidbody;
                 if (root == null) continue;
-                if (root == character.Controller.rigidbody) continue; // Skip self
+                if (root == character.Controller.rigidbody) continue;
 
                 if (!_processedRoots.Add(root.gameObject)) continue;
 
@@ -157,14 +159,9 @@ namespace MortierFu
 
                 if (root.TryGetComponent(out IInteractable interactable) && interactable.IsDashInteractable)
                 {
-                    Vector3 contactPoint = Physics.ClosestPoint(strikePosition, hit,
-                        hit.transform.position, hit.transform.rotation);
-
+                    Vector3 contactPoint = Physics.ClosestPoint(strikePosition, hit, hit.transform.position, hit.transform.rotation);
                     interactable.Interact(contactPoint);
-
-                    _fxService.PlayDashFX(character.GetStrikePoint(),
-                        character.Stats.GetStrikeRadius() * 0.5f);
-                    
+                    _fxService.PlayDashFX(character.GetStrikePoint(), character.Stats.GetStrikeRadius() * 0.5f);
                     continue;
                 }
 
@@ -172,21 +169,18 @@ namespace MortierFu
                 if (other == null) continue;
                 if (other == character) continue;
 
-                _fxService.PlayDashFX(character.GetStrikePoint(),
-                    character.Stats.GetStrikeRadius() * 0.5f);
-                
+                _fxService.PlayDashFX(character.GetStrikePoint(), character.Stats.GetStrikeRadius() * 0.5f);
+
                 _hitCharacters.Add(other);
+                newlyHitCharacters.Add(other);  
 
                 int dashDamage = Mathf.RoundToInt(character.Stats.StrikeDamage.Value);
-                
                 if (dashDamage > 0 && other.Health.IsAlive)
                 {
-                    other.Health.TakeDamage(dashDamage, character);
+                 other.Health.TakeDamage(dashDamage, character);
                 }
 
-                //var knockbackDir = (other.transform.position - character.transform.position).normalized;
                 var knockbackDir = character.Controller.GetDashDirection().normalized;
-
                 var knockbackForce = knockbackDir * character.Stats.GetDashPushForce();
                 float knockbackDuration = character.Stats.StrikeKnockbackDuration.Value;
                 float stunDuration = character.Stats.GetKnockbackStunDuration();
@@ -194,12 +188,12 @@ namespace MortierFu
                 character.Controller.DivideVelocity(0.33f);
             }
 
-            if (_hitCharacters.Count > 0)
+            if (newlyHitCharacters.Count > 0)  
             {
                 EventBus<TriggerStrike>.Raise(new TriggerStrike()
-                {
+                { 
                     Character = character,
-                    HitCharacters = _hitCharacters.ToArray(),
+                    HitCharacters = newlyHitCharacters.ToArray(),
                 });
             }
 
