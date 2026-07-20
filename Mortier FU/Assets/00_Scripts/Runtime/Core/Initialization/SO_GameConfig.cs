@@ -19,6 +19,7 @@ namespace MortierFu
         public AssetReferenceT<SO_AugmentProviderSettings> AugmentProviderSettings;
         public AssetReferenceT<SO_AugmentSelectionSettings> AugmentSelectionSettings;
         public SO_AugmentDatabase AugmentDatabase;
+        public AssetReferenceT<SO_AugmentLibrary> AugmentLibrary; // Rajouter pour le Tracking
         public List<AssetReference> globalPrefabs = new List<AssetReference>();
         public List<Texture> globalTextures = new List<Texture>();
     }   
