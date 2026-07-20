@@ -31,6 +31,10 @@ jobs:
         if: github.ref == 'refs/heads/main'
         shell: cmd
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
+        
+      - name: Zip Builds
+        shell: cmd
+        run: 'powershell Compress-Archive -Path "%GITHUB_WORKSPACE%\Build\*" -DestinationPath "%GITHUB_WORKSPACE%\Build.zip"'
 
       - name: Upload Builds
         uses: actions/upload-artifact@v4
