@@ -34,6 +34,11 @@ namespace MortierFu
         };
 
         private SO_PinhataRaceModeDefinition PinhataDefinition => Definition as SO_PinhataRaceModeDefinition;
+        
+        private readonly List<int> _previewPickupIndexes = new(4);
+
+        private GameObject _bullyPreviewVfxInstance;
+        private GameObject _currentBullyPreviewVfxPrefab;
 
         public override Transform ResolveSpawnPoint(PlayerTeam team, PlayerManager player, int racerIndex, Transform fallback)
         {
@@ -52,7 +57,6 @@ namespace MortierFu
         public override void BeginGameplay()
         {
             base.BeginGameplay();
-
             RegisterStrikeListener();
         }
 
@@ -60,7 +64,10 @@ namespace MortierFu
         {
             UnregisterStrikeListener();
             CancelDrops();
+            ClearBullyPreviewVfx();
+
             _hiddenPickupIndexes.Clear();
+            _previewPickupIndexes.Clear();
 
             base.End();
         }
@@ -69,7 +76,10 @@ namespace MortierFu
         {
             UnregisterStrikeListener();
             CancelDrops();
+            ClearBullyPreviewVfx();
+
             _hiddenPickupIndexes.Clear();
+            _previewPickupIndexes.Clear();
         }
 
         private async UniTask PrepareHiddenPickupsInsideBully(CancellationToken cancellationToken)
@@ -100,6 +110,8 @@ namespace MortierFu
             }
 
             await UniTask.WhenAll(tasks);
+
+            RefreshBullyPreviewVfx();
         }
 
         private void RegisterStrikeListener()
@@ -223,12 +235,102 @@ namespace MortierFu
                 tasks.Add(DropPickupAsync(selectionSystem, pickupIndex, dropPosition, delay, token));
             }
 
+            RefreshBullyPreviewVfx();
+            
             try
             {
                 await UniTask.WhenAll(tasks);
             }
             catch (OperationCanceledException)
             { }
+        }
+        
+        private void RefreshBullyPreviewVfx()
+        {
+            if (!PinhataDefinition || !PinhataDefinition.ShowBullyPreviewVfx)
+            {
+                ClearBullyPreviewVfx();
+                return;
+            }
+
+            GameObject previewPrefab = ResolveNextPreviewVfxPrefab();
+
+            SetBullyPreviewVfx(previewPrefab);
+        }
+        
+        private GameObject ResolveNextPreviewVfxPrefab()
+        {
+            AugmentSelectionSystem selectionSystem = Context?.AugmentSelectionSystem;
+
+            if (selectionSystem == null || _hiddenPickupIndexes.Count == 0)
+                return null;
+
+            int pickupsToPreview = ResolvePickupsToDrop();
+
+            if (pickupsToPreview <= 0)
+                return null;
+
+            PopulatePreviewPickupIndexes(pickupsToPreview, _previewPickupIndexes);
+
+            if (_previewPickupIndexes.Count == 0)
+                return null;
+            
+            return selectionSystem.TryGetRarestAugmentCharacterVfxPrefab(_previewPickupIndexes, out GameObject prefab) ? prefab : null;
+        }
+        
+        private void PopulatePreviewPickupIndexes(int amount, List<int> result)
+        {
+            result.Clear();
+
+            if (amount <= 0)
+                return;
+
+            foreach (int pickupIndex in _hiddenPickupIndexes)
+            {
+                result.Add(pickupIndex);
+
+                if (result.Count >= amount)
+                    return;
+            }
+        }
+        
+        private void SetBullyPreviewVfx(GameObject prefab)
+        {
+            if (!prefab)
+            {
+                ClearBullyPreviewVfx();
+                return;
+            }
+
+            if (_currentBullyPreviewVfxPrefab == prefab && _bullyPreviewVfxInstance)
+                return;
+
+            ClearBullyPreviewVfx();
+
+            PlayerCharacter bullyCharacter = BullyCharacter;
+            AugmentSelectionSystem selectionSystem = Context?.AugmentSelectionSystem;
+
+            if (!bullyCharacter || selectionSystem == null)
+                return;
+
+            GameObject instance = selectionSystem.SpawnAugmentCharacterVfxPrefab(prefab, bullyCharacter.transform, PinhataDefinition.BullyPreviewVfxLocalPosition, PinhataDefinition.BullyPreviewVfxLocalEuler, PinhataDefinition.BullyPreviewVfxLocalScale);
+
+            if (!instance)
+                return;
+
+            _currentBullyPreviewVfxPrefab = prefab;
+            _bullyPreviewVfxInstance = instance;
+        }
+        
+        private void ClearBullyPreviewVfx()
+        {
+            _currentBullyPreviewVfxPrefab = null;
+
+            if (!_bullyPreviewVfxInstance)
+                return;
+
+            UnityEngine.Object.Destroy(_bullyPreviewVfxInstance);
+            _bullyPreviewVfxInstance = null;
         }
 
         private async UniTask DropPickupAsync(AugmentSelectionSystem selectionSystem, int pickupIndex, Vector3 dropPosition, float delay, CancellationToken cancellationToken)

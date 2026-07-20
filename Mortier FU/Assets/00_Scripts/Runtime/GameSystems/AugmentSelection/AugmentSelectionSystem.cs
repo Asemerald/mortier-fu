@@ -15,8 +15,6 @@ namespace MortierFu
         public event Action<float> OnPressureStart;
         public event Action OnPressureStop;
         public event Action OnStopShowcase;
-
-        private AugmentFXPickUp _particleSystem;
         
         private CancellationTokenSource _pressureTokenSource;
 
@@ -92,7 +90,7 @@ namespace MortierFu
         private async UniTask InstantiatePickups()
         {
             _pickups = new List<AugmentCardUI>(_augmentCount);
-            _pickupsVFX = new List<AugmentPickup>(_lobbyService.CurrentPlayerCount);
+            _pickupsVFX = new List<AugmentPickup>(_augmentCount);
 
             for (var i = 0; i < _augmentCount; i++)
             {
@@ -107,7 +105,6 @@ namespace MortierFu
                 AugmentPickup pickupNewAugment = pickupVFX.GetComponent<AugmentPickup>();
                 pickupNewAugment.Initialize(this, i);
                 pickupNewAugment.Reset();
-
                 
                 _pickups.Add(pickup);
                 _pickupsVFX.Add(pickupNewAugment);
@@ -119,15 +116,44 @@ namespace MortierFu
 
         public void Dispose()
         {
-            for (var i = _pickups.Count - 1; i >= 0; i--)
-                Addressables.ReleaseInstance(_pickups[i].gameObject);
-
-            Addressables.Release(_settingsHandle);
-
-            _pickups.Clear();
-            _augmentBag.Clear();
+            _pressureTokenSource?.Cancel();
+            _pressureTokenSource?.Dispose();
+            _pressureTokenSource = null;
 
             _augmentTimer?.Dispose();
+            _augmentTimer = null;
+
+            if (_pickups != null)
+            {
+                for (int i = _pickups.Count - 1; i >= 0; i--)
+                {
+                    if (_pickups[i])
+                        Addressables.ReleaseInstance(_pickups[i].gameObject);
+                }
+
+                _pickups.Clear();
+            }
+
+            if (_pickupsVFX != null)
+            {
+                for (int i = _pickupsVFX.Count - 1; i >= 0; i--)
+                {
+                    if (_pickupsVFX[i])
+                        Addressables.ReleaseInstance(_pickupsVFX[i].gameObject);
+                }
+
+                _pickupsVFX.Clear();
+            }
+
+            if (_pickupParent)
+                Object.Destroy(_pickupParent.gameObject);
+
+            if (_settingsHandle.IsValid())
+                Addressables.Release(_settingsHandle);
+
+            _augmentBag?.Clear();
+            _pickers?.Clear();
+            _pickedAugments.Clear();
         }
 
         private bool TryGetPickup(int index, out AugmentPickup pickup)
@@ -179,7 +205,6 @@ namespace MortierFu
                 Augments = (SO_Augment[])_selectedAugments.Clone()
             });
             
-
             for (var i = 0; i < _selectedAugments.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -287,8 +312,7 @@ namespace MortierFu
                 AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_NoPick, picker.Character.transform.position);
                 _shakeService.ShakeController(picker.Character.Owner, ShakeService.ShakeType.MID);
 
-                var prefab = _settingsHandle.Result.AugmentCharaVFX[(int)randomAugment.Augment.Rarity];
-                Object.Instantiate(prefab, picker.Character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
+                SpawnAugmentCharacterVfx(randomAugment.Augment.Rarity, picker.Character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), picker.Character.transform);
 
                 remainingAugments.Remove(randomAugment);
 
@@ -339,12 +363,7 @@ namespace MortierFu
 
             character.AddAugment(augment.Augment);
 
-            GameObject prefab = _settingsHandle.Result.AugmentCharaVFX[(int)augment.Augment.Rarity];
-            GameObject particleGO = Object.Instantiate(prefab, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), character.transform);
-            bool particle = particleGO.TryGetComponent(out _particleSystem);
-            
-            if (particle)
-                _particleSystem.Init();
+            SpawnAugmentCharacterVfx(augment.Augment.Rarity, character.transform.position.Add(y: 0.6f), Quaternion.Euler(-90f, 0f, 0f), character.transform);
             
             if (!_pickedAugments.ContainsKey(character))
                 _pickedAugments[character] = new List<SO_Augment>();
@@ -356,6 +375,107 @@ namespace MortierFu
             return true;
         }
 
+        public bool TryGetRarestAugmentCharacterVfxPrefab(IReadOnlyList<int> augmentIndexes, out GameObject prefab)
+        {
+            prefab = null;
+
+            if (augmentIndexes == null || augmentIndexes.Count == 0)
+                return false;
+
+            int bestRarityRank = int.MinValue;
+
+            for (int i = 0; i < augmentIndexes.Count; i++)
+            {
+                int augmentIndex = augmentIndexes[i];
+
+                if (!TryGetAugmentByIndex(augmentIndex, out SO_Augment augment))
+                    continue;
+
+                if (!TryGetAugmentCharacterVfxPrefab(augment.Rarity, out GameObject candidatePrefab))
+                    continue;
+
+                int rarityRank = GetRarityRank(augment.Rarity);
+
+                if (rarityRank <= bestRarityRank)
+                    continue;
+
+                bestRarityRank = rarityRank;
+                prefab = candidatePrefab;
+            }
+
+            return prefab;
+        }
+
+        private bool TryGetAugmentByIndex(int augmentIndex, out SO_Augment augment)
+        {
+            augment = null;
+
+            if (_augmentBag == null)
+                return false;
+
+            if (augmentIndex < 0 || augmentIndex >= _augmentBag.Count)
+                return false;
+
+            augment = _augmentBag[augmentIndex].Augment;
+            return augment;
+        }
+
+        public bool TryGetAugmentCharacterVfxPrefab(E_AugmentRarity rarity, out GameObject prefab)
+        {
+            prefab = null;
+
+            if (!_settingsHandle.IsValid() || Settings == null || Settings.AugmentCharaVFX == null)
+                return false;
+
+            int index = (int)rarity;
+
+            if (index < 0 || index >= Settings.AugmentCharaVFX.Length)
+                return false;
+
+            prefab = Settings.AugmentCharaVFX[index];
+            return prefab;
+        }
+
+        public GameObject SpawnAugmentCharacterVfx(E_AugmentRarity rarity, Vector3 position, Quaternion rotation, Transform parent)
+        {
+            if (!TryGetAugmentCharacterVfxPrefab(rarity, out GameObject prefab))
+                return null;
+
+            GameObject instance = Object.Instantiate(prefab, position, rotation, parent);
+
+            InitializeAugmentCharacterVfx(instance);
+
+            return instance;
+        }
+        
+        public GameObject SpawnAugmentCharacterVfxPrefab(GameObject prefab, Transform parent, Vector3 localPosition, Vector3 localEuler, Vector3 localScale)
+        {
+            if (!prefab || !parent)
+                return null;
+
+            GameObject instance = Object.Instantiate(prefab, parent);
+
+            Transform instanceTransform = instance.transform;
+            instanceTransform.localPosition = localPosition;
+            instanceTransform.localRotation = Quaternion.Euler(localEuler);
+            instanceTransform.localScale = localScale;
+
+            InitializeAugmentCharacterVfx(instance);
+
+            return instance;
+        }
+
+        private static void InitializeAugmentCharacterVfx(GameObject instance)
+        {
+            if (!instance)
+                return;
+
+            if (instance.TryGetComponent(out AugmentFXPickUp fx))
+                fx.Init();
+        }
+        
+        private static int GetRarityRank(E_AugmentRarity rarity) => (int)rarity;
+        
         private class AugmentState // TODO Better rename
         {
             public SO_Augment Augment;

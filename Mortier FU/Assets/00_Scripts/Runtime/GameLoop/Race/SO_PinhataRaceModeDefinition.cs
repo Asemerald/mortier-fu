@@ -42,6 +42,12 @@ namespace MortierFu
             new PinhataDropRule { PlayerCount = 4, PickupsPerHit = 1, DropAllRemaining = false }
         };
         
+        [Header("Bully Preview VFX")]
+        public bool ShowBullyPreviewVfx = true;
+        public Vector3 BullyPreviewVfxLocalPosition = Vector3.zero;
+        public Vector3 BullyPreviewVfxLocalEuler = Vector3.zero;
+        public Vector3 BullyPreviewVfxLocalScale = Vector3.one;
+        
         private void Reset()
         {
             UsePreviousRoundWinnerAsBully = true;

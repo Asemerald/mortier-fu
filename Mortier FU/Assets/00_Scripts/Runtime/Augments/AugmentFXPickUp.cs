@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace MortierFu
@@ -6,32 +5,48 @@ namespace MortierFu
     public class AugmentFXPickUp : MonoBehaviour
     {
         private GameModeBase _gm;
-        [SerializeField]
-        private ParticleSystem _particleSystem;
 
-        
+        [SerializeField] private ParticleSystem _particleSystem;
+
         private void Awake()
         {
-            if (_particleSystem == null)
+            if (!_particleSystem)
                 _particleSystem = GetComponent<ParticleSystem>();
         }
-        private void OnEnable()
+
+        private void OnEnable() => _gm = GameService.CurrentGameMode as GameModeBase;
+
+        public void Init()
         {
-            _gm = GameService.CurrentGameMode as GameModeBase;
+            if (_gm == null)
+                _gm = GameService.CurrentGameMode as GameModeBase;
+
+            if (_gm == null)
+                return;
+
+            _gm.OnRoundStarted -= OnChangeScene;
+            _gm.OnRoundStarted += OnChangeScene;
         }
 
-        public void Init() => _gm.OnRoundStarted += OnChangeScene;
-        
         private void OnChangeScene(RoundInfo info)
         {
-            _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            if (_particleSystem)
+                _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
             Destroy(gameObject);
         }
-        
-        private void OnDisable()
+
+        private void OnDisable() => Unsubscribe();
+
+        private void OnDestroy() => Unsubscribe();
+
+        private void Unsubscribe()
         {
-            if (_gm != null)
-                _gm.OnRoundStarted -= OnChangeScene;
+            if (_gm == null)
+                return;
+
+            _gm.OnRoundStarted -= OnChangeScene;
+            _gm = null;
         }
     }
 }

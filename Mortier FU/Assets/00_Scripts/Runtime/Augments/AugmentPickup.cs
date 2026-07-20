@@ -1,7 +1,5 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 
@@ -30,7 +28,7 @@ namespace MortierFu
         private ShakeService _shakeService;
 
         private Quaternion _initialRotation;
-
+        
         public void Initialize(AugmentSelectionSystem system, int augmentIndex)
         {
             _system = system;
@@ -61,7 +59,7 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Grab, transform.position);
             _shakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
-            Instantiate(_pickupVFX[(int)_rarity], transform.position, transform.rotation);
+            SpawnPickupGrabVfx();
 
             Reset();
         }
@@ -210,13 +208,29 @@ namespace MortierFu
 
             SetInteractable(true);
         }
+        
+        private void SpawnPickupGrabVfx()
+        {
+            if (_pickupVFX == null)
+                return;
+
+            int index = (int)_rarity;
+
+            if (index < 0 || index >= _pickupVFX.Length)
+                return;
+
+            GameObject prefab = _pickupVFX[index];
+
+            if (!prefab)
+                return;
+
+            Instantiate(prefab, transform.position, transform.rotation);
+        }
 
         public void SetAugmentVisual(SO_Augment augment)
         {
             if (!augment)
                 return;
-
-            AugmentPickupVisual prototype = GetVFXRarityPrototype(augment.Rarity);
 
             if (_vfxInstance)
             {
@@ -224,10 +238,9 @@ namespace MortierFu
                 _vfxInstance = null;
             }
             
-            Logs.Log(prototype.name);
             _vfxInstance = SetAugmentVisualIcon(augment,Vector3.zero,  Quaternion.identity, transform, Vector3.one);
 
-            _rarity = prototype.Rarity;
+            _rarity = augment.Rarity;
 
             CacheRuntimeComponents(force: true);
             SetRenderersEnabled(true);
@@ -259,7 +272,6 @@ namespace MortierFu
             transform.position = _attachmentPoint.TransformPoint(_attachmentLocalOffset);
         }
         
-
         private void SetRenderersEnabled(bool enabled)
         {
             CacheRuntimeComponents();
