@@ -56,7 +56,9 @@ namespace MortierFu
             ActiveSettingsPlayer = player;
 
             player.SetControlContext(PlayerControlContext.LobbySettingsOwner);
-
+            
+            player.Character.Controller.HandlePlayerStatic(playerStatic: true);
+            
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered settings.");
 
             return true;
@@ -73,6 +75,8 @@ namespace MortierFu
             ActiveSettingsPlayer = null;
 
             RestorePlayerLobbyContext(player);
+            
+            player.Character.Controller.HandlePlayerStatic(playerStatic: false);
 
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited settings.");
 

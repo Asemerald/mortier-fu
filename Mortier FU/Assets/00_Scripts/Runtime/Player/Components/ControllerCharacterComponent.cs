@@ -185,5 +185,11 @@ namespace MortierFu
             rigidbody.AddForce(force * 7f, ForceMode.Impulse);
             _knockback = force;   // on remplace ou on ajoute selon ton besoin
         }
+
+        public void HandlePlayerStatic(bool playerStatic)
+        {
+            rigidbody.constraints = playerStatic ? RigidbodyConstraints.FreezePosition : RigidbodyConstraints.None;
+            rigidbody.constraints |= RigidbodyConstraints.FreezeRotation;
+        }
     }
 }
