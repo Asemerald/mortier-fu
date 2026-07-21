@@ -112,18 +112,7 @@ namespace MortierFu.Analytics
                 Logs.LogError($"Exception while sending augment stats: {ex.Message}");
             }
         }
-
-        private async UniTask SendAllRoundsToGoogleSheets()
-        {
-            for (int i = 0; i < _gameData.roundsPlayed; i++)
-            {
-                var round = _gameData.rounds[i];
-                if (round == null) continue;
-
-                await SendRoundDataToGoogleSheets(round);
-            }
-        }
-
+        
         private async UniTask SendAllRoundsOverviewToGoogleSheets()
         {
             if (ShouldSkipAnalyticsInEditor())
@@ -197,61 +186,6 @@ namespace MortierFu.Analytics
                 catch (System.Exception ex)
                 {
                     Logs.LogError($"Exception while sending round overview ; {ex.Message}");
-                }
-
-                await UniTask.Delay(100);
-            }
-        }
-
-        private async UniTask SendRoundDataToGoogleSheets(AnalyticsRoundData roundData)
-        {
-            if (roundData == null || roundData.players == null) return;
-
-            if (ShouldSkipAnalyticsInEditor())
-            {
-                Logs.Log("Analytics send skipped in editor.");
-                return;
-            }
-
-            foreach (var player in roundData.players)
-            {
-                try
-                {
-                    WWWForm form = new WWWForm();
-
-                    form.AddField("gameId", _gameData.gameId);
-                    form.AddField("date", _gameData.date);
-                    form.AddField("gameVersion", _gameData.gameVersion);
-                    form.AddField("officialGameVersion", _gameData.officialGameVersion.ToString());
-                    form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
-                    form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
-                    form.AddField("totalRounds", _gameData.roundsPlayed.ToString());
-                    form.AddField("scoreToWin", _gameData.scoreToWin.ToString());
-                    form.AddField("winner", _gameData.winner);
-                    form.AddField("roundNumber", roundData.roundNumber.ToString());
-                    form.AddField("roundWinner", roundData.roundWinner);
-                    form.AddField("playerId", player.playerId);
-                    form.AddField("rank", player.rank.ToString());
-                    form.AddField("score", player.score.ToString());
-                    form.AddField("kills", player.kills.ToString());
-                   // form.AddField("augment", player.selectedAugment != null ? player.selectedAugment.name : "None");
-                    form.AddField("damageDealt", player.damageDealt.ToString("F2"));
-                    form.AddField("damageTaken", player.damageTaken.ToString("F2"));
-                    form.AddField("shotsFired", player.shotsFired.ToString());
-                    form.AddField("shotsHit", player.shotsHit.ToString());
-
-                    float accuracy = player.shotsFired > 0 ? (float)player.shotsHit / player.shotsFired * 100f : 0f;
-                    form.AddField("accuracy", accuracy.ToString("F2"));
-
-                    form.AddField("dashesPerformed", player.dashesPerformed.ToString());
-                    form.AddField("bumpsMade", player.bumpsMade.ToString());
-                    form.AddField("deathCause", ShortenDeathCause(player.deathCause));
-
-                    await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, player.playerId);
-                }
-                catch (System.Exception ex)
-                {
-                    Logs.LogError($"Exception while sending data to Google Sheets: {ex.Message}");
                 }
 
                 await UniTask.Delay(100);

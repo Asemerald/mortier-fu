@@ -12,6 +12,7 @@ namespace MortierFu.Analytics
         private int _currentRoundIndex = 0;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
         private System.DateTime _gameStartTime;
+        private Dictionary<string, SO_Augment> _lastPickedAugmentPerPlayer = new();
 
         public bool IsInitialized { get; set; }
         public string GameId => _gameData?.gameId;
@@ -87,7 +88,7 @@ namespace MortierFu.Analytics
                     rank = 0,
                     score = 0,
                     kills = 0,
-                    selectedAugment = null,
+                    selectedAugment = _lastPickedAugmentPerPlayer.TryGetValue(playerId, out var lastAugment) ? lastAugment : null,
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
