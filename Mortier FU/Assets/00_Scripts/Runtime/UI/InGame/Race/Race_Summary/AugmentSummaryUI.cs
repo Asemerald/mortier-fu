@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using NaughtyAttributes;
 using TMPro;
-using UnityEngine.Serialization;
+
 
 namespace MortierFu
 {
@@ -197,13 +197,13 @@ namespace MortierFu
 
             if (bullyPossesIndicator)
             {
-                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_cts.Token);
+                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_skipCts.Token);
             }
             else
             {
                 cardObj.EnableIndicatorCard(
                     _gameModeBase.GetWinnerPlayerIndex() != playerIndex && cardObj.transform.childCount > 0,
-                    _cts.Token);
+                    _skipCts.Token);
             }
         }
         
@@ -211,37 +211,52 @@ namespace MortierFu
 
         #region Core Logic
         
+        private CancellationTokenSource _skipCts;
+
         public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments, UniTask canHideTask, CancellationToken externalCancellationToken)
         {
-            _cts ??= new CancellationTokenSource();
+            _skipCts ??= new CancellationTokenSource();
 
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                _cts.Token,
-                externalCancellationToken
-            );
 
-            var ct = linkedCancellation.Token;
-
+            
             _background.SetActive(true);
 
-            int playerCount = playerAugments.Count;
-            
-            _playerImages = new Image[playerCount];
-            _playerCards = new Transform[playerCount];
+            BeginSkipConfirmation();
 
-            List<List<AugmentStack>> playerAugmentStacks = playerAugments
-                .Select(BuildAugmentStacks)
-                .ToList();
-            
-            InitializePlayers(playerAugmentStacks, playerCount);
-            
-            await AnimateSummaryUI(playerCount, ct, playerAugmentStacks);
-            
-            await HandleAnimationLastAugment(playerCount, ct, canHideTask);
-            
-            CleanAugmentSummaryForNextRound();
-            
-            _background.SetActive(false);
+            try
+            {
+                int playerCount = playerAugments.Count;
+
+                _playerImages = new Image[playerCount];
+                _playerCards = new Transform[playerCount];
+
+                List<List<AugmentStack>> playerAugmentStacks = playerAugments
+                    .Select(BuildAugmentStacks)
+                    .ToList();
+
+                InitializePlayers(playerAugmentStacks, playerCount);
+
+                await AnimateSummaryUI(playerCount, _skipCts.Token , playerAugmentStacks);
+
+                await HandleAnimationLastAugment(playerCount, _skipCts.Token , canHideTask);
+            }
+            catch (OperationCanceledException)
+            {
+                Logs.LogError("CACA");
+            }
+            finally
+            {
+                Logs.LogError("COUCOU");
+                
+                EndSkipConfirmation();
+
+                CleanAugmentSummaryForNextRound();
+
+                _background.SetActive(false);
+
+                _skipCts.Dispose();
+                _skipCts = null;
+            }
         }
 
         private async UniTask AnimateSummaryUI(int playerCount, CancellationToken ct, List<List<AugmentStack>> playerAugmentStacks)
@@ -293,7 +308,7 @@ namespace MortierFu
         private async UniTask HandleAnimationLastAugment(int playerCount, CancellationToken ct, UniTask canHideTask)
         {
             var runningBreathingAnimations = new List<LastAugmentAnimation>();
-
+            
             for (int i = 0; i < playerCount; i++)
             {
                 Transform playerIcon = _playerImages[i].transform;
@@ -309,7 +324,8 @@ namespace MortierFu
                     runningBreathingAnimations.Add(breathingAnim);
                 }
             }
-
+            
+            
             await canHideTask;
 
             ct.ThrowIfCancellationRequested();
@@ -431,42 +447,61 @@ namespace MortierFu
         #region Skip Summary
 
         [SerializeField] private Image skipFillImage;
-        
+
         private float _currentSkippFillValue;
-        private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
         
+        private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
+
         private ConfirmationService _confirmationService;
         
-        private void Test()
+        private bool _isSubscribedToSkipConfirmation;
+
+        private void BeginSkipConfirmation()
         {
+            if (_isSubscribedToSkipConfirmation)
+                return;
+
             List<PlayerManager> players = _confirmationService.GetAvailablePlayers();
-            
+
             _confirmationService.BeginConfirmation(players);
 
             _currentSkippFillValue = 0f;
             skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
-            
+
             _confirmationService.OnPlayerConfirmed += HandlePlayerConfirm;
-            _confirmationService.OnAllPlayersConfirmed += HandleAllPlayerConfirmed;
+
+            _isSubscribedToSkipConfirmation = true;
+        }
+
+        private void EndSkipConfirmation()
+        {
+            if (!_isSubscribedToSkipConfirmation)
+                return;
+
+            _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirm;
+            _confirmationService.ResetRuntimeState();
+            
+            _isSubscribedToSkipConfirmation = false;
         }
 
         private void HandlePlayerConfirm(int playerIndex)
         {
             _currentSkippFillValue = GetCurrentPlayersPercentageReady();
             skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
-        }
 
-        private void HandleAllPlayerConfirmed()
-        {
-            
+            if (_currentSkippFillValue < 0.99f) return;
+
+            EndSkipConfirmation();
+            _skipCts?.Cancel();
         }
 
         private float GetCurrentPlayersPercentageReady()
         {
-            float result = _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
-            result /= _confirmationService.PendingPlayersCount;
-            result = 1 - result;
-            return result;
+            if (_confirmationService == null || _confirmationService.PlayersParticipantsCount <= 0)
+                return 1f;
+
+            int confirmedCount = _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
+            return Mathf.Clamp01((float)confirmedCount / _confirmationService.PlayersParticipantsCount);
         }
 
         #endregion

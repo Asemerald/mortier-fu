@@ -255,6 +255,8 @@ namespace MortierFu
 
                 foreach (var player in players)
                 {
+                    player.SetControlContext(PlayerControlContext.AugmentRaceSummary);
+                    
                     if (player &&
                         player.Character &&
                         _augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
