@@ -15,11 +15,14 @@ namespace MortierFu
         [SerializeField] private UINavigationPanel _navigationPanel;
 
         [Header("Settings Items")]
-        [SerializeField] private UIIntStepperItem _scoreToWinItem;
+        [SerializeField] private UIMatchSettingsItemBase[] _settingsItems;
+
+        [Header("Optional")]
         [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
+        private int _currentPlayerCount = 1;
 
         private void Awake()
         {
@@ -29,15 +32,16 @@ namespace MortierFu
 
         private void OnEnable()
         {
-            if (!_scoreToWinItem) return;
-            _scoreToWinItem.OnValueChanged -= SetScoreToWin;
-            _scoreToWinItem.OnValueChanged += SetScoreToWin;
+            if (!_matchSettingsData) return;
+            
+            _matchSettingsData.OnChanged -= Refresh;
+            _matchSettingsData.OnChanged += Refresh;
         }
 
         private void OnDisable()
         {
-            if (_scoreToWinItem)
-                _scoreToWinItem.OnValueChanged -= SetScoreToWin;
+            if (_matchSettingsData)
+                _matchSettingsData.OnChanged -= Refresh;
         }
 
         public void Open(PlayerManager player, Action<PlayerManager> onClosed)
@@ -47,14 +51,16 @@ namespace MortierFu
 
             _activePlayer = player;
             _onClosed = onClosed;
+            _currentPlayerCount = GetCurrentLobbyPlayerCount();
+
+            if (_matchSettingsData)
+                _matchSettingsData.ApplyRecommendedForPlayerCount(_currentPlayerCount);
 
             if (_root)
                 _root.SetActive(true);
 
-            if (_scoreToWinItem && _matchSettingsData)
-                _scoreToWinItem.SetValue(_matchSettingsData.ScoreToWin, notify: false);
-
-            _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
+            BindItems();
+            Refresh();
 
             if (_navigationPanel)
                 _navigationPanel.Open(player, CloseFromNavigation);
@@ -73,7 +79,7 @@ namespace MortierFu
         private void CloseInternal(bool notifyClosed)
         {
             PlayerManager activePlayer = _activePlayer;
-            var onClosed = _onClosed;
+            Action<PlayerManager> onClosed = _onClosed;
 
             if (_navigationPanel)
                 _navigationPanel.Close();
@@ -88,14 +94,40 @@ namespace MortierFu
                 onClosed?.Invoke(activePlayer);
         }
 
-        private void SetScoreToWin(int score)
+        private void BindItems()
         {
-            if (!_matchSettingsData)
+            if (_settingsItems == null)
                 return;
 
-            _matchSettingsData.SetScoreToWin(score);
+            for (int i = 0; i < _settingsItems.Length; i++)
+            {
+                if (_settingsItems[i])
+                    _settingsItems[i].Bind(_matchSettingsData, _currentPlayerCount);
+            }
+        }
 
-            _recommendedScoreDisplay?.Refresh(score);
+        private void Refresh()
+        {
+            if (_settingsItems != null)
+            {
+                for (int i = 0; i < _settingsItems.Length; i++)
+                {
+                    if (_settingsItems[i])
+                        _settingsItems[i].Refresh();
+                }
+            }
+
+            _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
+        }
+
+        private static int GetCurrentLobbyPlayerCount()
+        {
+            LobbyService lobbyService = ServiceManager.Instance?.Get<LobbyService>();
+
+            if (lobbyService == null)
+                return 1;
+
+            return Mathf.Max(1, lobbyService.CurrentPlayerCount);
         }
     }
 }
