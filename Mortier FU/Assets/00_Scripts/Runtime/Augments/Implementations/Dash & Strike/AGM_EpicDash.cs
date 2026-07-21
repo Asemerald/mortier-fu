@@ -16,6 +16,7 @@ namespace MortierFu
         
         private CountdownTimer _epicDashTimer;
         private EventBinding<TriggerEndDash> _endDashBinding;
+        private EventBinding<TriggerDash> _dashBinding;
 
         public AGM_EpicDash(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
@@ -29,6 +30,9 @@ namespace MortierFu
 
             _endDashBinding = new EventBinding<TriggerEndDash>(OnEndDash);
             EventBus<TriggerEndDash>.Register(_endDashBinding);
+
+            _dashBinding = new EventBinding<TriggerDash>(OnDash);
+            EventBus<TriggerDash>.Register(_dashBinding);
         }
 
         private void OnEndDash(TriggerEndDash evt)
@@ -39,12 +43,16 @@ namespace MortierFu
             RefreshMoveSpeedBuff();
         }
 
+        private void OnDash(TriggerDash evt)
+        {
+            HideVFX();
+            ShowVFX();
+        }
+
         private void RefreshMoveSpeedBuff()
         {
             stats.MoveSpeed.RemoveAllModifiersFromSource(this);
-            HideVFX();
             stats.MoveSpeed.AddModifier(db.EpicDashParams.MoveSpeedMod.ToMod(this));
-            ShowVFX();
 
             _epicDashTimer.Stop();
             _epicDashTimer.Reset();
@@ -69,6 +77,11 @@ namespace MortierFu
         {
             if (_endDashBinding != null)
                 EventBus<TriggerEndDash>.Deregister(_endDashBinding);
+
+            if (_dashBinding != null)
+            {
+                EventBus<TriggerDash>.Deregister(_dashBinding);
+            }
 
             if (_epicDashTimer != null)
             {
