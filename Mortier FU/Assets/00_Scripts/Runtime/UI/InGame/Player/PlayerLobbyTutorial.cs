@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
@@ -24,7 +26,8 @@ namespace MortierFu
         private bool _isSubscribed;
         private const float timeInputDisable = 0.3f;
         private const float appearTweenDuration = 0.5f;
-        
+        private const float _startFadeDelay = 2f;
+
         private readonly Transform _tutorialContainer;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
@@ -49,7 +52,6 @@ namespace MortierFu
         {
             _timer.OnTimerStop -= InitTuto;
 
-            // save the active aim input in case the player skips it unintentionally
             if (_tutorialBinding.Count > 1)
                 _aimToggleInputReference = _tutorialBinding[1].inputAction;
 
@@ -65,8 +67,11 @@ namespace MortierFu
             if (ctx.performed)
             {
                 if (!IsActionInList(ctx.action.name, _currentInputToPress))
+                {
                     return;
-
+                }
+                
+                
                 if (_index != _tutorialBinding.Count - 1)
                 {
                     _index++;
@@ -89,13 +94,57 @@ namespace MortierFu
             if (list == null)
                 return false;
 
-            foreach (var reference in list)
+            if (IsActionInReferenceList(actionName, list))
+                return true;
+
+            foreach (SO_Tutorial inputs in _tutorialBinding)
             {
-                if (reference != null && reference.action.name == actionName)
-                    return true;
+                foreach (var reference in inputs.inputAction)
+                {
+                    if (reference != null && reference.action.name == actionName)
+                    {
+                        List<SO_Tutorial> toRemove = CheckConnectedGroup(inputs);
+                        if (toRemove == null)
+                            return false;
+                        foreach (SO_Tutorial tutorial in toRemove)
+                        {
+                            _tutorialBinding.Remove(tutorial);
+                        }
+
+                        return false;
+                    }
+                }
             }
 
             return false;
+        }
+
+        private List<SO_Tutorial> CheckConnectedGroup(SO_Tutorial tutorial)
+        {
+            List<SO_Tutorial> result = new List<SO_Tutorial>();
+            int indexInList = _tutorialBinding.IndexOf(tutorial);
+            
+            bool hasNext = indexInList + 1 < _tutorialBinding.Count;
+            if ((hasNext && _tutorialBinding[indexInList + 1].connectedToActionBefore) || indexInList < _index)
+            {
+                return null;
+            }
+
+            if (tutorial.connectedToActionBefore)
+            {
+                for (int i = indexInList; i >= 0; i--)
+                {
+                    result.Add(_tutorialBinding[i]);
+                    if (!_tutorialBinding[i].connectedToActionBefore || i == 0)
+                        return result;
+                }
+            }
+            else
+            {
+                result.Add(tutorial);
+            }
+
+            return result;
         }
 
         private void UpdateVisual()
@@ -113,11 +162,35 @@ namespace MortierFu
             if (_aimToggleInputReference == null)
                 return;
 
-            if (IsActionInList(ctx.action.name, _aimToggleInputReference) && _index != 0)
+            if (IsActionInList(ctx.action.name, _aimToggleInputReference))
             {
-                _index = 1;
-                UpdateVisual();
+                if (!_tutorialBinding[_index].connectedToActionBefore)
+                    return;
+
+                for (int i = _index -1; i >= 0; i--)
+                {
+                    if (!_tutorialBinding[i].connectedToActionBefore)
+                    {
+                        _index = i;
+                        UpdateVisual();
+                        return;
+                    }
+                }
             }
+        }
+
+        private bool IsActionInReferenceList(string actionName, List<InputActionReference> list)
+        {
+            if (list == null)
+                return false;
+
+            foreach (var reference in list)
+            {
+                if (reference != null && reference.action.name == actionName)
+                    return true;
+            }
+
+            return false;
         }
 
         private void SetVisible(bool visible)
@@ -130,20 +203,31 @@ namespace MortierFu
 
             if (visible)
             {
+                _tutorialContainer.gameObject.SetActive(true);
                 _tutorialSlot.gameObject.SetActive(true);
                 _tutorialText.gameObject.SetActive(true);
 
                 Debug.Log($"Container actif dans la hiérarchie ? {_tutorialContainer.gameObject.activeInHierarchy}");
 
-                _tutorialContainer.localScale = Vector3.zero;
-                Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
-                    .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
+                ShowPlayerTuto().Forget();
             }
             else
             {
+                _tutorialContainer.gameObject.SetActive(false);
                 _tutorialSlot.gameObject.SetActive(false);
                 _tutorialText.gameObject.SetActive(false);
             }
+        }
+
+        private async UniTask ShowPlayerTuto()
+        {
+            await UniTask.Yield();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
+
+            _tutorialContainer.localScale = Vector3.zero;
+            Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
+                .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
         }
 
         private void Unsubscribe()

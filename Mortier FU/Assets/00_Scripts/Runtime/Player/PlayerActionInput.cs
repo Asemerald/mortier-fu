@@ -104,6 +104,15 @@ namespace MortierFu
                     ""initialStateCheck"": true
                 },
                 {
+                    ""name"": ""Taunt1"",
+                    ""type"": ""Button"",
+                    ""id"": ""6ddc6d6f-c578-4a89-a2ea-9784087d8773"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Dash"",
                     ""type"": ""Button"",
                     ""id"": ""6c2ab1b8-8984-453a-af3d-a3c78ae1679a"",
@@ -143,6 +152,33 @@ namespace MortierFu
                     ""name"": ""Pause"",
                     ""type"": ""Button"",
                     ""id"": ""f140deea-93a7-46e4-913c-644aac725ea0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Taunt2"",
+                    ""type"": ""Button"",
+                    ""id"": ""9b6d716a-3f77-4d47-b09d-74285587ed7e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Taunt3"",
+                    ""type"": ""Button"",
+                    ""id"": ""7f138630-8e14-47a3-af7a-5bd17f6b6daf"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Taunt4"",
+                    ""type"": ""Button"",
+                    ""id"": ""72b4ef65-06f4-43f5-96ba-88c100af4b0e"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -259,6 +295,28 @@ namespace MortierFu
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3fd2c08c-c9df-4748-845f-0bbd4242f9db"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""969e812e-122d-4f31-88e5-55434d78959e"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard and Mouse"",
+                    ""action"": ""Taunt1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -400,6 +458,72 @@ namespace MortierFu
                     ""processors"": """",
                     ""groups"": "";Keyboard and Mouse"",
                     ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2ef7976c-704a-4fec-92ee-a89b8dd60b4d"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""601cf5e2-acc4-4282-a484-4ef482f29add"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard and Mouse"",
+                    ""action"": ""Taunt2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""73617125-d046-4d75-96be-776fe0e4600a"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""700a7c11-7367-465c-9eb2-edcb11044283"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard and Mouse"",
+                    ""action"": ""Taunt3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a482cc9f-4599-4691-98fe-49bb26ac7d2c"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Taunt4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6a59cccc-8b28-4a62-aff2-189b8f132d6c"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard and Mouse"",
+                    ""action"": ""Taunt4"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1160,11 +1284,15 @@ namespace MortierFu
             // Gameplay
             m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
             m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
+            m_Gameplay_Taunt1 = m_Gameplay.FindAction("Taunt1", throwIfNotFound: true);
             m_Gameplay_Dash = m_Gameplay.FindAction("Dash", throwIfNotFound: true);
             m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
             m_Gameplay_Aim = m_Gameplay.FindAction("Aim", throwIfNotFound: true);
             m_Gameplay_ToggleAim = m_Gameplay.FindAction("ToggleAim", throwIfNotFound: true);
             m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
+            m_Gameplay_Taunt2 = m_Gameplay.FindAction("Taunt2", throwIfNotFound: true);
+            m_Gameplay_Taunt3 = m_Gameplay.FindAction("Taunt3", throwIfNotFound: true);
+            m_Gameplay_Taunt4 = m_Gameplay.FindAction("Taunt4", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1268,11 +1396,15 @@ namespace MortierFu
         private readonly InputActionMap m_Gameplay;
         private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
         private readonly InputAction m_Gameplay_Move;
+        private readonly InputAction m_Gameplay_Taunt1;
         private readonly InputAction m_Gameplay_Dash;
         private readonly InputAction m_Gameplay_Shoot;
         private readonly InputAction m_Gameplay_Aim;
         private readonly InputAction m_Gameplay_ToggleAim;
         private readonly InputAction m_Gameplay_Pause;
+        private readonly InputAction m_Gameplay_Taunt2;
+        private readonly InputAction m_Gameplay_Taunt3;
+        private readonly InputAction m_Gameplay_Taunt4;
         /// <summary>
         /// Provides access to input actions defined in input action map "Gameplay".
         /// </summary>
@@ -1288,6 +1420,10 @@ namespace MortierFu
             /// Provides access to the underlying input action "Gameplay/Move".
             /// </summary>
             public InputAction @Move => m_Wrapper.m_Gameplay_Move;
+            /// <summary>
+            /// Provides access to the underlying input action "Gameplay/Taunt1".
+            /// </summary>
+            public InputAction @Taunt1 => m_Wrapper.m_Gameplay_Taunt1;
             /// <summary>
             /// Provides access to the underlying input action "Gameplay/Dash".
             /// </summary>
@@ -1308,6 +1444,18 @@ namespace MortierFu
             /// Provides access to the underlying input action "Gameplay/Pause".
             /// </summary>
             public InputAction @Pause => m_Wrapper.m_Gameplay_Pause;
+            /// <summary>
+            /// Provides access to the underlying input action "Gameplay/Taunt2".
+            /// </summary>
+            public InputAction @Taunt2 => m_Wrapper.m_Gameplay_Taunt2;
+            /// <summary>
+            /// Provides access to the underlying input action "Gameplay/Taunt3".
+            /// </summary>
+            public InputAction @Taunt3 => m_Wrapper.m_Gameplay_Taunt3;
+            /// <summary>
+            /// Provides access to the underlying input action "Gameplay/Taunt4".
+            /// </summary>
+            public InputAction @Taunt4 => m_Wrapper.m_Gameplay_Taunt4;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1337,6 +1485,9 @@ namespace MortierFu
                 @Move.started += instance.OnMove;
                 @Move.performed += instance.OnMove;
                 @Move.canceled += instance.OnMove;
+                @Taunt1.started += instance.OnTaunt1;
+                @Taunt1.performed += instance.OnTaunt1;
+                @Taunt1.canceled += instance.OnTaunt1;
                 @Dash.started += instance.OnDash;
                 @Dash.performed += instance.OnDash;
                 @Dash.canceled += instance.OnDash;
@@ -1352,6 +1503,15 @@ namespace MortierFu
                 @Pause.started += instance.OnPause;
                 @Pause.performed += instance.OnPause;
                 @Pause.canceled += instance.OnPause;
+                @Taunt2.started += instance.OnTaunt2;
+                @Taunt2.performed += instance.OnTaunt2;
+                @Taunt2.canceled += instance.OnTaunt2;
+                @Taunt3.started += instance.OnTaunt3;
+                @Taunt3.performed += instance.OnTaunt3;
+                @Taunt3.canceled += instance.OnTaunt3;
+                @Taunt4.started += instance.OnTaunt4;
+                @Taunt4.performed += instance.OnTaunt4;
+                @Taunt4.canceled += instance.OnTaunt4;
             }
 
             /// <summary>
@@ -1366,6 +1526,9 @@ namespace MortierFu
                 @Move.started -= instance.OnMove;
                 @Move.performed -= instance.OnMove;
                 @Move.canceled -= instance.OnMove;
+                @Taunt1.started -= instance.OnTaunt1;
+                @Taunt1.performed -= instance.OnTaunt1;
+                @Taunt1.canceled -= instance.OnTaunt1;
                 @Dash.started -= instance.OnDash;
                 @Dash.performed -= instance.OnDash;
                 @Dash.canceled -= instance.OnDash;
@@ -1381,6 +1544,15 @@ namespace MortierFu
                 @Pause.started -= instance.OnPause;
                 @Pause.performed -= instance.OnPause;
                 @Pause.canceled -= instance.OnPause;
+                @Taunt2.started -= instance.OnTaunt2;
+                @Taunt2.performed -= instance.OnTaunt2;
+                @Taunt2.canceled -= instance.OnTaunt2;
+                @Taunt3.started -= instance.OnTaunt3;
+                @Taunt3.performed -= instance.OnTaunt3;
+                @Taunt3.canceled -= instance.OnTaunt3;
+                @Taunt4.started -= instance.OnTaunt4;
+                @Taunt4.performed -= instance.OnTaunt4;
+                @Taunt4.canceled -= instance.OnTaunt4;
             }
 
             /// <summary>
@@ -1801,6 +1973,13 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnMove(InputAction.CallbackContext context);
             /// <summary>
+            /// Method invoked when associated input action "Taunt1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt1(InputAction.CallbackContext context);
+            /// <summary>
             /// Method invoked when associated input action "Dash" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
             /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
@@ -1835,6 +2014,27 @@ namespace MortierFu
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnPause(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Taunt2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt2(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Taunt3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt3(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Taunt4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTaunt4(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
