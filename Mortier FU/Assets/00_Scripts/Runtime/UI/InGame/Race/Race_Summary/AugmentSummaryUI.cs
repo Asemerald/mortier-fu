@@ -29,7 +29,6 @@ namespace MortierFu
         
         private readonly List<Tween> _activeTweens = new();
         
-        private CancellationTokenSource _cts;
         private GameModeBase _gameModeBase;
         private Transform[] _playerCards;
 
@@ -38,15 +37,17 @@ namespace MortierFu
         [SerializeField] private bool bullyPossesIndicator = false;
         [SerializeField] private bool cardDisplay = true;
         
+        private Action _requestSkip;
         #endregion
 
         #region Unity LifeCycle
 
         private void OnEnable()
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts = new CancellationTokenSource();
+            _skipCts?.Cancel();
+            _skipCts?.Dispose();
+            
+            _skipCts = new CancellationTokenSource();
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
         }
@@ -54,13 +55,18 @@ namespace MortierFu
         private void OnDisable()
         {
             CancelAnimations();
+            
+            EndSkipConfirmation();
         }
 
         private void OnDestroy()
         {
+            EndSkipConfirmation();
+            
             CancelAnimations();
-            _cts?.Dispose();
-            _cts = null;
+            
+            _skipCts?.Dispose();
+            _skipCts = null;
         }
 
         #endregion
@@ -213,11 +219,17 @@ namespace MortierFu
         
         private CancellationTokenSource _skipCts;
 
-        public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments, UniTask canHideTask, CancellationToken externalCancellationToken)
+        public async UniTask AnimatePlayerImagesWithAugments(
+            List<List<SO_Augment>> playerAugments,
+            UniTask canHideTask,
+            Action requestSkip,
+            CancellationToken externalCancellationToken)
         {
-            _skipCts ??= new CancellationTokenSource();
-
-
+            _requestSkip = requestSkip;
+            
+            var ownCts = _skipCts ??= new CancellationTokenSource();
+            
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_skipCts.Token, externalCancellationToken);
             
             _background.SetActive(true);
 
@@ -242,20 +254,24 @@ namespace MortierFu
             }
             catch (OperationCanceledException)
             {
-                Logs.LogError("CACA");
+                
             }
             finally
             {
-                Logs.LogError("COUCOU");
-                
+                if (_skipCts == ownCts)
+                {
+                    _skipCts.Dispose();
+                    _skipCts = null;
+                }
+                else
+                {
+                    ownCts.Dispose();
+                }
+    
                 EndSkipConfirmation();
-
                 CleanAugmentSummaryForNextRound();
-
                 _background.SetActive(false);
-
-                _skipCts.Dispose();
-                _skipCts = null;
+                _requestSkip = null;
             }
         }
 
@@ -325,9 +341,11 @@ namespace MortierFu
                 }
             }
             
+            while (canHideTask.Status == UniTaskStatus.Pending && !ct.IsCancellationRequested)
+            {
+                await UniTask.Yield();
+            }
             
-            await canHideTask;
-
             ct.ThrowIfCancellationRequested();
 
             foreach (var breathingAnim in runningBreathingAnimations)
@@ -422,7 +440,7 @@ namespace MortierFu
                 tween.Stop();
             _activeTweens.Clear();
             
-            _cts?.Cancel();
+            _skipCts?.Cancel();
         }
         
         
@@ -493,6 +511,7 @@ namespace MortierFu
 
             EndSkipConfirmation();
             _skipCts?.Cancel();
+            _requestSkip?.Invoke();
         }
 
         private float GetCurrentPlayersPercentageReady()
