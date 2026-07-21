@@ -1145,7 +1145,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 2767
+  m_VersionIndex: 2779
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -1664,7 +1664,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5004420424541161103, guid: 5d0c4b4751b108e498d6affe000781b0, type: 3}
       propertyPath: m_VersionIndex
-      value: 1740
+      value: 1752
+      objectReference: {fileID: 0}
+    - target: {fileID: 7368124880910662899, guid: 5d0c4b4751b108e498d6affe000781b0, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7426991829662843776, guid: 5d0c4b4751b108e498d6affe000781b0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2757,11 +2761,137 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7804484030642349227, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4579372390774684209}
+    - targetCorrespondingSourceObject: {fileID: 3669241453131092136, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8195772662447509714}
   m_SourcePrefab: {fileID: 100100000, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+--- !u!23 &859828346280711018 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 9099235471683040349, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1866561454370964380 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7804484030642349227, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4579372390774684209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1866561454370964380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186f0781b6a04482917e54f790018e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.VehicleModel
+  _collider: {fileID: 0}
+  _renderer: {fileID: 6145832506240182121}
+  _filter: {fileID: 2232621875709151167}
+  _modelScaler: {fileID: 7428427772525910151}
+  _engineShakeAnimation: 1
+  _engineShakeSettings:
+    strength: {x: 0.05, y: 0.05, z: 0.05}
+    duration: 2
+    frequency: 5
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
+  Speed: 0
+  Progress: 0
+  HalfLength: 0.5
+--- !u!33 &2232621875709151167 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: 7733699690201063560, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4157887860846668932 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5484130739861457843, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!33 &4638433344542487484 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: 3888653416034636939, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5135089328910170015 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3669241453131092136, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8195772662447509714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5135089328910170015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186f0781b6a04482917e54f790018e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.VehicleModel
+  _collider: {fileID: 0}
+  _renderer: {fileID: 859828346280711018}
+  _filter: {fileID: 4638433344542487484}
+  _modelScaler: {fileID: 4157887860846668932}
+  _engineShakeAnimation: 1
+  _engineShakeSettings:
+    strength: {x: 0.05, y: 0.05, z: 0.05}
+    duration: 2
+    frequency: 5
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
+  Speed: 0
+  Progress: 0
+  HalfLength: 0.5
 --- !u!4 &5297855723234040443 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4336263401923689804, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6145832506240182121 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2369492890665353310, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8478100107178452791}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7428427772525910151 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1350887007531777968, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
   m_PrefabInstance: {fileID: 8478100107178452791}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8986790961430309021
@@ -2863,11 +2993,137 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7804484030642349227, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7766131846220608063}
+    - targetCorrespondingSourceObject: {fileID: 3669241453131092136, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7829548419454444937}
   m_SourcePrefab: {fileID: 100100000, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+--- !u!23 &212096550253599936 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 9099235471683040349, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1222839602882792502 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7804484030642349227, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7766131846220608063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222839602882792502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186f0781b6a04482917e54f790018e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.VehicleModel
+  _collider: {fileID: 0}
+  _renderer: {fileID: 6653329548422326467}
+  _filter: {fileID: 1721747417269078037}
+  _modelScaler: {fileID: 7928638067687135021}
+  _engineShakeAnimation: 1
+  _engineShakeSettings:
+    strength: {x: 0.05, y: 0.05, z: 0.05}
+    duration: 2
+    frequency: 5
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
+  Speed: 0
+  Progress: 0
+  HalfLength: 0.5
+--- !u!33 &1721747417269078037 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: 7733699690201063560, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3507447701388174126 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5484130739861457843, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4655312805909403089 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4336263401923689804, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!33 &5278284107512822806 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: 3888653416034636939, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5646596298728208437 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3669241453131092136, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7829548419454444937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5646596298728208437}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186f0781b6a04482917e54f790018e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.VehicleModel
+  _collider: {fileID: 0}
+  _renderer: {fileID: 212096550253599936}
+  _filter: {fileID: 5278284107512822806}
+  _modelScaler: {fileID: 3507447701388174126}
+  _engineShakeAnimation: 1
+  _engineShakeSettings:
+    strength: {x: 0.05, y: 0.05, z: 0.05}
+    duration: 2
+    frequency: 5
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
+  Speed: 0
+  Progress: 0
+  HalfLength: 0.5
+--- !u!23 &6653329548422326467 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2369492890665353310, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
+  m_PrefabInstance: {fileID: 8986790961430309021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7928638067687135021 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1350887007531777968, guid: d43868336512ba846a9c9eecd2502f4e, type: 3}
   m_PrefabInstance: {fileID: 8986790961430309021}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &9022424977410114940
