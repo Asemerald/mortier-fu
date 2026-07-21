@@ -48,6 +48,7 @@ namespace MortierFu
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
         }
 
         private void OnDisable()
@@ -423,6 +424,49 @@ namespace MortierFu
             
             for (int i = 0; i < childCount; i++)
                 Destroy(allElementToClean[i].gameObject);
+        }
+
+        #endregion
+
+        #region Skip Summary
+
+        [SerializeField] private Image skipFillImage;
+        
+        private float _currentSkippFillValue;
+        private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
+        
+        private ConfirmationService _confirmationService;
+        
+        private void Test()
+        {
+            List<PlayerManager> players = _confirmationService.GetAvailablePlayers();
+            
+            _confirmationService.BeginConfirmation(players);
+
+            _currentSkippFillValue = 0f;
+            skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+            
+            _confirmationService.OnPlayerConfirmed += HandlePlayerConfirm;
+            _confirmationService.OnAllPlayersConfirmed += HandleAllPlayerConfirmed;
+        }
+
+        private void HandlePlayerConfirm(int playerIndex)
+        {
+            _currentSkippFillValue = GetCurrentPlayersPercentageReady();
+            skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+        }
+
+        private void HandleAllPlayerConfirmed()
+        {
+            
+        }
+
+        private float GetCurrentPlayersPercentageReady()
+        {
+            float result = _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
+            result /= _confirmationService.PendingPlayersCount;
+            result = 1 - result;
+            return result;
         }
 
         #endregion
