@@ -26,6 +26,9 @@ namespace MortierFu
         public event Action<int> OnPlayerConfirmedAgain;
         public event Action OnAllPlayersConfirmed;
         public event Action<int> OnStartConfirmation;
+        
+        public int PendingPlayersCount => _pendingPlayers.Count;
+        public int PlayersParticipantsCount => _participants.Count;
 
         public UniTask OnInitialize()
         {
@@ -68,7 +71,7 @@ namespace MortierFu
 
         public void ResetRuntimeState() => FinishConfirmation(false);
 
-        private void BeginConfirmation(IEnumerable<PlayerManager> players)
+        public void BeginConfirmation(IEnumerable<PlayerManager> players)
         {
             if (_isWaitingForConfirmation)
             {
@@ -172,7 +175,7 @@ namespace MortierFu
             _participants.Clear();
         }
 
-        private List<PlayerManager> GetAvailablePlayers()
+        public List<PlayerManager> GetAvailablePlayers()
         {
             var result = new List<PlayerManager>();
 
