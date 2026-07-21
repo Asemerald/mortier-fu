@@ -99,6 +99,7 @@ namespace MortierFu.Analytics
                 form.AddField("officialGameVersion", _gameData.officialGameVersion);
                 form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                 form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
+                form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
 
                 foreach (var entry in _augmentStats.Values.OrderBy(e => e.augmentId))
                 {
@@ -173,7 +174,7 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
                             form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
                             form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
-                            form.AddField($"{prefix}DeathCause", player.deathCause.ToString());
+                            form.AddField($"{prefix}DeathCause", ShortenDeathCause(player.deathCause));
                         }
                         else
                         {
@@ -246,7 +247,7 @@ namespace MortierFu.Analytics
 
                     form.AddField("dashesPerformed", player.dashesPerformed.ToString());
                     form.AddField("bumpsMade", player.bumpsMade.ToString());
-                    form.AddField("deathCause", player.deathCause.ToString());
+                    form.AddField("deathCause", ShortenDeathCause(player.deathCause));
 
                     await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, player.playerId);
                 }
