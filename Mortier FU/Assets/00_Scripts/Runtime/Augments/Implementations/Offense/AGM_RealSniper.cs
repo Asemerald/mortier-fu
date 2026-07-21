@@ -9,7 +9,7 @@ namespace MortierFu
             public AugmentStatMod BombshellSpeedMod;
             public AugmentStatMod FireRateMod;
             public AugmentStatMod BombshellDamageMod;
-            public AugmentStatMod ImpactRadiusMod;
+            public AugmentStatMod BombshellImpactRadiusMod;
         }
         
         public AGM_RealSniper(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
@@ -21,7 +21,7 @@ namespace MortierFu
             stats.BombshellSpeed.AddModifier(db.RealSniperParams.BombshellSpeedMod.ToMod(this));
             stats.ShotRange.AddModifier(db.RealSniperParams.ShotRangeMod.ToMod(this));
             stats.FireRate.AddModifier(db.RealSniperParams.FireRateMod.ToMod(this));
-            stats.BombshellImpactRadius.AddModifier(db.RealSniperParams.ImpactRadiusMod.ToMod(this));
+            stats.BombshellImpactRadius.AddModifier(db.RealSniperParams.BombshellImpactRadiusMod.ToMod(this));
         }
         
         public override void Dispose()
