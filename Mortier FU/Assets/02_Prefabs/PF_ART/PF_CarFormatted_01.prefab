@@ -15,7 +15,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3736889445097152113
 Transform:
@@ -48,8 +48,31 @@ MonoBehaviour:
   _collider: {fileID: 2550390888820479535}
   _renderer: {fileID: 4047351584701514758}
   _filter: {fileID: 3590395574836449728}
-  _trailRenderers: []
+  _modelScaler: {fileID: 0}
+  _engineShakeAnimation: 0
+  _engineShakeSettings:
+    strength: {x: 0.1, y: 0.1, z: 0.1}
+    duration: 0
+    frequency: 0
+    enableFalloff: 0
+    falloffEase: 0
+    strengthOverTime:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    asymmetry: 0
+    easeBetweenShakes: 0
+    cycles: -1
+    startDelay: 0
+    endDelay: 0
+    useUnscaledTime: 0
+    _useFixedUpdate: 0
+    _updateType: 0
   Speed: 0
+  Progress: 0
+  HalfLength: 0.5
 --- !u!1001 &8419671349942691596
 PrefabInstance:
   m_ObjectHideFlags: 0

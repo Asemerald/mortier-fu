@@ -16,7 +16,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 0
 --- !u!4 &8794465309979620424
 Transform:
@@ -41,14 +41,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3091494890767106991}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.24280453, g: 1, b: 0, a: 1}
   m_Intensity: 8.76
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -93,7 +93,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -141,7 +141,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &8619505379466935156
 Transform:
@@ -177,7 +177,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 0
 --- !u!4 &2529055086219098573
 Transform:
@@ -202,14 +202,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6811490856218460086}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0, b: 0.018271446, a: 1}
   m_Intensity: 8.76
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -254,7 +254,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -363,6 +363,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 382b6e7033b4151428e051c7c05bad35, type: 3}
       propertyPath: m_Name
       value: SM_Feux
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 382b6e7033b4151428e051c7c05bad35, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
