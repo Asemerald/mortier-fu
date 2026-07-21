@@ -13,6 +13,9 @@ public class SO_Tutorial : ScriptableObject
     [Space(10)]
     public SpriteKeyboardGamePadUI spriteKeyboardGamePadUI;
 
+    [Space(10)]
+    public bool connectedToActionBefore;
+
     //helper methods
     
     public Sprite GetSpriteByInput(bool isKeyboard)
