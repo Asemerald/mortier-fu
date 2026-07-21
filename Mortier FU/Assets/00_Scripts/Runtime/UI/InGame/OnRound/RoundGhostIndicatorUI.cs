@@ -8,14 +8,23 @@ namespace MortierFu
 {
     public class RoundGhostIndicatorUI : MonoBehaviour
     {
-        [SerializeField] private List<Image> ghostIndicators;
+        [Header("References")]
+        [SerializeField] private List<Sprite> ghostsIcons = new();
+        [SerializeField] private Image ghostIconPrefab;
 
+        [Space(15)]
+        
+        [Header("Settings")]
         [SerializeField] private float screenEdgeOffset = 16f;
-
+        
         private CameraSystem _cameraSystem;
         private GameModeBase _gameMode;
         private GhostSystem _ghostSystem;
-
+        
+        private readonly List<Image> _ghostIndicators = new();
+        
+        private bool _isInitialized;
+        
 
         private void Start()
         {
@@ -42,7 +51,8 @@ namespace MortierFu
                 Logs.LogError("[RoundGhostIndicatorUI]: Ghost System is null.");
                 return;
             }
-            
+
+            Initialize();
         }
 
         private void OnDestroy()
@@ -50,13 +60,33 @@ namespace MortierFu
             _gameMode.OnRoundEnded -= CleanGhostUiAfterRound;
         }
 
-        private void Update()
+        private void Update() => HandleGhostIndicatorUI();
+
+        private void Initialize()
         {
-            HandleGhostIndicatorUI();
+            if(_gameMode == null) return;
+
+            int count = _gameMode.MaxPlayerCount; //couldn't get the _gameMode.Teams.Count because not init 
+
+            for (int i = 0; i < count; i++)
+            {
+                Image ghostIndicator = Instantiate(ghostIconPrefab, transform);
+
+                if (ghostsIcons != null && ghostsIcons[i])
+                    ghostIndicator.sprite = ghostsIcons[i];
+                
+                ghostIndicator.gameObject.SetActive(false);
+                
+                _ghostIndicators.Add(ghostIndicator);
+            }
+
+            _isInitialized = true;
         }
 
         private void HandleGhostIndicatorUI()
         {
+            if(!_isInitialized) return;
+            
             if (!_cameraSystem.Controller || _ghostSystem == null) return;
             
             foreach (PlayerGhostPawn ghost in _ghostSystem.ActiveGhostsPawns)
@@ -78,7 +108,7 @@ namespace MortierFu
             Vector3 screenPosition = cam.WorldToScreenPoint(ghostT.position);
             Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
-            Image indicator = ghostIndicators[index];
+            Image indicator = _ghostIndicators[index];
 
             if (!IsGhostOnScreen(screenPosition))
             {
@@ -112,7 +142,7 @@ namespace MortierFu
 
         private bool IsIndexValid(int index)
         {
-            return index >= 0 && index < ghostIndicators.Count && ghostIndicators[index];
+            return index >= 0 && index < ghostsIcons.Count && ghostsIcons[index];
         }
 
         private bool IsGhostOnScreen(Vector2 screenPosition)
@@ -125,7 +155,7 @@ namespace MortierFu
 
         private void CleanGhostUiAfterRound(RoundInfo roundInfo)
         {
-            foreach (Image ghostIndicator in ghostIndicators)
+            foreach (Image ghostIndicator in _ghostIndicators)
                 ghostIndicator.gameObject.SetActive(false);
         }
     }
