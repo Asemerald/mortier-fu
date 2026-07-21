@@ -18,7 +18,7 @@ namespace MortierFu
         public AGM_Bouncy.Params BouncyParams;
         public AGM_BouncySnowball.Params BouncySnowballParams;
         public AGM_Confidence.Params ConfidenceParams;
-        public AGM_ExtentedRange.Params ExtentedRangeParams;
+        public AGM_ExtentedRange.Params ExtendedRangeParams;
         public AGM_FastReload.Params FastReloadParams;
         public AGM_GigaSharper.Params GigaSharperParams;
         public AGM_Gunslinger.Params GunslingerParams;
