@@ -62,6 +62,16 @@ namespace MortierFu.Analytics
 
             InitializePlayersForRound();
         }
+        
+        private string ShortenDeathCause(E_DeathCause cause)
+        {
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion => "Explosion",
+                E_DeathCause.FallAfterExplosion => "FallExplosion",
+                _ => cause.ToString()
+            };
+        }
 
         private void InitializePlayersForRound()
         {
