@@ -229,7 +229,7 @@ namespace MortierFu
                 
                 _raceRuntimeController?.BeginGameplay();
 
-                float raceDuration = _raceRuntimeController != null ? _raceRuntimeController.GetRaceDuration(FlowSettings.AugmentRaceDuration) : FlowSettings.AugmentRaceDuration;
+                float raceDuration = _raceRuntimeController != null ? _raceRuntimeController.GetRaceDuration(MatchConfig.RaceTimeLimit) : MatchConfig.RaceTimeLimit;
 
                 _augmentRaceController.StartRaceTimer(raceDuration);
                 
@@ -548,6 +548,8 @@ namespace MortierFu
 
         public void SetMatchConfig(MatchConfig config)
         {
+            config.Clamp();
+
             MatchConfig = config;
 
             _scoreController?.SetScoreToWin(config.ScoreToWin);
