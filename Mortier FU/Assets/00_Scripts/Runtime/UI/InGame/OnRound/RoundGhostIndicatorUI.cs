@@ -23,6 +23,8 @@ namespace MortierFu
         
         private readonly List<Image> _ghostIndicators = new();
         
+        private EventBinding<TriggerEndRound> _endRoundBinding;
+        
         private bool _isInitialized;
         
 
@@ -53,11 +55,16 @@ namespace MortierFu
             }
 
             Initialize();
+            
+            _endRoundBinding = new EventBinding<TriggerEndRound>(CleanGhostUiAfterRound);
+            EventBus<TriggerEndRound>.Register(_endRoundBinding);
         }
 
         private void OnDestroy()
         {
             _gameMode.OnRoundEnded -= CleanGhostUiAfterRound;
+            EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
+            _endRoundBinding = null;
         }
 
         private void Update() => HandleGhostIndicatorUI();
@@ -154,6 +161,12 @@ namespace MortierFu
         }
 
         private void CleanGhostUiAfterRound(RoundInfo roundInfo)
+        {
+            foreach (Image ghostIndicator in _ghostIndicators)
+                ghostIndicator.gameObject.SetActive(false);
+        }
+
+        private void CleanGhostUiAfterRound() //need polymorphism for RaceStart not include RoundInfo
         {
             foreach (Image ghostIndicator in _ghostIndicators)
                 ghostIndicator.gameObject.SetActive(false);
