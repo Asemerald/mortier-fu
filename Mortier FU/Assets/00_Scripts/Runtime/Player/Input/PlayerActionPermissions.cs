@@ -225,6 +225,18 @@ namespace MortierFu
                     canConfirmUI: false,
                     canCancelUI: true
                 ),
+                
+                PlayerControlContext.AugmentRaceSummary => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canBeStun: false,
+                    canPause: false,
+                    canNavigateUI: false,
+                    canConfirmUI: true,
+                    canCancelUI: false) ,
 
                 PlayerControlContext.RoundCountdown => new PlayerActionPermissions(
                     canMove: false,

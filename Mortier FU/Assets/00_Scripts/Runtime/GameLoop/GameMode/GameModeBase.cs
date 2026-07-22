@@ -105,7 +105,7 @@ namespace MortierFu
         public event Action OnRaceStart;
         public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
         public event Action OnRacePlayerConfirmation;
-        public event Func<UniTask, CancellationToken, UniTask> OnRaceEndedUI;
+        public event Func<UniTask, Action, CancellationToken, UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
         public virtual async UniTask Initialize()
@@ -667,8 +667,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask,
-            CancellationToken cancellationToken)
+        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask, Action requestSkip, CancellationToken cancellationToken)
         {
             if (OnRaceEndedUI == null)
                 return;
@@ -677,9 +676,8 @@ namespace MortierFu
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var handler = (Func<UniTask, CancellationToken, UniTask>)@delegate;
-
-                await handler.Invoke(canHideTask, cancellationToken);
+                var handler = (Func<UniTask, Action, CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(canHideTask, requestSkip, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -689,17 +687,29 @@ namespace MortierFu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UniTask minimumDurationTask = UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.AugmentSummaryDuration), cancellationToken: cancellationToken);
+            using var summarySkipCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
+            UniTask minimumDurationTask = WaitOrSkip(FlowSettings.AugmentSummaryDuration, summarySkipCts.Token);
             UniTask loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
 
-            UniTask canHideSummaryTask = UniTask.WhenAll(minimumDurationTask, loadArenaTask);
+            UniTask canHideSummaryTask = UniTask.WhenAll(minimumDurationTask, loadArenaTask).Preserve();
 
-            await RunAugmentSummaryPresentationAsync(canHideSummaryTask, cancellationToken);
+            await RunAugmentSummaryPresentationAsync(canHideSummaryTask, summarySkipCts.Cancel, cancellationToken);
 
             await canHideSummaryTask;
 
             cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private async UniTask WaitOrSkip(float seconds, CancellationToken skipToken)
+        {
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(seconds), cancellationToken: skipToken);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private async UniTask RunRoundEndPresentationAndOptionalRacePreloadAsync(CancellationToken cancellationToken)
