@@ -1,3 +1,6 @@
+using System.Linq;
+using PlasticGui.WorkspaceWindow;
+using UnityEngine.Playables;
 using UnityEngine.Serialization;
 
 namespace MortierFu
@@ -54,6 +57,11 @@ namespace MortierFu
             if (evt.HitCharacters == null || evt.HitCharacters.Length == 0)
                 return false;
 
+            //Stoian
+            if (evt.HitCharacters.Contains(Owner))
+                return false;
+            //Stoian
+            
             return owner.ControlContext == PlayerControlContext.RoundGameplay;
         }
 

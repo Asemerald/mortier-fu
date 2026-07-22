@@ -196,13 +196,13 @@ namespace MortierFu
                 _vSyncToggle.onValueChanged.AddListener(PlayToggleFeedback);
 
             if (_masterVolumeSlider)
-                _masterVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+                _masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
 
             if (_musicVolumeSlider)
-                _musicVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+                _musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
 
             if (_sfxVolumeSlider)
-                _sfxVolumeSlider.onValueChanged.AddListener(PlaySliderFeedback);
+                _sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
 
             if (_confirmEndGameButton)
                 _confirmEndGameButton.onClick.AddListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
@@ -238,13 +238,13 @@ namespace MortierFu
                 _vSyncToggle.onValueChanged.RemoveListener(PlayToggleFeedback);
 
             if (_masterVolumeSlider)
-                _masterVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+                _masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
 
             if (_musicVolumeSlider)
-                _musicVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+                _musicVolumeSlider.onValueChanged.RemoveListener(OnMusicVolumeChanged);
 
             if (_sfxVolumeSlider)
-                _sfxVolumeSlider.onValueChanged.RemoveListener(PlaySliderFeedback);
+                _sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
 
             if (_confirmEndGameButton)
                 _confirmEndGameButton.onClick.RemoveListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
@@ -590,10 +590,26 @@ namespace MortierFu
         {
             PlayMinorUIFeedback();
         }
-
-        private void PlaySliderFeedback(float value)
+        
+        private void OnMasterVolumeChanged(float value)
         {
             PlayMinorUIFeedback();
+            AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+        }
+        
+        private void OnMusicVolumeChanged(float value)
+        {
+            PlayMinorUIFeedback();
+            AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+        }
+
+        private void OnSfxVolumeChanged(float value)
+        {
+            PlayMinorUIFeedback();
+            AudioService.SetVolume(AudioService.BusEnum.SFX, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
         }
 
         private void PlayMinorUIFeedback()

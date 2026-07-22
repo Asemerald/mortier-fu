@@ -6,15 +6,14 @@ public class TEMP_LIST_AugmentDescription
     public List<string> AugmentDescription = new List<string>
     {
         "Health",
-        "LifeSteal",
+        "Life Steal",
         "Move Speed",
         "Bullet Speed",
         "Damage",
-        "Explosion Range",
+        "Impact Radius",
         "Fire Rate",
         "Shot Range",
         "Bounces",
-        "For Each Bounce, Bullet Speed",
         "For Each Bounce, Bullet Size",
         "Push Force",
         "Dash Cooldown",
