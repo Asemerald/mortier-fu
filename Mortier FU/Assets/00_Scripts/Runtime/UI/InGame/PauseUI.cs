@@ -120,8 +120,6 @@ namespace MortierFu
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
-            _playerManager = TryGetPlayerByIndex(0);
-
             if (!_playerManager)
             {
                 Logs.LogWarning("[PauseUI] Player 1 was not found during initialization.", this);
@@ -265,7 +263,7 @@ namespace MortierFu
 
             if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
             {
-                _gamePauseSystem.TogglePause();
+                _gamePauseSystem.TogglePause(_playerManager);
             }
 
             _gameService?.ReturnToLobby();
@@ -277,7 +275,7 @@ namespace MortierFu
 
             if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
             {
-                _gamePauseSystem.TogglePause();
+                _gamePauseSystem.TogglePause(_playerManager);
             }
 
             _lobbyReturnToMainMenuController.ConfirmReturnToMainMenu();
@@ -501,7 +499,7 @@ namespace MortierFu
             //  await Tween.Position(_pausePanel.transform, )
         }
 
-        private void Pause()
+        private void Pause(PlayerManager player)
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
 
@@ -510,8 +508,9 @@ namespace MortierFu
             if (_shakeService is not null && _playerManager)
                 _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
 
-            EnterPauseInputContext();
-            RegisterToUIInputService();
+            Logs.LogWarning(player.PlayerIndex.ToString());
+            EnterPauseInputContext(player);
+            RegisterToUIInputService(player);
 
             Show();
 
@@ -534,10 +533,10 @@ namespace MortierFu
             Hide();
         }
 
-        private void EnterPauseInputContext()
+        private void EnterPauseInputContext(PlayerManager player)
         {
             if (!_playerManager)
-                _playerManager = TryGetPlayerByIndex(0);
+                _playerManager = player;
 
             if (!_playerManager)
                 return;
@@ -548,6 +547,7 @@ namespace MortierFu
                 _hasPreviousPlayerContext = true;
             }
 
+            Logs.LogWarning(_playerManager.PlayerIndex.ToString());
             _playerManager.SetControlContext(PlayerControlContext.PauseMenu);
         }
 
@@ -564,10 +564,10 @@ namespace MortierFu
             _hasPreviousPlayerContext = false;
         }
 
-        private void RegisterToUIInputService()
+        private void RegisterToUIInputService(PlayerManager player)
         {
             if (!_playerManager)
-                _playerManager = TryGetPlayerByIndex(0);
+                _playerManager = player;
 
             if (!_playerManager)
                 return;
@@ -719,7 +719,7 @@ namespace MortierFu
                 return true;
             }
 
-            _gamePauseSystem.TogglePause();
+            _gamePauseSystem.TogglePause(_playerManager);
             return true;
         }
 
