@@ -230,6 +230,9 @@ namespace MortierFu.Analytics
         {
             var playerData = GetOrCreatePlayerData(character);
             playerData.selectedAugment = augment;
+
+            string playerId = GetPlayerIdFromCharacter(character.Owner);
+            _lastPickedAugmentPerPlayer[playerId] = augment;
         }
 
         public void OnScoreChanged(PlayerCharacter character, int newScore)

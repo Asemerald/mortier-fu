@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_Augment
   ID: 205
   Name: Self Bounce
-  ConditionText: Bounce now bounce on place
+  ConditionText: 'Bounce now bounce on place '
   Description:
+  - variable: 9
+    value: 1
   - variable: 8
     value: 1
   Rarity: 2
@@ -24,4 +26,5 @@ MonoBehaviour:
   AugmentType:
     assemblyQualifiedName: MortierFu.AGM_SelfBounce, Mortierfu.Runtime, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
+  AugmentVFX: {fileID: 0}
   ModBundlePath: 
