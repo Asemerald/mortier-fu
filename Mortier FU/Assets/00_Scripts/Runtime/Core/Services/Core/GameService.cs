@@ -138,7 +138,7 @@ namespace MortierFu
             await sceneService.UnloadScene("MainMenu");
             
             _sceneService.HideLoadingScreen();
-            await CircleTransition.Instance.OpenAsync(1f);
+            await CircleTransition.Instance.OpenAsync(1f,null);
         }
         
         public void ReturnToLobby()

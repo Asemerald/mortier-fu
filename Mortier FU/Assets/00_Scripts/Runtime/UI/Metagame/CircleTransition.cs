@@ -30,8 +30,9 @@ namespace MortierFu
             _material.SetFloat("_Progress", 0);
         }
 
-        public async UniTask OpenAsync(float duration)
+        public async UniTask OpenAsync(float duration,Texture texture)
         {
+            UpdateTransitionMaterial(texture);
             _image.gameObject.SetActive(true);
             
             _material.SetFloat("_Progress", 0);
@@ -40,13 +41,28 @@ namespace MortierFu
             
         }
 
-        public async UniTask CloseAsync(float duration)
+        public async UniTask CloseAsync(float duration,Texture texture)
         {
+            UpdateTransitionMaterial(texture);
             _image.gameObject.SetActive(true);
             
             _material.SetFloat("_Progress", 1);
             
             await Tween.MaterialProperty(_material, Shader.PropertyToID("_Progress"), 0f, duration, Ease.InOutQuad);
         }
+        
+        private void UpdateTransitionMaterial(Texture texture)
+        {
+            if (texture != null)
+            {
+                _material.SetColor("_Color", Color.white);
+                _material.SetTexture("_MainTex", texture);
+            }
+            else
+            {
+                _material.SetColor("_Color", Color.black);
+            }
+            
+        } 
     }
 }

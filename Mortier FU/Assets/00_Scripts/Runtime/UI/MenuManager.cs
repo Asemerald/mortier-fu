@@ -122,7 +122,7 @@ namespace MortierFu
             BindGlobalCancelAction();
             BindButtons();
 
-            CircleTransition.Instance.OpenAsync(_circleTransitionDuration).Forget();
+            CircleTransition.Instance.OpenAsync(_circleTransitionDuration,null).Forget();
             
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
 

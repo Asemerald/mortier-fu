@@ -2,7 +2,8 @@ Shader "Custom/CircleTransition"
 {
     Properties
     {
-        _Color ("Color", Color) = (0,0,0,1)
+        _MainTex ("Transition Texture", 2D) = "black" {}
+        _Color ("Fallback / Tint Color", Color) = (0,0,0,1)
         _Progress ("Progress", Range(0, 1)) = 0
     }
 
@@ -39,6 +40,7 @@ Shader "Custom/CircleTransition"
                 float4 vertex : SV_POSITION;
             };
 
+            sampler2D _MainTex;
             float4 _Color;
             float _Progress;
 
@@ -52,8 +54,10 @@ Shader "Custom/CircleTransition"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float2 center = float2(0.5, 0.5);
+                // On multiplie la texture par la couleur (qui est noire par défaut)
+                fixed4 col = tex2D(_MainTex, i.uv) * _Color;
 
+                float2 center = float2(0.5, 0.5);
                 float aspect = _ScreenParams.x / _ScreenParams.y;
 
                 float2 correctedUv = i.uv - center;
@@ -64,9 +68,9 @@ Shader "Custom/CircleTransition"
                 float maxRadius = length(float2(0.5 * aspect, 0.5));
                 float radius = _Progress * maxRadius * 1.15;
 
-                float alpha = smoothstep(radius, radius, dist);
+                float alphaMask = smoothstep(radius, radius, dist);
 
-                return float4(_Color.rgb, alpha * _Color.a);
+                return float4(col.rgb, col.a * alphaMask);
             }
 
             ENDCG

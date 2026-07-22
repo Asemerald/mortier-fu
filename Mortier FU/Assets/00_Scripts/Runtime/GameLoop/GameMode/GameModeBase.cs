@@ -751,12 +751,14 @@ namespace MortierFu
                 return;
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
+            //TRANSI ROUND A RACE
+            await levelSystem.LoadRaceMap();
+            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration,levelSystem._racetype.LoadingTexture);
             
             SetPlayersControlContext(PlayerControlContext.Loading);
             
-            await levelSystem.LoadRaceMap();
+            
+            
 
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
@@ -772,7 +774,8 @@ namespace MortierFu
 
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
+            //TRANSI ROUND A RACE
+            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration,levelSystem._racetype.LoadingTexture);
         }
 
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());

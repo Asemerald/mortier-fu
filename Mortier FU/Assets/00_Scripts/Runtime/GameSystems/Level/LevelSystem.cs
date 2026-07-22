@@ -57,6 +57,9 @@ namespace MortierFu
         public RaceReporter CurrentRaceReporter => BoundRaceReporter;
 
         public UniTask LoadRaceMap() => LoadRaceMapAvoidingPreviousModeAsync();
+        
+        //SIMON
+        public SO_RaceModeDefinition _racetype => _lastPlayedRaceModeDefinition;
 
         public async UniTask LoadArenaMap()
         {
