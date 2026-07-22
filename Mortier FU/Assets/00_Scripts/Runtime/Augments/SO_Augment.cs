@@ -11,6 +11,7 @@ namespace MortierFu
         public string Name;
         
         //stoian
+        [TextArea(2, 5)]
         public string ConditionText;
         public TEMP_STRUCT_AugmentDescription[] Description;
         //stoian

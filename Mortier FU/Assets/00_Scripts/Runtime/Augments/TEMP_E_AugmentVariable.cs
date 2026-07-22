@@ -11,7 +11,7 @@ public enum TEMP_E_AugmentVariable
     FireRate,
     ShotRange,
     Bounces,
-    ForEachBounceRandomTarget,
+    ForEachBounceBulletSpeed,
     ForEachBounceBulletSize,
     StrikeForce,
     DashCooldown,

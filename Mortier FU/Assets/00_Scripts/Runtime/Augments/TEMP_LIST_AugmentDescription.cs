@@ -14,7 +14,7 @@ public class TEMP_LIST_AugmentDescription
         "Fire Rate",
         "Shot Range",
         "Bounces",
-        "For Each Bounce, Random Target",
+        "For Each Bounce, Bullet Speed",
         "For Each Bounce, Bullet Size",
         "Push Force",
         "Dash Cooldown",
