@@ -13,7 +13,7 @@ namespace MortierFu
         //stoian
         [TextArea(2, 5)]
         public string ConditionText;
-        public TEMP_STRUCT_AugmentDescription[] Description;
+        public AugmentDescription[] Description;
         //stoian
         
         public E_AugmentRarity Rarity;
