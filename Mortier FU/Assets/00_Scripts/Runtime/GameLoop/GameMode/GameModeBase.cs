@@ -690,14 +690,21 @@ namespace MortierFu
             using var summarySkipCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             UniTask minimumDurationTask = WaitOrSkip(FlowSettings.AugmentSummaryDuration, summarySkipCts.Token);
+            
             UniTask loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
 
             UniTask canHideSummaryTask = UniTask.WhenAll(minimumDurationTask, loadArenaTask).Preserve();
 
             await RunAugmentSummaryPresentationAsync(canHideSummaryTask, summarySkipCts.Cancel, cancellationToken);
-
+            
+            ServiceManager.Instance.Get<SceneService>().ShowLoadingScreen();
+            
             await canHideSummaryTask;
-
+            
+            ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
+            
+            await CircleTransition.Instance.OpenAsync(0.35f);
+            
             cancellationToken.ThrowIfCancellationRequested();
         }
 
