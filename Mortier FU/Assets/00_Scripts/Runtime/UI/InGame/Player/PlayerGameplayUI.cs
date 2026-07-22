@@ -156,6 +156,12 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         UpdateReloadUI();
         UpdateStrikeUI();
+        
+        //TODO : Refacto ce bousin si possible (Eliot)
+        if (_gm.CurrentGameState == GameState.AugmentRace || _gm.CurrentGameState == GameState.Round || _gm.CurrentGameState == GameState.RoundCountdown)
+        {
+            ScaleHUDToAvatarSize();
+        }
     }
 
     private void UpdateStrikeUI()
@@ -343,5 +349,20 @@ public class PlayerGameplayUI : MonoBehaviour
         sprite.material.SetFloat("_BlinkFactor", 0.9f);
         await UniTask.Delay(TimeSpan.FromSeconds(duration));
         sprite.material.SetFloat("_BlinkFactor", 0);
+    }
+
+    private void ScaleHUDToAvatarSize()
+    {
+        //TODO : Refacto ce bousin si possible (Eliot)
+        
+        var scale = 1 / _character.transform.localScale.x;
+        if (scale < 1)
+        {
+            scale += _character.transform.localScale.x * 0.04f;
+        }
+        _playerHUD.rectTransform.localScale = new Vector3(scale, scale, scale);
+        
+        var yOffset = 1.27f - (Mathf.Abs(1 - _character.transform.localScale.x) * 0.25f);
+        _playerHUD.rectTransform.localPosition = new Vector3(0, yOffset, 0);
     }
 }
