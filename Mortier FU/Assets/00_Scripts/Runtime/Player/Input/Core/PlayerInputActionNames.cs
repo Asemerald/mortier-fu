@@ -12,7 +12,5 @@ namespace MortierFu
         public const string Navigate = "Navigate";
         public const string Submit = "Submit";
         public const string Cancel = "Cancel";
-
-        public const string Interact = "Interact";
     }
 }

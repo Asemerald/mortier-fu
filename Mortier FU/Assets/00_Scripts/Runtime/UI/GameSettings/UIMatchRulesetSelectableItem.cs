@@ -1,10 +1,11 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public sealed class UIMatchRulesetSelectorItem : UIMatchSettingsItemBase
+    public sealed class UIMatchRulesetSelectableItem : UIMatchSelectableItemBase
     {
         [Header("Text")]
         [SerializeField] private TMP_Text _nameText;
@@ -18,39 +19,46 @@ namespace MortierFu
         [SerializeField] private Color _selectedArrowColor = Color.yellow;
         [SerializeField] private Color _usedArrowColor = Color.green;
 
-        private bool _selected;
+        private bool _isSelected;
         private int _lastDirection;
 
-        public override bool HandleHorizontal(int direction)
+        public override void OnMove(AxisEventData eventData)
         {
-            if (direction == 0 || Data == null)
-                return false;
+            if (TryGetHorizontalMove(eventData, out int direction))
+            {
+                ChangeRuleset(direction);
+                eventData.Use();
+                return;
+            }
 
-            Data.SelectRulesetByOffset(direction, PlayerCount);
-
-            _lastDirection = direction;
-            Refresh();
-
-            return true;
+            base.OnMove(eventData);
         }
 
-        public override bool HandleSubmit()
+        public override void OnSubmit(BaseEventData eventData)
         {
-            return HandleHorizontal(1);
+            ChangeRuleset(1);
+            eventData.Use();
         }
 
-        protected override void OnSelectionChanged(bool selected)
+        public override void OnSelect(BaseEventData eventData)
         {
-            _selected = selected;
+            _isSelected = true;
+            base.OnSelect(eventData);
+            UpdateArrows();
+        }
 
-            if (!selected)
-                _lastDirection = 0;
-
+        public override void OnDeselect(BaseEventData eventData)
+        {
+            _isSelected = false;
+            _lastDirection = 0;
+            base.OnDeselect(eventData);
             UpdateArrows();
         }
 
         public override void Refresh()
         {
+            SetItemInteractable(true);
+
             SO_MatchRuleset ruleset = Data ? Data.SelectedRuleset : null;
 
             if (_nameText)
@@ -62,8 +70,18 @@ namespace MortierFu
             if (_descriptionText)
                 _descriptionText.text = ruleset ? ruleset.Description : string.Empty;
 
-            SetReadOnlyVisual(editable: true);
             UpdateArrows();
+        }
+
+        private void ChangeRuleset(int direction)
+        {
+            if (Data == null || direction == 0)
+                return;
+
+            Data.SelectRulesetByOffset(direction, PlayerCount);
+
+            _lastDirection = direction;
+            Refresh();
         }
 
         private void UpdateArrows()
@@ -83,7 +101,7 @@ namespace MortierFu
                 return;
             }
 
-            arrow.color = _selected ? _selectedArrowColor : _normalArrowColor;
+            arrow.color = _isSelected ? _selectedArrowColor : _normalArrowColor;
         }
     }
 }

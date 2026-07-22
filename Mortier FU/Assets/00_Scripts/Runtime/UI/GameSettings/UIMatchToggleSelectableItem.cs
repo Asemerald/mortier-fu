@@ -1,10 +1,11 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public sealed class UIMatchToggleSettingItem : UIMatchSettingsItemBase
+    public sealed class UIMatchToggleSelectableItem : UIMatchSelectableItemBase
     {
         [Header("Setting")]
         [SerializeField] private MatchSettingId _settingId;
@@ -21,26 +22,37 @@ namespace MortierFu
         [SerializeField] private Color _selectedColor = Color.yellow;
         [SerializeField] private Color _disabledColor = Color.gray;
 
-        private bool _selected;
+        private bool _isSelected;
 
-        public override bool HandleHorizontal(int direction)
+        public override void OnMove(AxisEventData eventData)
         {
-            if (direction == 0)
-                return false;
+            if (TryGetHorizontalMove(eventData, out _))
+            {
+                Toggle();
+                eventData.Use();
+                return;
+            }
 
-            Toggle();
-            return true;
+            base.OnMove(eventData);
         }
 
-        public override bool HandleSubmit()
+        public override void OnSubmit(BaseEventData eventData)
         {
             Toggle();
-            return true;
+            eventData.Use();
         }
 
-        protected override void OnSelectionChanged(bool selected)
+        public override void OnSelect(BaseEventData eventData)
         {
-            _selected = selected;
+            _isSelected = true;
+            base.OnSelect(eventData);
+            Refresh();
+        }
+
+        public override void OnDeselect(BaseEventData eventData)
+        {
+            _isSelected = false;
+            base.OnDeselect(eventData);
             Refresh();
         }
 
@@ -56,13 +68,13 @@ namespace MortierFu
             {
                 if (!editable)
                     _toggleGraphic.color = _disabledColor;
-                else if (_selected)
+                else if (_isSelected)
                     _toggleGraphic.color = _selectedColor;
                 else
                     _toggleGraphic.color = value ? _trueColor : _falseColor;
             }
 
-            SetReadOnlyVisual(editable);
+            SetItemInteractable(editable);
         }
 
         private void Toggle()
@@ -71,7 +83,10 @@ namespace MortierFu
                 return;
 
             if (!Data.IsSettingEditable(_settingId))
+            {
+                Refresh();
                 return;
+            }
 
             bool value = Data.GetBool(_settingId);
             Data.SetBool(_settingId, !value);
