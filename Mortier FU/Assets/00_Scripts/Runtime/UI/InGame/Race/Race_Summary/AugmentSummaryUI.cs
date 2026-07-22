@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using NaughtyAttributes;
 using TMPro;
-using UnityEngine.Serialization;
+
 
 namespace MortierFu
 {
@@ -29,7 +29,6 @@ namespace MortierFu
         
         private readonly List<Tween> _activeTweens = new();
         
-        private CancellationTokenSource _cts;
         private GameModeBase _gameModeBase;
         private Transform[] _playerCards;
 
@@ -38,28 +37,38 @@ namespace MortierFu
         [SerializeField] private bool bullyPossesIndicator = false;
         [SerializeField] private bool cardDisplay = true;
         
+        private Action _requestSkip;
         #endregion
 
         #region Unity LifeCycle
 
         private void OnEnable()
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts = new CancellationTokenSource();
+            _skipCts?.Cancel();
+            _skipCts?.Dispose();
+            
+            _skipCts = new CancellationTokenSource();
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
+            _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
         }
 
         private void OnDisable()
         {
             CancelAnimations();
+            
+            EndSkipConfirmation();
         }
 
         private void OnDestroy()
         {
+            EndSkipConfirmation();
+            
             CancelAnimations();
-            _cts?.Dispose();
-            _cts = null;
+            
+            _skipCts?.Dispose();
+            _skipCts = null;
+
+            _skipFillMaterialInstance = null;
         }
 
         #endregion
@@ -196,51 +205,97 @@ namespace MortierFu
 
             if (bullyPossesIndicator)
             {
-                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_cts.Token);
+                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_skipCts.Token);
             }
             else
             {
                 cardObj.EnableIndicatorCard(
                     _gameModeBase.GetWinnerPlayerIndex() != playerIndex && cardObj.transform.childCount > 0,
-                    _cts.Token);
+                    _skipCts.Token);
             }
+        }
+
+        private void InitializeSkipUI()
+        {
+            if (!skipFillImage)
+            {
+                Logs.LogError("No SkippFillImage was found on AugmentSummaryUI");
+                return;
+            }
+            
+            if (!skipFillImage.material)
+            {
+                Logs.LogError("No Material was found on SkipFillImage of AugmentSummaryUI");
+                return;
+            }
+            
+            _skipFillMaterialInstance = new Material(skipFillImage.material);
+
+            skipFillImage.material = _skipFillMaterialInstance;
         }
         
         #endregion
 
         #region Core Logic
         
-        public async UniTask AnimatePlayerImagesWithAugments(List<List<SO_Augment>> playerAugments, UniTask canHideTask, CancellationToken externalCancellationToken)
+        private CancellationTokenSource _skipCts;
+
+        public async UniTask AnimatePlayerImagesWithAugments(
+            List<List<SO_Augment>> playerAugments,
+            UniTask canHideTask,
+            Action requestSkip,
+            CancellationToken externalCancellationToken)
         {
-            _cts ??= new CancellationTokenSource();
-
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                _cts.Token,
-                externalCancellationToken
-            );
-
-            var ct = linkedCancellation.Token;
-
+            _requestSkip = requestSkip;
+            
+            var ownCts = _skipCts ??= new CancellationTokenSource();
+            
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_skipCts.Token, externalCancellationToken);
+            
             _background.SetActive(true);
 
-            int playerCount = playerAugments.Count;
+            InitializeSkipUI();
             
-            _playerImages = new Image[playerCount];
-            _playerCards = new Transform[playerCount];
+            BeginSkipConfirmation();
 
-            List<List<AugmentStack>> playerAugmentStacks = playerAugments
-                .Select(BuildAugmentStacks)
-                .ToList();
-            
-            InitializePlayers(playerAugmentStacks, playerCount);
-            
-            await AnimateSummaryUI(playerCount, ct, playerAugmentStacks);
-            
-            await HandleAnimationLastAugment(playerCount, ct, canHideTask);
-            
-            CleanAugmentSummaryForNextRound();
-            
-            _background.SetActive(false);
+            try
+            {
+                int playerCount = playerAugments.Count;
+
+                _playerImages = new Image[playerCount];
+                _playerCards = new Transform[playerCount];
+
+                List<List<AugmentStack>> playerAugmentStacks = playerAugments
+                    .Select(BuildAugmentStacks)
+                    .ToList();
+
+                InitializePlayers(playerAugmentStacks, playerCount);
+
+                await AnimateSummaryUI(playerCount, _skipCts.Token , playerAugmentStacks);
+
+                await HandleAnimationLastAugment(playerCount, _skipCts.Token , canHideTask);
+            }
+            catch (OperationCanceledException)
+            {
+                
+            }
+            finally
+            {
+                if (_skipCts == ownCts)
+                {
+                    _skipCts.Dispose();
+                    _skipCts = null;
+                }
+                else
+                {
+                    ownCts.Dispose();
+                }
+    
+                EndSkipConfirmation();
+                CleanAugmentSummaryForNextRound();
+                _background.SetActive(false);
+                _requestSkip = null;
+            }
         }
 
         private async UniTask AnimateSummaryUI(int playerCount, CancellationToken ct, List<List<AugmentStack>> playerAugmentStacks)
@@ -292,7 +347,7 @@ namespace MortierFu
         private async UniTask HandleAnimationLastAugment(int playerCount, CancellationToken ct, UniTask canHideTask)
         {
             var runningBreathingAnimations = new List<LastAugmentAnimation>();
-
+            
             for (int i = 0; i < playerCount; i++)
             {
                 Transform playerIcon = _playerImages[i].transform;
@@ -308,9 +363,12 @@ namespace MortierFu
                     runningBreathingAnimations.Add(breathingAnim);
                 }
             }
-
-            await canHideTask;
-
+            
+            while (canHideTask.Status == UniTaskStatus.Pending && !ct.IsCancellationRequested)
+            {
+                await UniTask.Yield();
+            }
+            
             ct.ThrowIfCancellationRequested();
 
             foreach (var breathingAnim in runningBreathingAnimations)
@@ -405,7 +463,7 @@ namespace MortierFu
                 tween.Stop();
             _activeTweens.Clear();
             
-            _cts?.Cancel();
+            _skipCts?.Cancel();
         }
         
         
@@ -423,6 +481,97 @@ namespace MortierFu
             
             for (int i = 0; i < childCount; i++)
                 Destroy(allElementToClean[i].gameObject);
+        }
+
+        #endregion
+
+        #region Skip Summary
+
+        [SerializeField] private Image skipFillImage;
+        
+        private Material _skipFillMaterialInstance;
+
+        private float _currentSkippFillValue;
+        
+        private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
+
+        private ConfirmationService _confirmationService;
+        
+        private bool _isSubscribedToSkipConfirmation;
+
+        private void BeginSkipConfirmation()
+        {
+            if (_isSubscribedToSkipConfirmation)
+                return;
+
+            List<PlayerManager> players = _confirmationService.GetAvailablePlayers();
+
+            _confirmationService.BeginConfirmation(players);
+
+            _currentSkippFillValue = 0f;
+            skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+
+            _confirmationService.OnPlayerConfirmed += HandlePlayerConfirm;
+
+            _isSubscribedToSkipConfirmation = true;
+        }
+
+        private void EndSkipConfirmation()
+        {
+            if (!_isSubscribedToSkipConfirmation)
+                return;
+
+            _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirm;
+            _confirmationService.ResetRuntimeState();
+            
+            _isSubscribedToSkipConfirmation = false;
+        }
+
+        private void HandlePlayerConfirm(int playerIndex)
+        {
+            PlayerConfirmAsync(_skipCts.Token).Forget();
+        }
+
+        private async UniTask PlayerConfirmAsync(CancellationToken ct)
+        {
+            float target = GetCurrentPlayersPercentageReady();
+            float startValue = _currentSkippFillValue;
+            const float duration = 0.15f;
+            float elapsedTime = 0f;
+
+            try
+            {
+                while (elapsedTime < duration)
+                {
+                    elapsedTime += Time.deltaTime;
+                    _currentSkippFillValue = Mathf.Lerp(startValue, target, elapsedTime / duration);
+                    skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+                    
+                    await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                }
+            }
+            catch (OperationCanceledException) { }
+            
+            finally
+            {
+                skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+
+                if (_currentSkippFillValue >= 0.99f)
+                {
+                    EndSkipConfirmation();
+                    _skipCts?.Cancel();
+                    _requestSkip?.Invoke();
+                } 
+            }
+        }
+
+        private float GetCurrentPlayersPercentageReady()
+        {
+            if (_confirmationService == null || _confirmationService.PlayersParticipantsCount <= 0)
+                return 1f;
+
+            int confirmedCount = _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
+            return Mathf.Clamp01((float)confirmedCount / _confirmationService.PlayersParticipantsCount);
         }
 
         #endregion

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -226,6 +227,7 @@ namespace MortierFu
 
         private async UniTask PlayAugmentSummary(
             UniTask canHideTask,
+            Action requestSkip,
             CancellationToken cancellationToken
         )
         {
@@ -255,6 +257,8 @@ namespace MortierFu
 
                 foreach (var player in players)
                 {
+                    player.SetControlContext(PlayerControlContext.AugmentRaceSummary);
+                    
                     if (player &&
                         player.Character &&
                         _augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
@@ -270,8 +274,8 @@ namespace MortierFu
                 await _augmentSummaryUI.AnimatePlayerImagesWithAugments(
                     playerAugments,
                     canHideTask,
-                    cancellationToken
-                );
+                    requestSkip,
+                    cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
