@@ -67,6 +67,8 @@ namespace MortierFu
             
             _skipCts?.Dispose();
             _skipCts = null;
+
+            _skipFillMaterialInstance = null;
         }
 
         #endregion
@@ -212,6 +214,25 @@ namespace MortierFu
                     _skipCts.Token);
             }
         }
+
+        private void InitializeSkipUI()
+        {
+            if (!skipFillImage)
+            {
+                Logs.LogError("No SkippFillImage was found on AugmentSummaryUI");
+                return;
+            }
+            
+            if (!skipFillImage.material)
+            {
+                Logs.LogError("No Material was found on SkipFillImage of AugmentSummaryUI");
+                return;
+            }
+            
+            _skipFillMaterialInstance = new Material(skipFillImage.material);
+
+            skipFillImage.material = _skipFillMaterialInstance;
+        }
         
         #endregion
 
@@ -233,6 +254,8 @@ namespace MortierFu
             
             _background.SetActive(true);
 
+            InitializeSkipUI();
+            
             BeginSkipConfirmation();
 
             try
@@ -465,6 +488,8 @@ namespace MortierFu
         #region Skip Summary
 
         [SerializeField] private Image skipFillImage;
+        
+        private Material _skipFillMaterialInstance;
 
         private float _currentSkippFillValue;
         
@@ -504,14 +529,40 @@ namespace MortierFu
 
         private void HandlePlayerConfirm(int playerIndex)
         {
-            _currentSkippFillValue = GetCurrentPlayersPercentageReady();
-            skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+            PlayerConfirmAsync(_skipCts.Token).Forget();
+        }
 
-            if (_currentSkippFillValue < 0.99f) return;
+        private async UniTask PlayerConfirmAsync(CancellationToken ct)
+        {
+            float target = GetCurrentPlayersPercentageReady();
+            float startValue = _currentSkippFillValue;
+            const float duration = 0.15f;
+            float elapsedTime = 0f;
 
-            EndSkipConfirmation();
-            _skipCts?.Cancel();
-            _requestSkip?.Invoke();
+            try
+            {
+                while (elapsedTime < duration)
+                {
+                    elapsedTime += Time.deltaTime;
+                    _currentSkippFillValue = Mathf.Lerp(startValue, target, elapsedTime / duration);
+                    skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+                    
+                    await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                }
+            }
+            catch (OperationCanceledException) { }
+            
+            finally
+            {
+                skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+
+                if (_currentSkippFillValue >= 0.99f)
+                {
+                    EndSkipConfirmation();
+                    _skipCts?.Cancel();
+                    _requestSkip?.Invoke();
+                } 
+            }
         }
 
         private float GetCurrentPlayersPercentageReady()
