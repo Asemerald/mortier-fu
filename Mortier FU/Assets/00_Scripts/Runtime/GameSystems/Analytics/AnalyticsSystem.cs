@@ -35,7 +35,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = "b.1.2",
+                officialGameVersion = "b.1.3",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
@@ -43,9 +43,12 @@ namespace MortierFu.Analytics
 
             StartNewRound();
         }
+        
+        private System.DateTime _roundStartTime;
 
         private void StartNewRound()
         {
+            _roundStartTime = System.DateTime.UtcNow;
             _currentRoundPlayers = new Dictionary<string, AnalyticsPlayerData>();
 
             var currentRound = new AnalyticsRoundData()
@@ -58,6 +61,16 @@ namespace MortierFu.Analytics
             _gameData.rounds[_currentRoundIndex] = currentRound;
 
             InitializePlayersForRound();
+        }
+        
+        private string ShortenDeathCause(E_DeathCause cause)
+        {
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion => "Explosion",
+                E_DeathCause.FallAfterExplosion => "FallExplosion",
+                _ => cause.ToString()
+            };
         }
 
         private void InitializePlayersForRound()
@@ -93,6 +106,11 @@ namespace MortierFu.Analytics
 
         private void OnTriggerEndRound(TriggerEndRound endRound)
         {
+            if (!IsInCombatPhase())
+            {
+                return;
+            }
+            
             FinalizeCurrentRound();
 
             _currentRoundIndex++;
@@ -106,6 +124,7 @@ namespace MortierFu.Analytics
             var currentRound = _gameData.rounds[_currentRoundIndex];
 
             currentRound.players = _currentRoundPlayers.Values.ToList();
+            currentRound.roundDurationSeconds = (int)(System.DateTime.UtcNow - _roundStartTime).TotalSeconds; 
 
             var winner = currentRound.players.OrderByDescending(p => p.kills)
                                             .ThenByDescending(p => p.score)
@@ -126,7 +145,7 @@ namespace MortierFu.Analytics
 
             SendGameOverviewToGoogleSheets().Forget();
             SendAugmentStatsToGoogleSheets().Forget();
-            //SendAllRoundsToGoogleSheets().Forget();
+            SendAllRoundsOverviewToGoogleSheets().Forget();
         }
 
         private void FinalizeGame()

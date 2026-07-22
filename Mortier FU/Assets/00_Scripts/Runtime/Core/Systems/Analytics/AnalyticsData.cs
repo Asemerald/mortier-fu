@@ -45,6 +45,7 @@ namespace MortierFu
     {
         public int roundNumber;
         public string roundWinner;
+        public int roundDurationSeconds;
         public List<AnalyticsPlayerData> players;
     }
 

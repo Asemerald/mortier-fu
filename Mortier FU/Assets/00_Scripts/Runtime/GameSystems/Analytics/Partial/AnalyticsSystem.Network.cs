@@ -1,6 +1,5 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
 using System.Linq;
 using MortierFu.Shared;
 
@@ -98,6 +97,7 @@ namespace MortierFu.Analytics
                 form.AddField("officialGameVersion", _gameData.officialGameVersion);
                 form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
                 form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
+                form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
 
                 foreach (var entry in _augmentStats.Values.OrderBy(e => e.augmentId))
                 {
@@ -121,6 +121,85 @@ namespace MortierFu.Analytics
                 if (round == null) continue;
 
                 await SendRoundDataToGoogleSheets(round);
+            }
+        }
+
+        private async UniTask SendAllRoundsOverviewToGoogleSheets()
+        {
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics rounds overview send skipper in editor.");
+                return;
+            }
+
+            for (int i = 0; i < _gameData.roundsPlayed; i++)
+            {
+                var round = _gameData.rounds[i];
+                if (round?.players == null) continue;
+
+                try
+                {
+                    WWWForm form = new WWWForm();
+                    form.AddField("dataType", "roundOverview");
+                    form.AddField("gameId", _gameData.gameId);
+                    form.AddField("date", _gameData.date);
+                    form.AddField("devVersion", _gameData.gameVersion);
+                    form.AddField("gameVersion", _gameData.officialGameVersion);
+
+                    form.AddField("nbrPlayer", _gameData.numberOfPlayers.ToString());
+                    form.AddField("roundNumber", round.roundNumber.ToString());
+                    form.AddField("roundDuration", round.roundDurationSeconds.ToString());
+                    form.AddField("roundWinner", round.roundWinner);
+
+                    var sortedPlayers = round.players.OrderBy(p => p.playerId).Take(4).ToList();
+
+                    for (int p = 0; p < 4; p++)
+                    {
+                        string prefix = $"player{p}";
+
+                        if (p < sortedPlayers.Count)
+                        {
+                            var player = sortedPlayers[p];
+
+                            form.AddField($"{prefix}ScoreAtEnd", player.score.ToString());
+                            form.AddField($"{prefix}LastAugmentPicked", player.selectedAugment != null ? player.selectedAugment.Name : "None");
+                            form.AddField($"{prefix}Kills", player.kills.ToString());
+                            form.AddField($"{prefix}Dashes", player.dashesPerformed.ToString());
+                            form.AddField($"{prefix}Bumped", player.bumpsMade.ToString());
+                            form.AddField($"{prefix}Stun", player.stunsPerformed.ToString());
+                            form.AddField($"{prefix}Stunned", player.stunsUnderwented.ToString());
+                            form.AddField($"{prefix}ShotFired", player.shotsFired.ToString());
+                            form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
+                            form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
+                            form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
+                            form.AddField($"{prefix}DeathCause", ShortenDeathCause(player.deathCause));
+                        }
+                        else
+                        {
+                            form.AddField($"{prefix}ScoreAtEnd", "");
+                            form.AddField($"{prefix}LastAugmentPicked", "");
+                            form.AddField($"{prefix}Kills", "");
+                            form.AddField($"{prefix}Dashes", "");
+                            form.AddField($"{prefix}Bumped", "");
+                            form.AddField($"{prefix}Stun", "");
+                            form.AddField($"{prefix}Stunned", "");
+                            form.AddField($"{prefix}ShotFired", "");
+                            form.AddField($"{prefix}ShotHit", "");
+                            form.AddField($"{prefix}DamageDealt", "");
+                            form.AddField($"{prefix}Taken", "");
+                            form.AddField($"{prefix}DeathCause", "");
+                        }
+                    }
+
+                    await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form,
+                        $"round-{round.roundNumber}");
+                }
+                catch (System.Exception ex)
+                {
+                    Logs.LogError($"Exception while sending round overview ; {ex.Message}");
+                }
+
+                await UniTask.Delay(100);
             }
         }
 
@@ -166,7 +245,7 @@ namespace MortierFu.Analytics
 
                     form.AddField("dashesPerformed", player.dashesPerformed.ToString());
                     form.AddField("bumpsMade", player.bumpsMade.ToString());
-                    form.AddField("deathCause", player.deathCause.ToString());
+                    form.AddField("deathCause", ShortenDeathCause(player.deathCause));
 
                     await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, player.playerId);
                 }

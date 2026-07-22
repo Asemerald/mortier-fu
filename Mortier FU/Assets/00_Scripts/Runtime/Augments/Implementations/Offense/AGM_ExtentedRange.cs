@@ -13,7 +13,7 @@ namespace MortierFu
 
         public override void Initialize()
         {
-            stats.ShotRange.AddModifier(db.ExtentedRangeParams.ShotRangeMod.ToMod(this));
+            stats.ShotRange.AddModifier(db.ExtendedRangeParams.ShotRangeMod.ToMod(this));
         }
         
         public override void Dispose()
