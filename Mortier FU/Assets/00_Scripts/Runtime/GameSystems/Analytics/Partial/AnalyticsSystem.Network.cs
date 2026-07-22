@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Linq;
 using MortierFu.Shared;
+using System.Collections.Generic;
 
 namespace MortierFu.Analytics
 {
@@ -120,13 +121,23 @@ namespace MortierFu.Analytics
                 Logs.Log("Analytics rounds overview send skipper in editor.");
                 return;
             }
+            
+            var sendTasks = new List<UniTask>();
 
             for (int i = 0; i < _gameData.roundsPlayed; i++)
             {
                 var round = _gameData.rounds[i];
                 if (round?.players == null) continue;
+                
+                sendTasks.Add(SendSingleRoundOverview(round));
+            }
+            
+            await UniTask.WhenAll(sendTasks);
+        }
 
-                try
+        private async UniTask SendSingleRoundOverview(AnalyticsRoundData round)
+        {
+            try
                 {
                     WWWForm form = new WWWForm();
                     form.AddField("dataType", "roundOverview");
@@ -187,9 +198,6 @@ namespace MortierFu.Analytics
                 {
                     Logs.LogError($"Exception while sending round overview ; {ex.Message}");
                 }
-
-                await UniTask.Delay(100);
-            }
         }
     }
 }
