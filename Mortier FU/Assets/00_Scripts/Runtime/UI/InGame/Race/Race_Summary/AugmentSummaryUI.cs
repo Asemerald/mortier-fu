@@ -558,6 +558,8 @@ namespace MortierFu
 
                 if (_currentSkippFillValue >= 0.99f)
                 {
+                    
+                    await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
                     EndSkipConfirmation();
                     _skipCts?.Cancel();
                     _requestSkip?.Invoke();

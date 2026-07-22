@@ -705,8 +705,6 @@ namespace MortierFu
             
             ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
             
-            await CircleTransition.Instance.OpenAsync(0.35f);
-            
             cancellationToken.ThrowIfCancellationRequested();
         }
 
