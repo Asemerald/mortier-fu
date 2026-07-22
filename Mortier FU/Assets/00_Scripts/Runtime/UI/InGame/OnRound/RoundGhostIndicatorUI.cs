@@ -26,6 +26,7 @@ namespace MortierFu
         private EventBinding<TriggerEndRound> _endRoundBinding;
         
         private bool _isInitialized;
+        private bool _enable = false;
         
 
         private void Start()
@@ -47,14 +48,13 @@ namespace MortierFu
             }
 
             _gameMode.OnRoundEnded += CleanGhostUiAfterRound;
+            _gameMode.OnRoundGameplayStarted += Initialize;
 
             if (_ghostSystem == null)
             {
                 Logs.LogError("[RoundGhostIndicatorUI]: Ghost System is null.");
                 return;
             }
-
-            Initialize();
             
             _endRoundBinding = new EventBinding<TriggerEndRound>(CleanGhostUiAfterRound);
             EventBus<TriggerEndRound>.Register(_endRoundBinding);
@@ -63,15 +63,21 @@ namespace MortierFu
         private void OnDestroy()
         {
             _gameMode.OnRoundEnded -= CleanGhostUiAfterRound;
+            _gameMode.OnRoundGameplayStarted -= Initialize;
+            
             EventBus<TriggerEndRound>.Deregister(_endRoundBinding);
             _endRoundBinding = null;
         }
 
         private void Update() => HandleGhostIndicatorUI();
 
-        private void Initialize()
+        private void Initialize(RoundInfo info)
         {
+            _enable = true;
+            
             if(_gameMode == null) return;
+            
+            if (_isInitialized) return;
 
             int count = _gameMode.MaxPlayerCount; //couldn't get the _gameMode.Teams.Count because not init 
 
@@ -92,7 +98,7 @@ namespace MortierFu
 
         private void HandleGhostIndicatorUI()
         {
-            if(!_isInitialized) return;
+            if(!_isInitialized || !_enable) return;
             
             if (!_cameraSystem.Controller || _ghostSystem == null) return;
             
@@ -162,12 +168,16 @@ namespace MortierFu
 
         private void CleanGhostUiAfterRound(RoundInfo roundInfo)
         {
+            _enable = false;
+            
             foreach (Image ghostIndicator in _ghostIndicators)
                 ghostIndicator.gameObject.SetActive(false);
         }
 
         private void CleanGhostUiAfterRound() //need polymorphism for RaceStart not include RoundInfo
         {
+            _enable = false;
+            
             foreach (Image ghostIndicator in _ghostIndicators)
                 ghostIndicator.gameObject.SetActive(false);
         }
