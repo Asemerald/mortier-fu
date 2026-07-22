@@ -158,7 +158,8 @@ public class PlayerGameplayUI : MonoBehaviour
         UpdateStrikeUI();
         
         //TODO : Refacto ce bousin si possible (Eliot)
-        if (_gm.CurrentGameState == GameState.AugmentRace || _gm.CurrentGameState == GameState.Round || _gm.CurrentGameState == GameState.RoundCountdown)
+        
+        if (_gm?.CurrentGameState is GameState.AugmentRace or GameState.Round or GameState.RoundCountdown)
         {
             ScaleHUDToAvatarSize();
         }
