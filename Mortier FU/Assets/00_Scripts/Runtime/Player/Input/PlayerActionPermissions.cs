@@ -201,7 +201,7 @@ namespace MortierFu
                 ),
 
                 PlayerControlContext.AugmentRaceBullyShootOnly => new PlayerActionPermissions(
-                    canMove: false,
+                    canMove: true,
                     canAim: true,
                     canShoot: true,
                     canDash: false,
