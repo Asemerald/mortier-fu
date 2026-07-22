@@ -15,10 +15,6 @@ namespace MortierFu
         [Header("Data")]
         [SerializeField] private LobbyMatchSettingsData _matchSettingsData;
 
-        [Header("Global Event System")]
-        [SerializeField] private MultiplayerEventSystem _globalEventSystem;
-        [SerializeField] private InputSystemUIInputModule _globalInputModule;
-
         [Header("Settings Event System")]
         [SerializeField] private EventSystem _settingsEventSystem;
         [SerializeField] private InputSystemUIInputModule _settingsInputModule;
@@ -42,7 +38,10 @@ namespace MortierFu
         private int _currentPlayerCount = 1;
         private bool _isOpen;
         private bool _isOpening;
-
+        
+        private MultiplayerEventSystem _globalEventSystem; 
+        private InputSystemUIInputModule _globalInputModule;
+        
         private void Awake()
         {
             if (_root)
