@@ -1,5 +1,9 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -11,29 +15,50 @@ namespace MortierFu
         [Header("Data")]
         [SerializeField] private LobbyMatchSettingsData _matchSettingsData;
 
-        [Header("Navigation")]
-        [SerializeField] private UINavigationPanel _navigationPanel;
+        [Header("Global Event System")]
+        [SerializeField] private MultiplayerEventSystem _globalEventSystem;
+        [SerializeField] private InputSystemUIInputModule _globalInputModule;
+
+        [Header("Settings Event System")]
+        [SerializeField] private EventSystem _settingsEventSystem;
+        [SerializeField] private InputSystemUIInputModule _settingsInputModule;
+
+        [Header("Unity UI")]
+        [SerializeField] private Selectable _firstSelected;
+        [SerializeField] private UISelectedScrollFollower _scrollFollower;
 
         [Header("Settings Items")]
-        [SerializeField] private UIMatchSettingsItemBase[] _settingsItems;
+        [SerializeField] private UIMatchSelectableItemBase[] _settingsItems;
 
         [Header("Optional")]
         [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
+        private readonly UnityPlayerUISession _uiSession = new();
+
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
+        private Coroutine _selectionRoutine;
+
         private int _currentPlayerCount = 1;
+        private bool _isOpen;
+        private bool _isOpening;
 
         private void Awake()
         {
             if (_root)
                 _root.SetActive(false);
+
+            _globalEventSystem = (MultiplayerEventSystem)(_globalEventSystem ? _globalEventSystem : EventSystem.current);
+            _globalInputModule = _globalInputModule ? _globalInputModule : _globalEventSystem?.GetComponent<InputSystemUIInputModule>();
+            
+            SetSettingsEventSystemActive(false);
         }
 
         private void OnEnable()
         {
-            if (!_matchSettingsData) return;
-            
+            if (!_matchSettingsData)
+                return;
+
             _matchSettingsData.OnChanged -= Refresh;
             _matchSettingsData.OnChanged += Refresh;
         }
@@ -42,6 +67,17 @@ namespace MortierFu
         {
             if (_matchSettingsData)
                 _matchSettingsData.OnChanged -= Refresh;
+
+            StopSelectionRoutine();
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            StopSelectionRoutine();
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
         }
 
         public void Open(PlayerManager player, Action<PlayerManager> onClosed)
@@ -49,9 +85,14 @@ namespace MortierFu
             if (!player)
                 return;
 
+            StopSelectionRoutine();
+
             _activePlayer = player;
             _onClosed = onClosed;
             _currentPlayerCount = GetCurrentLobbyPlayerCount();
+
+            _isOpen = true;
+            _isOpening = true;
 
             if (_matchSettingsData)
                 _matchSettingsData.ApplyRecommendedForPlayerCount(_currentPlayerCount);
@@ -59,36 +100,137 @@ namespace MortierFu
             if (_root)
                 _root.SetActive(true);
 
+            SetSettingsEventSystemActive(true);
+
             BindItems();
             Refresh();
 
-            if (_navigationPanel)
-                _navigationPanel.Open(player, CloseFromNavigation);
+            _uiSession.Begin(player, _settingsEventSystem, _settingsInputModule, null);
+
+            _selectionRoutine = StartCoroutine(SelectFirstWhenReady());
         }
 
         public void Close() => CloseInternal(notifyClosed: false);
 
-        private void CloseFromNavigation(PlayerManager player)
+        public void CloseFromUI() => CloseInternal(notifyClosed: true);
+
+        public void ValidateCurrentSelection()
         {
-            if (!_activePlayer || !ReferenceEquals(_activePlayer, player))
+            if (!_isOpen || _isOpening)
                 return;
 
-            CloseInternal(notifyClosed: true);
+            if (!_settingsEventSystem)
+                return;
+
+            GameObject selected = _settingsEventSystem.currentSelectedGameObject;
+
+            if (!selected)
+            {
+                SelectFirstAvailable();
+                return;
+            }
+
+            UIMatchSelectableItemBase item = selected.GetComponent<UIMatchSelectableItemBase>();
+
+            if (!item || !item.CanReceiveSelection)
+                SelectFirstAvailable();
+        }
+
+        public bool SelectRelativeTo(UIMatchSelectableItemBase currentItem, int direction)
+        {
+            if (currentItem == null || _settingsItems == null || _settingsItems.Length == 0 || direction == 0)
+                return false;
+
+            int currentIndex = Array.IndexOf(_settingsItems, currentItem);
+
+            if (currentIndex < 0)
+                return false;
+
+            int index = currentIndex + direction;
+
+            while (index >= 0 && index < _settingsItems.Length)
+            {
+                UIMatchSelectableItemBase candidate = _settingsItems[index];
+
+                if (candidate && candidate.CanReceiveSelection)
+                {
+                    SelectItem(candidate);
+                    return true;
+                }
+
+                index += direction;
+            }
+
+            return false;
+        }
+
+        private IEnumerator SelectFirstWhenReady()
+        {
+            yield return null;
+
+            Canvas.ForceUpdateCanvases();
+
+            _scrollFollower?.ResetToTop();
+
+            if (_firstSelected is UIMatchSelectableItemBase firstItem && firstItem.CanReceiveSelection)
+                SelectItem(firstItem);
+            else
+                SelectFirstAvailable();
+
+            _scrollFollower?.FollowSelectedNow();
+
+            _isOpening = false;
+            _selectionRoutine = null;
+        }
+
+        private void SelectFirstAvailable()
+        {
+            if (_settingsItems == null)
+                return;
+
+            for (int i = 0; i < _settingsItems.Length; i++)
+            {
+                UIMatchSelectableItemBase item = _settingsItems[i];
+
+                if (!item || !item.CanReceiveSelection)
+                    continue;
+
+                SelectItem(item);
+                return;
+            }
+
+            if (_settingsEventSystem)
+                _settingsEventSystem.SetSelectedGameObject(null);
+        }
+
+        private void SelectItem(UIMatchSelectableItemBase item)
+        {
+            if (!_settingsEventSystem || !item)
+                return;
+
+            _settingsEventSystem.SetSelectedGameObject(null);
+            _settingsEventSystem.SetSelectedGameObject(item.gameObject);
+
+            _scrollFollower?.FollowSelectedNow();
         }
 
         private void CloseInternal(bool notifyClosed)
         {
+            StopSelectionRoutine();
+
             PlayerManager activePlayer = _activePlayer;
             Action<PlayerManager> onClosed = _onClosed;
 
-            if (_navigationPanel)
-                _navigationPanel.Close();
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
 
             if (_root)
                 _root.SetActive(false);
 
             _activePlayer = null;
             _onClosed = null;
+            _isOpen = false;
+            _isOpening = false;
 
             if (notifyClosed && activePlayer)
                 onClosed?.Invoke(activePlayer);
@@ -102,7 +244,7 @@ namespace MortierFu
             for (int i = 0; i < _settingsItems.Length; i++)
             {
                 if (_settingsItems[i])
-                    _settingsItems[i].Bind(_matchSettingsData, _currentPlayerCount);
+                    _settingsItems[i].Bind(this, _matchSettingsData, _currentPlayerCount);
             }
         }
 
@@ -118,6 +260,52 @@ namespace MortierFu
             }
 
             _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
+
+            ValidateCurrentSelection();
+        }
+
+        private void SetSettingsEventSystemActive(bool active)
+        {
+            if (active)
+            {
+                if (_globalInputModule)
+                    _globalInputModule.enabled = false;
+
+                if (_globalEventSystem)
+                    _globalEventSystem.enabled = false;
+
+                if (_settingsEventSystem)
+                    _settingsEventSystem.enabled = true;
+
+                if (_settingsInputModule)
+                    _settingsInputModule.enabled = true;
+
+                return;
+            }
+
+            if (_settingsEventSystem)
+            {
+                _settingsEventSystem.SetSelectedGameObject(null);
+                _settingsEventSystem.enabled = false;
+            }
+
+            if (_settingsInputModule)
+                _settingsInputModule.enabled = false;
+
+            if (_globalEventSystem)
+                _globalEventSystem.enabled = true;
+
+            if (_globalInputModule)
+                _globalInputModule.enabled = true;
+        }
+
+        private void StopSelectionRoutine()
+        {
+            if (_selectionRoutine == null)
+                return;
+
+            StopCoroutine(_selectionRoutine);
+            _selectionRoutine = null;
         }
 
         private static int GetCurrentLobbyPlayerCount()

@@ -52,6 +52,8 @@ namespace MortierFu
         }
 
         public PlayerCustomizationData Customization => _customization;
+        
+        private bool _unityEventSystemUIActive;
 
         public int SkinIndex => _customization.SkinIndex;
         public int FaceColumn => _customization.FaceColumn;
@@ -132,6 +134,11 @@ namespace MortierFu
 
             OnPlayerInitialized = null;
             OnPlayerDestroyed = null;
+        }
+        
+        public void SetUnityEventSystemUIActive(bool active)
+        {
+            _unityEventSystemUIActive = active;
         }
 
         private void ResolvePlayerInput()
@@ -241,6 +248,9 @@ namespace MortierFu
 
         private void NavigateUI(InputAction.CallbackContext ctx)
         {
+            if (_unityEventSystemUIActive)
+                return;
+
             if (!CurrentPermissions.CanNavigateUI)
                 return;
 
@@ -251,6 +261,9 @@ namespace MortierFu
 
         private void SubmitUI(InputAction.CallbackContext ctx)
         {
+            if (_unityEventSystemUIActive)
+                return;
+
             if (!ctx.performed)
                 return;
 
@@ -262,6 +275,9 @@ namespace MortierFu
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
+            if (_unityEventSystemUIActive)
+                return;
+
             if (!ctx.performed)
                 return;
 

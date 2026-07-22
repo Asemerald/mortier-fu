@@ -1,10 +1,11 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MortierFu
 {
-    public sealed class UIMatchFloatSettingItem : UIMatchSettingsItemBase
+    public sealed class UIMatchFloatSelectableItem : UIMatchSelectableItemBase
     {
         [Header("Setting")]
         [SerializeField] private MatchSettingId _settingId = MatchSettingId.RaceTimeLimit;
@@ -29,40 +30,33 @@ namespace MortierFu
         [SerializeField] private Color _usedArrowColor = Color.green;
         [SerializeField] private Color _disabledArrowColor = Color.gray;
 
-        private bool _selected;
+        private bool _isSelected;
         private int _lastDirection;
 
-        public override bool HandleHorizontal(int direction)
+        public override void OnMove(AxisEventData eventData)
         {
-            if (direction == 0 || Data == null)
-                return false;
+            if (TryGetHorizontalMove(eventData, out int direction))
+            {
+                ChangeValue(direction);
+                eventData.Use();
+                return;
+            }
 
-            if (!Data.IsSettingEditable(_settingId))
-                return true;
-
-            float currentValue = Data.GetFloat(_settingId);
-            float nextValue = currentValue + direction * Mathf.Max(0.01f, _step);
-
-            if (_wrapValue)
-                nextValue = WrapValue(nextValue);
-            else
-                nextValue = Mathf.Clamp(nextValue, _minValue, _maxValue);
-
-            Data.SetFloat(_settingId, nextValue);
-
-            _lastDirection = direction;
-            Refresh();
-
-            return true;
+            base.OnMove(eventData);
         }
 
-        protected override void OnSelectionChanged(bool selected)
+        public override void OnSelect(BaseEventData eventData)
         {
-            _selected = selected;
+            _isSelected = true;
+            base.OnSelect(eventData);
+            Refresh();
+        }
 
-            if (!selected)
-                _lastDirection = 0;
-
+        public override void OnDeselect(BaseEventData eventData)
+        {
+            _isSelected = false;
+            _lastDirection = 0;
+            base.OnDeselect(eventData);
             Refresh();
         }
 
@@ -74,9 +68,36 @@ namespace MortierFu
             if (_valueText)
                 _valueText.text = $"{_prefix}{value.ToString(_format)}{_suffix}";
 
-            SetReadOnlyVisual(editable);
+            SetItemInteractable(editable);
             UpdateArrow(_leftArrow, _lastDirection < 0, editable);
             UpdateArrow(_rightArrow, _lastDirection > 0, editable);
+        }
+
+        private void ChangeValue(int direction)
+        {
+            if (Data == null || direction == 0)
+                return;
+
+            bool editable = Data.IsSettingEditable(_settingId);
+
+            if (!editable)
+            {
+                _lastDirection = 0;
+                Refresh();
+                return;
+            }
+
+            float step = Mathf.Max(0.01f, _step);
+            float currentValue = Data.GetFloat(_settingId);
+            float nextValue = currentValue + direction * step;
+
+            nextValue = _wrapValue ? WrapValue(nextValue) : Mathf.Clamp(nextValue, _minValue, _maxValue);
+            nextValue = Quantize(nextValue);
+
+            Data.SetFloat(_settingId, nextValue);
+
+            _lastDirection = direction;
+            Refresh();
         }
 
         private void UpdateArrow(Graphic arrow, bool used, bool editable)
@@ -96,7 +117,7 @@ namespace MortierFu
                 return;
             }
 
-            arrow.color = _selected ? _selectedArrowColor : _normalArrowColor;
+            arrow.color = _isSelected ? _selectedArrowColor : _normalArrowColor;
         }
 
         private float WrapValue(float value)
@@ -114,6 +135,14 @@ namespace MortierFu
                 index += count;
 
             return _minValue + index * step;
+        }
+
+        private float Quantize(float value)
+        {
+            float step = Mathf.Max(0.01f, _step);
+            float stepsFromMin = Mathf.Round((value - _minValue) / step);
+
+            return _minValue + stepsFromMin * step;
         }
     }
 }
