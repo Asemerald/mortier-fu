@@ -39,14 +39,15 @@ namespace MortierFu
         protected override void PlayFootprintVFX(PlayerCharacter player)
         {
             if (player.ExternalSpeedMultiplier > slowMultiplier) return;
-
+            if(player.gameObject.GetComponent<Rigidbody>().linearVelocity.magnitude<=_minVelocityVfx) return;
+            
             float randomZRotation = Random.value * 360f;
-
+            
             Vector3 baseEuler = vfxCacaQuiSlowPrefab.transform.rotation.eulerAngles;
             Quaternion finalRotationFx = Quaternion.Euler(baseEuler.x, baseEuler.y, baseEuler.z + randomZRotation);
 
             var vfxInstance = Instantiate(vfxCacaQuiSlowPrefab, player.FeetPoint.position, finalRotationFx);
-
+            
             Destroy(vfxInstance, 10f);
         }
     }

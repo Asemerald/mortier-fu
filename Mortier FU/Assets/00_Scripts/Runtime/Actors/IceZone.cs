@@ -58,7 +58,7 @@ namespace MortierFu
         protected override void PlayFootprintVFX(PlayerCharacter player)
         {
             if (vfx == null) return;
-
+            if(player.gameObject.GetComponent<Rigidbody>().linearVelocity.magnitude<=_minVelocityVfx) return;
             var vfxInstance = Instantiate(vfx, player.FeetPoint.position,
                 player.FeetPoint.rotation);
 

@@ -7,7 +7,7 @@ namespace MortierFu
     public abstract class BaseZone : MonoBehaviour
     {
         [SerializeField] protected float vfxFootPrintDuration;
-        
+        protected float _minVelocityVfx =0.5f;
         private readonly Dictionary<PlayerCharacter, float> _counters = new();
 
         private readonly List<PlayerCharacter> _playersCache = new();
