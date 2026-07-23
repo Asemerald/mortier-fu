@@ -34,7 +34,10 @@ namespace MortierFu
         [SerializeField] private float _showExplosionDelay = 0.1f;
         [SerializeField] private float _hideInfoDelay = 0.2f;
 
-        [Header("IconAugment")]
+        [Header("SymbolDescription")] 
+        [SerializeField] private int _symboleSize = 200;
+        
+        [Header("IconAugment")] 
         [SerializeField] private Vector3 _sizeIcon = new Vector3(.3f, .3f,.3f);
         
         private FaceCamera _faceCamera;
@@ -103,67 +106,20 @@ namespace MortierFu
             _titleRarityFilter.texture = _raritySpritesFactory.GetTitleRarityFilter(augment.Rarity);
             _nameTxt.color = data.NameColor;
             
-            //stoian
-            //mange ma mortichiasse
-
-            Dictionary<TEMP_E_AugmentVariable, string> dict = new Dictionary<TEMP_E_AugmentVariable, string>();
-            
-            List<TEMP_E_AugmentVariable> variableList = Enum.GetValues(typeof(TEMP_E_AugmentVariable)).Cast<TEMP_E_AugmentVariable>().ToList();
-
-            TEMP_LIST_AugmentDescription descriptionList = new TEMP_LIST_AugmentDescription();
-            
-            if (variableList.Count != descriptionList.AugmentDescription.Count) return;
-            
-            for (int len = variableList.Count-1; 0 <= len; len--)
-            {
-                dict.Add(variableList[len], descriptionList.AugmentDescription[len]);
-            }
-
             _sb.Clear();
-            
             _sb.Append(augment.ConditionText);
             
             if (augment.ConditionText != "")
+                _sb.AppendLine();
+            
+            foreach (AugmentDescription desc in augment.Description)
             {
+                _sb.Append(AugmentVariableDescription.Get(desc.variable));
+                _sb.Append(GetValueSuffix(desc.value));
                 _sb.AppendLine();
             }
             
-            foreach (TEMP_STRUCT_AugmentDescription desc in augment.Description)
-            {
-                _sb.Append(dict[desc.variable]);
-                
-                switch (desc.value)
-                {
-                    case TEMP_E_AugmentValue.Empty:
-                        _sb.Append("");
-                        break;
-                    case TEMP_E_AugmentValue.MinusThree:
-                        _sb.Append(" ---");
-                        break;
-                    case TEMP_E_AugmentValue.MinusTwo:
-                        _sb.Append(" --");
-                        break;
-                    case TEMP_E_AugmentValue.MinusOne:
-                        _sb.Append(" -");
-                        break;
-                    case TEMP_E_AugmentValue.PlusOne:
-                        _sb.Append(" +");
-                        break;
-                    case TEMP_E_AugmentValue.PlusOneNumber:
-                        _sb.Append(" +1");
-                        break;
-                    case TEMP_E_AugmentValue.PlusTwo:
-                        _sb.Append(" ++");
-                        break;
-                    case TEMP_E_AugmentValue.PlusThree:
-                        _sb.Append(" +++");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-                
-                _sb.AppendLine();
-            }
+            
 
             _descTxt.color = data.DescriptionColor;
             _descTxt.SetText(_sb.ToString());
@@ -186,6 +142,25 @@ namespace MortierFu
             _augmentIcon.sprite = augment.SmallSprite;
             _augmentCard.sprite = augment.CardSprite;
         }
+
+        private string GetValueSuffix(E_AugmentValue value)
+        {
+            string symbol = value switch
+            {
+                E_AugmentValue.Empty => "",
+                E_AugmentValue.MinusThree => " ---",
+                E_AugmentValue.MinusTwo => " --",
+                E_AugmentValue.MinusOne => " -",
+                E_AugmentValue.PlusOne => " +",
+                E_AugmentValue.PlusTwo => " ++",
+                E_AugmentValue.PlusThree => " +++",
+                E_AugmentValue.OneNumber => " +1",
+                _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+            };
+            
+            return symbol == "" ? "" : $"<size={_symboleSize}%>{symbol}</size>";
+        }
+        
 
         public void SetIconCardVisual(SO_Augment augment)
         {
