@@ -50,13 +50,7 @@ MonoBehaviour:
   _rootVisual: {fileID: 2734103673972959935}
   _animator: {fileID: 1500021555660439545}
   _ghostAspectMaterials:
-  - Material: {fileID: 2100000, guid: 096e82d82085be1449d1b1927be5162b, type: 2}
-    GhostMeshes:
-    - {fileID: 980981839185271068}
-    - {fileID: 2393015717357720799}
-    - {fileID: 6505239417627711445}
-    - {fileID: 7801124977940471460}
-    MaterialBindings:
+  - MaterialBindings:
     - Renderer: {fileID: 6505239417627711445}
       SlotIndex: 1
       Material: {fileID: 2100000, guid: 096e82d82085be1449d1b1927be5162b, type: 2}
@@ -66,14 +60,11 @@ MonoBehaviour:
     - Renderer: {fileID: 7801124977940471460}
       SlotIndex: 0
       Material: {fileID: 2100000, guid: 096e82d82085be1449d1b1927be5162b, type: 2}
-    SpawnVFXPrefab: {fileID: 0}
-  - Material: {fileID: 2100000, guid: d4953dee3af07384d9b9299977579c1c, type: 2}
-    GhostMeshes:
-    - {fileID: 980981839185271068}
-    - {fileID: 2393015717357720799}
-    - {fileID: 6505239417627711445}
-    - {fileID: 7801124977940471460}
-    MaterialBindings:
+    - Renderer: {fileID: 7801124977940471460}
+      SlotIndex: 0
+      Material: {fileID: 2100000, guid: 096e82d82085be1449d1b1927be5162b, type: 2}
+    SpawnVFXPrefab: {fileID: 5661672744889085679, guid: 51c7c5febb1979845b23fc07aecea544, type: 3}
+  - MaterialBindings:
     - Renderer: {fileID: 6505239417627711445}
       SlotIndex: 1
       Material: {fileID: 2100000, guid: d4953dee3af07384d9b9299977579c1c, type: 2}
@@ -83,14 +74,8 @@ MonoBehaviour:
     - Renderer: {fileID: 7801124977940471460}
       SlotIndex: 0
       Material: {fileID: 2100000, guid: d4953dee3af07384d9b9299977579c1c, type: 2}
-    SpawnVFXPrefab: {fileID: 0}
-  - Material: {fileID: 2100000, guid: 51f58fce837cbc64c93089072789846e, type: 2}
-    GhostMeshes:
-    - {fileID: 980981839185271068}
-    - {fileID: 2393015717357720799}
-    - {fileID: 6505239417627711445}
-    - {fileID: 7801124977940471460}
-    MaterialBindings:
+    SpawnVFXPrefab: {fileID: 4099766902007684775, guid: 1eff36f6f1d577840be658e653f2bc0d, type: 3}
+  - MaterialBindings:
     - Renderer: {fileID: 6505239417627711445}
       SlotIndex: 1
       Material: {fileID: 2100000, guid: 51f58fce837cbc64c93089072789846e, type: 2}
@@ -100,14 +85,8 @@ MonoBehaviour:
     - Renderer: {fileID: 7801124977940471460}
       SlotIndex: 0
       Material: {fileID: 2100000, guid: 51f58fce837cbc64c93089072789846e, type: 2}
-    SpawnVFXPrefab: {fileID: 0}
-  - Material: {fileID: 2100000, guid: 51b689c56a737954bbf1bf150a6eaf50, type: 2}
-    GhostMeshes:
-    - {fileID: 980981839185271068}
-    - {fileID: 2393015717357720799}
-    - {fileID: 6505239417627711445}
-    - {fileID: 7801124977940471460}
-    MaterialBindings:
+    SpawnVFXPrefab: {fileID: 6950887965727897257, guid: 2774fc07d486e194dad34fc05e161bc6, type: 3}
+  - MaterialBindings:
     - Renderer: {fileID: 6505239417627711445}
       SlotIndex: 1
       Material: {fileID: 2100000, guid: 51b689c56a737954bbf1bf150a6eaf50, type: 2}
@@ -117,7 +96,7 @@ MonoBehaviour:
     - Renderer: {fileID: 7801124977940471460}
       SlotIndex: 0
       Material: {fileID: 2100000, guid: 51b689c56a737954bbf1bf150a6eaf50, type: 2}
-    SpawnVFXPrefab: {fileID: 0}
+    SpawnVFXPrefab: {fileID: 8171630510720007763, guid: 2f6f90be5a341c14b8d91af4abe6c903, type: 3}
 --- !u!54 &9142295355512040833
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -291,11 +270,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
---- !u!137 &980981839185271068 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 5459400666159270504, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
-  m_PrefabInstance: {fileID: 5070642178209551220}
-  m_PrefabAsset: {fileID: 0}
 --- !u!95 &1500021555660439545 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5949166710280596621, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
