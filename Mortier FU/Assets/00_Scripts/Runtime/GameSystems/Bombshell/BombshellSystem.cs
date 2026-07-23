@@ -116,11 +116,6 @@ namespace MortierFu
 
                     interactable.Interact(contactPoint);
                 }
-
-                if (bombshell.Bounces > 0)
-                {
-                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, impactPoint);
-                }
             }
 
             if (_fxService != null)
@@ -151,6 +146,12 @@ namespace MortierFu
             else
             {
                 AudioService.PlayBombshellAudio(AudioService.FMODEvents.SFX_Mortar_ImpactNone, bombshell, impactPoint);
+            }
+            
+            if (bombshell.Bounces > 0)
+            {
+                Logs.LogError($" bounces : {bombshell.Bounces}");
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Bounce, impactPoint);
             }
 
             if (hitCharacters.Count > 0)
