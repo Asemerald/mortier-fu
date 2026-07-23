@@ -55,8 +55,9 @@ namespace MortierFu
         {
             if (texture != null)
             {
-                _material.SetColor("_Color", Color.white);
                 _material.SetTexture("_MainTex", texture);
+                _material.SetColor("_Color", Color.white);
+                
             }
             else
             {
