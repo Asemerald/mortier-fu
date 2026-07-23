@@ -49,8 +49,8 @@ namespace MortierFu
 
         [SerializeField] private Ease _panelScaleEase = Ease.OutElastic;
 
-        [SerializeField] private LobbyReturnToMainMenuController  _lobbyReturnToMainMenuController;
-        
+        [SerializeField] private LobbyReturnToMainMenuController _lobbyReturnToMainMenuController;
+
         private CancellationTokenSource _controlPanelCTS;
         private CancellationTokenSource _endGamePanelCTS;
         private CancellationTokenSource _quitPanelCTS;
@@ -203,7 +203,9 @@ namespace MortierFu
                 _sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
 
             if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.AddListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
+                _confirmEndGameButton.onClick.AddListener(_lobbyReturnToMainMenuController
+                    ? OnConfirmReturnToMainMenu
+                    : OnConfirmEndGame);
 
             if (_cancelEndGameButton)
                 _cancelEndGameButton.onClick.AddListener(Return);
@@ -245,7 +247,9 @@ namespace MortierFu
                 _sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
 
             if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.RemoveListener(_lobbyReturnToMainMenuController ? OnConfirmReturnToMainMenu : OnConfirmEndGame);
+                _confirmEndGameButton.onClick.RemoveListener(_lobbyReturnToMainMenuController
+                    ? OnConfirmReturnToMainMenu
+                    : OnConfirmEndGame);
 
             if (_cancelEndGameButton)
                 _cancelEndGameButton.onClick.RemoveListener(Return);
@@ -441,7 +445,7 @@ namespace MortierFu
         {
             if (_pausePanel)
             {
-                AnimatePausePanel();    
+                AnimatePausePanel();
             }
 
             if (_pauseBackground)
@@ -512,7 +516,7 @@ namespace MortierFu
             EnterPauseInputContext(player);
             RegisterToUIInputService(player);
 
-            Show();
+            Show(); 
 
             if (_eventSystem && _settingsButton)
                 _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
@@ -535,8 +539,7 @@ namespace MortierFu
 
         private void EnterPauseInputContext(PlayerManager player)
         {
-            if (!_playerManager)
-                _playerManager = player;
+            _playerManager = player;
 
             if (!_playerManager)
                 return;
@@ -547,8 +550,10 @@ namespace MortierFu
                 _hasPreviousPlayerContext = true;
             }
 
-            Logs.LogWarning(_playerManager.PlayerIndex.ToString());
-            _playerManager.SetControlContext(PlayerControlContext.PauseMenu);
+            player.SetControlContext(PlayerControlContext.PauseMenu);
+
+            Logs.LogWarning("SLJKHDKSJ");
+            Logs.LogWarning(_playerManager.ControlContext.ToString());
         }
 
         private void ExitPauseInputContext()
@@ -566,8 +571,7 @@ namespace MortierFu
 
         private void RegisterToUIInputService(PlayerManager player)
         {
-            if (!_playerManager)
-                _playerManager = player;
+            _playerManager = player;
 
             if (!_playerManager)
                 return;
@@ -590,14 +594,14 @@ namespace MortierFu
         {
             PlayMinorUIFeedback();
         }
-        
+
         private void OnMasterVolumeChanged(float value)
         {
             PlayMinorUIFeedback();
             AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
         }
-        
+
         private void OnMusicVolumeChanged(float value)
         {
             PlayMinorUIFeedback();

@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
-    public class PlayerCharacter : MonoBehaviour
+    public class  PlayerCharacter : MonoBehaviour
     {
         private static readonly object k_controlContextInvincibilitySource = new ControlContextInvincibilitySource();
         
