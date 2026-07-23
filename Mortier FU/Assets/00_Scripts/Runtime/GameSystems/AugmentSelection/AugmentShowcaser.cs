@@ -191,6 +191,9 @@ namespace MortierFu
 
             await UniTask.WhenAll(moveTasks);
 
+            Rotator rotator = layout.Pivot.GetComponentInParent<Rotator>();
+            rotator.ActivateMovement();
+            
             ct.ThrowIfCancellationRequested();
         }
 

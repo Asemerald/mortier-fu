@@ -1,64 +1,41 @@
-using System;
-using MortierFu;
 using UnityEngine;
 
-public class Rotator : MonoBehaviour
+namespace MortierFu
 {
-    [SerializeField] private float _speed = 12f;
-    [SerializeField] private bool calculatePhysics;
-    [SerializeField] private bool canMoveInLoading;
-    
-    private Rigidbody _rb;
-    private GameModeBase _gm;
+    public class Rotator : MonoBehaviour
+    {
+        [SerializeField] private float _speed = 12f;
+        [SerializeField] private bool calculatePhysics;
+        
+        [SerializeField] private bool canMoveInLoading;
 
-    public Vector3 TransposePoint(Vector3 localPoint, float time)
-    {
-        var angle = time * _speed;
-        Quaternion rotation = Quaternion.Euler(0f, angle, 0f);
-        
-        
-        canMoveInLoading = true;
-        
-        return transform.position + rotation * localPoint;
-    }
-    private void Awake()
-    {
-        _gm = GameService.CurrentGameMode as GameModeBase;
-        
-    }
+        private Rigidbody _rb;
 
-    private void OnEnable()
-    {
-        if (calculatePhysics)
+        public Vector3 TransposePoint(Vector3 localPoint, float time)
         {
-            _rb = GetComponent<Rigidbody>();
+            var angle = time * _speed;
+            Quaternion rotation = Quaternion.Euler(0f, angle, 0f);
+
+            return transform.position + rotation * localPoint;
         }
 
-        if (_gm != null)
+        private void OnEnable()
         {
-            _gm.OnRacePlayerConfirmation += ActivateMovement;
+            if (calculatePhysics)
+                _rb = GetComponent<Rigidbody>();
         }
-        
-    }
 
-    void FixedUpdate()
-    {
-        if (!canMoveInLoading)
-            return;
-        
-        if (calculatePhysics)
+        void FixedUpdate()
         {
-            _rb.MoveRotation(_rb.rotation * Quaternion.Euler(0f, _speed * Time.deltaTime,0f ));
-        }
-        else
-        {
-            transform.Rotate(0,1 * Time.deltaTime * _speed,0);
-        }
-        
-    }
+            if (!canMoveInLoading)
+                return;
 
-    private void ActivateMovement()
-    {
-        canMoveInLoading = true;
+            if (calculatePhysics)
+                _rb.MoveRotation(_rb.rotation * Quaternion.Euler(0f, _speed * Time.deltaTime, 0f));
+            else
+                transform.Rotate(0, 1 * Time.deltaTime * _speed, 0);
+        }
+
+        public void ActivateMovement() => canMoveInLoading = true;
     }
 }
