@@ -158,7 +158,7 @@ namespace MortierFu
                 _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
             };
             
-            return symbol == "" ? "" : $"<size={_symboleSize}%>{symbol}</size>";
+            return symbol == "" ? "" : $"<size={_symboleSize}%><b>{symbol}</b></size>";
         }
         
 
