@@ -1,12 +1,7 @@
-﻿using UnityEngine;
-
-namespace MortierFu
+﻿namespace MortierFu
 {
     public class CreditsPanel : UIPanel
     {
-        private void Start()
-        {
-            Hide();
-        }
+        private void Start() => base.Hide();
     }
 }

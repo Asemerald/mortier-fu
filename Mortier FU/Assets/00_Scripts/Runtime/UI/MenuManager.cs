@@ -4,35 +4,36 @@ using MortierFu.Shared;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace MortierFu
 {
-    public sealed class MenuManager : MonoBehaviour, IPlayerUIInputHandler
+    public sealed class MenuManager : MonoBehaviour
     {
-        [field: Header("Main Menu References")]
-        [field: SerializeField]
-        public MainMenuPanel MainMenuPanel { get; private set; }
-
+        [Header("Main Menu References")]
+        [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
         [field: SerializeField] public Button PlayButton { get; private set; }
-        
         [field: SerializeField] public Button CreditsButton { get; private set; }
         [field: SerializeField] public Button SettingsButton { get; private set; }
         [field: SerializeField] public Button QuitButton { get; private set; }
 
+        [Header("Contact Buttons")]
         [field: SerializeField] public Button DiscordButton { get; private set; }
         [field: SerializeField] public Button SteamButton { get; private set; }
         [field: SerializeField] public Button MailButton { get; private set; }
-        
-        [SerializeField] private GameObject[] _animatedCharacterElements;
-        [SerializeField] private GameObject BetaTest;
 
-        [Header("Animation")] [SerializeField] private Image _background;
+        [Header("Animated Elements")]
+        [SerializeField] private GameObject[] _animatedCharacterElements;
+        [SerializeField] private GameObject _betaTest;
+
+        [Header("Animation")]
+        [SerializeField] private Image _background;
         [SerializeField] private Image _logo;
 
         [SerializeField] private Ease _backgroundEase = Ease.OutQuad;
@@ -45,72 +46,54 @@ namespace MortierFu
 
         [SerializeField] private float _backgroundEaseDuration = 1.5f;
         [SerializeField] private float _logoEaseDuration = 1.5f;
-        [SerializeField] private float _playButtonEaseDuration = 0.7f;
-        [SerializeField] private float _creditsButtonEaseDuration = 0.7f;
-        [SerializeField] private float _settingsButtonEaseDuration = 0.7f;
-        [SerializeField] private float _quitButtonEaseDuration = 0.7f;
+        [SerializeField] private float _playButtonEaseDuration = 0.5f;
+        [SerializeField] private float _creditsButtonEaseDuration = 0.5f;
+        [SerializeField] private float _settingsButtonEaseDuration = 0.5f;
+        [SerializeField] private float _quitButtonEaseDuration = 0.5f;
         [SerializeField] private float _circleTransitionDuration = 1f;
         [SerializeField] private float _contactEaseDuration = 0.7f;
         [SerializeField] private float _contactScale = 1.25f;
-        
-        [field: Header("Settings References")]
-        [field: SerializeField]
-        public SettingsPanel SettingsPanel { get; private set; }
 
-        [field: Header("Credits References")]
-        [field: SerializeField]
-        public CreditsPanel CreditsPanel { get; private set; }
+        [Header("Settings References")]
+        [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
+
+        [Header("Credits References")]
+        [field: SerializeField] public CreditsPanel CreditsPanel { get; private set; }
         [field: SerializeField] public Button YoutubeSoulSoundsButton { get; private set; }
         [field: SerializeField] public Button SpotifySoulSoundsButton { get; private set; }
         [field: SerializeField] public Button AppleMusicSoulSoundsButton { get; private set; }
-        
-        [field: Header("Contact References")] 
-        [SerializeField] private string discordURL = "Salam";
-        [SerializeField] private string steamMagasinPage = "Salam";
-        [SerializeField] private string mailURL = "Salam";
-        [SerializeField] private string appleMusicSSURL;
-        [SerializeField] private string spotifySSURL;
-        [SerializeField] private string youtubeSSURL;
-            
-        [Header("Utils")] [SerializeField] private MainMenuCameraManager _cameraManager;
-        [SerializeField] private float _delayBeforeMainMenuShow = 2f;
+
+        [Header("External Links")]
+        [SerializeField] private string _discordURL = "https://discord.gg/CcWBymc99u";
+        [SerializeField] private string _steamStorePageURL = "Salam";
+        [SerializeField] private string _mailURL = "https://mail.google.com/mail/u/0/?view=cm&fs=1&to=gokaboom.gunpowder@gmail.com";
+        [SerializeField] private string _appleMusicSoulSoundsURL = "https://music.apple.com/us/artist/soul-sounds/1871810462";
+        [SerializeField] private string _spotifySoulSoundsURL = "https://open.spotify.com/intl-fr/artist/3vxxsIwNoLdayq8epiWFCf";
+        [SerializeField] private string _youtubeSoulSoundsURL = "https://www.youtube.com/channel/UCfU9o1w-oERA9k1asa4d8zw";
+
+        [Header("Utils")]
+        [SerializeField] private MainMenuCameraManager _cameraManager;
+        [SerializeField] private float _delayBeforeMainMenuShow = 1.5f;
 
         private EventSystem _eventSystem;
-        private PlayerManager _player1;
         private GameService _gameService;
         private InputSystemUIInputModule _uiInputModule;
         private InputAction _cancelAction;
 
         private bool _isLoadingLobby;
-        [HideInInspector] public Button LastButton;
-
-        public static MenuManager Instance { get; private set; }
-
-        private PlayerUIInputService UIInputService =>
-            ServiceManager.Instance?.Get<PlayerUIInputService>();
 
         private void Awake()
         {
-            if (Instance && Instance != this)
-            {
-                Logs.LogWarning("[MenuManager] Multiple instances detected. Destroying duplicate.", this);
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-            
-            CheckReferences();
             CheckActivePanels();
 
-            var audioService = ServiceManager.Instance?.Get<AudioService>();
+            AudioService audioService = ServiceManager.Instance?.Get<AudioService>();
             audioService?.StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
         }
 
         private void Start()
         {
             _eventSystem = EventSystem.current;
-            _gameService = ServiceManager.Instance.Get<GameService>();
+            _gameService = ServiceManager.Instance?.Get<GameService>();
 
             if (!_eventSystem)
             {
@@ -118,69 +101,78 @@ namespace MortierFu
                 return;
             }
 
-            EnableUiInputModule();
+            ResolveUiInputModule();
             BindGlobalCancelAction();
             BindButtons();
 
             CircleTransition.Instance.OpenAsync(_circleTransitionDuration).Forget();
-            
             ShowMainMenuAfterDelay(_delayBeforeMainMenuShow).Forget();
 
-            if (PlayerInputBridge.Instance)
-            {
-                PlayerInputBridge.Instance.CanJoin(false);
-            }
+            PlayerInputBridge.Instance?.CanJoin(false);
         }
 
         private void OnDestroy()
         {
-            if (Instance == this)
-            {
-                Instance = null;
-            }
-
             UnbindGlobalCancelAction();
-            UnregisterPlayer1();
             UnbindButtons();
         }
 
         private async UniTask AnimateMainMenu()
         {
-            _background.gameObject.SetActive(true);
-            _logo.gameObject.SetActive(true);
+            if (_background)
+                _background.gameObject.SetActive(true);
 
-            PlayButton.transform.localScale = Vector3.zero;
-            CreditsButton.transform.localScale = Vector3.zero;
-            SettingsButton.transform.localScale = Vector3.zero;
-            QuitButton.transform.localScale = Vector3.zero;
-            DiscordButton.transform.localScale = Vector3.zero;
-            SteamButton.transform.localScale = Vector3.zero;
-            MailButton.transform.localScale = Vector3.zero;
-            BetaTest.transform.localScale = Vector3.zero;
+            if (_logo)
+                _logo.gameObject.SetActive(true);
 
-            await Tween.Alpha(_background, 1f, _backgroundEaseDuration, _backgroundEase)
-                .Group(Tween.Alpha(_logo, 1f, _logoEaseDuration, _logoEase));
+            SetInitialScale(PlayButton, Vector3.zero);
+            SetInitialScale(CreditsButton, Vector3.zero);
+            SetInitialScale(SettingsButton, Vector3.zero);
+            SetInitialScale(QuitButton, Vector3.zero);
+            SetInitialScale(DiscordButton, Vector3.zero);
+            SetInitialScale(SteamButton, Vector3.zero);
+            SetInitialScale(MailButton, Vector3.zero);
 
-            await Tween.Scale(PlayButton.transform, 1.5f, _playButtonEaseDuration, _playButtonEase)
-                .Group(Tween.Scale(CreditsButton.transform, 1.5f, _creditsButtonEaseDuration, _creditsButtonEase))
-                .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
-                .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
-            
-            await Tween.Scale(DiscordButton.transform, _contactScale, _contactEaseDuration, _contactEase)
-                .Group(Tween.Scale(SteamButton.transform,_contactScale, _contactEaseDuration, _contactEase))
-                .Group(Tween.Scale(MailButton.transform,_contactScale, _contactEaseDuration, _contactEase))
-                .Group(Tween.Scale(BetaTest.transform, 1.1f, _contactEaseDuration - 0.4f, _contactEase)); // BETA-TEST Note  
+            if (_betaTest)
+                _betaTest.transform.localScale = Vector3.zero;
 
-            if (_eventSystem && PlayButton)
-                _eventSystem.SetSelectedGameObject(PlayButton.gameObject);
+            if (_background && _logo)
+            {
+                await Tween.Alpha(_background, 1f, _backgroundEaseDuration, _backgroundEase)
+                    .Group(Tween.Alpha(_logo, 1f, _logoEaseDuration, _logoEase));
+            }
+
+            if (PlayButton && CreditsButton && SettingsButton && QuitButton)
+            {
+                await Tween.Scale(PlayButton.transform, 1.5f, _playButtonEaseDuration, _playButtonEase)
+                    .Group(Tween.Scale(CreditsButton.transform, 1.5f, _creditsButtonEaseDuration, _creditsButtonEase))
+                    .Group(Tween.Scale(SettingsButton.transform, 1.5f, _settingsButtonEaseDuration, _settingsButtonEase))
+                    .Group(Tween.Scale(QuitButton.transform, 1.5f, _quitButtonEaseDuration, _quitButtonEase));
+            }
+
+            Sequence contactSequence = Sequence.Create();
+
+            if (DiscordButton)
+                contactSequence = contactSequence.Group(Tween.Scale(DiscordButton.transform, _contactScale, _contactEaseDuration, _contactEase));
+
+            if (SteamButton)
+                contactSequence = contactSequence.Group(Tween.Scale(SteamButton.transform, _contactScale, _contactEaseDuration, _contactEase));
+
+            if (MailButton)
+                contactSequence = contactSequence.Group(Tween.Scale(MailButton.transform, _contactScale, _contactEaseDuration, _contactEase));
+
+            if (_betaTest)
+                contactSequence = contactSequence.Group(Tween.Scale(_betaTest.transform, 1.1f, Mathf.Max(0.1f, _contactEaseDuration - 0.4f), _contactEase));
+
+            await contactSequence;
+
+            SelectButton(PlayButton);
         }
 
         private void BindButtons()
         {
             if (PlayButton)
                 PlayButton.onClick.AddListener(LoadLobbyScene);
-            
-            
 
             if (SettingsButton)
                 SettingsButton.onClick.AddListener(OpenSettingsPanel);
@@ -190,25 +182,24 @@ namespace MortierFu
 
             if (QuitButton)
                 QuitButton.onClick.AddListener(QuitGame);
-            
+
             if (DiscordButton)
-                DiscordButton.onClick.AddListener(OpenDiscordInvit);
+                DiscordButton.onClick.AddListener(OpenDiscordInvite);
 
             if (SteamButton)
                 SteamButton.onClick.AddListener(OpenSteamPage);
-            
+
             if (MailButton)
                 MailButton.onClick.AddListener(OpenMail);
-            
-            /// Credits Buttons
+
             if (AppleMusicSoulSoundsButton)
-                AppleMusicSoulSoundsButton.onClick.AddListener(AppleMusicSSUrl);
-            
+                AppleMusicSoulSoundsButton.onClick.AddListener(OpenAppleMusicSoulSounds);
+
             if (SpotifySoulSoundsButton)
-                SpotifySoulSoundsButton.onClick.AddListener(SpotifySSUrl);
-            
+                SpotifySoulSoundsButton.onClick.AddListener(OpenSpotifySoulSounds);
+
             if (YoutubeSoulSoundsButton)
-                YoutubeSoulSoundsButton.onClick.AddListener(YoutubeSSUrl);
+                YoutubeSoulSoundsButton.onClick.AddListener(OpenYoutubeSoulSounds);
         }
 
         private void UnbindButtons()
@@ -224,45 +215,46 @@ namespace MortierFu
 
             if (QuitButton)
                 QuitButton.onClick.RemoveListener(QuitGame);
-            
-            // Contact
-            if(DiscordButton)
-                DiscordButton.onClick.RemoveListener(OpenDiscordInvit);
-            
-            if(SteamButton)
+
+            if (DiscordButton)
+                DiscordButton.onClick.RemoveListener(OpenDiscordInvite);
+
+            if (SteamButton)
                 SteamButton.onClick.RemoveListener(OpenSteamPage);
-            
-            if(MailButton)
+
+            if (MailButton)
                 MailButton.onClick.RemoveListener(OpenMail);
-            
-            // Credits
-            if(SpotifySoulSoundsButton)
-                SpotifySoulSoundsButton.onClick.RemoveListener(SpotifySSUrl);
-            
-            if(AppleMusicSoulSoundsButton)
-                AppleMusicSoulSoundsButton.onClick.RemoveListener(AppleMusicSSUrl);
-            
-            if(YoutubeSoulSoundsButton)
-                YoutubeSoulSoundsButton.onClick.RemoveListener(YoutubeSSUrl);
+
+            if (AppleMusicSoulSoundsButton)
+                AppleMusicSoulSoundsButton.onClick.RemoveListener(OpenAppleMusicSoulSounds);
+
+            if (SpotifySoulSoundsButton)
+                SpotifySoulSoundsButton.onClick.RemoveListener(OpenSpotifySoulSounds);
+
+            if (YoutubeSoulSoundsButton)
+                YoutubeSoulSoundsButton.onClick.RemoveListener(OpenYoutubeSoulSounds);
         }
 
-        private void EnableUiInputModule()
+        private void ResolveUiInputModule()
         {
-            if (!_eventSystem)
-                return;
-
             _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
 
-            if (!_uiInputModule || !_uiInputModule.actionsAsset)
+            if (!_uiInputModule)
             {
-                Logs.LogWarning("[MenuManager] InputSystemUIInputModule or actions asset is missing.", this);
+                Logs.LogWarning("[MenuManager] InputSystemUIInputModule is missing.", this);
                 return;
             }
 
-            foreach (var actionMap in _uiInputModule.actionsAsset.actionMaps)
-            {
-                actionMap.Enable();
-            }
+            _uiInputModule.enabled = true;
+
+            EnableAction(_uiInputModule.point);
+            EnableAction(_uiInputModule.leftClick);
+            EnableAction(_uiInputModule.rightClick);
+            EnableAction(_uiInputModule.middleClick);
+            EnableAction(_uiInputModule.scrollWheel);
+            EnableAction(_uiInputModule.move);
+            EnableAction(_uiInputModule.submit);
+            EnableAction(_uiInputModule.cancel);
         }
 
         private void BindGlobalCancelAction()
@@ -297,8 +289,7 @@ namespace MortierFu
         {
             if (_isLoadingLobby)
                 return;
-            
-            _isLoadingLobby = true;
+
             TryCancelCurrentPanel();
         }
 
@@ -312,141 +303,75 @@ namespace MortierFu
             await AnimateMainMenu();
         }
 
-        private void UnregisterPlayer1()
-        {
-            if (_player1)
-                UIInputService?.Remove(_player1, this);
-            else
-                UIInputService?.RemoveFromAll(this);
-
-            _player1 = null;
-        }
-
         private void LoadLobbyScene()
         {
             if (_isLoadingLobby)
                 return;
 
             _isLoadingLobby = true;
-            UIInputService?.RemoveFromAll(this);
             _gameService?.LoadLobbySceneAsync().Forget();
         }
 
         public void OpenSettingsPanel()
         {
+            if (_isLoadingLobby)
+                return;
+
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
-            if (MainMenuPanel)
-                MainMenuPanel.Hide();
-
-            if (SettingsPanel)
-                SettingsPanel.Show();
+            MainMenuPanel?.Hide();
+            SettingsPanel?.Show();
 
             SetCharactersVisible(false);
         }
 
         private void CloseSettingsPanel()
         {
-            if (SettingsPanel)
-                SettingsPanel.Hide();
-
-            if (MainMenuPanel)
-                MainMenuPanel.Show();
+            SettingsPanel?.Hide();
+            MainMenuPanel?.Show();
 
             SetCharactersVisible(true);
-
-            if (_eventSystem && SettingsButton)
-                _eventSystem.SetSelectedGameObject(SettingsButton.gameObject);
+            SelectButton(SettingsButton);
         }
 
         public void OpenCreditsPanel()
         {
+            if (_isLoadingLobby)
+                return;
+
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
-            if (MainMenuPanel)
-                MainMenuPanel.Hide();
-
-            if (CreditsPanel)
-                CreditsPanel.Show();
+            MainMenuPanel?.Hide();
+            CreditsPanel?.Show();
 
             SetCharactersVisible(false);
+
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
         }
 
         private void CloseCreditsPanel()
         {
-            if (CreditsPanel)
-                CreditsPanel.Hide();
-
-            if (MainMenuPanel)
-                MainMenuPanel.Show();
+            CreditsPanel?.Hide();
+            MainMenuPanel?.Show();
 
             SetCharactersVisible(true);
+
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
 
-            if (_eventSystem && CreditsButton)
-                _eventSystem.SetSelectedGameObject(CreditsButton.gameObject);
+            SelectButton(CreditsButton);
         }
 
         public void QuitGame()
         {
             Logs.Log("[MenuManager] Quitting game.");
-            
+
             Application.Quit();
-            
 
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
 #endif
-        }
-
-        private void OpenDiscordInvit()
-        {
-           Application.OpenURL(discordURL); 
-        }
-
-        public void ChangeDiscordSelectOnLeftButton(Button button)
-        {
-            Navigation nav = DiscordButton.navigation;
-            nav.selectOnLeft = button;
-            DiscordButton.navigation = nav;
-        }
-
-        private void OpenSteamPage()
-        {
-            Application.OpenURL(steamMagasinPage); 
-        }
-        
-        private void OpenMail()
-        {
-            Application.OpenURL(mailURL); 
-        }
-
-        private void AppleMusicSSUrl()
-        {
-            Application.OpenURL(appleMusicSSURL);
-            Debug.Log("Apple");
-        }
-        
-        private void SpotifySSUrl()
-        {
-            Application.OpenURL(spotifySSURL);
-            Debug.Log("Spotify");
-        }
-        private void YoutubeSSUrl()
-        {
-            Application.OpenURL(youtubeSSURL);
-            Debug.Log("Youtube");
-        }
-        
-        private void SetCharactersVisible(bool visible)
-        {
-            foreach (var element in _animatedCharacterElements)
-            {
-                element.gameObject.SetActive(visible);
-            }
         }
 
         private bool TryCancelCurrentPanel()
@@ -468,61 +393,60 @@ namespace MortierFu
             return false;
         }
 
-        public bool CanHandleUIInput(PlayerManager player)
+        private void OpenDiscordInvite() => Application.OpenURL(_discordURL);
+
+        private void OpenSteamPage() => Application.OpenURL(_steamStorePageURL);
+
+        private void OpenMail() => Application.OpenURL(_mailURL);
+
+        private void OpenAppleMusicSoulSounds() => Application.OpenURL(_appleMusicSoulSoundsURL);
+
+        private void OpenSpotifySoulSounds() => Application.OpenURL(_spotifySoulSoundsURL);
+
+        private void OpenYoutubeSoulSounds() => Application.OpenURL(_youtubeSoulSoundsURL);
+
+        private void SetCharactersVisible(bool visible)
         {
-            return _player1 &&
-                   ReferenceEquals(_player1, player) &&
-                   player.CurrentPermissions.CanCancelUI;
+            if (_animatedCharacterElements == null)
+                return;
+
+            for (int i = 0; i < _animatedCharacterElements.Length; i++)
+            {
+                if (_animatedCharacterElements[i])
+                    _animatedCharacterElements[i].SetActive(visible);
+            }
         }
 
-        public bool HandleNavigate(PlayerManager player, Vector2 direction)
+        private void SelectButton(Selectable selectable)
         {
-            return false;
+            if (!_eventSystem || !selectable)
+                return;
+
+            if (!selectable.gameObject.activeInHierarchy || !selectable.IsInteractable())
+                return;
+
+            _eventSystem.SetSelectedGameObject(null);
+            _eventSystem.SetSelectedGameObject(selectable.gameObject);
         }
 
-        public bool HandleSubmit(PlayerManager player)
+        private static void SetInitialScale(Button button, Vector3 scale)
         {
-            return false;
+            if (button)
+                button.transform.localScale = scale;
         }
 
-        public bool HandleCancel(PlayerManager player)
+        private static void EnableAction(InputActionReference actionReference)
         {
-            return TryCancelCurrentPanel();
-        }
-
-        private void CheckReferences()
-        {
-            if (!MainMenuPanel)
-                Logs.LogError("[MenuManager] MainMenuPanel reference is missing.", this);
-
-            if (!PlayButton)
-                Logs.LogError("[MenuManager] PlayButton reference is missing.", this);
-
-            if (!SettingsButton)
-                Logs.LogError("[MenuManager] SettingsButton reference is missing.", this);
-
-            if (!CreditsButton)
-                Logs.LogError("[MenuManager] CreditsButton reference is missing.", this);
-
-            if (!QuitButton)
-                Logs.LogError("[MenuManager] QuitButton reference is missing.", this);
-
-            if (!SettingsPanel)
-                Logs.LogError("[MenuManager] SettingsPanel reference is missing.", this);
-
-            if (!CreditsPanel)
-                Logs.LogError("[MenuManager] CreditsPanel reference is missing.", this);
-
-            if (!_cameraManager)
-                Logs.LogWarning("[MenuManager] MainMenuCameraManager reference is missing.", this);
+            InputAction action = actionReference ? actionReference.action : null;
+            action?.Enable();
         }
 
         private void CheckActivePanels()
         {
-            if (SettingsPanel && !SettingsPanel.isActiveAndEnabled)
+            if (SettingsPanel && !SettingsPanel.gameObject.activeSelf)
                 SettingsPanel.gameObject.SetActive(true);
 
-            if (CreditsPanel && !CreditsPanel.isActiveAndEnabled)
+            if (CreditsPanel && !CreditsPanel.gameObject.activeSelf)
                 CreditsPanel.gameObject.SetActive(true);
         }
     }

@@ -2,109 +2,46 @@
 using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 namespace MortierFu
 {
     public class SettingsPanel : UIPanel
     {
-        [field: SerializeField] private Toggle fullscreenToggle { get; set; }
-        [field: SerializeField] private Toggle vsyncToggle { get; set; }
-        [field: SerializeField] private Slider MasterVolumeSlider { get; set; }
-        [field: SerializeField] private Slider MusicVolumeSlider { get; set; }
-        [field: SerializeField] private Slider SFXVolumeSlider { get; set; }
+        [Header("Toggles")]
+        [SerializeField] private Toggle _fullscreenToggle;
+        [SerializeField] private Toggle _vsyncToggle;
+
+        [Header("Sliders")]
+        [SerializeField] private Slider _masterVolumeSlider;
+        [SerializeField] private Slider _musicVolumeSlider;
+        [SerializeField] private Slider _sfxVolumeSlider;
 
         private SaveService _saveService;
+        private bool _eventsBound;
 
         private void Awake()
         {
-            // Cache SaveService reference
-            _saveService = ServiceManager.Instance.Get<SaveService>();
+            _saveService = ServiceManager.Instance?.Get<SaveService>();
+
+            if (_saveService == null)
+            {
+                Logs.LogError("[SettingsPanel] SaveService is missing.", this);
+                return;
+            }
 
             RestoreSettingsFromSave();
             UpdateUIFromSave();
             BindUIEvents();
         }
-        private void Start()
-        {
-            Hide();
-        }
 
-        private void OnEnable()
-        {
-            EventSystem.current.SetSelectedGameObject(fullscreenToggle.gameObject);
-        }
+        private void Start() => base.Hide();
 
-        private void RestoreSettingsFromSave()
-        {
-            var s = _saveService.Settings;
-            Screen.fullScreen = s.IsFullscreen;
-            QualitySettings.vSyncCount = s.IsVSyncEnabled ? 1 : 0;
-            
-            // TODO : Apply volume settings to FMOD Bus
-        }
-        private void UpdateUIFromSave()
-        {
-            var s = _saveService.Settings;
+        private void OnDestroy() => UnbindUIEvents();
 
-            fullscreenToggle.isOn = s.IsFullscreen;
-            vsyncToggle.isOn = s.IsVSyncEnabled;
-
-            MasterVolumeSlider.value = s.MasterVolume;
-            MusicVolumeSlider.value = s.MusicVolume;
-            SFXVolumeSlider.value = s.SfxVolume;
-        }
-        private void BindUIEvents()
+        public override void Show()
         {
-            fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
-            vsyncToggle.onValueChanged.AddListener(OnVSyncChanged);
-
-            MasterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
-            MusicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
-            SFXVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
-        }
-        
-        private void OnFullscreenChanged(bool value)
-        {
-            Screen.fullScreen = value;
-            _saveService.Settings.IsFullscreen = value;
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
-        }
-
-        private void OnVSyncChanged(bool value)
-        {
-            QualitySettings.vSyncCount = value ? 1 : 0;
-            _saveService.Settings.IsVSyncEnabled = value;
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
-        }
-
-        private void OnMasterVolumeChanged(float value)
-        {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.MasterVolume = value;
-            AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
-        }
-
-        private void OnMusicVolumeChanged(float value)
-        {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.MusicVolume = value;
-            AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
-        }
-
-        private void OnSfxVolumeChanged(float value)
-        {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.SfxVolume = value;
-            AudioService.SetVolume(AudioService.BusEnum.SFX, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
-        }
-        
-        private void SaveSettings()
-        {
-            _saveService.SaveSettings().Forget();
+            UpdateUIFromSave();
+            base.Show();
         }
 
         public override void Hide()
@@ -112,5 +49,143 @@ namespace MortierFu
             base.Hide();
             SaveSettings();
         }
+
+        private void RestoreSettingsFromSave()
+        {
+            if (_saveService == null)
+                return;
+
+            SettingsData settings = _saveService.Settings;
+
+            Screen.fullScreen = settings.IsFullscreen;
+            QualitySettings.vSyncCount = settings.IsVSyncEnabled ? 1 : 0;
+
+            AudioService.SetVolume(AudioService.BusEnum.MASTER, settings.MasterVolume);
+            AudioService.SetVolume(AudioService.BusEnum.MUSIC, settings.MusicVolume);
+            AudioService.SetVolume(AudioService.BusEnum.SFX, settings.SfxVolume);
+        }
+
+        private void UpdateUIFromSave()
+        {
+            if (_saveService == null)
+                return;
+
+            SettingsData settings = _saveService.Settings;
+
+            if (_fullscreenToggle)
+                _fullscreenToggle.SetIsOnWithoutNotify(settings.IsFullscreen);
+
+            if (_vsyncToggle)
+                _vsyncToggle.SetIsOnWithoutNotify(settings.IsVSyncEnabled);
+
+            if (_masterVolumeSlider)
+                _masterVolumeSlider.SetValueWithoutNotify(settings.MasterVolume);
+
+            if (_musicVolumeSlider)
+                _musicVolumeSlider.SetValueWithoutNotify(settings.MusicVolume);
+
+            if (_sfxVolumeSlider)
+                _sfxVolumeSlider.SetValueWithoutNotify(settings.SfxVolume);
+        }
+
+        private void BindUIEvents()
+        {
+            if (_eventsBound)
+                return;
+
+            if (_fullscreenToggle)
+                _fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
+
+            if (_vsyncToggle)
+                _vsyncToggle.onValueChanged.AddListener(OnVSyncChanged);
+
+            if (_masterVolumeSlider)
+                _masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+
+            if (_musicVolumeSlider)
+                _musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+
+            if (_sfxVolumeSlider)
+                _sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+
+            _eventsBound = true;
+        }
+
+        private void UnbindUIEvents()
+        {
+            if (!_eventsBound)
+                return;
+
+            if (_fullscreenToggle)
+                _fullscreenToggle.onValueChanged.RemoveListener(OnFullscreenChanged);
+
+            if (_vsyncToggle)
+                _vsyncToggle.onValueChanged.RemoveListener(OnVSyncChanged);
+
+            if (_masterVolumeSlider)
+                _masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
+
+            if (_musicVolumeSlider)
+                _musicVolumeSlider.onValueChanged.RemoveListener(OnMusicVolumeChanged);
+
+            if (_sfxVolumeSlider)
+                _sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
+
+            _eventsBound = false;
+        }
+
+        private void OnFullscreenChanged(bool value)
+        {
+            if (_saveService == null)
+                return;
+
+            Screen.fullScreen = value;
+            _saveService.Settings.IsFullscreen = value;
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
+        }
+
+        private void OnVSyncChanged(bool value)
+        {
+            if (_saveService == null)
+                return;
+
+            QualitySettings.vSyncCount = value ? 1 : 0;
+            _saveService.Settings.IsVSyncEnabled = value;
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Tick);
+        }
+
+        private void OnMasterVolumeChanged(float value)
+        {
+            if (_saveService == null)
+                return;
+
+            _saveService.Settings.MasterVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+        }
+
+        private void OnMusicVolumeChanged(float value)
+        {
+            if (_saveService == null)
+                return;
+
+            _saveService.Settings.MusicVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+        }
+
+        private void OnSfxVolumeChanged(float value)
+        {
+            if (_saveService == null)
+                return;
+
+            _saveService.Settings.SfxVolume = value;
+            AudioService.SetVolume(AudioService.BusEnum.SFX, value);
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+        }
+
+        private void SaveSettings() => _saveService?.SaveSettings().Forget();
     }
 }
