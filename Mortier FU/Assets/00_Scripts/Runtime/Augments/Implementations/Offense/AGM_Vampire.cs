@@ -1,6 +1,4 @@
 using System.Linq;
-using PlasticGui.WorkspaceWindow;
-using UnityEngine.Playables;
 using UnityEngine.Serialization;
 
 namespace MortierFu
