@@ -7,8 +7,6 @@ namespace MortierFu
     public class SO_BombshellSettings : SO_SystemSettings
     {
         [Header("Parameters")]
-        [Tooltip("Determine if the players can damage themselves with their own bombshells.")]
-        public bool AllowSelfDamage = true;
         [Tooltip("Determine if the bombshells of the same player can collide together.")]
         public bool DisableBombshellSelfCollision = true;
         public float BounceSpeedDampingFactor = 0.95f;
@@ -51,6 +49,5 @@ namespace MortierFu
         [Header("References")]
         public AssetReferenceGameObject BombshellPrefab;
         public LayerMask WhatIsCollidable;
-        public LayerMask WhatIsPreviewable;
     }
 }

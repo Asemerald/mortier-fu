@@ -11,6 +11,8 @@ namespace MortierFu
 {
     public class BombshellSystem : IGameSystem
     {
+        private GameModeBase _gameMode;
+        
         private CameraSystem _cameraSystem;
         private FXService _fxService;
 
@@ -30,7 +32,7 @@ namespace MortierFu
         public SO_BombshellSettings Settings => _settingsHandle.Result;
 
         private AsyncOperationHandle<GameObject> _bombshellPrefabHandle;
-
+        
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
@@ -80,7 +82,7 @@ namespace MortierFu
 
                 if (rb.TryGetComponent(out PlayerCharacter character))
                 {
-                    if (!Settings.AllowSelfDamage && character == bombshell.Owner)
+                    if (_gameMode is { MatchConfig: { DisableSelfDamage: true } } && character == bombshell.Owner)
                         continue;
 
                     if (!character.CanPlayerInteractWithBombShell()) continue;
@@ -234,6 +236,7 @@ namespace MortierFu
 
             _bombshellPrefabHandle = await Settings.BombshellPrefab.LazyLoadAssetRef();
 
+            _gameMode = GameService.CurrentGameMode as GameModeBase;
             _cameraSystem = SystemManager.Instance.Get<CameraSystem>();
             _fxService = ServiceManager.Instance.Get<FXService>();
 
