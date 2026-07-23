@@ -65,8 +65,11 @@ namespace MortierFu
 
         private void OnPlayerDeath(EventPlayerDeath evt)
         {
-            if (!evt.Character || !evt.Character.Owner)
+            if (!evt.Character || !evt.Character.Owner || _gameMode.MatchConfig.DisableGhosts)
+            {
+                Logs.LogError("No ghost because disable ghost");
                 return;
+            }
 
             PlayerCharacter deadCharacter = evt.Character;
             PlayerManager owner = deadCharacter.Owner;
@@ -91,7 +94,7 @@ namespace MortierFu
         {
             try
             {
-                float delay = Settings ? Mathf.Max(0f, Settings.SpawnDelay) : 2f;
+                var delay = Settings ? Mathf.Max(0f, Settings.SpawnDelay) : 2f;
 
                 await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: cancellationToken);
 

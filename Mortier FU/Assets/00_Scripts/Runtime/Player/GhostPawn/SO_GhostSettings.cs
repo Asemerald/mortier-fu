@@ -2,10 +2,7 @@ using UnityEngine;
 
 namespace MortierFu
 {
-    [CreateAssetMenu(
-        fileName = "DA_GhostSettings",
-        menuName = "Mortier Fu/Settings/Ghost"
-    )]
+    [CreateAssetMenu(fileName = "DA_GhostSettings", menuName = "Mortier Fu/Settings/Ghost")]
     public sealed class SO_GhostSettings : ScriptableObject
     {
         [Header("Spawn")] [Min(0f)] [SerializeField]
@@ -30,8 +27,6 @@ namespace MortierFu
         
         [Min(0.01f)] [SerializeField] private float _waterRaycastLenght = 3f;
         [Min(0.01f)] [SerializeField] private float _waterRaycastHeightMargin = .3f;
-
-
 
         [Header("Spawn Resolving")]
         [Min(0.05f)]
@@ -64,7 +59,6 @@ namespace MortierFu
         public float Acceleration => _acceleration;
         public float Deceleration => _deceleration;
         public float FloatHeight => _floatHeight;
-        public float CollisionRadius => _collisionRadius;
         public float GroundRaycastStartHeight => _groundRaycastStartHeight;
         public float GroundRaycastLength => _groundRaycastLength;
         public float WaterRaycastLength => _waterRaycastLenght;

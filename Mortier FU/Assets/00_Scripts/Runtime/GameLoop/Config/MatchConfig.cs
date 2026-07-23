@@ -31,7 +31,7 @@ namespace MortierFu
 
         public bool DisableGhosts;
         public bool DisableSelfDamage;
-        public bool DisableAugments;
+        [HideInInspector] public bool DisableAugments;
 
         public MatchConfig(int scoreToWin)
         {
