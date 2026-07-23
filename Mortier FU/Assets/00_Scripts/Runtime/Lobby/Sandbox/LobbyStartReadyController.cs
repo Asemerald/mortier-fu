@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -21,6 +22,7 @@ namespace MortierFu
 
         [Header("Feedback")]
         [SerializeField] private GameObject[] _playerReadyIndicators;
+        [SerializeField] private TMP_Text  _readyIndicatorTxt;
 
         [FormerlySerializedAs("delayIndicators")]
         [SerializeField, Min(0f)] private float _indicatorDelay = 0.1f;
@@ -189,6 +191,7 @@ namespace MortierFu
             }
 
             UpdateFeedbackAnimation(player.PlayerIndex);
+            RefreshReadyTxt();
 
             if (isReady)
                 ScheduleLaunchIfAllReady(player);
@@ -320,6 +323,8 @@ namespace MortierFu
 
             _feedbackCancellation = new CancellationTokenSource();
             UpdateAllVisualAsync(startIndex, _feedbackCancellation.Token).Forget();
+
+            RefreshReadyTxt();
         }
 
         private async UniTaskVoid UpdateAllVisualAsync(int startIndex, CancellationToken cancellationToken)
@@ -439,6 +444,11 @@ namespace MortierFu
             RefreshFeedback();
 
             Logs.Log("[LobbyStartReadyController] Ready state reset.");
+        }
+
+        private void RefreshReadyTxt()
+        {
+            _readyIndicatorTxt.text = $"{_readyPlayers.Count}/{_registeredPlayers.Count}";
         }
     }
 }
