@@ -44,7 +44,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8591409541327736671}
   - component: {fileID: 400266223469958649}
-  - component: {fileID: 5806076451675224511}
+  - component: {fileID: 6270353218078024318}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -83,8 +83,8 @@ MonoBehaviour:
   _cameraFocusController: {fileID: 0}
   _settingsPanel: {fileID: 0}
   _focusCameraWhileSettingsOpen: 1
---- !u!135 &5806076451675224511
-SphereCollider:
+--- !u!65 &6270353218078024318
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -102,7 +102,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4.54
+  m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6575367392954222962
 GameObject:
