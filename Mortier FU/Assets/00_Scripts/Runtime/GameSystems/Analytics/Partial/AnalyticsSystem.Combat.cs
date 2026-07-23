@@ -75,7 +75,14 @@ namespace MortierFu.Analytics
 
         private void OnGameStateChangedHandler(GameState newState)
         {
+            bool wasInCombat = IsInCombatPhase();
+            
             _currentGameState = newState;
+
+            if (!wasInCombat && IsInCombatPhase())
+            {
+                _roundStartTime = System.DateTime.UtcNow;
+            }
         }
 
         private bool IsInCombatPhase()
@@ -232,7 +239,6 @@ namespace MortierFu.Analytics
             playerData.selectedAugment = augment;
 
             string playerId = GetPlayerIdFromCharacter(character.Owner);
-            _lastPickedAugmentPerPlayer[playerId] = augment;
         }
 
         public void OnScoreChanged(PlayerCharacter character, int newScore)

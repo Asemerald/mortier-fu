@@ -12,7 +12,6 @@ namespace MortierFu.Analytics
         private int _currentRoundIndex = 0;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
         private System.DateTime _gameStartTime;
-        private Dictionary<string, SO_Augment> _lastPickedAugmentPerPlayer = new();
         private Dictionary<string, int> _lastKnownScorePerPlayer = new();
 
         public bool IsInitialized { get; set; }
@@ -37,7 +36,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = "b.1.3",
+                officialGameVersion = "b.1.4",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
@@ -89,7 +88,7 @@ namespace MortierFu.Analytics
                     rank = 0,
                     score = _lastKnownScorePerPlayer.TryGetValue(playerId, out var lastScore) ? lastScore : 0,
                     kills = 0,
-                    selectedAugment = _lastPickedAugmentPerPlayer.TryGetValue(playerId, out var lastAugment) ? lastAugment : null,
+                    selectedAugment = null,
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
@@ -108,12 +107,9 @@ namespace MortierFu.Analytics
 
         private void OnTriggerEndRound(TriggerEndRound endRound)
         {
-            if (!IsInCombatPhase())
-            {
-                return;
-            }
+            if (!IsInCombatPhase()) return;
             
-            FinalizeCurrentRound();
+            FinalizeCurrentRound(endRound.WinningTeam);
 
             _currentRoundIndex++;
             _gameData.roundsPlayed++;
@@ -121,7 +117,7 @@ namespace MortierFu.Analytics
             StartNewRound();
         }
 
-        private void FinalizeCurrentRound()
+        private void FinalizeCurrentRound(PlayerTeam winningTeam)
         {
             var currentRound = _gameData.rounds[_currentRoundIndex];
 
@@ -132,8 +128,8 @@ namespace MortierFu.Analytics
                                             .ThenByDescending(p => p.score)
                                             .FirstOrDefault();
 
-            if (winner != null)
-                currentRound.roundWinner = winner.playerId;
+            if (winningTeam != null && winningTeam.Members.Count > 0)
+                currentRound.roundWinner = GetPlayerIdFromCharacter(winningTeam.Members[0]);
 
             AssignRanks(currentRound.players);
         }

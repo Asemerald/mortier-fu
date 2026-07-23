@@ -427,7 +427,10 @@ namespace MortierFu
 
             bombshellSys.ClearActiveBombshells();
 
-            EventBus<TriggerEndRound>.Raise(new TriggerEndRound());
+            EventBus<TriggerEndRound>.Raise(new TriggerEndRound()
+            {
+                WinningTeam = _roundController.WinningTeam
+            });
 
             SetPlayersControlContext(PlayerControlContext.RoundEnded);
 
