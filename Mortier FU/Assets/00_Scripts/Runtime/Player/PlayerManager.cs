@@ -277,8 +277,6 @@ namespace MortierFu
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
-            if (_unityEventSystemUIActive)
-                return;
 
             if (!ctx.performed)
                 return;

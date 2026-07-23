@@ -208,6 +208,7 @@ namespace MortierFu
         {
             if (!_settingsEventSystem || !item)
                 return;
+                
 
             _settingsEventSystem.SetSelectedGameObject(null);
             _settingsEventSystem.SetSelectedGameObject(item.gameObject);
@@ -217,6 +218,13 @@ namespace MortierFu
 
         private void CloseInternal(bool notifyClosed)
         {
+            if (_activePlayer.ControlContext == PlayerControlContext.PauseMenu)
+            {
+                return;
+                
+            }
+                
+            
             StopSelectionRoutine();
 
             PlayerManager activePlayer = _activePlayer;

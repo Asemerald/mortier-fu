@@ -6,6 +6,7 @@ using PrimeTween;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -68,6 +69,10 @@ namespace MortierFu
         private PlayerControlContext _previousPlayerContext;
         private bool _hasPreviousPlayerContext;
 
+        private readonly UnityPlayerUISession _uiSession = new();
+        private InputSystemUIInputModule _uiInputModule;
+        private MultiplayerEventSystem _globalEventSystem; 
+        private InputSystemUIInputModule _globalInputModule;
         private PlayerUIInputService UIInputService =>
             ServiceManager.Instance?.Get<PlayerUIInputService>();
 
@@ -82,7 +87,6 @@ namespace MortierFu
         private void OnDisable()
         {
             RemoveFromUIInputService();
-            ExitPauseInputContext();
 
             UnbindPauseSystemEvents();
             StopAllActiveAnimations();
@@ -91,7 +95,6 @@ namespace MortierFu
         private void OnDestroy()
         {
             RemoveFromUIInputService();
-            ExitPauseInputContext();
 
             UnbindPauseSystemEvents();
             UnbindUIEvents();
@@ -119,6 +122,8 @@ namespace MortierFu
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
+            _globalEventSystem = (MultiplayerEventSystem)(_globalEventSystem ? _globalEventSystem : EventSystem.current);
+            _globalInputModule = _globalInputModule ? _globalInputModule : _globalEventSystem?.GetComponent<InputSystemUIInputModule>();
 
             if (!_playerManager)
             {
@@ -466,6 +471,9 @@ namespace MortierFu
 
         private void Hide()
         {
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
+            
             if (_pausePanel)
                 _pausePanel.SetActive(false);
 
@@ -508,18 +516,20 @@ namespace MortierFu
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
 
             ServiceManager.Instance.Get<AudioService>().SetPause(1);
-
+            
             if (_shakeService is not null && _playerManager)
                 _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-
-            Logs.LogWarning(player.PlayerIndex.ToString());
-            EnterPauseInputContext(player);
+            
             RegisterToUIInputService(player);
-
+            
             Show(); 
 
+            _eventSystem.SetSelectedGameObject(null);
             if (_eventSystem && _settingsButton)
                 _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
+            
+            _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
+            _uiSession.Begin(player, _eventSystem, _uiInputModule, _settingsButton);
         }
 
         private void UnPause()
@@ -530,45 +540,12 @@ namespace MortierFu
 
             if (_shakeService is not null && _playerManager)
                 _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-
+                
             RemoveFromUIInputService();
-            ExitPauseInputContext();
 
             Hide();
         }
-
-        private void EnterPauseInputContext(PlayerManager player)
-        {
-            _playerManager = player;
-
-            if (!_playerManager)
-                return;
-
-            if (_playerManager.ControlContext != PlayerControlContext.PauseMenu)
-            {
-                _previousPlayerContext = _playerManager.ControlContext;
-                _hasPreviousPlayerContext = true;
-            }
-
-            player.SetControlContext(PlayerControlContext.PauseMenu);
-
-            Logs.LogWarning("SLJKHDKSJ");
-            Logs.LogWarning(_playerManager.ControlContext.ToString());
-        }
-
-        private void ExitPauseInputContext()
-        {
-            if (!_playerManager)
-                return;
-
-            if (_hasPreviousPlayerContext)
-            {
-                _playerManager.SetControlContext(_previousPlayerContext);
-            }
-
-            _hasPreviousPlayerContext = false;
-        }
-
+        
         private void RegisterToUIInputService(PlayerManager player)
         {
             _playerManager = player;
@@ -653,7 +630,10 @@ namespace MortierFu
                 _quitGameConfirmationPanel.SetActive(false);
 
             if (_pausePanel)
-                _pausePanel.SetActive(true);
+            {
+               UnPause();
+            }
+                
 
             if (_blackPanel)
                 _blackPanel.SetActive(true);
@@ -723,8 +703,45 @@ namespace MortierFu
                 return true;
             }
 
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
             _gamePauseSystem.TogglePause(_playerManager);
             return true;
+        }
+        
+        private void SetSettingsEventSystemActive(bool active)
+        {
+            if (active)
+            {
+                if (_globalInputModule)
+                    _globalInputModule.enabled = false;
+
+                if (_globalEventSystem)
+                    _globalEventSystem.enabled = false;
+
+                if (_eventSystem)
+                    _eventSystem.enabled = true;
+
+                if (_eventSystem)
+                    _eventSystem.enabled = true;
+
+                return;
+            }
+
+            if (_eventSystem)
+            {
+                _eventSystem.SetSelectedGameObject(null);
+                _eventSystem.enabled = false;
+            }
+
+            if (_uiInputModule)
+                _uiInputModule.enabled = false;
+
+            if (_eventSystem)
+                _eventSystem.enabled = true;
+
+            if (_globalInputModule)
+                _globalInputModule.enabled = true;
         }
 
         private void Shuffle(int[] array)
