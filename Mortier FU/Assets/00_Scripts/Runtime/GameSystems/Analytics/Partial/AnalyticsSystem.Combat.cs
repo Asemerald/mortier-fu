@@ -239,6 +239,9 @@ namespace MortierFu.Analytics
         {
             var playerData = GetOrCreatePlayerData(character);
             playerData.score = newScore;
+            
+            string playerId = GetPlayerIdFromCharacter(character.Owner);
+            _lastKnownScorePerPlayer[playerId] = newScore;
         }
     }
 }
