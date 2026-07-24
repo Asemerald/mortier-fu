@@ -1,4 +1,3 @@
-using log4net.Appender;
 using MortierFu.Shared;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
