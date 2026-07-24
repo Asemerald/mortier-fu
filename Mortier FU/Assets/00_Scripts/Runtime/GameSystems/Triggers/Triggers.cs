@@ -96,9 +96,11 @@ namespace MortierFu
     {
         public PlayerCharacter Character;
     }
-    
+
     public struct TriggerEndRound : ITrigger // Check
-    { }
+    {
+        public PlayerTeam WinningTeam;
+    }
 
     public struct TriggerEndDash : ITrigger
     {

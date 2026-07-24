@@ -121,18 +121,14 @@ namespace MortierFu.Analytics
                 Logs.Log("Analytics rounds overview send skipper in editor.");
                 return;
             }
-            
-            var sendTasks = new List<UniTask>();
 
             for (int i = 0; i < _gameData.roundsPlayed; i++)
             {
                 var round = _gameData.rounds[i];
                 if (round?.players == null) continue;
-                
-                sendTasks.Add(SendSingleRoundOverview(round));
+
+                await SendSingleRoundOverview(round);
             }
-            
-            await UniTask.WhenAll(sendTasks);
         }
 
         private async UniTask SendSingleRoundOverview(AnalyticsRoundData round)
@@ -162,7 +158,7 @@ namespace MortierFu.Analytics
                             var player = sortedPlayers[p];
 
                             form.AddField($"{prefix}ScoreAtEnd", player.score.ToString());
-                            form.AddField($"{prefix}LastAugmentPicked", player.selectedAugment != null ? player.selectedAugment.Name : "None");
+                            form.AddField($"{prefix}LastAugmentPicked", player.selectedAugment != null ? player.selectedAugment.Name : "-");
                             form.AddField($"{prefix}Kills", player.kills.ToString());
                             form.AddField($"{prefix}Dashes", player.dashesPerformed.ToString());
                             form.AddField($"{prefix}Bumped", player.bumpsMade.ToString());
@@ -172,7 +168,7 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
                             form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
                             form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
-                            form.AddField($"{prefix}DeathCause", ShortenDeathCause(player.deathCause));
+                            form.AddField($"{prefix}DeathCause", player.playerId == round.roundWinner ? "Win" : ShortenDeathCause(player.deathCause));
                         }
                         else
                         {
