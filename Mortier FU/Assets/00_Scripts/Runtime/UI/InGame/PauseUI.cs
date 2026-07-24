@@ -287,7 +287,7 @@ namespace MortierFu
                 _gamePauseSystem.TogglePause(_playerManager);
             }
 
-            _lobbyReturnToMainMenuController.ConfirmReturnToMainMenu();
+          //  _lobbyReturnToMainMenuController.ConfirmReturnToMainMenu();
         }
 
         private void ScrollRawImageUV(RawImage image, float speed)
@@ -530,7 +530,7 @@ namespace MortierFu
             
             
             _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
-            _uiSession.Begin(player, _eventSystem, _uiInputModule, _settingsButton);
+         //   _uiSession.Begin(player, _eventSystem, _uiInputModule, _settingsButton);
         }
 
         private void UnPause()

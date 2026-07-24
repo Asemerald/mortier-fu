@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -32,7 +31,7 @@ namespace MortierFu
         [Header("Optional")]
         [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
-        private UnityPlayerUISession _uiSession = new();
+        private readonly UnityPlayerUISession _uiSession = new();
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
@@ -50,6 +49,7 @@ namespace MortierFu
         {
             if (_root)
                 _root.SetActive(false);
+         
             _globalEventSystem = (MultiplayerEventSystem)(_globalEventSystem ? _globalEventSystem : EventSystem.current);
             _globalInputModule = _globalInputModule ? _globalInputModule : _globalEventSystem?.GetComponent<InputSystemUIInputModule>();
             
@@ -75,13 +75,10 @@ namespace MortierFu
         {
             if (_matchSettingsData)
                 _matchSettingsData.OnChanged -= Refresh;
-            
-            
 
             StopSelectionRoutine();
             _uiSession.End();
             SetSettingsEventSystemActive(false);
-            
         }
 
         private void OnDestroy()
@@ -117,7 +114,7 @@ namespace MortierFu
             BindItems();
             Refresh();
             
-            _uiSession.Begin(player, _settingsEventSystem, _settingsInputModule, _firstSelected);
+            _uiSession.Begin(player, _settingsEventSystem, _settingsInputModule, _firstSelected, PlayerControlContext.LobbySettingsOwner);
 
             _selectionRoutine = StartCoroutine(SelectFirstWhenReady());
         }
@@ -150,15 +147,14 @@ namespace MortierFu
 
         private void RestartLobbySetting()
         {
-            if (_isOpen)
-            {
-                PlayerManager tempPlayer = _activePlayer;
-                Action<PlayerManager> onClosed = _onClosed;
-                CloseInternal(false);
+            if (!_isOpen) return;
+            
+            PlayerManager tempPlayer = _activePlayer;
+            Action<PlayerManager> onClosed = _onClosed;
+            CloseInternal(false);
                 
-                _uiSession.End();
-                Open(tempPlayer, onClosed);
-            }
+            _uiSession.End();
+            Open(tempPlayer, onClosed);
         }
         
         public bool SelectRelativeTo(UIMatchSelectableItemBase currentItem, int direction)
@@ -232,8 +228,7 @@ namespace MortierFu
         {
             if (!_settingsEventSystem || !item)
                 return;
-                
-
+            
             _settingsEventSystem.SetSelectedGameObject(null);
             _settingsEventSystem.SetSelectedGameObject(item.gameObject);
 
@@ -282,7 +277,6 @@ namespace MortierFu
                 {
                     if (_settingsItems[i])
                         _settingsItems[i].Refresh();
-                    
                 }
             }
 

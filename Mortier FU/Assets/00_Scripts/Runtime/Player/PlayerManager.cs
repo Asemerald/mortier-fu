@@ -32,11 +32,7 @@ namespace MortierFu
             }
         }
 
-        public GameObject CharacterGO => RuntimeController.CharacterGO;
         public PlayerCharacter Character => RuntimeController.Character;
-        public bool IsInGame => RuntimeController.IsInGame;
-        public IPlayerPawn ActivePawn => _activePawn;
-        public bool IsControllingPawn => _activePawn is { IsPawnActive: true };
         public bool IsControllingGhost => _activePawn is PlayerGhostPawn { IsPawnActive: true };
 
         public PlayerControlContext ControlContext => InputRouter.ControlContext;
@@ -54,6 +50,13 @@ namespace MortierFu
         public PlayerCustomizationData Customization => _customization;
         
         private bool _unityEventSystemUIActive;
+
+        public bool IsUnityEventSystemUIActive => _unityEventSystemUIActive;
+
+        public void SetUnityEventSystemUIActive(bool active)
+        {
+            _unityEventSystemUIActive = active;
+        }
 
         public int SkinIndex => _customization.SkinIndex;
         public int FaceColumn => _customization.FaceColumn;
@@ -135,11 +138,6 @@ namespace MortierFu
             OnPlayerInitialized = null;
             OnPlayerDestroyed = null;
         }
-        
-        public void SetUnityEventSystemUIActive(bool active)
-        {
-            _unityEventSystemUIActive = active;
-        }
 
         private void ResolvePlayerInput()
         {
@@ -149,14 +147,7 @@ namespace MortierFu
             _playerInput = GetComponent<PlayerInput>();
         }
         
-        public bool IsKeyboardAndMouseControlScheme()
-        {
-            return _playerInput != null
-                   && string.Equals(
-                       _playerInput.currentControlScheme,
-                       "Keyboard and Mouse",
-                       System.StringComparison.Ordinal);
-        }
+        public bool IsKeyboardAndMouseControlScheme() => _playerInput && string.Equals(_playerInput.currentControlScheme, "Keyboard and Mouse", System.StringComparison.Ordinal);
 
         private bool TryResolveGamePauseSystem()
         {
@@ -275,6 +266,8 @@ namespace MortierFu
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
+            if (_unityEventSystemUIActive)
+                return;
 
             if (!ctx.performed)
                 return;

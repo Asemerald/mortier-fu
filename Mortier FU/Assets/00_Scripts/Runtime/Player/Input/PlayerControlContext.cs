@@ -12,6 +12,9 @@ namespace MortierFu
         LobbyLocked,
         LobbyReturnConfirmationOwner,
 
+        UIConfirmationOwner,
+        UIBlocked,
+        
         AugmentShowcase,
         AugmentRace,
         AugmentRaceBullyClassic,
@@ -19,14 +22,14 @@ namespace MortierFu
         AugmentRaceBullyShootOnly,
         AugmentRaceBullyLocked,
         AugmentRaceSummary,
-        
+
         RoundCountdown,
         RoundGameplay,
         RoundGhost,
         RoundEnded,
-        
+
         Loading,
-        
+
         Scoreboard,
         EndGame
     }

@@ -5746,13 +5746,15 @@ GameObject:
   - component: {fileID: 475808034}
   - component: {fileID: 475808033}
   - component: {fileID: 475808032}
+  - component: {fileID: 475808037}
+  - component: {fileID: 475808036}
   m_Layer: 5
   m_Name: ConfirmMainMenuCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &475808032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5829,6 +5831,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 585518356}
   - {fileID: 652361548}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5837,6 +5840,49 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &475808036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475808031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a9fde65fe79fd946a78cc59672fe671, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIConfirmationModalController
+  _panel: {fileID: 475808037}
+  _inputReceiver: {fileID: 585518357}
+  _eventSystem: {fileID: 0}
+  _uiInputModule: {fileID: 0}
+--- !u!114 &475808037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475808031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea351f60e49af784fb62cc25e4f32f0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIConfirmationPanel
+  _root: {fileID: 652361555}
+  _panelRoot: {fileID: 652361554}
+  _blackPanel: {fileID: 652361553}
+  _blackPanelTargetAlpha: 0.65
+  _descriptionText: {fileID: 652361552}
+  _confirmText: {fileID: 652361551}
+  _cancelText: {fileID: 652361550}
+  _openScaleDuration: 0.25
+  _openFadeDuration: 0.18
+  _openScaleEase: 27
+  _openFadeEase: 6
+  _closeScaleDuration: 0.16
+  _closeFadeDuration: 0.12
+  _closeScaleEase: 26
+  _closeFadeEase: 5
 --- !u!1 &485550823
 GameObject:
   m_ObjectHideFlags: 0
@@ -21383,6 +21429,55 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1293657049059787920, guid: 154c001e93a3c7341a1cbc5a97b94d97, type: 3}
   m_PrefabInstance: {fileID: 572693661}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &585518355
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 585518356}
+  - component: {fileID: 585518357}
+  m_Layer: 5
+  m_Name: ModalInputTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &585518356
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585518355}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 475808035}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &585518357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585518355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b87e6d4bc5aedc4dae2c22dd503f85f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIConfirmationInputReceiver
+  _modalController: {fileID: 475808036}
 --- !u!1001 &590385883
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21733,9 +21828,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 475808035}
     m_Modifications:
+    - target: {fileID: 2746221261708454361, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+      propertyPath: _panel
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 4328302708211529148, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
       propertyPath: m_Name
       value: PF_UI_ConfirmationPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4437914763029347113, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+      propertyPath: _panel
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4437914763029347113, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+      propertyPath: _inputReceiver
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 8543073145079517933, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
       propertyPath: m_Pivot.x
@@ -21827,28 +21934,60 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8543073145079517933, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
   m_PrefabInstance: {fileID: 652361547}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &652361549 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 47277935676353045, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
-  m_PrefabInstance: {fileID: 652361547}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &652361550 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7239265054640728277, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_CorrespondingSourceObject: {fileID: 5379752715865671700, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
   m_PrefabInstance: {fileID: 652361547}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &652361551 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4058225508689606670, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_PrefabInstance: {fileID: 652361547}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &652361552 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6349603297085505340, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_PrefabInstance: {fileID: 652361547}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &652361553 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4063798362886180143, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_PrefabInstance: {fileID: 652361547}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!224 &652361554 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4330783493992750249, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_PrefabInstance: {fileID: 652361547}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &652361555 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4328302708211529148, guid: ebe34171506d4d04aadf6313b9127f2c, type: 3}
+  m_PrefabInstance: {fileID: 652361547}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &670408397
 GameObject:
   m_ObjectHideFlags: 0
@@ -23277,8 +23416,6 @@ GameObject:
   m_Component:
   - component: {fileID: 814736325}
   - component: {fileID: 814736327}
-  - component: {fileID: 814736326}
-  - component: {fileID: 814736328}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -23301,27 +23438,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 624850281}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &814736326
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814736324}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 4, y: 1, z: 4}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!64 &814736327
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -23344,27 +23460,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 2407076775014131887, guid: 3671eb1b152b08746887edd42d3a0007, type: 3}
---- !u!135 &814736328
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814736324}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Radius: 3.82
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &815899227
 GameObject:
   m_ObjectHideFlags: 0
@@ -71203,13 +71298,12 @@ MonoBehaviour:
   _sandboxController: {fileID: 1547654674}
   _stateController: {fileID: 1547654679}
   _readyController: {fileID: 1547654681}
-  _confirmPanel: {fileID: 475808031}
-  _confirmButton: {fileID: 652361550}
-  _cancelButton: {fileID: 652361549}
-  _defaultSelectedButton: {fileID: 652361550}
+  _confirmationModal: {fileID: 475808036}
+  _description: ARE YOU SURE YOU WANT TO END THE GAME HERE?
+  _confirmLabel: CONTINUE
+  _cancelLabel: BACK
   _despawnLobbyCharacters: 1
   _disableJoining: 1
-  _navigationDeadZone: 0.5
 --- !u!1 &1796314559
 GameObject:
   m_ObjectHideFlags: 0
@@ -71713,9 +71807,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 642799266133525498, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 2711034429119941409, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 5743736946754270166, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
