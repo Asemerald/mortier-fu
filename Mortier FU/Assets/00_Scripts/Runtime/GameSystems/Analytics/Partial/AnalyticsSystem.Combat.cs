@@ -235,10 +235,15 @@ namespace MortierFu.Analytics
 
         public void OnAugmentSelected(PlayerCharacter character, SO_Augment augment = null)
         {
-            var playerData = GetOrCreatePlayerData(character);
-            playerData.selectedAugment = augment;
-
+            if (character == null ||character.Owner == null) return;
+            
             string playerId = GetPlayerIdFromCharacter(character.Owner);
+            _pendingAugmentsForNextRound[playerId] = augment;
+
+            if (_currentRoundPlayers != null & _currentRoundPlayers.TryGetValue(playerId, out var playerData))
+            {
+                playerData.selectedAugment = augment; 
+            }
         }
 
         public void OnScoreChanged(PlayerCharacter character, int newScore)

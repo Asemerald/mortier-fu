@@ -13,6 +13,7 @@ namespace MortierFu.Analytics
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
         private System.DateTime _gameStartTime;
         private Dictionary<string, int> _lastKnownScorePerPlayer = new();
+        private Dictionary<string, SO_Augment> _pendingAugmentsForNextRound = new();
 
         public bool IsInitialized { get; set; }
         public string GameId => _gameData?.gameId;
@@ -29,6 +30,11 @@ namespace MortierFu.Analytics
         private void CreateNewGameData()
         {
             _gameStartTime = System.DateTime.UtcNow;
+            
+            _lastKnownScorePerPlayer.Clear();
+            _pendingAugmentsForNextRound.Clear();
+            _currentRoundIndex = 0;
+            
             _gameData = new AnalyticsData()
             {
                 gameId = System.Guid.NewGuid().ToString(),
@@ -82,13 +88,14 @@ namespace MortierFu.Analytics
             foreach (var player in players)
             {
                 string playerId = GetPlayerIdFromCharacter(player);
+                _pendingAugmentsForNextRound.TryGetValue(playerId, out var pickedAugment);
                 var playerData = new AnalyticsPlayerData()
                 {
                     playerId = playerId,
                     rank = 0,
                     score = _lastKnownScorePerPlayer.TryGetValue(playerId, out var lastScore) ? lastScore : 0,
                     kills = 0,
-                    selectedAugment = null,
+                    selectedAugment = pickedAugment,
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
@@ -103,6 +110,8 @@ namespace MortierFu.Analytics
 
                 _currentRoundPlayers[playerId] = playerData;
             }
+            
+            _pendingAugmentsForNextRound.Clear();
         }
 
         private void OnTriggerEndRound(TriggerEndRound endRound)
