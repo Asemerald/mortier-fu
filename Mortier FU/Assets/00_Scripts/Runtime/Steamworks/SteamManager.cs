@@ -10,6 +10,7 @@
 using UnityEngine;
 #if STEAMWORKS
 using System.Collections;
+using MortierFu.Shared;
 using Steamworks;
 #endif
 
@@ -78,11 +79,11 @@ public class SteamManager : MonoBehaviour {
 		DontDestroyOnLoad(gameObject);
 
 		if (!Packsize.Test()) {
-			Debug.LogError("[Steamworks.NET] Packsize Test returned false, the wrong version of Steamworks.NET is being run in this platform.", this);
+			Logs.LogError("[Steamworks.NET] Packsize Test returned false, the wrong version of Steamworks.NET is being run in this platform.", this);
 		}
 
 		if (!DllCheck.Test()) {
-			Debug.LogError("[Steamworks.NET] DllCheck Test returned false, One or more of the Steamworks binaries seems to be the wrong version.", this);
+			Logs.LogError("[Steamworks.NET] DllCheck Test returned false, One or more of the Steamworks binaries seems to be the wrong version.", this);
 		}
 
 		try {
@@ -95,14 +96,14 @@ public class SteamManager : MonoBehaviour {
 			// remove steam_appid.txt from the game depot. eg: "(AppId_t)480" or "new AppId_t(480)".
 			// See the Valve documentation for more information: https://partner.steamgames.com/doc/sdk/api#initialization_and_shutdown
 			if (SteamAPI.RestartAppIfNecessary((AppId_t)4916100)) {
-				Debug.Log("[Steamworks.NET] Shutting down because RestartAppIfNecessary returned true. Steam will restart the application.");
+				Logs.Log("[Steamworks.NET] Shutting down because RestartAppIfNecessary returned true. Steam will restart the application.");
 
 				Application.Quit();
 				return;
 			}
 		}
 		catch (System.DllNotFoundException e) { // We catch this exception here, as it will be the first occurrence of it.
-			Debug.LogError("[Steamworks.NET] Could not load [lib]steam_api.dll/so/dylib. It's likely not in the correct location. Refer to the README for more details.\n" + e, this);
+			Logs.LogError("[Steamworks.NET] Could not load [lib]steam_api.dll/so/dylib. It's likely not in the correct location. Refer to the README for more details.\n" + e, this);
 
 			Application.Quit();
 			return;
@@ -119,7 +120,7 @@ public class SteamManager : MonoBehaviour {
 		// https://partner.steamgames.com/doc/sdk/api#initialization_and_shutdown
 		m_bInitialized = SteamAPI.Init();
 		if (!m_bInitialized) {
-			Debug.LogError("[Steamworks.NET] SteamAPI_Init() failed. Refer to Valve's documentation or the comment above this line for more information.", this);
+			Logs.LogError("[Steamworks.NET] SteamAPI_Init() failed. Refer to Valve's documentation or the comment above this line for more information.", this);
 
 			return;
 		}
@@ -169,7 +170,72 @@ public class SteamManager : MonoBehaviour {
 
 		// Run Steam client callbacks
 		SteamAPI.RunCallbacks();
+		
+		
 	}
+
+	public static void AddProgressToAchievement(string achievementID, int progressToAdd = 1)
+	{
+		if (!Initialized)
+		{
+			Logs.LogWarning("[Steamworks.NET] SteamAPI is not initialized. Cannot add progress to achievement.");
+			return;
+		}
+
+		bool alreadyDone; 
+		if (!SteamUserStats.GetAchievement(achievementID, out alreadyDone))
+		{
+			Logs.LogWarning($"[Steamworks.NET] Achievement '{achievementID}' does not exist or could not be retrieved.");
+			return;
+		}
+		
+		if (alreadyDone)
+		{
+			Logs.LogWarning($"[Steamworks.NET] Achievement '{achievementID}' is already unlocked.");
+			return;
+		}
+
+		int currentStat;
+		if (!SteamUserStats.GetStat(achievementID, out currentStat))
+		{
+			Logs.LogWarning($"[Steamworks.NET] Failed to get stat for achievement '{achievementID}'.");
+			return;
+		}
+		
+		currentStat += progressToAdd;
+
+		if (!SteamUserStats.SetStat(achievementID, currentStat))
+		{
+			Logs.LogError($"[Steamworks.NET] Failed to set stat for achievement '{achievementID}'.");
+			return;
+		}
+		
+		// Update Stats 
+		
+		SteamUserStats.IndicateAchievementProgress(achievementID, (uint)currentStat, 100);
+	}
+
+	public static void UnlockAchievement(string achievementID)
+	{
+		if (!Initialized)
+		{
+			Logs.LogWarning("[Steamworks.NET] SteamAPI is not initialized. Cannot unlock achievement.");
+			return;
+		}
+
+		bool result = SteamUserStats.SetAchievement(achievementID);
+		if (result)
+		{
+			SteamUserStats.StoreStats();
+			Logs.Log($"[Steamworks.NET] Achievement '{achievementID}' unlocked successfully.");
+		}
+		else
+		{
+			Logs.LogWarning($"[Steamworks.NET] Failed to unlock achievement '{achievementID}'.");
+		}
+	}
+	
+	
 #else
 	public static bool Initialized {
 		get {
