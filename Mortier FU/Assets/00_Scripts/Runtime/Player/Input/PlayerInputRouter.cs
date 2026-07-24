@@ -1,4 +1,5 @@
 using System;
+using MortierFu.Shared;
 using UnityEngine.InputSystem;
 
 namespace MortierFu
@@ -50,6 +51,7 @@ namespace MortierFu
             globalMap?.Enable();
 
             character?.SetControlContext(context);
+            
         }
 
         public void ApplyCurrentContextTo(PlayerCharacter character) => character?.SetControlContext(ControlContext);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -89,12 +90,12 @@ namespace MortierFu
 
         public bool TryNavigate(PlayerManager player, Vector2 direction)
         {
+            
             if (!player || !player.CurrentPermissions.CanNavigateUI)
                 return false;
-
+            
             if (!_handlersByPlayer.ContainsKey(player))
                 return false;
-
             if (direction.sqrMagnitude < 0.0001f)
             {
                 _navigationInputByPlayer.Remove(player);
@@ -103,6 +104,7 @@ namespace MortierFu
             }
 
             _navigationInputByPlayer[player] = direction;
+            
             return true;
         }
 
@@ -191,7 +193,7 @@ namespace MortierFu
 
                         if (!_navigationInputByPlayer.TryGetValue(player, out Vector2 input))
                             continue;
-
+                        
                         TryHandle(player, handler => handler.HandleNavigate(player, input));
                     }
 

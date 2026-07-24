@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,11 +12,11 @@ namespace MortierFu
 
         public bool IsPaused { get; private set; }
 
-        public event Action Paused;
+        public event Action<PlayerManager> Paused;
         public event Action Resumed;
         public event Action Canceled;
 
-        public void TogglePause()
+        public void TogglePause(PlayerManager player)
         {
             if (IsPaused)
             {
@@ -23,10 +24,11 @@ namespace MortierFu
             }
             else
             {
-                Pause();
+                Pause(player);
             }
         }
 
+        // dans GamePauseSystem.UnPause()
         private void UnPause()
         {
             if (!IsPaused) return;
@@ -36,13 +38,13 @@ namespace MortierFu
             Resumed?.Invoke();
         }
 
-        private void Pause()
+        private void Pause(PlayerManager player)
         {
             if (IsPaused) return;
 
             IsPaused = true;
             Time.timeScale = 0f;
-            Paused?.Invoke();
+            Paused?.Invoke(player);
         }
 
         public void Cancel()

@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
-    public class PlayerCharacter : MonoBehaviour
+    public class  PlayerCharacter : MonoBehaviour
     {
         private static readonly object k_controlContextInvincibilitySource = new ControlContextInvincibilitySource();
         
@@ -107,7 +107,7 @@ namespace MortierFu
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
-
+        
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;
