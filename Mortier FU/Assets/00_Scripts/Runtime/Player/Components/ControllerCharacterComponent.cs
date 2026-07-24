@@ -114,6 +114,12 @@ namespace MortierFu
 
             Vector2 input = _moveAction.ReadValue<Vector2>();
             Vector2 targetDirection = input.normalized;
+
+            if (targetDirection.sqrMagnitude < 0.01f)
+            {
+                targetDirection = new Vector2(character.transform.forward.x,character.transform.forward.z);
+            }
+            
             float targetForce = Stats.MoveSpeed.BaseValue * Stats.DashForce.Value;
 
             return new Vector3(targetDirection.x, 0f, targetDirection.y) * targetForce;
