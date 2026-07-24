@@ -112,7 +112,6 @@ namespace MortierFu
 
             _progress = 1f;
             _sceneService.HideLoadingScreen();
-            
 
             IsInitialized = true;
         }

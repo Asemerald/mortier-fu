@@ -196,7 +196,7 @@ namespace MortierFu
             AugmentCardSummaryRaceUI cardObj = Instantiate(_settings.Card, _layoutRectTCard);
             
             cardObj.transform.localScale = Vector3.zero;
-             
+            
             cardObj.Initialize();
             
             cardObj.SetAugmentVisual(augmentStack.Augment);
