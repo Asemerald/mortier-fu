@@ -117,8 +117,7 @@ namespace MortierFu
 
             if (targetDirection.sqrMagnitude < 0.01f)
             {
-                //TODO : fix léger problème de rotation
-                targetDirection = character.transform.forward;
+                targetDirection = new Vector2(character.transform.forward.x,character.transform.forward.z);
             }
             
             float targetForce = Stats.MoveSpeed.BaseValue * Stats.DashForce.Value;
