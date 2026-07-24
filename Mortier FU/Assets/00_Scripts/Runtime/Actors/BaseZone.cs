@@ -18,6 +18,8 @@ namespace MortierFu
         private bool _ShouldCheckThisFrame;
 
         private Collider _collider;
+        
+        protected const float ThresholdSpeedVfx = 0.5f;
 
         #region Unity Lifecycle
 
@@ -92,13 +94,14 @@ namespace MortierFu
 
             foreach (var player in _playersCache)
             {
+                if (!IsPlayerFastEnough(player)) return;
                 
                 if (!IsPlayerValid(player))
                 {
                     _playersCache.Remove(player);
                     _counters.Remove(player);
                     ApplyEffectZoneExit(player, null);
-                    return;
+                    return; // need to return do not modify this
                 }
                 
                 if (_ShouldCheckThisFrame && !_collider.bounds.Contains(player.transform.position))
@@ -134,6 +137,11 @@ namespace MortierFu
             if (!player) return false;
 
             return player.Health is { IsAlive: true };
+        }
+
+        protected virtual bool IsPlayerFastEnough(PlayerCharacter player)
+        {
+            return player.Controller.SpeedRatio >= ThresholdSpeedVfx;
         }
 
         protected virtual void ClearPlayersCache()
