@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -22,7 +23,8 @@ namespace MortierFu
         [Header("Unity UI")]
         [SerializeField] private Selectable _firstSelected;
         [SerializeField] private UISelectedScrollFollower _scrollFollower;
-
+        [SerializeField] private TextMeshPro _gameModeText;
+        
         [Header("Settings Items")]
         [SerializeField] private UIMatchSelectableItemBase[] _settingsItems;
 
@@ -255,11 +257,12 @@ namespace MortierFu
                 {
                     if (_settingsItems[i])
                         _settingsItems[i].Refresh();
+                    
                 }
             }
 
             _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
-
+            _gameModeText.text = _matchSettingsData.SelectedRuleset.DisplayName;
             ValidateCurrentSelection();
         }
 
