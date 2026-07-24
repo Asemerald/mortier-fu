@@ -528,6 +528,7 @@ namespace MortierFu
             if (_eventSystem && _settingsButton)
                 _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
             
+            
             _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
             _uiSession.Begin(player, _eventSystem, _uiInputModule, _settingsButton);
         }
@@ -544,6 +545,7 @@ namespace MortierFu
             RemoveFromUIInputService();
 
             Hide();
+            
         }
         
         private void RegisterToUIInputService(PlayerManager player)

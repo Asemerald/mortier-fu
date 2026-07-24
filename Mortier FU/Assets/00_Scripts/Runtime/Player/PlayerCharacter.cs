@@ -107,7 +107,7 @@ namespace MortierFu
 
         public float GetStrikeCooldownProgress => _dashState.DashCooldownProgress;
         public int AvailableDashCharges => _dashState.AvailableCharges;
-
+        
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;

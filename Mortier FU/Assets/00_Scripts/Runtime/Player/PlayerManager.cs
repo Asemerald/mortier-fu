@@ -243,7 +243,6 @@ namespace MortierFu
             if (!TryResolveGamePauseSystem())
                 return;
 
-            Logs.LogWarning(PlayerIndex.ToString());
             _gamePauseSystem.TogglePause(this);
         }
 
@@ -258,7 +257,6 @@ namespace MortierFu
             Vector2 direction = ctx.ReadValue<Vector2>();
 
             UIInputService?.TryNavigate(this, direction);
-            Logs.LogWarning("worked?");
         }
 
         private void SubmitUI(InputAction.CallbackContext ctx)

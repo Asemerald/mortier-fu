@@ -24,11 +24,11 @@ namespace MortierFu
             }
             else
             {
-                Logs.LogWarning(player.PlayerIndex.ToString());
                 Pause(player);
             }
         }
 
+        // dans GamePauseSystem.UnPause()
         private void UnPause()
         {
             if (!IsPaused) return;
@@ -42,7 +42,6 @@ namespace MortierFu
         {
             if (IsPaused) return;
 
-            Logs.LogWarning(player.PlayerIndex.ToString());
             IsPaused = true;
             Time.timeScale = 0f;
             Paused?.Invoke(player);

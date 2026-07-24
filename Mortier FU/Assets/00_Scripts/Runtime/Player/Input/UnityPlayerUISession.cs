@@ -1,3 +1,4 @@
+using log4net.Appender;
 using MortierFu.Shared;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -10,6 +11,7 @@ namespace MortierFu
         private PlayerManager _player;
         private EventSystem _eventSystem;
         private InputSystemUIInputModule _uiInputModule;
+        private Selectable _firstSelected;
 
         private InputSystemUIInputModule _previousUiInputModule;
         private PlayerControlContext _previousContext;
@@ -43,9 +45,18 @@ namespace MortierFu
             _player.SetControlContext(PlayerControlContext.LobbySettingsOwner);
 
             if (firstSelected)
+            {
                 _eventSystem.SetSelectedGameObject(firstSelected.gameObject);
+                _firstSelected = firstSelected;
+            }
+                
 
             _isActive = true;
+        }
+
+        public void Begin()
+        {
+            Begin(_player, _eventSystem, _uiInputModule, _firstSelected);
         }
 
         public void End()
