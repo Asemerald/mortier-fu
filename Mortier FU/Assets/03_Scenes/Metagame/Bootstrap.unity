@@ -1659,8 +1659,8 @@ MonoBehaviour:
   m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca8e7d45541150547937c1a277cdc603, type: 3}
   m_RightClickAction: {fileID: -4090225696740746782, guid: ca8e7d45541150547937c1a277cdc603, type: 3}
   m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca8e7d45541150547937c1a277cdc603, type: 3}
-  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca8e7d45541150547937c1a277cdc603, type: 3}
-  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca8e7d45541150547937c1a277cdc603, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 0}
+  m_TrackedDeviceOrientationAction: {fileID: 0}
   m_DeselectOnBackgroundClick: 0
   m_PointerBehavior: 0
   m_CursorLockBehavior: 1
@@ -1798,6 +1798,50 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1793407971
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1793407972}
+  - component: {fileID: 1793407973}
+  m_Layer: 0
+  m_Name: SteamManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1793407972
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1793407971}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 311.94968, y: 0, z: 1526.9525}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1793407973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1793407971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef4bffeda13d7a748973ff9204401c07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::SteamManager
 --- !u!114 &1829325158 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6534235912530527116, guid: 615028fa116ed0549b6d221102dc6c00, type: 3}
@@ -2070,3 +2114,4 @@ SceneRoots:
   - {fileID: 1280748502}
   - {fileID: 265954281}
   - {fileID: 733496220}
+  - {fileID: 1793407972}
