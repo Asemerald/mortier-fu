@@ -9,6 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7840309666329793938}
+  - component: {fileID: 550208382304447730}
+  - component: {fileID: -5844303119610548375}
+  - component: {fileID: 5160671104281407041}
   m_Layer: 0
   m_Name: PF_Tombe_Blue
   m_TagString: Untagged
@@ -33,6 +36,73 @@ Transform:
   - {fileID: 7596807456217764896}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &550208382304447730
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9005458205193035344}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.1979122, y: 3.6485953, z: 3.5202894}
+  m_Center: {x: -0.038465023, y: 1.5990481, z: -0.09601092}
+--- !u!54 &-5844303119610548375
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9005458205193035344}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &5160671104281407041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9005458205193035344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfea2260056688b47a0a5c2f31239adb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::SimplePropPhysic
+  rb: {fileID: -5844303119610548375}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 2113
+  detectionDistance: 1.71
+  offsetAdjustment: {x: 0, y: 0, z: 0}
+  spawnOffsetY: -0.69
 --- !u!1001 &2228686356763955672
 PrefabInstance:
   m_ObjectHideFlags: 0
