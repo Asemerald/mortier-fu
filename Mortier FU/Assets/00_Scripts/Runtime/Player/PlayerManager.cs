@@ -234,8 +234,8 @@ namespace MortierFu
             if (!ctx.performed)
                 return;
 
-            if (PlayerIndex != 0)
-                return;
+            // if (PlayerIndex != 0)
+            //     return;
 
             if (!CurrentPermissions.CanPause)
                 return;
@@ -243,7 +243,7 @@ namespace MortierFu
             if (!TryResolveGamePauseSystem())
                 return;
 
-            _gamePauseSystem.TogglePause();
+            _gamePauseSystem.TogglePause(this);
         }
 
         private void NavigateUI(InputAction.CallbackContext ctx)
@@ -275,8 +275,6 @@ namespace MortierFu
 
         private void CancelUI(InputAction.CallbackContext ctx)
         {
-            if (_unityEventSystemUIActive)
-                return;
 
             if (!ctx.performed)
                 return;
