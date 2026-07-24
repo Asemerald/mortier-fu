@@ -290,7 +290,7 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
 
             InitializeRound();
-
+            await CircleTransition.Instance.OpenAsync(1f);
             await RunRoundStartPresentationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -704,6 +704,7 @@ namespace MortierFu
             await canHideSummaryTask;
             
             ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
+            // await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
             
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -769,7 +770,6 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
             
             SetPlayersControlContext(PlayerControlContext.Loading);
             
@@ -778,18 +778,20 @@ namespace MortierFu
             _isRaceMapLoaded = true;
             _isArenaMapLoaded = false;
             _isRaceScenePrepared = false;
-
-            await cameraSystem.Controller.ApplyRaceCameraMapConfigAsync(cancellationToken);  
             
+            await cameraSystem.Controller.ApplyRaceCameraMapConfigAsync(cancellationToken);  
+
             PrepareRaceSceneAfterMapLoaded();
 
             cancellationToken.ThrowIfCancellationRequested();
             
             HideScores();
 
+            await CircleTransition.Instance.OpenAsync(1f);
+            
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
+           
         }
 
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());

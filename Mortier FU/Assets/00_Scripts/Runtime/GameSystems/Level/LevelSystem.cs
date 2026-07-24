@@ -548,6 +548,7 @@ namespace MortierFu
             }
 
             _lastPlayedRaceModeDefinition = raceModeDefinition;
+            
 
             Logs.Log($"[LevelSystem] Registered last played race mode: {raceModeDefinition.name}");
         }
