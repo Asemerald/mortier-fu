@@ -13,7 +13,6 @@ namespace MortierFu.Analytics
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
         private System.DateTime _gameStartTime;
         private Dictionary<string, int> _lastKnownScorePerPlayer = new();
-        private Dictionary<string, SO_Augment> _pendingAugmentsForNextRound = new();
 
         public bool IsInitialized { get; set; }
         public string GameId => _gameData?.gameId;
@@ -46,6 +45,17 @@ namespace MortierFu.Analytics
                 winner = "",
                 roundsPlayed = 0,
             };
+
+            if (_augmentStats != null)
+            {
+                foreach (var entry in _augmentStats.Values)
+                {
+                    entry.timesShown = 0;
+                    entry.timesPicked = 0;
+                    entry.timesPickedByWinner = 0;
+                    entry.winnerHadIt = false;
+                }
+            }
 
             StartNewRound();
         }
@@ -87,7 +97,6 @@ namespace MortierFu.Analytics
             foreach (var player in players)
             {
                 string playerId = GetPlayerIdFromCharacter(player);
-                _pendingAugmentsForNextRound.TryGetValue(playerId, out var pickedAugment);
                 var playerData = new AnalyticsPlayerData()
                 {
                     playerId = playerId,
@@ -109,8 +118,6 @@ namespace MortierFu.Analytics
 
                 _currentRoundPlayers[playerId] = playerData;
             }
-            
-            _pendingAugmentsForNextRound.Clear();
         }
 
         private void OnTriggerEndRound(TriggerEndRound endRound)
@@ -162,10 +169,13 @@ namespace MortierFu.Analytics
             {
                 string winnerId = GetPlayerIdFromCharacter(playerWins.Members[0]);
                 _gameData.winner = winnerId;
+                
+                FinalizeAugmentAnalytics(winnerId);
             }
 
-            AggregateFinalStats();
+            if (_augmentStats != null) _gameData.augmentStats = _augmentStats.Values.ToArray();
 
+            AggregateFinalStats();
             ExportToExcel();
         }
 

@@ -19,6 +19,7 @@ namespace MortierFu
         public int durationSeconds;
         
         public AnalyticsFinalPlayerStats[] finalPlayerStats;
+        public AnalyticsAugmentEntry[] augmentStats;
 
         public int totalBombshellKills;
         public int totalSuicides;
@@ -41,6 +42,8 @@ namespace MortierFu
         public float damageDealt;
         public float damageTaken;
     }
+    
+    [System.Serializable]
     public class AnalyticsRoundData
     {
         public int roundNumber;
@@ -57,7 +60,7 @@ namespace MortierFu
         public int rank;
         public int score;
         public int kills;
-        [CanBeNull] public SO_Augment selectedAugment;
+        [CanBeNull, System.NonSerialized] public SO_Augment selectedAugment;
         public float damageDealt;
         public float damageTaken;
         public int shotsFired;
@@ -70,22 +73,15 @@ namespace MortierFu
         public E_DeathCause deathCause;
     }
 
+    [System.Serializable]
     public class AnalyticsAugmentEntry
     {
         public int augmentId;
         public string augmentName;
         public int timesShown;
         public int timesPicked;
-    }
-    
-    public enum DeathCause
-    {
-        None,
-        Player1,
-        Player2,
-        Player3,
-        Player4,
-        Fall,
-        VehicleCrash
+
+        public int timesPickedByWinner;
+        public bool winnerHadIt;
     }
 }

@@ -104,6 +104,8 @@ namespace MortierFu.Analytics
                 {
                     form.AddField($"augment{entry.augmentId}_Shown", entry.timesShown.ToString());
                     form.AddField($"augment{entry.augmentId}_Picked", entry.timesPicked.ToString());
+                    form.AddField($"augment{entry.augmentId}_PickedByWinner", entry.timesPickedByWinner.ToString());
+                    form.AddField($"augment{entry.augmentId}_WinnerHadIt", entry.winnerHadIt.ToString().ToUpper());
                 }
 
                 await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "augment-stats");
