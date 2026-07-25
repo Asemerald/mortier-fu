@@ -19,6 +19,7 @@ namespace MortierFu
     [Serializable]
     public struct MatchConfig
     {
+        public string Subtitle;
         public int ScoreToWin;
         public float RaceTimeLimit;
 
@@ -33,8 +34,9 @@ namespace MortierFu
         public bool DisableSelfDamage;
         [HideInInspector] public bool DisableAugments;
 
-        public MatchConfig(int scoreToWin)
+        public MatchConfig(int scoreToWin, string subtitle = "")
         {
+            Subtitle = subtitle;
             ScoreToWin = scoreToWin;
             RaceTimeLimit = 20f;
 
@@ -54,6 +56,7 @@ namespace MortierFu
 
         public static MatchConfig Default => new()
         {
+            Subtitle = "Default Config",
             ScoreToWin = 1000,
             RaceTimeLimit = 20f,
 

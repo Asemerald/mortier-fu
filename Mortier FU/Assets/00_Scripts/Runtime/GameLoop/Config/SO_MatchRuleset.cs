@@ -15,7 +15,6 @@ namespace MortierFu
     {
         [Header("Display")]
         public string DisplayName = "Classic";
-        public string Subtitle = "RECOMMEND FOR 4 PLAYERS";
         [TextArea] public string Description;
 
         [Header("Behaviour")]

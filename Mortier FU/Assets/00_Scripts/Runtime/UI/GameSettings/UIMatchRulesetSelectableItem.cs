@@ -65,7 +65,12 @@ namespace MortierFu
                 _nameText.text = ruleset ? ruleset.DisplayName : "CUSTOM GAME";
 
             if (_subtitleText)
-                _subtitleText.text = ruleset ? ruleset.Subtitle : string.Empty;
+                if (ruleset != null)
+            {
+                MatchConfig configForPlayers = ruleset.GetConfigForPlayerCount(PlayerCount);
+                _subtitleText.text = configForPlayers.Subtitle;
+            }
+            else _subtitleText.text = string.Empty;
 
             if (_descriptionText)
                 _descriptionText.text = ruleset ? ruleset.Description : string.Empty;
