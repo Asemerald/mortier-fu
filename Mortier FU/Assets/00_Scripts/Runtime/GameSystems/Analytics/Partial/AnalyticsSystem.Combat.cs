@@ -151,6 +151,8 @@ namespace MortierFu.Analytics
 
         private void OnTriggerHealthChanged(TriggerHealthChanged healthChanged)
         {
+            if(!IsInCombatPhase()) return;
+            
             if (healthChanged.Instigator != null && healthChanged.Delta < 0)
             {
                 var instigatorData = GetOrCreatePlayerData(healthChanged.Instigator);
@@ -230,18 +232,6 @@ namespace MortierFu.Analytics
             for (int i = 0; i < sortedPlayers.Count; i++)
             {
                 sortedPlayers[i].rank = i + 1;
-            }
-        }
-
-        public void OnAugmentSelected(PlayerCharacter character, SO_Augment augment = null)
-        {
-            if (character == null ||character.Owner == null) return;
-            
-            string playerId = GetPlayerIdFromCharacter(character.Owner);
-
-            if (_currentRoundPlayers != null & _currentRoundPlayers.TryGetValue(playerId, out var playerData))
-            {
-                playerData.selectedAugment = augment;
             }
         }
 

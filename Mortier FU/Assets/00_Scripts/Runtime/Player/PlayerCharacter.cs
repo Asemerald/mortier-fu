@@ -430,8 +430,7 @@ namespace MortierFu
                 ActivateAugment(augmentData);
 
             AnalyticsSystem analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
-            analyticsSystem?.OnAugmentSelected(this, augmentData);
-            analyticsSystem?.OnAugmentPicked(augmentData);
+            analyticsSystem?.OnAugmentPicked(this, augmentData);
                 
         }
 

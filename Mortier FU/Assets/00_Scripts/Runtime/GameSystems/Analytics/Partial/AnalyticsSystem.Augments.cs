@@ -28,7 +28,9 @@ namespace MortierFu.Analytics
                     augmentId = augment.ID,
                     augmentName = augment.Name,
                     timesShown = 0,
-                    timesPicked = 0
+                    timesPicked = 0,
+                    timesPickedByWinner = 0,
+                    winnerHadIt = false
                 };
             }
         }
@@ -60,12 +62,54 @@ namespace MortierFu.Analytics
             }
         }
 
-        public void OnAugmentPicked(SO_Augment augment)
+       public void OnAugmentPicked(PlayerCharacter character, SO_Augment augment)
         {
             if (augment == null) return;
-
+            
             if (_augmentStats.TryGetValue(augment.ID, out var entry))
+            {
                 entry.timesPicked++;
+            }
+            
+            if (character != null && character.Owner != null)
+            {
+                string playerId = GetPlayerIdFromCharacter(character.Owner);
+                if (_currentRoundPlayers != null && _currentRoundPlayers.TryGetValue(playerId, out var playerData))
+                {
+                    playerData.selectedAugment = augment;
+                }
+            }
+        }
+       
+        private void FinalizeAugmentAnalytics(string winnerPlayerId)
+        {
+            if (_augmentStats == null || _gameData?.rounds == null) return;
+
+            HashSet<int> winnerAugmentIds = new HashSet<int>();
+            
+            foreach (var round in _gameData.rounds)
+            {
+                if (round?.players == null) continue;
+
+                foreach (var playerData in round.players)
+                {
+                    if (playerData.playerId == winnerPlayerId && playerData.selectedAugment != null)
+                    {
+                        int augId = playerData.selectedAugment.ID;
+                        winnerAugmentIds.Add(augId);
+                        
+                        if (_augmentStats.TryGetValue(augId, out var entry))
+                        {
+                            entry.timesPickedByWinner++;
+                        }
+                    }
+                }
+            }
+            
+            foreach (var entry in _augmentStats.Values)
+            {
+                entry.winnerHadIt = winnerAugmentIds.Contains(entry.augmentId);
+            }
         }
     }
 }
