@@ -163,6 +163,7 @@ MonoBehaviour:
   _rootVisual: {fileID: 2734103673972959935}
   _animator: {fileID: 1500021555660439545}
   _tutorialCanvas: {fileID: 8501492334797765905}
+  _customizationVisual: {fileID: 5004224554226211456}
   _ghostAspectMaterials:
   - MaterialBindings:
     - Renderer: {fileID: 6505239417627711445}
@@ -818,6 +819,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 983222688529305152, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+      propertyPath: m_Name
+      value: SK_Custo
+      objectReference: {fileID: 0}
+    - target: {fileID: 983222688529305152, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -922,7 +927,10 @@ PrefabInstance:
     - {fileID: 2556556107308870470, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
     - {fileID: 3323644101777220321, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 50537322897200907, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5004224554226211456}
   m_SourcePrefab: {fileID: 100100000, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
 --- !u!95 &1500021555660439545 stripped
 Animator:
@@ -939,6 +947,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7981214377316810012, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
   m_PrefabInstance: {fileID: 5070642178209551220}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5110742661755880575 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 50537322897200907, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+  m_PrefabInstance: {fileID: 5070642178209551220}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5004224554226211456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5110742661755880575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c50aad489c75ff74c9c92b2e88518b1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.GhostCustomizationVisual
+  _customSkinMeshRenderer: {fileID: 2393015717357720799}
+  _availableSkins:
+  - {fileID: 7595401291171797531, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -3372517118111092541, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -6333893998217650768, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -8562629816563812894, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 5573556564285198038, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 5197147134478888316, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -4744952386961732116, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -3319384052818795995, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 8873833910602617902, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -120696548905801912, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 3586445239038681777, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -2055764231805222218, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -3500765989372601909, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -7738630604636761136, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 5420468491623492257, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 889016199519631599, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 1161774475580431694, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -6850397167232303892, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 6577326790446390304, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: 6648279567565645503, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  - {fileID: -3949271182859331763, guid: 10309e2d7b74f6a498d649896a889d90, type: 3}
+  _faceRenderer: {fileID: 6505239417627711445}
+  _faceMaterialSlotIndex: 0
+  _columnPropertyName: _Column
+  _rowPropertyName: _Row
+  _applyPlayerColorProperty: 0
+  _playerColorRenderer: {fileID: 2393015717357720799}
+  _playerColorMaterialSlotIndex: 1
+  _playerColorPropertyName: _PlayerColor
 --- !u!137 &6505239417627711445 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 2024872685487162529, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}

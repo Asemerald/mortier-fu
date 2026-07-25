@@ -13,6 +13,9 @@ namespace MortierFu
         [Header("Tutorial")]
         [SerializeField] private PlayerGhostTutorialCanvas _tutorialCanvas;
         
+        [Header("Customization")]
+        [SerializeField] private GhostCustomizationVisual _customizationVisual;
+        
         private Rigidbody _rb;
 
         private GhostMovementComponent _movement;
@@ -38,6 +41,7 @@ namespace MortierFu
             _rb = GetComponent<Rigidbody>();
 
             ResolveTutorialCanvas();
+            ResolveCustomizationVisual();
 
             CreateComponentsIfNeeded();
         }
@@ -49,6 +53,20 @@ namespace MortierFu
 
             if (_tutorialCanvas)
                 _tutorialCanvas.HideInstant();
+        }
+        
+        private void ResolveCustomizationVisual()
+        {
+            if (!_customizationVisual)
+                _customizationVisual = GetComponentInChildren<GhostCustomizationVisual>(true);
+        }
+
+        private void ApplyOwnerCustomization()
+        {
+            if (!_customizationVisual || !Owner)
+                return;
+
+            _customizationVisual.Apply(Owner.Customization, Owner.PlayerIndex);
         }
 
         private void Update()
@@ -92,7 +110,8 @@ namespace MortierFu
             _movement.Initialize();
             _propPlacement.Initialize();
             _visual.Initialize();
-            
+
+            ApplyOwnerCustomization();
 
             ExitPawn();
         }
@@ -152,6 +171,8 @@ namespace MortierFu
 
             _movement?.OnEnterPawn();
             _propPlacement?.OnEnterPawn();
+
+            ApplyOwnerCustomization();
 
             _visual?.PlaySpawnFeedback();
             _tutorialCanvas?.TryShow(Owner);
