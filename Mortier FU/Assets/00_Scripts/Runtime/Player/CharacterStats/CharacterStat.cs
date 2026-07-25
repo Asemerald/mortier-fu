@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using NaughtyAttributes;
 using UnityEngine;
 
 namespace MortierFu {
@@ -11,8 +10,8 @@ namespace MortierFu {
 
         [SerializeField] protected float baseValue;
         [SerializeField] protected bool clamp = false;
-        [SerializeField, AllowNesting, ShowIf("clamp")] 
-        Vector2 valueRange = new Vector2(float.MinValue, float.MaxValue);
+        [SerializeField, Tooltip("Only used if clamp is enabled.")]
+        Vector2 valueRange = new (float.MinValue, float.MaxValue);
         
         public float BaseValue {
             get => baseValue;
@@ -165,6 +164,8 @@ namespace MortierFu {
 
             OnDirtyUpdated?.Invoke();
         }
+        
+        public void MultiplyBaseValue(float multiplier) => BaseValue = ClampValue(BaseValue * multiplier);
         
         public float ClampValue(float value)  => clamp ? Mathf.Clamp(value, valueRange.x, valueRange.y) : value;
     }

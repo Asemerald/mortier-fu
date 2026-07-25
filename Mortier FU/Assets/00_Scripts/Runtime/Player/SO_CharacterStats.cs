@@ -124,8 +124,16 @@ namespace MortierFu
         
         public float GetDashPushForce() => StrikePushForceOffset + StrikePushForce.Value;
 
-        public float GetStrikeRadius() => StrikeRadius.Value + (AvatarSize.Value - AvatarSize.BaseValue + StrikePushForce.Value - StrikePushForce.BaseValue) * StrikePushForceToStrikeRadiusFactor;
+        public float GetStrikeRadius()
+        {
+            float avatarSizeDelta = GetAvatarSize() - AvatarSize.BaseValue;
+            float pushForceDelta = StrikePushForce.Value - StrikePushForce.BaseValue;
 
+            float rawRadius = StrikeRadius.Value + avatarSizeDelta * AvatarSizeToStrikeRadiusFactor + pushForceDelta * StrikePushForceToStrikeRadiusFactor;
+
+            return StrikeRadius.ClampValue(Mathf.Max(0f, rawRadius));
+        }
+        
         public float GetKnockbackStunDuration()
         {
             float denominator = StrikePushForce.BaseValue + StrikePushForceOffset;
@@ -206,6 +214,17 @@ namespace MortierFu
             BombshellImpactRadiusToShotRangeFactor = source.BombshellImpactRadiusToShotRangeFactor;
             BombshellImpactRadiusToBombshellSizeFactor = source.BombshellImpactRadiusToBombshellSizeFactor;
             AvatarSizeToForceMitigationFactor = source.AvatarSizeToForceMitigationFactor;
+        }
+        
+        public void ApplyMatchConfigBaseMultipliers(MatchConfig config)
+        {
+            config.Clamp();
+
+            MaxHealth.MultiplyBaseValue(config.HealthMultiplier);
+
+            StrikeDamage.MultiplyBaseValue(config.StrikeMultiplier);
+            StrikePushForce.MultiplyBaseValue(config.StrikeMultiplier);
+            StrikeRadius.MultiplyBaseValue(config.StrikeMultiplier);
         }
     }
 }

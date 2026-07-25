@@ -12,8 +12,7 @@ namespace MortierFu
         DisableStrikes,
         StrikeMultiplier,
         DisableGhosts,
-        DisableSelfDamage,
-        DisableAugments
+        DisableSelfDamage
     }
     
     [Serializable]
@@ -31,7 +30,6 @@ namespace MortierFu
 
         public bool DisableGhosts;
         public bool DisableSelfDamage;
-        [HideInInspector] public bool DisableAugments;
 
         public MatchConfig(int scoreToWin)
         {
@@ -47,7 +45,6 @@ namespace MortierFu
 
             DisableGhosts = false;
             DisableSelfDamage = false;
-            DisableAugments = false;
 
             Clamp();
         }
@@ -66,7 +63,6 @@ namespace MortierFu
 
             DisableGhosts = false,
             DisableSelfDamage = false,
-            DisableAugments = false
         };
 
         public void Clamp()

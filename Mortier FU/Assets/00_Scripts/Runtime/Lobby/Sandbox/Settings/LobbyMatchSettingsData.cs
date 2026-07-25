@@ -33,7 +33,6 @@ namespace MortierFu
         public float StrikeMultiplier => _config.StrikeMultiplier;
         public bool DisableGhosts => _config.DisableGhosts;
         public bool DisableSelfDamage => _config.DisableSelfDamage;
-        public bool DisableAugments => _config.DisableAugments;
 
         private void Awake()
         {
@@ -143,7 +142,6 @@ namespace MortierFu
                 MatchSettingId.DisableStrikes => _config.DisableStrikes,
                 MatchSettingId.DisableGhosts => _config.DisableGhosts,
                 MatchSettingId.DisableSelfDamage => _config.DisableSelfDamage,
-                MatchSettingId.DisableAugments => _config.DisableAugments,
                 _ => false
             };
         }
@@ -214,11 +212,6 @@ namespace MortierFu
                 case MatchSettingId.DisableSelfDamage:
                     _config.DisableSelfDamage = value;
                     break;
-
-                case MatchSettingId.DisableAugments:
-                    _config.DisableAugments = value;
-                    break;
-
                 default:
                     return;
             }

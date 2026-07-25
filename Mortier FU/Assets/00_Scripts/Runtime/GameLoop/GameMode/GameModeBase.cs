@@ -407,6 +407,7 @@ namespace MortierFu
 
             ResetPlayers();
             SpawnPlayers();
+            ApplyMatchConfigToPlayers();
             ActivatePlayerAugmentsForRound();
             EnablePlayerGravity();
 
@@ -557,6 +558,8 @@ namespace MortierFu
 
             _scoreController?.SetScoreToWin(config.ScoreToWin);
         }
+        
+        private void ApplyMatchConfigToPlayers() => ForEachCurrentPlayerCharacter(character => character.ApplyMatchConfig(MatchConfig));
 
         public void SetScoreToWin(int score) => SetMatchConfig(new MatchConfig(score));
 

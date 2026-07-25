@@ -116,6 +116,8 @@ namespace MortierFu
         public event Action<PlayerControlContext> OnControlContextChanged;
 
         public bool CanProgressLobbyTutorial => ControlContext == PlayerControlContext.LobbySandbox && Health is { IsAlive: true };
+        
+        private MatchConfig _currentMatchConfig = MatchConfig.Default;
 
         void Awake()
         {
@@ -242,6 +244,25 @@ namespace MortierFu
 
             // Now that player materials are populated to the Aspect Component, we can initialize the trail.
             _dashState.InitializeTrail(_dashTrailPrefab);
+        }
+        
+        public void ApplyMatchConfig(MatchConfig config)
+        {
+            _currentMatchConfig = config;
+            _currentMatchConfig.Clamp();
+
+            RebuildRuntimeStatsFromTemplate(_characterStatsTemplate);
+        }
+        
+        private void RebuildRuntimeStatsFromTemplate(SO_CharacterStats statsTemplate)
+        {
+            if (!statsTemplate || !Stats)
+                return;
+
+            Stats.CopyBaseValuesFrom(statsTemplate);
+            Stats.ApplyMatchConfigBaseMultipliers(_currentMatchConfig);
+
+            RefreshRuntimeAfterStatsChanged();
         }
 
         public void RefreshCustomizationFromOwner()
@@ -393,10 +414,9 @@ namespace MortierFu
             if (!statsTemplate || !Stats)
                 return;
 
-            Stats.CopyBaseValuesFrom(statsTemplate);
             _hasTemporaryRaceStats = true;
 
-            RefreshRuntimeAfterStatsChanged();
+            RebuildRuntimeStatsFromTemplate(statsTemplate);
         }
 
         public void RestoreBaseStats()
@@ -404,10 +424,9 @@ namespace MortierFu
             if (!_hasTemporaryRaceStats || !Stats || !_characterStatsTemplate)
                 return;
 
-            Stats.CopyBaseValuesFrom(_characterStatsTemplate);
             _hasTemporaryRaceStats = false;
 
-            RefreshRuntimeAfterStatsChanged();
+            RebuildRuntimeStatsFromTemplate(_characterStatsTemplate);
         }
 
         private void RefreshRuntimeAfterStatsChanged()
