@@ -239,11 +239,6 @@ namespace MortierFu.Analytics
             
             string playerId = GetPlayerIdFromCharacter(character.Owner);
             _pendingAugmentsForNextRound[playerId] = augment;
-
-            if (_currentRoundPlayers != null & _currentRoundPlayers.TryGetValue(playerId, out var playerData))
-            {
-                playerData.selectedAugment = augment; 
-            }
         }
 
         public void OnScoreChanged(PlayerCharacter character, int newScore)
