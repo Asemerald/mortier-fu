@@ -32,7 +32,6 @@ namespace MortierFu.Analytics
             _gameStartTime = System.DateTime.UtcNow;
             
             _lastKnownScorePerPlayer.Clear();
-            _pendingAugmentsForNextRound.Clear();
             _currentRoundIndex = 0;
             
             _gameData = new AnalyticsData()
@@ -42,7 +41,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = "b.1.4",
+                officialGameVersion = !Application.isEditor ? "b.1.4" : "Editor",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
@@ -95,7 +94,7 @@ namespace MortierFu.Analytics
                     rank = 0,
                     score = _lastKnownScorePerPlayer.TryGetValue(playerId, out var lastScore) ? lastScore : 0,
                     kills = 0,
-                    selectedAugment = pickedAugment,
+                    selectedAugment = null,
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
