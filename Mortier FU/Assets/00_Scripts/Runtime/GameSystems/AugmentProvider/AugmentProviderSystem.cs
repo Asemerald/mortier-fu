@@ -21,33 +21,48 @@ namespace MortierFu
         private readonly Dictionary<SO_Augment, float> _augmentChances = new();
         private readonly List<(E_AugmentRarity rarity, SO_Augment augment)> _removedAugments = new();
         private readonly List<E_AugmentRarity> _availableUnlockedRarities = new();
-
+        
+        private readonly List<SO_Augment> _equalizedPool = new();
+        private readonly HashSet<SO_Augment> _equalizedSeen = new();
+        
         private const string k_augmentLibLabel = "AugmentLib";
         
         private int _lastKnownRaceNumber = 1;
 
-        public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments, int raceNumber, int playerCount)
+        public void PopulateAugmentsNonAlloc(SO_Augment[] outAugments, int raceNumber, int playerCount, bool equalizeDropRateForAllRarities = false)
         {
             if (outAugments == null || outAugments.Length == 0)
                 return;
 
             SyncRoundRecovery(raceNumber);
 
-            var length = outAugments.Length;
+            int length = outAugments.Length;
+            bool useRaceUnlocks = ShouldUseRarityUnlocksByRace(raceNumber);
+
+            if (equalizeDropRateForAllRarities)
+            {
+                PopulateEqualizedAugmentsNonAlloc(outAugments, length, raceNumber, playerCount, useRaceUnlocks);
+
+                if (Settings.EnableDebug && useRaceUnlocks)
+                    LogUnlockedRarities(raceNumber, playerCount);
+
+                return;
+            }
+
             IReadOnlyList<E_AugmentRarity> normalRarities = _rarityTable.BatchPull(length);
-            var useRaceUnlocks = ShouldUseRarityUnlocksByRace(raceNumber);
 
             _removedAugments.Clear();
 
             for (var i = 0; i < length; i++)
             {
-                if (!TryResolveRarityForSlot(i, normalRarities, raceNumber, playerCount, useRaceUnlocks, out var rarity) || !TryGetAugmentsForRarity(rarity, out var augments))
+                if (!TryResolveRarityForSlot(i, normalRarities, raceNumber, playerCount, useRaceUnlocks, out var rarity) ||
+                    !TryGetAugmentsForRarity(rarity, out var augments))
                 {
                     outAugments[i] = null;
                     continue;
                 }
 
-                var randIndex = WeightedRandomIndex(augments);
+                int randIndex = WeightedRandomIndex(augments);
 
                 if (randIndex < 0)
                 {
@@ -55,11 +70,11 @@ namespace MortierFu
                     continue;
                 }
 
-                var pulledAugment = augments[randIndex];
+                SO_Augment pulledAugment = augments[randIndex];
 
                 if (!Settings.AllowCopiesInBatch)
                 {
-                    var lastIndex = augments.Count - 1;
+                    int lastIndex = augments.Count - 1;
                     augments[randIndex] = augments[lastIndex];
                     augments.RemoveAt(lastIndex);
                     _removedAugments.Add((rarity, pulledAugment));
@@ -72,6 +87,88 @@ namespace MortierFu
 
             if (Settings.EnableDebug && useRaceUnlocks)
                 LogUnlockedRarities(raceNumber, playerCount);
+        }
+        
+        private void PopulateEqualizedAugmentsNonAlloc(SO_Augment[] outAugments, int length, int raceNumber, int playerCount, bool useRaceUnlocks)
+        {
+            BuildEqualizedPool(raceNumber, playerCount, useRaceUnlocks);
+
+            if (_equalizedPool.Count == 0 && Settings.FallbackToNormalRarityTableIfNoUnlockedRarity)
+                BuildEqualizedPool(raceNumber, playerCount, useRaceUnlocks: false);
+
+            if (_equalizedPool.Count == 0)
+            {
+                Logs.LogWarning($"[AugmentProviderSystem] No augment available for equalized drop at race {raceNumber} ({playerCount} players).");
+
+                for (int i = 0; i < length; i++)
+                    outAugments[i] = null;
+
+                return;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (_equalizedPool.Count == 0)
+                {
+                    outAugments[i] = null;
+                    continue;
+                }
+
+                int randIndex = WeightedRandomIndex(_equalizedPool);
+
+                if (randIndex < 0)
+                {
+                    outAugments[i] = null;
+                    continue;
+                }
+
+                SO_Augment pulledAugment = _equalizedPool[randIndex];
+                outAugments[i] = pulledAugment;
+
+                if (Settings.AllowCopiesInBatch) continue;
+                
+                int lastIndex = _equalizedPool.Count - 1;
+                _equalizedPool[randIndex] = _equalizedPool[lastIndex];
+                _equalizedPool.RemoveAt(lastIndex);
+            }
+
+            _equalizedPool.Clear();
+            _equalizedSeen.Clear();
+        }
+        
+        private void BuildEqualizedPool(int raceNumber, int playerCount, bool useRaceUnlocks)
+        {
+            _equalizedPool.Clear();
+            _equalizedSeen.Clear();
+
+            if (_augmentsPerRarity == null)
+                return;
+
+            foreach (KeyValuePair<E_AugmentRarity, List<SO_Augment>> pair in _augmentsPerRarity)
+            {
+                E_AugmentRarity rarity = pair.Key;
+
+                if (useRaceUnlocks && !IsRarityUnlockedForRace(rarity, raceNumber, playerCount))
+                    continue;
+
+                var augments = pair.Value;
+
+                if (augments == null)
+                    continue;
+
+                for (int i = 0; i < augments.Count; i++)
+                {
+                    SO_Augment augment = augments[i];
+
+                    if (!augment)
+                        continue;
+
+                    if (!_equalizedSeen.Add(augment))
+                        continue;
+
+                    _equalizedPool.Add(augment);
+                }
+            }
         }
         
         private void SyncRoundRecovery(int raceNumber)

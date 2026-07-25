@@ -30,6 +30,8 @@ namespace MortierFu
         private AugmentProviderSystem _augmentProviderSys;
         private AugmentShowcaser _augmentShowcaser;
 
+        private MatchConfig _matchConfig = MatchConfig.Default;
+        
         private Transform _pickupParent;
 
         private int _playerCount;
@@ -66,6 +68,12 @@ namespace MortierFu
         }
         
         public void SetCurrentRaceNumber(int raceNumber) => _currentRaceNumber = Mathf.Max(1, raceNumber);
+        
+        public void SetMatchConfig(MatchConfig config)
+        {
+            _matchConfig = config;
+            _matchConfig.Clamp();
+        }
 
         public async UniTask OnInitialize()
         {
@@ -197,7 +205,7 @@ namespace MortierFu
             _pressureTokenSource?.Dispose();
             _pressureTokenSource = null;
 
-            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber, _playerCount);
+            _augmentProviderSys.PopulateAugmentsNonAlloc(_selectedAugments, _currentRaceNumber, _playerCount, _matchConfig.EqualizeDropRateForAllRarities);
             _augmentBag.Clear();
 
             EventBus<TriggerAugmentsShown>.Raise(new TriggerAugmentsShown
