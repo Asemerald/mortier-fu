@@ -1,4 +1,3 @@
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu

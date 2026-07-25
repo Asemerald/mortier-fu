@@ -4,11 +4,9 @@ using System.Collections.ObjectModel;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 namespace MortierFu
@@ -76,10 +74,12 @@ namespace MortierFu
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
 
-        [SerializeField] private Transform _tutorialContainer;
-        public Transform TutorialContainer => _tutorialContainer;
-        public Image TutorialImage;
-        public TextMeshProUGUI TutorialText;
+        [Header("UI")]
+        [SerializeField] private PlayerTutorialView _tutorialView;
+        [SerializeField] private PlayerGameplayUI _gameplayUI;
+
+        public PlayerTutorialView TutorialView => _tutorialView;
+        public PlayerGameplayUI GameplayUI => _gameplayUI;
 
         private readonly List<SO_Augment> _ownedAugments = new();
         private readonly List<IAugment> _activeAugments = new();
@@ -87,7 +87,7 @@ namespace MortierFu
         public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
     
-        public bool AreAugmentsActive { get; private set; }
+        private bool AreAugmentsActive { get; set; }
 
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
@@ -111,6 +111,11 @@ namespace MortierFu
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;
+        
+        public event Action<PlayerLobbyTutorialAction> OnTutorialActionPerformed;
+        public event Action<PlayerControlContext> OnControlContextChanged;
+
+        public bool CanProgressLobbyTutorial => ControlContext == PlayerControlContext.LobbySandbox && Health is { IsAlive: true };
 
         void Awake()
         {
@@ -130,6 +135,7 @@ namespace MortierFu
             Augments = _activeAugments.AsReadOnly();
             
             ResolveCustomizationVisual();
+            ResolvePlayerUIReferences();
             InitStateMachine();
         }
 
@@ -160,7 +166,6 @@ namespace MortierFu
             _tauntAction3.started += Taunt3;
             _tauntAction4.started += Taunt4;
             
-
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             _dashState.Reset();
@@ -184,9 +189,11 @@ namespace MortierFu
             Mortar?.Dispose();
             SafeGround?.Dispose();
 
+            OnTutorialActionPerformed = null;
+            OnControlContextChanged = null;
+            
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
-
             if (_tauntAction1 != null)
                 _tauntAction1.started -= Taunt1;
             if (_tauntAction2 != null)
@@ -264,6 +271,8 @@ namespace MortierFu
             {
                 Controller?.ResetVelocity();
             }
+            
+            OnControlContextChanged?.Invoke(context);
         }
 
         public void Reset()
@@ -290,7 +299,6 @@ namespace MortierFu
             
             FXService fxService = ServiceManager.Instance.Get<FXService>();
             fxService?.Reset(this);
-
             
             RefreshRuntimeAfterAugmentStateChanged();
         }
@@ -359,7 +367,7 @@ namespace MortierFu
             // Set initial state
             _stateMachine.SetState(_locomotionState);
         }
-
+        
         public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
         {
             force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
@@ -634,12 +642,7 @@ namespace MortierFu
                 Health.RemoveInvincibility(k_controlContextInvincibilitySource);
         }
 
-        private static bool ShouldBeInvincibleInContext(PlayerControlContext context)
-        {
-            return context is PlayerControlContext.LobbyCustomization
-                or PlayerControlContext.LobbySettingsOwner
-                or PlayerControlContext.LobbyReturnConfirmationOwner;
-        }
+        private static bool ShouldBeInvincibleInContext(PlayerControlContext context) => context is PlayerControlContext.LobbyCustomization or PlayerControlContext.LobbySettingsOwner or PlayerControlContext.LobbyReturnConfirmationOwner;
 
         private sealed class ControlContextInvincibilitySource
         { }
@@ -654,6 +657,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(1);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt2(InputAction.CallbackContext ctx)
@@ -662,6 +666,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(2);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt3(InputAction.CallbackContext ctx)
@@ -670,6 +675,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(3);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt4(InputAction.CallbackContext ctx)
@@ -678,6 +684,24 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(4);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+        }
+        
+        public void NotifyTutorialAction(PlayerLobbyTutorialAction action)
+        {
+            if (!CanProgressLobbyTutorial)
+                return;
+
+            OnTutorialActionPerformed?.Invoke(action);
+        }
+        
+        private void ResolvePlayerUIReferences()
+        {
+            if (!_tutorialView)
+                _tutorialView = GetComponentInChildren<PlayerTutorialView>(true);
+
+            if (!_gameplayUI)
+                _gameplayUI = GetComponentInChildren<PlayerGameplayUI>(true);
         }
 
         private void ResolveCustomizationVisual()
