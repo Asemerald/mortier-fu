@@ -73,6 +73,9 @@ namespace MortierFu
         private void ActivateThreshold()
         {
             _isActive = true;
+            stats.BombshellDamage.RemoveAllModifiersFromSource(this);
+            stats.MoveSpeed.RemoveAllModifiersFromSource(this);
+            stats.FireRate.RemoveAllModifiersFromSource(this);
             stats.BombshellDamage.AddModifier(db.AscensionParams.BombshellDamageMod.ToMod(this));
             stats.MoveSpeed.AddModifier(db.AscensionParams.MoveSpeedMod.ToMod(this));
             stats.FireRate.AddModifier(db.AscensionParams.FireRateMod.ToMod(this));
