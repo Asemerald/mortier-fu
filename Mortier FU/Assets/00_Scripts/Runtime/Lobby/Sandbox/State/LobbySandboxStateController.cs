@@ -193,5 +193,11 @@ namespace MortierFu
 
             Logs.Log($"[LobbySandboxStateController] State changed: {previousState} -> {newState}");
         }
+        
+        public void InterruptPlayerActivitiesForGlobalTransition()
+        {
+            InterruptActiveSettings();
+            InterruptAllCustomizations();
+        }
     }
 }

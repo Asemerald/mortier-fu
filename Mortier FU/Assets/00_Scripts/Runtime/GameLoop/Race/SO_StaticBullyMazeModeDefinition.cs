@@ -8,7 +8,7 @@ namespace MortierFu
         private void Reset()
         {
             UsePreviousRoundWinnerAsBully = true;
-            BullyContext = PlayerControlContext.AugmentRaceBullyShootOnly;
+            BullyContext = PlayerControlContext.AugmentRaceBullyClassic;
             RacerContext = PlayerControlContext.AugmentRace;
         }
 

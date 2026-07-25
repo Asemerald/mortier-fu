@@ -41,8 +41,12 @@ namespace MortierFu
 
         private CancellationTokenSource _feedbackCancellation;
         private CancellationTokenSource _launchCancellation;
+        
+        private bool _isLaunchConfirmationRequested;
 
         private PlayerManager _lastShooter;
+        
+        private GamePauseSystem _gamePauseSystem;
 
         private void Awake() => CacheIndicatorAnimators();
 
@@ -64,8 +68,18 @@ namespace MortierFu
             RefreshFeedback();
         }
 
+        private void ResolvePauseSystem()
+        {
+            if (_gamePauseSystem is not null)
+                return;
+
+            _gamePauseSystem = SystemManager.Instance?.Get<GamePauseSystem>();
+        }
+        
         private void OnDisable()
         {
+            SetStartMatchPauseBlocked(false);
+            
             CancelFeedbackTask();
             CancelLaunchTask();
 
@@ -86,8 +100,16 @@ namespace MortierFu
 
         private void OnDestroy()
         {
+            SetStartMatchPauseBlocked(false);
+            
             CancelFeedbackTask();
             CancelLaunchTask();
+        }
+        
+        private void SetStartMatchPauseBlocked(bool blocked)
+        {
+            ResolvePauseSystem();
+            _gamePauseSystem?.SetPauseBlocked(this, blocked);
         }
 
         private void RegisterPlayer(PlayerManager player)
@@ -186,6 +208,7 @@ namespace MortierFu
             else
             {
                 _readyPlayers.Remove(player);
+                _isLaunchConfirmationRequested = false;
                 CancelLaunchTask();
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is no longer ready.");
             }
@@ -215,14 +238,15 @@ namespace MortierFu
 
         private void ScheduleLaunchIfAllReady(PlayerManager requester)
         {
-            if (_launchCancellation != null)
+            if (_launchCancellation != null || _isLaunchConfirmationRequested)
                 return;
 
             if (!AreAllPlayersReady())
                 return;
 
-            _launchCancellation = new CancellationTokenSource();
+            SetStartMatchPauseBlocked(true);
 
+            _launchCancellation = new CancellationTokenSource();
             LaunchAfterDelayAsync(requester, _launchCancellation.Token).Forget();
         }
 
@@ -273,6 +297,9 @@ namespace MortierFu
 
         private void TryLaunchIfAllReady(PlayerManager requester)
         {
+            if (_isLaunchConfirmationRequested)
+                return;
+
             if (!AreAllPlayersReady())
                 return;
 
@@ -291,7 +318,19 @@ namespace MortierFu
             }
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
-            _matchLauncher.LaunchMatch(launchPlayer);
+
+            bool opened = _matchLauncher.TryOpenLaunchConfirmation(launchPlayer, HandleLaunchConfirmationCanceledAsync);
+
+            SetStartMatchPauseBlocked(false);
+            
+            if (opened)
+                _isLaunchConfirmationRequested = true;
+        }
+        
+        private UniTask HandleLaunchConfirmationCanceledAsync()
+        {
+            ResetReady();
+            return UniTask.CompletedTask;
         }
 
         private PlayerManager GetFirstSandboxPlayer()
@@ -310,7 +349,13 @@ namespace MortierFu
             return null;
         }
 
-        public void StartMatch() => ScheduleLaunchIfAllReady(_lastShooter);
+        public void StartMatch()
+        {
+            if (_isLaunchConfirmationRequested)
+                return;
+
+            ScheduleLaunchIfAllReady(_lastShooter);
+        }
 
         private void RefreshFeedback()
         {
@@ -436,6 +481,10 @@ namespace MortierFu
         public void ResetReady()
         {
             CancelLaunchTask();
+            
+            SetStartMatchPauseBlocked(false);
+
+            _isLaunchConfirmationRequested = false;
 
             _readyPlayers.Clear();
             _lastToggleTimes.Clear();
