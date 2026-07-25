@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: DA_MS_Classic
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.SO_MatchRuleset
   DisplayName: Classic
-  Subtitle: RECOMMEND FOR 4 PLAYERS
   Description: 
   IsCustom: 0
   AllowEditing: 0
   DefaultConfig:
+    Subtitle: Default Config
     ScoreToWin: 1000
     RaceTimeLimit: 20
     EqualizeDropRateForAllRarities: 0
@@ -30,6 +30,7 @@ MonoBehaviour:
   RecommendedConfigsByPlayerCount:
   - PlayerCount: 2
     Config:
+      Subtitle: Recommended for 2 players
       ScoreToWin: 650
       RaceTimeLimit: 20
       EqualizeDropRateForAllRarities: 0
@@ -41,6 +42,7 @@ MonoBehaviour:
       DisableAugments: 0
   - PlayerCount: 3
     Config:
+      Subtitle: Recommended for 3 players
       ScoreToWin: 850
       RaceTimeLimit: 20
       EqualizeDropRateForAllRarities: 0
@@ -52,6 +54,7 @@ MonoBehaviour:
       DisableAugments: 0
   - PlayerCount: 4
     Config:
+      Subtitle: Recommended for 4 players
       ScoreToWin: 1000
       RaceTimeLimit: 20
       EqualizeDropRateForAllRarities: 0
