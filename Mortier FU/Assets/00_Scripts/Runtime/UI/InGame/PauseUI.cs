@@ -168,7 +168,7 @@ namespace MortierFu
         {
             try
             {
-                while (!TryResolveGamePauseSystem())
+                while (!TryResolveGamePauseSystem() || !_gamePauseSystem.AreSettingsReady)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
@@ -547,12 +547,25 @@ namespace MortierFu
 
             if (_controlsPanel)
                 _controlsPanel.SetActive(true);
+
+            Select(_controlsPanel);
+        }
+
+        public void ReturnToMainPanelFromSubPanel(Selectable returnSelection)
+        {
+            PlayPanelSelectionFeedback();
+
+            ShowMainPanel();
+
+            if (returnSelection)
+                Select(returnSelection);
+            else
+                Select(_settingsButton);
         }
 
         public void ReturnToMainPanelFromSubPanel()
         {
-            ShowMainPanel();
-            Select(_settingsButton);
+            ReturnToMainPanelFromSubPanel(_settingsButton);
         }
 
         private void OpenPrimaryConfirmation()
@@ -692,10 +705,13 @@ namespace MortierFu
 
         private void Select(Selectable selectable)
         {
-            if (!_eventSystem || !selectable)
-                return;
+            Select(selectable ? selectable.gameObject : null);
+        }
 
-            GameObject selectedObject = selectable.gameObject;
+        private void Select(GameObject selectedObject)
+        {
+            if (!_eventSystem || !selectedObject)
+                return;
 
             if (!selectedObject.activeInHierarchy)
                 return;

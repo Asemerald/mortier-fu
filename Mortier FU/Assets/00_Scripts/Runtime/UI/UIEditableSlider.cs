@@ -10,13 +10,16 @@ namespace MortierFu
         [SerializeField, Min(0.001f)] private float _step = 0.05f;
         [SerializeField] private bool _exitEditOnVerticalMove = true;
 
+        private IUIBackHandler _backHandler;
         private UISliderSelectionVisual _selectionVisual;
         private bool _isEditing;
 
         protected override void Awake()
         {
             base.Awake();
+
             _selectionVisual = GetComponent<UISliderSelectionVisual>();
+            _backHandler = GetComponentInParent<IUIBackHandler>();
         }
 
         protected override void OnDisable()
@@ -60,11 +63,15 @@ namespace MortierFu
 
         public void OnCancel(BaseEventData eventData)
         {
-            if (!_isEditing)
-                return;
-
-            SetEditing(false);
             eventData.Use();
+
+            if (_isEditing)
+            {
+                SetEditing(false);
+                return;
+            }
+
+            _backHandler?.HandleUIBack();
         }
 
         public override void OnDeselect(BaseEventData eventData)

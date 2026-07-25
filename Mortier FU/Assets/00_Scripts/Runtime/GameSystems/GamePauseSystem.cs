@@ -1,27 +1,36 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using MortierFu.Shared;
 
 namespace MortierFu
 {
     public class GamePauseSystem : IGameSystem
     {
+        private readonly HashSet<object> _pauseBlockers = new();
+
         private SaveService _saveService;
 
-        private readonly HashSet<object> _pauseBlockers = new();
-        
+        public bool IsInitialized { get; set; }
         public bool IsPaused { get; private set; }
+        private bool IsPauseBlocked => _pauseBlockers.Count > 0;
+        public bool AreSettingsReady => TryResolveSaveService() && _saveService.Settings != null;
+
+        public PlayerManager PauseOwner { get; private set; }
 
         public event Action<PlayerManager> Paused;
         public event Action Resumed;
         public event Action Canceled;
 
-        public PlayerManager PauseOwner { get; private set; }
-        
-        public bool IsPauseBlocked => _pauseBlockers.Count > 0;
+        public UniTask OnInitialize()
+        {
+            IsPaused = false;
+            TryResolveSaveService();
+
+            return UniTask.CompletedTask;
+        }
 
         public void SetPauseBlocked(object owner, bool blocked)
         {
@@ -66,6 +75,92 @@ namespace MortierFu
             Resumed?.Invoke();
         }
 
+        public void Cancel() => Canceled?.Invoke();
+
+        public void RestoreSettingsFromSave()
+        {
+            if (!TryGetSettings(out SettingsData settings))
+            {
+                Logs.LogWarning("[GamePauseSystem] Cannot restore settings because SaveService is not ready.");
+                return;
+            }
+
+            Screen.fullScreen = settings.IsFullscreen;
+            QualitySettings.vSyncCount = settings.IsVSyncEnabled ? 1 : 0;
+
+            AudioService.SetVolume(AudioService.BusEnum.MASTER, settings.MasterVolume);
+            AudioService.SetVolume(AudioService.BusEnum.MUSIC, settings.MusicVolume);
+            AudioService.SetVolume(AudioService.BusEnum.SFX, settings.SfxVolume);
+        }
+
+        public void UpdateUIFromSave(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sfxVolumeSlider)
+        {
+            if (!TryGetSettings(out SettingsData settings))
+            {
+                Logs.LogWarning("[GamePauseSystem] Cannot update pause settings UI because SaveService is not ready.");
+                return;
+            }
+
+            if (fullscreenToggle)
+                fullscreenToggle.SetIsOnWithoutNotify(settings.IsFullscreen);
+
+            if (vsyncToggle)
+                vsyncToggle.SetIsOnWithoutNotify(settings.IsVSyncEnabled);
+
+            if (masterVolumeSlider)
+                masterVolumeSlider.SetValueWithoutNotify(settings.MasterVolume);
+
+            if (musicVolumeSlider)
+                musicVolumeSlider.SetValueWithoutNotify(settings.MusicVolume);
+
+            if (sfxVolumeSlider)
+                sfxVolumeSlider.SetValueWithoutNotify(settings.SfxVolume);
+        }
+
+        public void BindUIEvents(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sfxVolumeSlider)
+        {
+            if (fullscreenToggle)
+            {
+                fullscreenToggle.onValueChanged.RemoveListener(OnFullscreenChanged);
+                fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
+            }
+
+            if (vsyncToggle)
+            {
+                vsyncToggle.onValueChanged.RemoveListener(OnVSyncChanged);
+                vsyncToggle.onValueChanged.AddListener(OnVSyncChanged);
+            }
+
+            if (masterVolumeSlider)
+            {
+                masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
+                masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+            }
+
+            if (musicVolumeSlider)
+            {
+                musicVolumeSlider.onValueChanged.RemoveListener(OnMusicVolumeChanged);
+                musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+            }
+
+            if (sfxVolumeSlider)
+            {
+                sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
+                sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+            }
+        }
+
+        public void SaveSettings()
+        {
+            if (!TryResolveSaveService())
+            {
+                Logs.LogWarning("[GamePauseSystem] Cannot save settings because SaveService is not ready.");
+                return;
+            }
+
+            _saveService.SaveSettings().Forget();
+        }
+
         private void Pause(PlayerManager player)
         {
             if (IsPaused)
@@ -78,79 +173,67 @@ namespace MortierFu
             Paused?.Invoke(player);
         }
 
-        public void Cancel() => Canceled?.Invoke();
-
-        public void RestoreSettingsFromSave()
-        {
-            var s = _saveService.Settings;
-            Screen.fullScreen = s.IsFullscreen;
-            QualitySettings.vSyncCount = s.IsVSyncEnabled ? 1 : 0;
-        }
-
-        public void UpdateUIFromSave(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sFXVolumeSlider)
-        {
-            var s = _saveService.Settings;
-
-            fullscreenToggle.SetIsOnWithoutNotify(s.IsFullscreen);
-            vsyncToggle.SetIsOnWithoutNotify(s.IsVSyncEnabled);
-
-            masterVolumeSlider.SetValueWithoutNotify(s.MasterVolume);
-            musicVolumeSlider.SetValueWithoutNotify(s.MusicVolume);
-            sFXVolumeSlider.SetValueWithoutNotify(s.SfxVolume);
-        }
-
-        public void BindUIEvents(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sfxVolumeSlider)
-        {
-            fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
-            vsyncToggle.onValueChanged.AddListener(OnVSyncChanged);
-
-            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
-            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
-            sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
-        }
-
         private void OnFullscreenChanged(bool value)
         {
+            if (!TryGetSettings(out SettingsData settings))
+                return;
+
             Screen.fullScreen = value;
-            _saveService.Settings.IsFullscreen = value;
+            settings.IsFullscreen = value;
         }
 
         private void OnVSyncChanged(bool value)
         {
+            if (!TryGetSettings(out SettingsData settings))
+                return;
+
             QualitySettings.vSyncCount = value ? 1 : 0;
-            _saveService.Settings.IsVSyncEnabled = value;
+            settings.IsVSyncEnabled = value;
         }
 
         private void OnMasterVolumeChanged(float value)
         {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.MasterVolume = value;
+            if (!TryGetSettings(out SettingsData settings))
+                return;
+
+            settings.MasterVolume = value;
         }
 
         private void OnMusicVolumeChanged(float value)
         {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.MusicVolume = value;
+            if (!TryGetSettings(out SettingsData settings))
+                return;
+
+            settings.MusicVolume = value;
         }
 
         private void OnSfxVolumeChanged(float value)
         {
-            // TODO : Apply volume to FMOD Bus
-            _saveService.Settings.SfxVolume = value;
+            if (!TryGetSettings(out SettingsData settings))
+                return;
+
+            settings.SfxVolume = value;
         }
 
-        public UniTask OnInitialize()
+        private bool TryGetSettings(out SettingsData settings)
         {
-            IsPaused = false;
-            _saveService = ServiceManager.Instance.Get<SaveService>();
-            return UniTask.CompletedTask;
+            settings = null;
+
+            if (!TryResolveSaveService())
+                return false;
+
+            settings = _saveService.Settings;
+            return settings != null;
         }
-        
-        public void SaveSettings()
+
+        private bool TryResolveSaveService()
         {
-            _saveService.SaveSettings().Forget();
+            if (_saveService == null)
+                _saveService = ServiceManager.Instance?.Get<SaveService>();
+
+            return _saveService != null && _saveService.IsInitialized && _saveService.Settings != null;
         }
-        
+
         public void Dispose()
         {
             IsPaused = false;
@@ -159,11 +242,9 @@ namespace MortierFu
             Paused = null;
             Resumed = null;
             Canceled = null;
-            
+
             PauseOwner = null;
             _pauseBlockers.Clear();
         }
-
-        public bool IsInitialized { get; set; }
     }
 }
