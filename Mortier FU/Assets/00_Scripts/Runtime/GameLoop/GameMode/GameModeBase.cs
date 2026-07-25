@@ -173,6 +173,8 @@ namespace MortierFu
 
         public virtual async UniTask StartGame()
         {
+            GhostTutorialSession.Clear();
+            
             ResolveGameplayDependencies();
             
             CreateTeams();

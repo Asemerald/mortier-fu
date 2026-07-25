@@ -10,6 +10,9 @@ namespace MortierFu
         [SerializeField] private GameObject _rootVisual;
         [SerializeField] private Animator _animator;
         
+        [Header("Tutorial")]
+        [SerializeField] private PlayerGhostTutorialCanvas _tutorialCanvas;
+        
         private Rigidbody _rb;
 
         private GhostMovementComponent _movement;
@@ -33,7 +36,19 @@ namespace MortierFu
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+
+            ResolveTutorialCanvas();
+
             CreateComponentsIfNeeded();
+        }
+        
+        private void ResolveTutorialCanvas()
+        {
+            if (!_tutorialCanvas)
+                _tutorialCanvas = GetComponentInChildren<PlayerGhostTutorialCanvas>(true);
+
+            if (_tutorialCanvas)
+                _tutorialCanvas.HideInstant();
         }
 
         private void Update()
@@ -139,6 +154,7 @@ namespace MortierFu
             _propPlacement?.OnEnterPawn();
 
             _visual?.PlaySpawnFeedback();
+            _tutorialCanvas?.TryShow(Owner);
         }
 
         public void ExitPawn()
@@ -154,6 +170,7 @@ namespace MortierFu
             _visual?.Hide();
 
             gameObject.SetActive(false);
+            _tutorialCanvas?.HideInstant();
         }
 
         public void SetMoveInput(Vector2 input)
