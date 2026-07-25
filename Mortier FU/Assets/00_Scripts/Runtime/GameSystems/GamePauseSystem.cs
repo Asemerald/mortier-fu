@@ -2,6 +2,8 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using MortierFu.Shared;
 
 namespace MortierFu
 {
@@ -9,47 +11,74 @@ namespace MortierFu
     {
         private SaveService _saveService;
 
+        private readonly HashSet<object> _pauseBlockers = new();
+        
         public bool IsPaused { get; private set; }
 
         public event Action<PlayerManager> Paused;
         public event Action Resumed;
         public event Action Canceled;
 
+        public PlayerManager PauseOwner { get; private set; }
+        
+        public bool IsPauseBlocked => _pauseBlockers.Count > 0;
+
+        public void SetPauseBlocked(object owner, bool blocked)
+        {
+            if (owner is null)
+                return;
+
+            if (blocked)
+            {
+                _pauseBlockers.Add(owner);
+                return;
+            }
+
+            _pauseBlockers.Remove(owner);
+        }
+
         public void TogglePause(PlayerManager player)
         {
             if (IsPaused)
             {
-                UnPause();
+                Resume();
+                return;
             }
-            else
+
+            if (IsPauseBlocked)
             {
-                Pause(player);
+                Logs.Log("[GamePauseSystem] Pause ignored because pause is currently blocked.");
+                return;
             }
+
+            Pause(player);
         }
 
-        // dans GamePauseSystem.UnPause()
-        private void UnPause()
+        public void Resume()
         {
-            if (!IsPaused) return;
+            if (!IsPaused)
+                return;
 
             IsPaused = false;
+            PauseOwner = null;
+
             Time.timeScale = 1f;
             Resumed?.Invoke();
         }
 
         private void Pause(PlayerManager player)
         {
-            if (IsPaused) return;
+            if (IsPaused)
+                return;
 
             IsPaused = true;
+            PauseOwner = player;
+
             Time.timeScale = 0f;
             Paused?.Invoke(player);
         }
 
-        public void Cancel()
-        {
-            Canceled?.Invoke();
-        }
+        public void Cancel() => Canceled?.Invoke();
 
         public void RestoreSettingsFromSave()
         {
@@ -58,8 +87,7 @@ namespace MortierFu
             QualitySettings.vSyncCount = s.IsVSyncEnabled ? 1 : 0;
         }
 
-        public void UpdateUIFromSave(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider,
-            Slider musicVolumeSlider, Slider sFXVolumeSlider)
+        public void UpdateUIFromSave(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sFXVolumeSlider)
         {
             var s = _saveService.Settings;
 
@@ -71,15 +99,14 @@ namespace MortierFu
             sFXVolumeSlider.value = s.SfxVolume;
         }
 
-        public void BindUIEvents(Toggle fullscreenToggle, Toggle vsyncToggle, Slider MasterVolumeSlider,
-            Slider MusicVolumeSlider, Slider SFXVolumeSlider)
+        public void BindUIEvents(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sfxVolumeSlider)
         {
             fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
             vsyncToggle.onValueChanged.AddListener(OnVSyncChanged);
 
-            MasterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
-            MusicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
-            SFXVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+            sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
         }
 
         private void OnFullscreenChanged(bool value)
@@ -112,11 +139,6 @@ namespace MortierFu
             _saveService.Settings.SfxVolume = value;
         }
 
-        public void SaveSettings()
-        {
-            _saveService.SaveSettings().Forget();
-        }
-        
         public UniTask OnInitialize()
         {
             IsPaused = false;
@@ -132,6 +154,9 @@ namespace MortierFu
             Paused = null;
             Resumed = null;
             Canceled = null;
+            
+            PauseOwner = null;
+            _pauseBlockers.Clear();
         }
 
         public bool IsInitialized { get; set; }

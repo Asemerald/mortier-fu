@@ -26,7 +26,7 @@ namespace MortierFu
 
         private bool _isGlobalLockActive;
 
-        private List<PlayerLobbyTutorial> _playerLobbyTutorial = new List<PlayerLobbyTutorial>();
+        private List<PlayerLobbyTutorial> _playerLobbyTutorial = new();
 
         public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
@@ -59,7 +59,6 @@ namespace MortierFu
             {
                 SyncLobbyPlayers();
             }
-            
         }
         
         public void SpawnJoinedPlayer(PlayerManager player)

@@ -13,6 +13,7 @@ namespace MortierFu
         LobbyReturnConfirmationOwner,
 
         UIConfirmationOwner,
+        PauseConfirmationOwner,
         UIBlocked,
         
         AugmentShowcase,

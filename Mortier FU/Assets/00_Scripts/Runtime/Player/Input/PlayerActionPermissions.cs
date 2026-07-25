@@ -103,7 +103,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -116,7 +116,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -129,7 +129,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: false
@@ -142,7 +142,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: true,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -156,6 +156,19 @@ namespace MortierFu
                     canTaunt: false,
                     canBeStun: false,
                     canPause: false,
+                    canNavigateUI: false,
+                    canConfirmUI: false,
+                    canCancelUI: false
+                ),
+                
+                PlayerControlContext.PauseConfirmationOwner => new PlayerActionPermissions(
+                    canMove: false,
+                    canAim: false,
+                    canShoot: false,
+                    canDash: false,
+                    canTaunt: false,
+                    canBeStun: false,
+                    canPause: true,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: false
@@ -181,7 +194,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: false,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: true,
                     canCancelUI: true
@@ -271,7 +284,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: true,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: true
@@ -310,7 +323,7 @@ namespace MortierFu
                     canDash: false,
                     canTaunt: true,
                     canBeStun: false,
-                    canPause: true,
+                    canPause: false,
                     canNavigateUI: false,
                     canConfirmUI: false,
                     canCancelUI: true

@@ -233,13 +233,11 @@ namespace MortierFu
 
             ResolveEventSystemReferences();
 
-            if (!_eventSystem || !_uiInputModule)
-            {
-                Logs.LogError("[UIConfirmationModalController] EventSystem or InputSystemUIInputModule is missing.");
-                return false;
-            }
+            if (_eventSystem && _uiInputModule) return true;
+            
+            Logs.LogError("[UIConfirmationModalController] EventSystem or InputSystemUIInputModule is missing.");
+            return false;
 
-            return true;
         }
 
         private void ResolveEventSystemReferences()
@@ -319,7 +317,7 @@ namespace MortierFu
             if (!player)
                 return;
 
-            player.SetControlContext(PlayerControlContext.UIConfirmationOwner);
+            player.SetControlContext(_currentRequest.OwnerContext);
             player.PlayerInput.uiInputModule = _uiInputModule;
             player.SetUnityEventSystemUIActive(true);
         }

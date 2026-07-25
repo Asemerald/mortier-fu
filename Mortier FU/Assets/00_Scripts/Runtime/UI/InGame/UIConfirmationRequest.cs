@@ -5,21 +5,22 @@ namespace MortierFu
 {
     public readonly struct UIConfirmationRequest
     {
-        public PlayerManager Owner { get; }
-        public string Description { get; }
-        public string ConfirmLabel { get; }
-        public string CancelLabel { get; }
+        public readonly PlayerManager Owner;
+        public readonly string Description;
+        public readonly string ConfirmLabel;
+        public readonly string CancelLabel;
 
-        public Func<UniTask> OnConfirmAsync { get; }
-        public Func<UniTask> OnCancelAfterCloseAsync { get; }
+        public readonly Func<UniTask> OnConfirmAsync;
+        public readonly Func<UniTask> OnCancelAfterCloseAsync;
 
-        public bool PauseGameWhileOpen { get; }
-        public bool LockPlayersWhileOpen { get; }
-        public bool RestoreContextOnConfirm { get; }
-        public bool ResumeTimeScaleOnConfirm { get; }
+        public readonly bool PauseGameWhileOpen;
+        public readonly bool LockPlayersWhileOpen;
+        public readonly bool RestoreContextOnConfirm;
+        public readonly bool ResumeTimeScaleOnConfirm;
+        public readonly PlayerControlContext OwnerContext;
 
         public UIConfirmationRequest(PlayerManager owner, string description, string confirmLabel, string cancelLabel, Func<UniTask> onConfirmAsync, Func<UniTask> onCancelAfterCloseAsync = null,
-            bool pauseGameWhileOpen = true, bool lockPlayersWhileOpen = true, bool restoreContextOnConfirm = false, bool resumeTimeScaleOnConfirm = true)
+            bool pauseGameWhileOpen = true, bool lockPlayersWhileOpen = true, bool restoreContextOnConfirm = false, bool resumeTimeScaleOnConfirm = true, PlayerControlContext ownerContext = PlayerControlContext.UIConfirmationOwner)
         {
             Owner = owner;
             Description = description;
@@ -31,6 +32,7 @@ namespace MortierFu
             LockPlayersWhileOpen = lockPlayersWhileOpen;
             RestoreContextOnConfirm = restoreContextOnConfirm;
             ResumeTimeScaleOnConfirm = resumeTimeScaleOnConfirm;
+            OwnerContext = ownerContext;
         }
     }
 }

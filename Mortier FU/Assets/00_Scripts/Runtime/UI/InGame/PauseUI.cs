@@ -1,162 +1,195 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using PrimeTween;
-using Unity.Mathematics;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
+using System.Threading;
 
 namespace MortierFu
 {
-    public class PauseUI : MonoBehaviour, IPlayerUIInputHandler
+    public enum PauseUISceneContext
     {
-        [Header("Toggles & Sliders")] [SerializeField]
-        private Toggle _fullscreenToggle;
+        Lobby,
+        Gameplay
+    }
 
+    public sealed class PauseUI : MonoBehaviour
+    {
+        private struct PlayerPauseSnapshot
+        {
+            public PlayerManager Player;
+            public PlayerControlContext Context;
+            public InputSystemUIInputModule UiInputModule;
+            public bool UnityEventSystemUIActive;
+        }
+
+        [Header("Mode")]
+        [SerializeField] private PauseUISceneContext _sceneContext = PauseUISceneContext.Lobby;
+
+        [Header("Root")]
+        [SerializeField] private GameObject _root;
+        [SerializeField] private GameObject _pausePanel;
+        [SerializeField] private GameObject _pauseBackground;
+        [SerializeField] private GameObject _blackPanel;
+
+        [Header("Sub Panels")]
+        [SerializeField] private GameObject _settingsPanel;
+        [SerializeField] private GameObject _controlsPanel;
+
+        [Header("Buttons")]
+        [SerializeField] private Button _settingsButton;
+        [SerializeField] private Button _controlsButton;
+        [SerializeField] private Button _primaryActionButton;
+        [SerializeField] private Button _quitButton;
+
+        [Header("Button Text")]
+        [SerializeField] private TMP_Text _settingsButtonText;
+        [SerializeField] private TMP_Text _controlsButtonText;
+        [SerializeField] private TMP_Text _primaryActionButtonText;
+        [SerializeField] private TMP_Text _quitButtonText;
+
+        [Header("Settings UI")]
+        [SerializeField] private Toggle _fullscreenToggle;
         [SerializeField] private Toggle _vSyncToggle;
         [SerializeField] private Slider _masterVolumeSlider;
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
 
-        [Header("Panels")] [SerializeField] private GameObject _pausePanel;
-        [SerializeField] private GameObject _pauseBackground;
-        [SerializeField] private GameObject _blackPanel;
-        [SerializeField] private GameObject _settingsPanel;
-        [SerializeField] private GameObject _controlsPanel;
-        [SerializeField] private GameObject _endGameConfirmationPanel;
-        [SerializeField] private GameObject _quitGameConfirmationPanel;
+        [Header("Unity UI")]
+        [SerializeField] private EventSystem _eventSystem;
+        [SerializeField] private InputSystemUIInputModule _uiInputModule;
+        [SerializeField] private UIConfirmationModalController _confirmationModal;
 
-        //[SerializeField] private RawImage _pauseTopText;
-        //[SerializeField] private RawImage _pauseBottomText;
+        [Header("Confirmation Text")]
+        [SerializeField] private string _returnToMainMenuDescription = "Are you sure you want to return to Main Menu?";
+        [SerializeField] private string _endGameDescription = "Are you sure you want to end the Game?";
+        [SerializeField] private string _quitGameDescription = "Are you sure you want to quit the Game?";
+        [SerializeField] private string _confirmLabel = "Confirm";
+        [SerializeField] private string _cancelLabel = "Cancel";
 
-        [Header("Buttons")] [SerializeField] private Button _settingsButton;
-        [SerializeField] private Button _controlsButton;
-        [SerializeField] private Button _endGameButton;
-        [SerializeField] private Button _quitButton;
-        [SerializeField] private Button _confirmEndGameButton;
-        [SerializeField] private Button _cancelEndGameButton;
-        [SerializeField] private Button _confirmQuitGameButton;
-        [SerializeField] private Button _cancelQuitGameButton;
+        private readonly List<PlayerPauseSnapshot> _snapshots = new();
 
-        /*[Header("Animation Settings")] [SerializeField]
-        private float _tilablePauseSpeed = 0.5f;*/
-
-        [Header("Panel Animation Settings")] [SerializeField]
-        private float _panelScaleDuration = 0.5f;
-
-        [SerializeField] private Ease _panelScaleEase = Ease.OutElastic;
-
-        [SerializeField] private LobbyReturnToMainMenuController _lobbyReturnToMainMenuController;
-
-        private CancellationTokenSource _controlPanelCTS;
-        private CancellationTokenSource _endGamePanelCTS;
-        private CancellationTokenSource _quitPanelCTS;
-
-        private Tween[] _activeHeadTweens;
-        private CancellationTokenSource _animateCancellation;
-
-        private EventSystem _eventSystem;
         private GamePauseSystem _gamePauseSystem;
+        private GameService _gameService;
         private LobbyService _lobbyService;
         private ShakeService _shakeService;
-        private PlayerManager _playerManager;
-        private GameService _gameService;
 
-        private PlayerControlContext _previousPlayerContext;
-        private bool _hasPreviousPlayerContext;
+        private PlayerManager _owner;
+        private bool _isOpen;
+        
+        private CancellationTokenSource _initializationCancellation;
 
-        private readonly UnityPlayerUISession _uiSession = new();
-        private InputSystemUIInputModule _uiInputModule;
-        private MultiplayerEventSystem _globalEventSystem; 
-        private InputSystemUIInputModule _globalInputModule;
-        private PlayerUIInputService UIInputService =>
-            ServiceManager.Instance?.Get<PlayerUIInputService>();
+        private bool _pauseSystemEventsBound;
+        private bool _settingsInitialized;
 
-        private void Start()
+        private void Awake()
         {
-            InitReferences();
-            InitUI();
-            BindPauseSystemEvents();
-            Hide();
+            ResolveReferences();
+            ApplyLabels();
+            HideInstant();
+        }
+
+        private void OnEnable()
+        {
+            BindButtonEvents();
+            BindSettingsFeedbackEvents();
+            StartInitialization();
         }
 
         private void OnDisable()
         {
-            RemoveFromUIInputService();
+            StopInitialization();
 
             UnbindPauseSystemEvents();
-            StopAllActiveAnimations();
+            UnbindButtonEvents();
+            UnbindSettingsFeedbackEvents();
+
+            if (_isOpen)
+                ClosePauseUI(restorePlayers: true);
         }
 
         private void OnDestroy()
         {
-            RemoveFromUIInputService();
+            StopInitialization();
 
             UnbindPauseSystemEvents();
-            UnbindUIEvents();
-            StopAllActiveAnimations();
+            UnbindButtonEvents();
+            UnbindSettingsFeedbackEvents();
         }
 
-        /*
-        private void Update()
+        private void ResolveReferences()
         {
-            if (_gamePauseSystem is null || !_gamePauseSystem.IsPaused)
+            _gameService = ServiceManager.Instance?.Get<GameService>();
+            _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
+            _shakeService = ServiceManager.Instance?.Get<ShakeService>();
+
+            TryResolveGamePauseSystem();
+
+            if (!_eventSystem)
+                _eventSystem = EventSystem.current;
+
+            if (!_uiInputModule && _eventSystem)
+                _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
+        }
+        
+        private bool TryResolveGamePauseSystem()
+        {
+            if (_gamePauseSystem is not null)
+                return true;
+
+            if (SystemManager.Instance is null)
+                return false;
+
+            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
+
+            return _gamePauseSystem is not null;
+        }
+        
+        private void StartInitialization()
+        {
+            StopInitialization();
+
+            _initializationCancellation = new CancellationTokenSource();
+            InitializeAsync(_initializationCancellation.Token).Forget();
+        }
+
+        private void StopInitialization()
+        {
+            _initializationCancellation?.Cancel();
+            _initializationCancellation?.Dispose();
+            _initializationCancellation = null;
+        }
+
+        private async UniTaskVoid InitializeAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!TryResolveGamePauseSystem())
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                BindPauseSystemEvents();
+                InitializeSettingsUI();
+            }
+            catch (OperationCanceledException)
+            { }
+        }
+
+        private void InitializeSettingsUI()
+        {
+            if (_settingsInitialized)
                 return;
 
-       //     if (_pauseTopText)
-          //      ScrollRawImageUV(_pauseTopText, -_tilablePauseSpeed);
-
-      //      if (_pauseBottomText)
-         //       ScrollRawImageUV(_pauseBottomText, _tilablePauseSpeed);
-        }
-        */
-
-        private void InitReferences()
-        {
-            _eventSystem = EventSystem.current;
-            _gameService = ServiceManager.Instance.Get<GameService>();
-            _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-            _globalEventSystem = (MultiplayerEventSystem)(_globalEventSystem ? _globalEventSystem : EventSystem.current);
-            _globalInputModule = _globalInputModule ? _globalInputModule : _globalEventSystem?.GetComponent<InputSystemUIInputModule>();
-
-            if (!_playerManager)
-            {
-                Logs.LogWarning("[PauseUI] Player 1 was not found during initialization.", this);
-            }
-        }
-
-        private PlayerManager TryGetPlayerByIndex(int playerIndex)
-        {
-            if (_lobbyService is null)
-                return null;
-
-            var players = _lobbyService.GetPlayers();
-
-            for (int i = 0; i < players.Count; i++)
-            {
-                var player = players[i];
-
-                if (!player)
-                    continue;
-
-                if (player.PlayerIndex == playerIndex)
-                    return player;
-            }
-
-            return null;
-        }
-
-        private void InitUI()
-        {
             if (_gamePauseSystem is null)
             {
-                Logs.LogError("[PauseUI] GamePauseSystem was not found.]");
+                Logs.LogError("[PauseUI] GamePauseSystem is missing.");
                 return;
             }
 
@@ -178,20 +211,101 @@ namespace MortierFu
                 _sfxVolumeSlider
             );
 
+            _settingsInitialized = true;
+        }
+
+        private void ApplyLabels()
+        {
+            if (_settingsButtonText)
+                _settingsButtonText.text = "SETTINGS";
+
+            if (_controlsButtonText)
+                _controlsButtonText.text = "CONTROLS";
+
+            if (_primaryActionButtonText)
+                _primaryActionButtonText.text = _sceneContext == PauseUISceneContext.Lobby
+                    ? "RETURN TO MAIN MENU"
+                    : "END GAME";
+
+            if (_quitButtonText)
+                _quitButtonText.text = "QUIT GAME";
+        }
+
+        private void BindPauseSystemEvents()
+        {
+            if (_pauseSystemEventsBound)
+                return;
+
+            if (_gamePauseSystem is null)
+                return;
+
+            _gamePauseSystem.Paused -= HandlePaused;
+            _gamePauseSystem.Resumed -= HandleResumed;
+
+            _gamePauseSystem.Paused += HandlePaused;
+            _gamePauseSystem.Resumed += HandleResumed;
+
+            _pauseSystemEventsBound = true;
+        }
+
+        private void UnbindPauseSystemEvents()
+        {
+            if (!_pauseSystemEventsBound)
+                return;
+
+            if (_gamePauseSystem is not null)
+            {
+                _gamePauseSystem.Paused -= HandlePaused;
+                _gamePauseSystem.Resumed -= HandleResumed;
+            }
+
+            _pauseSystemEventsBound = false;
+        }
+
+        private void BindButtonEvents()
+        {
             if (_settingsButton)
-                _settingsButton.onClick.AddListener(OpenSettingPanel);
+            {
+                _settingsButton.onClick.RemoveListener(OpenSettingsPanel);
+                _settingsButton.onClick.AddListener(OpenSettingsPanel);
+            }
 
             if (_controlsButton)
-                _controlsButton.onClick.AddListener(OpenControlPanel);
-
-            if (_endGameButton)
             {
-                _endGameButton.onClick.AddListener(OpenEndGamePanel);
+                _controlsButton.onClick.RemoveListener(OpenControlsPanel);
+                _controlsButton.onClick.AddListener(OpenControlsPanel);
+            }
+
+            if (_primaryActionButton)
+            {
+                _primaryActionButton.onClick.RemoveListener(OpenPrimaryConfirmation);
+                _primaryActionButton.onClick.AddListener(OpenPrimaryConfirmation);
             }
 
             if (_quitButton)
-                _quitButton.onClick.AddListener(OpenQuitPanel);
+            {
+                _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
+                _quitButton.onClick.AddListener(OpenQuitConfirmation);
+            }
+        }
 
+        private void UnbindButtonEvents()
+        {
+            if (_settingsButton)
+                _settingsButton.onClick.RemoveListener(OpenSettingsPanel);
+
+            if (_controlsButton)
+                _controlsButton.onClick.RemoveListener(OpenControlsPanel);
+
+            if (_primaryActionButton)
+                _primaryActionButton.onClick.RemoveListener(OpenPrimaryConfirmation);
+
+            if (_quitButton)
+                _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
+        }
+
+        private void BindSettingsFeedbackEvents()
+        {
             if (_fullscreenToggle)
                 _fullscreenToggle.onValueChanged.AddListener(PlayToggleFeedback);
 
@@ -206,36 +320,10 @@ namespace MortierFu
 
             if (_sfxVolumeSlider)
                 _sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
-
-            if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.AddListener(_lobbyReturnToMainMenuController
-                    ? OnConfirmReturnToMainMenu
-                    : OnConfirmEndGame);
-
-            if (_cancelEndGameButton)
-                _cancelEndGameButton.onClick.AddListener(Return);
-
-            if (_confirmQuitGameButton)
-                _confirmQuitGameButton.onClick.AddListener(Application.Quit);
-
-            if (_cancelQuitGameButton)
-                _cancelQuitGameButton.onClick.AddListener(Return);
         }
 
-        private void UnbindUIEvents()
+        private void UnbindSettingsFeedbackEvents()
         {
-            if (_settingsButton)
-                _settingsButton.onClick.RemoveListener(OpenSettingPanel);
-
-            if (_controlsButton)
-                _controlsButton.onClick.RemoveListener(OpenControlPanel);
-
-            if (_endGameButton)
-                _endGameButton.onClick.RemoveListener(OpenEndGamePanel);
-
-            if (_quitButton)
-                _quitButton.onClick.RemoveListener(OpenQuitPanel);
-
             if (_fullscreenToggle)
                 _fullscreenToggle.onValueChanged.RemoveListener(PlayToggleFeedback);
 
@@ -250,208 +338,183 @@ namespace MortierFu
 
             if (_sfxVolumeSlider)
                 _sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
-
-            if (_confirmEndGameButton)
-                _confirmEndGameButton.onClick.RemoveListener(_lobbyReturnToMainMenuController
-                    ? OnConfirmReturnToMainMenu
-                    : OnConfirmEndGame);
-
-            if (_cancelEndGameButton)
-                _cancelEndGameButton.onClick.RemoveListener(Return);
-
-            if (_confirmQuitGameButton)
-                _confirmQuitGameButton.onClick.RemoveListener(Application.Quit);
-
-            if (_cancelQuitGameButton)
-                _cancelQuitGameButton.onClick.RemoveListener(Return);
         }
 
-        private void OnConfirmEndGame()
+        private void HandlePaused(PlayerManager player)
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-
-            if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
-            {
-                _gamePauseSystem.TogglePause(_playerManager);
-            }
-
-            _gameService?.ReturnToLobby();
-        }
-
-        private void OnConfirmReturnToMainMenu()
-        {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-
-            if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
-            {
-                _gamePauseSystem.TogglePause(_playerManager);
-            }
-
-          //  _lobbyReturnToMainMenuController.ConfirmReturnToMainMenu();
-        }
-
-        private void ScrollRawImageUV(RawImage image, float speed)
-        {
-            if (!image)
+            if (_isOpen)
                 return;
 
-            var rect = image.uvRect;
-            rect.x = math.frac(rect.x + speed * Time.unscaledDeltaTime);
-            image.uvRect = rect;
+            if (!player)
+            {
+                Logs.LogError("[PauseUI] Cannot open pause without owner.");
+                _gamePauseSystem?.Resume();
+                return;
+            }
+
+            if (!_eventSystem || !_uiInputModule)
+            {
+                Logs.LogError("[PauseUI] EventSystem or InputSystemUIInputModule is missing.");
+                _gamePauseSystem?.Resume();
+                return;
+            }
+
+            _owner = player;
+            _isOpen = true;
+
+            CapturePlayers();
+            ApplyPauseInputState();
+
+            ShowMainPanel();
+            Select(_settingsButton);
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
+            ServiceManager.Instance.Get<AudioService>()?.SetPause(1);
+            _shakeService?.ShakeController(_owner, ShakeService.ShakeType.MID);
         }
 
-        private void StopAllActiveAnimations()
+        private void HandleResumed()
         {
-            if (_activeHeadTweens is not null)
+            if (!_isOpen)
+                return;
+
+            ClosePauseUI(restorePlayers: true);
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, 0);
+            ServiceManager.Instance.Get<AudioService>()?.SetPause(0);
+
+            if (_owner)
+                _shakeService?.ShakeController(_owner, ShakeService.ShakeType.MID);
+        }
+
+        private void CapturePlayers()
+        {
+            _snapshots.Clear();
+
+            IReadOnlyList<PlayerManager> players = _lobbyService?.GetPlayers();
+
+            if (players == null)
             {
-                for (int i = 0; i < _activeHeadTweens.Length; i++)
+                CaptureSingleOwner();
+                return;
+            }
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerManager player = players[i];
+
+                if (!player)
+                    continue;
+
+                _snapshots.Add(new PlayerPauseSnapshot
                 {
-                    if (_activeHeadTweens[i].isAlive)
-                        _activeHeadTweens[i].Stop();
+                    Player = player,
+                    Context = player.ControlContext,
+                    UiInputModule = player.PlayerInput.uiInputModule,
+                    UnityEventSystemUIActive = player.IsUnityEventSystemUIActive
+                });
+            }
+
+            if (!ContainsSnapshotFor(_owner))
+                CaptureSingleOwner();
+        }
+
+        private void CaptureSingleOwner()
+        {
+            if (!_owner)
+                return;
+
+            _snapshots.Add(new PlayerPauseSnapshot
+            {
+                Player = _owner,
+                Context = _owner.ControlContext,
+                UiInputModule = _owner.PlayerInput.uiInputModule,
+                UnityEventSystemUIActive = _owner.IsUnityEventSystemUIActive
+            });
+        }
+
+        private bool ContainsSnapshotFor(PlayerManager player)
+        {
+            if (!player)
+                return false;
+
+            for (int i = 0; i < _snapshots.Count; i++)
+            {
+                if (ReferenceEquals(_snapshots[i].Player, player))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void ApplyPauseInputState()
+        {
+            bool ownerApplied = false;
+
+            for (int i = 0; i < _snapshots.Count; i++)
+            {
+                PlayerManager player = _snapshots[i].Player;
+
+                if (!player)
+                    continue;
+
+                if (ReferenceEquals(player, _owner))
+                {
+                    ApplyOwnerPauseInput(player);
+                    ownerApplied = true;
+                }
+                else
+                {
+                    ApplyBlockedInput(player);
                 }
             }
 
-            _animateCancellation?.Cancel();
-            _animateCancellation?.Dispose();
-            _animateCancellation = null;
-
-            SafeCancelCts(ref _controlPanelCTS);
-            SafeCancelCts(ref _endGamePanelCTS);
-            SafeCancelCts(ref _quitPanelCTS);
+            if (!ownerApplied)
+                ApplyOwnerPauseInput(_owner);
         }
 
-        private void SafeCancelCts(ref CancellationTokenSource cts)
+        private void ApplyOwnerPauseInput(PlayerManager player)
         {
-            cts?.Cancel();
-            cts?.Dispose();
-            cts = null;
-        }
-
-        private CancellationTokenSource CreatePanelCts(CancellationTokenSource current)
-        {
-            current?.Cancel();
-            current?.Dispose();
-            return new CancellationTokenSource();
-        }
-
-        private void OpenSettingPanel()
-        {
-            PlayPanelSelectionFeedback();
-
-            if (_settingsPanel)
-                _settingsPanel.SetActive(true);
-
-            if (_pausePanel)
-                _pausePanel.SetActive(false);
-
-            if (_eventSystem && _fullscreenToggle)
-                _eventSystem.SetSelectedGameObject(_fullscreenToggle.gameObject);
-        }
-
-        private void OpenControlPanel()
-        {
-            PlayPanelSelectionFeedback();
-            AnimateOpenControlPanel().Forget();
-        }
-
-        private void OpenEndGamePanel()
-        {
-            PlayPanelSelectionFeedback();
-            AnimateOpenEndGamePanel().Forget();
-        }
-
-        private void OpenQuitPanel()
-        {
-            PlayPanelSelectionFeedback();
-            AnimateOpenQuitPanel().Forget();
-        }
-
-        private async UniTask AnimateOpenControlPanel()
-        {
-            _controlPanelCTS = CreatePanelCts(_controlPanelCTS);
-
-            await AnimateOpenPanel(
-                _controlsPanel,
-                _controlPanelCTS,
-                null,
-                0.2f,
-                Ease.OutCubic
-            );
-        }
-
-        private async UniTask AnimateOpenEndGamePanel()
-        {
-            _endGamePanelCTS = CreatePanelCts(_endGamePanelCTS);
-
-            await AnimateOpenPanel(
-                _endGameConfirmationPanel,
-                _endGamePanelCTS,
-                _confirmEndGameButton ? _confirmEndGameButton.gameObject : null,
-                _panelScaleDuration,
-                _panelScaleEase
-            );
-        }
-
-        private async UniTask AnimateOpenQuitPanel()
-        {
-            _quitPanelCTS = CreatePanelCts(_quitPanelCTS);
-
-            await AnimateOpenPanel(
-                _quitGameConfirmationPanel,
-                _quitPanelCTS,
-                _confirmQuitGameButton ? _confirmQuitGameButton.gameObject : null,
-                _panelScaleDuration,
-                _panelScaleEase
-            );
-        }
-
-        private async UniTask AnimateOpenPanel(
-            GameObject panel,
-            CancellationTokenSource cts,
-            GameObject selectedButton,
-            float duration,
-            Ease ease
-        )
-        {
-            if (!panel || cts is null)
+            if (!player)
                 return;
 
-            CancellationToken ct = cts.Token;
-
-            panel.transform.localScale = Vector3.zero;
-            panel.SetActive(true);
-
-            if (_eventSystem && selectedButton)
-                _eventSystem.SetSelectedGameObject(selectedButton);
-
-            if (_shakeService is not null && _playerManager)
-                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-
-            try
-            {
-                await Tween.Scale(panel.transform, 1f, duration, ease, useUnscaledTime: true)
-                    .ToUniTask(cancellationToken: ct);
-            }
-            catch (OperationCanceledException)
-            {
-                // Safe cancellation.
-            }
+            player.SetControlContext(PlayerControlContext.PauseMenu);
+            player.PlayerInput.uiInputModule = _uiInputModule;
+            player.SetUnityEventSystemUIActive(true);
         }
 
-        private void PlayPanelSelectionFeedback()
+        private static void ApplyBlockedInput(PlayerManager player)
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            if (!player)
+                return;
 
-            if (_shakeService is not null && _playerManager)
-                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
+            player.SetControlContext(PlayerControlContext.UIBlocked);
+            player.SetUnityEventSystemUIActive(true);
         }
 
-        private void Show()
+        private void RestorePlayers()
         {
-            if (_pausePanel)
+            for (int i = 0; i < _snapshots.Count; i++)
             {
-                AnimatePausePanel();
+                PlayerPauseSnapshot snapshot = _snapshots[i];
+
+                if (!snapshot.Player)
+                    continue;
+
+                snapshot.Player.SetControlContext(snapshot.Context);
+                snapshot.Player.SetUnityEventSystemUIActive(snapshot.UnityEventSystemUIActive);
+
+                if (snapshot.UiInputModule)
+                    snapshot.Player.PlayerInput.uiInputModule = snapshot.UiInputModule;
             }
+
+            _snapshots.Clear();
+        }
+
+        private void ShowMainPanel()
+        {
+            if (_root)
+                _root.SetActive(true);
 
             if (_pauseBackground)
                 _pauseBackground.SetActive(true);
@@ -459,26 +522,196 @@ namespace MortierFu
             if (_blackPanel)
                 _blackPanel.SetActive(true);
 
-            // if (_pauseTopText && _pauseTopText.transform.parent)
-            //   _pauseTopText.transform.parent.gameObject.SetActive(true);
+            if (_pausePanel)
+                _pausePanel.SetActive(true);
 
-//            if (_pauseBottomText && _pauseBottomText.transform.parent)
-            //              _pauseBottomText.transform.parent.gameObject.SetActive(true);
+            if (_settingsPanel)
+                _settingsPanel.SetActive(false);
 
-            SafeCancelCts(ref _animateCancellation);
-            _animateCancellation = new CancellationTokenSource();
+            if (_controlsPanel)
+                _controlsPanel.SetActive(false);
         }
 
-        private void Hide()
+        private void OpenSettingsPanel()
         {
-            _uiSession.End();
-            SetSettingsEventSystemActive(false);
-            
+            PlayPanelSelectionFeedback();
+
+            if (_pausePanel)
+                _pausePanel.SetActive(false);
+
+            if (_controlsPanel)
+                _controlsPanel.SetActive(false);
+
+            if (_settingsPanel)
+                _settingsPanel.SetActive(true);
+
+            Select(_fullscreenToggle);
+        }
+
+        private void OpenControlsPanel()
+        {
+            PlayPanelSelectionFeedback();
+
+            if (_pausePanel)
+                _pausePanel.SetActive(false);
+
+            if (_settingsPanel)
+                _settingsPanel.SetActive(false);
+
+            if (_controlsPanel)
+                _controlsPanel.SetActive(true);
+        }
+
+        public void ReturnToMainPanelFromSubPanel()
+        {
+            ShowMainPanel();
+            Select(_settingsButton);
+        }
+
+        private void OpenPrimaryConfirmation()
+        {
+            if (_sceneContext == PauseUISceneContext.Lobby)
+                OpenReturnToMainMenuConfirmation();
+            else
+                OpenEndGameConfirmation();
+        }
+
+        private void OpenReturnToMainMenuConfirmation()
+        {
+            OpenPauseConfirmation(
+                _returnToMainMenuDescription,
+                ConfirmReturnToMainMenuAsync,
+                _primaryActionButton
+            );
+        }
+
+        private void OpenEndGameConfirmation()
+        {
+            OpenPauseConfirmation(
+                _endGameDescription,
+                ConfirmEndGameAsync,
+                _primaryActionButton
+            );
+        }
+
+        private void OpenQuitConfirmation()
+        {
+            OpenPauseConfirmation(
+                _quitGameDescription,
+                ConfirmQuitGameAsync,
+                _quitButton
+            );
+        }
+
+        private void OpenPauseConfirmation(string description, Func<UniTask> onConfirmAsync, Selectable returnSelection)
+        {
+            if (!_confirmationModal || !_owner)
+                return;
+
+            PlayPanelSelectionFeedback();
+
+            UIConfirmationRequest request = new(
+                owner: _owner,
+                description: description,
+                confirmLabel: _confirmLabel,
+                cancelLabel: _cancelLabel,
+                onConfirmAsync: onConfirmAsync,
+                onCancelAfterCloseAsync: () => RestorePauseSelectionAsync(returnSelection),
+                pauseGameWhileOpen: false,
+                lockPlayersWhileOpen: true,
+                restoreContextOnConfirm: true,
+                resumeTimeScaleOnConfirm: false,
+                ownerContext: PlayerControlContext.PauseConfirmationOwner
+            );
+
+            _confirmationModal.TryOpen(request);
+        }
+
+        private UniTask RestorePauseSelectionAsync(Selectable selectable)
+        {
+            if (_owner)
+                ApplyOwnerPauseInput(_owner);
+
+            ShowMainPanel();
+            Select(selectable);
+
+            return UniTask.CompletedTask;
+        }
+
+        private async UniTask ConfirmReturnToMainMenuAsync()
+        {
+            await EndPauseForTransitionAsync();
+
+            PlayerInputBridge.Instance?.CanJoin(false);
+
+            BombshellSystem bombshellSystem = SystemManager.Instance?.Get<BombshellSystem>();
+            bombshellSystem?.ClearActiveBombshells();
+
+            if (_gameService is null)
+            {
+                Logs.LogError("[PauseUI] GameService is missing. Cannot return to main menu.");
+                return;
+            }
+
+            if (_sceneContext == PauseUISceneContext.Lobby)
+                await _gameService.ReturnLobbyToMainMenuAsync();
+            else
+                await _gameService.ReturnToMainMenuAsync();
+        }
+
+        private async UniTask ConfirmEndGameAsync()
+        {
+            await EndPauseForTransitionAsync();
+
+            if (_gameService is null)
+            {
+                Logs.LogError("[PauseUI] GameService is missing. Cannot return to lobby.");
+                return;
+            }
+
+            _gameService.ReturnToLobby();
+        }
+
+        private async UniTask ConfirmQuitGameAsync()
+        {
+            await EndPauseForTransitionAsync();
+            Application.Quit();
+        }
+
+        private async UniTask EndPauseForTransitionAsync()
+        {
+            if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
+                _gamePauseSystem.Resume();
+
+            await UniTask.Yield();
+        }
+
+        private void ClosePauseUI(bool restorePlayers)
+        {
+            _confirmationModal?.ForceCloseInstant(restorePlayers: false);
+
+            ClearSelectedObject();
+            HideInstant();
+
+            if (restorePlayers)
+                RestorePlayers();
+            else
+                _snapshots.Clear();
+
+            _owner = null;
+            _isOpen = false;
+        }
+
+        private void HideInstant()
+        {
             if (_pausePanel)
                 _pausePanel.SetActive(false);
 
             if (_pauseBackground)
                 _pauseBackground.SetActive(false);
+
+            if (_blackPanel)
+                _blackPanel.SetActive(false);
 
             if (_settingsPanel)
                 _settingsPanel.SetActive(false);
@@ -486,87 +719,36 @@ namespace MortierFu
             if (_controlsPanel)
                 _controlsPanel.SetActive(false);
 
-            if (_blackPanel)
-                _blackPanel.SetActive(false);
-
-            if (_endGameConfirmationPanel)
-                _endGameConfirmationPanel.SetActive(false);
-
-            if (_quitGameConfirmationPanel)
-                _quitGameConfirmationPanel.SetActive(false);
-
-            /*if (_pauseTopText && _pauseTopText.transform.parent)
-                _pauseTopText.transform.parent.gameObject.SetActive(false);
-
-            if (_pauseBottomText && _pauseBottomText.transform.parent)
-                _pauseBottomText.transform.parent.gameObject.SetActive(false);*/
-
-            StopAllActiveAnimations();
+            if (_root)
+                _root.SetActive(false);
         }
 
-        private void AnimatePausePanel()
+        private void Select(Selectable selectable)
         {
-            _pausePanel.SetActive(true);
+            if (!_eventSystem || !selectable)
+                return;
 
-            //  await Tween.Position(_pausePanel.transform, )
-        }
+            GameObject selectedObject = selectable.gameObject;
 
-        private void Pause(PlayerManager player)
-        {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
-
-            ServiceManager.Instance.Get<AudioService>().SetPause(1);
-            
-            if (_shakeService is not null && _playerManager)
-                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-            
-            RegisterToUIInputService(player);
-            
-            Show(); 
+            if (!selectedObject.activeInHierarchy)
+                return;
 
             _eventSystem.SetSelectedGameObject(null);
-            if (_eventSystem && _settingsButton)
-                _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
-            
-            
-            _uiInputModule = _eventSystem.GetComponent<InputSystemUIInputModule>();
-         //   _uiSession.Begin(player, _eventSystem, _uiInputModule, _settingsButton);
+            _eventSystem.SetSelectedGameObject(selectedObject);
         }
 
-        private void UnPause()
+        private void ClearSelectedObject()
         {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, 0);
-
-            ServiceManager.Instance.Get<AudioService>().SetPause(0);
-
-            if (_shakeService is not null && _playerManager)
-                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.MID);
-                
-            RemoveFromUIInputService();
-
-            Hide();
-            
-        }
-        
-        private void RegisterToUIInputService(PlayerManager player)
-        {
-            _playerManager = player;
-
-            if (!_playerManager)
-                return;
-
-            UIInputService?.Push(_playerManager, this);
+            if (_eventSystem)
+                _eventSystem.SetSelectedGameObject(null);
         }
 
-        private void RemoveFromUIInputService()
+        private void PlayPanelSelectionFeedback()
         {
-            if (_playerManager)
-            {
-                UIInputService?.Remove(_playerManager, this);
-                return;
-            }
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
-            UIInputService?.RemoveFromAll(this);
+            if (_owner)
+                _shakeService?.ShakeController(_owner, ShakeService.ShakeType.MID);
         }
 
         private void PlayToggleFeedback(bool value)
@@ -599,163 +781,8 @@ namespace MortierFu
         {
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
 
-            if (_shakeService is not null && _playerManager)
-                _shakeService.ShakeController(_playerManager, ShakeService.ShakeType.LITTLE);
-        }
-
-        private void Return()
-        {
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
-
-            if (_controlsPanel && _controlsPanel.activeSelf && _controlsButton && _eventSystem)
-                _eventSystem.SetSelectedGameObject(_controlsButton.gameObject);
-
-            if (_endGameConfirmationPanel && _endGameConfirmationPanel.activeSelf && _endGameButton && _eventSystem)
-                _eventSystem.SetSelectedGameObject(_endGameButton.gameObject);
-
-            if (_quitGameConfirmationPanel && _quitGameConfirmationPanel.activeSelf && _quitButton && _eventSystem)
-                _eventSystem.SetSelectedGameObject(_quitButton.gameObject);
-
-            if (_settingsPanel && _settingsPanel.activeSelf && _settingsButton && _eventSystem)
-                _eventSystem.SetSelectedGameObject(_settingsButton.gameObject);
-
-            if (_settingsPanel)
-                _settingsPanel.SetActive(false);
-
-            if (_controlsPanel)
-                _controlsPanel.SetActive(false);
-
-            if (_endGameConfirmationPanel)
-                _endGameConfirmationPanel.SetActive(false);
-
-            if (_quitGameConfirmationPanel)
-                _quitGameConfirmationPanel.SetActive(false);
-
-            if (_pausePanel)
-            {
-               UnPause();
-            }
-                
-
-            if (_blackPanel)
-                _blackPanel.SetActive(true);
-        }
-
-        private bool IsAnySubPanelOpen()
-        {
-            return (_settingsPanel && _settingsPanel.activeSelf) ||
-                   (_controlsPanel && _controlsPanel.activeSelf) ||
-                   (_endGameConfirmationPanel && _endGameConfirmationPanel.activeSelf) ||
-                   (_quitGameConfirmationPanel && _quitGameConfirmationPanel.activeSelf);
-        }
-
-        private void BindPauseSystemEvents()
-        {
-            if (_gamePauseSystem is null)
-            {
-                Logs.LogError("[PauseUI] GamePauseSystem is null]");
-                return;
-            }
-
-            _gamePauseSystem.Paused -= Pause;
-            _gamePauseSystem.Resumed -= UnPause;
-            _gamePauseSystem.Canceled -= Return;
-
-            _gamePauseSystem.Paused += Pause;
-            _gamePauseSystem.Resumed += UnPause;
-            _gamePauseSystem.Canceled += Return;
-        }
-
-        private void UnbindPauseSystemEvents()
-        {
-            if (_gamePauseSystem is null)
-                return;
-
-            _gamePauseSystem.Paused -= Pause;
-            _gamePauseSystem.Resumed -= UnPause;
-            _gamePauseSystem.Canceled -= Return;
-        }
-
-        public bool CanHandleUIInput(PlayerManager player)
-        {
-            return _gamePauseSystem is not null &&
-                   _gamePauseSystem.IsPaused &&
-                   _playerManager &&
-                   ReferenceEquals(_playerManager, player);
-        }
-
-        public bool HandleNavigate(PlayerManager player, Vector2 direction)
-        {
-            return false;
-        }
-
-        public bool HandleSubmit(PlayerManager player)
-        {
-            return false;
-        }
-
-        public bool HandleCancel(PlayerManager player)
-        {
-            if (!CanHandleUIInput(player))
-                return false;
-
-            if (IsAnySubPanelOpen())
-            {
-                Return();
-                return true;
-            }
-
-            _uiSession.End();
-            SetSettingsEventSystemActive(false);
-            _gamePauseSystem.TogglePause(_playerManager);
-            return true;
-        }
-        
-        private void SetSettingsEventSystemActive(bool active)
-        {
-            if (active)
-            {
-                if (_globalInputModule)
-                    _globalInputModule.enabled = false;
-
-                if (_globalEventSystem)
-                    _globalEventSystem.enabled = false;
-
-                if (_eventSystem)
-                    _eventSystem.enabled = true;
-
-                if (_eventSystem)
-                    _eventSystem.enabled = true;
-
-                return;
-            }
-
-            if (_eventSystem)
-            {
-                _eventSystem.SetSelectedGameObject(null);
-                _eventSystem.enabled = false;
-            }
-
-            if (_uiInputModule)
-                _uiInputModule.enabled = false;
-
-            if (_eventSystem)
-                _eventSystem.enabled = true;
-
-            if (_globalInputModule)
-                _globalInputModule.enabled = true;
-        }
-
-        private void Shuffle(int[] array)
-        {
-            if (array is null)
-                return;
-
-            for (int i = array.Length - 1; i > 0; i--)
-            {
-                int j = Random.Range(0, i + 1);
-                (array[i], array[j]) = (array[j], array[i]);
-            }
+            if (_owner)
+                _shakeService?.ShakeController(_owner, ShakeService.ShakeType.LITTLE);
         }
     }
 }
