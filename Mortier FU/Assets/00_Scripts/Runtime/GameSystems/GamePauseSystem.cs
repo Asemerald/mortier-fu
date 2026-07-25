@@ -1,6 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 
