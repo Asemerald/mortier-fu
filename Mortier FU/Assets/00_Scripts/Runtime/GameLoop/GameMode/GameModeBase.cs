@@ -795,10 +795,11 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
             
             HideScores();
-
+            
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
+            await CircleTransition.Instance.OpenAsync(1f);
+           
         }
 
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());
