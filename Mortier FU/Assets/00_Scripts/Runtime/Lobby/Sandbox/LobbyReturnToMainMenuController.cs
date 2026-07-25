@@ -6,20 +6,19 @@ namespace MortierFu
 {
     public sealed class LobbyReturnToMainMenuController : LobbyInteractionZone
     {
-        [Header("References")]
-        [SerializeField] private LobbySandboxController _sandboxController;
+        [Header("References")] [SerializeField]
+        private LobbySandboxController _sandboxController;
+
         [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbyStartReadyController _readyController;
         [SerializeField] private UIConfirmationModalController _confirmationModal;
 
-        [Header("Text")]
-        [SerializeField] private string _description = "Are You sure You want to return to main menu?";
+        [Header("Text")] [SerializeField] private string _description = "Are You sure You want to return to main menu?";
         [SerializeField] private string _confirmLabel = "Confirm";
         [SerializeField] private string _cancelLabel = "Cancel";
 
-        [Header("Options")]
-        [SerializeField] private bool _despawnLobbyCharacters = true;
-        [SerializeField] private bool _disableJoining = true;
+        private const bool _despawnLobbyCharacters = true;
+        private const bool _disableJoining = true;
 
         private PlayerManager _activePlayer;
         private bool _isReturning;
@@ -116,7 +115,8 @@ namespace MortierFu
 
             if (gameService is null)
             {
-                Logs.LogError("[LobbyReturnToMainMenuController] GameService is missing. Cannot return to main menu.", this);
+                Logs.LogError("[LobbyReturnToMainMenuController] GameService is missing. Cannot return to main menu.",
+                    this);
                 _isReturning = false;
                 _activePlayer = null;
                 return;

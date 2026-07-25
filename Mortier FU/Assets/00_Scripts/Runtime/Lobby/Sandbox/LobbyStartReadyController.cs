@@ -41,6 +41,8 @@ namespace MortierFu
 
         private CancellationTokenSource _feedbackCancellation;
         private CancellationTokenSource _launchCancellation;
+        
+        private bool _isLaunchConfirmationRequested;
 
         private PlayerManager _lastShooter;
 
@@ -186,6 +188,7 @@ namespace MortierFu
             else
             {
                 _readyPlayers.Remove(player);
+                _isLaunchConfirmationRequested = false;
                 CancelLaunchTask();
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is no longer ready.");
             }
@@ -215,7 +218,7 @@ namespace MortierFu
 
         private void ScheduleLaunchIfAllReady(PlayerManager requester)
         {
-            if (_launchCancellation != null)
+            if (_launchCancellation != null || _isLaunchConfirmationRequested)
                 return;
 
             if (!AreAllPlayersReady())
@@ -273,6 +276,9 @@ namespace MortierFu
 
         private void TryLaunchIfAllReady(PlayerManager requester)
         {
+            if (_isLaunchConfirmationRequested)
+                return;
+
             if (!AreAllPlayersReady())
                 return;
 
@@ -291,7 +297,17 @@ namespace MortierFu
             }
 
             Logs.Log("[LobbyStartReadyController] All sandbox players are ready.");
-            _matchLauncher.LaunchMatch(launchPlayer);
+
+            bool opened = _matchLauncher.TryOpenLaunchConfirmation(launchPlayer, HandleLaunchConfirmationCanceledAsync);
+
+            if (opened)
+                _isLaunchConfirmationRequested = true;
+        }
+        
+        private UniTask HandleLaunchConfirmationCanceledAsync()
+        {
+            ResetReady();
+            return UniTask.CompletedTask;
         }
 
         private PlayerManager GetFirstSandboxPlayer()
@@ -310,7 +326,13 @@ namespace MortierFu
             return null;
         }
 
-        public void StartMatch() => ScheduleLaunchIfAllReady(_lastShooter);
+        public void StartMatch()
+        {
+            if (_isLaunchConfirmationRequested)
+                return;
+
+            ScheduleLaunchIfAllReady(_lastShooter);
+        }
 
         private void RefreshFeedback()
         {
@@ -436,6 +458,8 @@ namespace MortierFu
         public void ResetReady()
         {
             CancelLaunchTask();
+
+            _isLaunchConfirmationRequested = false;
 
             _readyPlayers.Clear();
             _lastToggleTimes.Clear();
