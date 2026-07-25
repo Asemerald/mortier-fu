@@ -81,7 +81,7 @@ namespace MortierFu
             character.Controller.rigidbody.AddForce(dashDir, ForceMode.Impulse);
 
             if (character.Controller.HasDashInputDirection())
-                character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Dash);
+                character.NotifyTutorialAction(PlayerLobbyTutorialAction.Dash);
             
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();

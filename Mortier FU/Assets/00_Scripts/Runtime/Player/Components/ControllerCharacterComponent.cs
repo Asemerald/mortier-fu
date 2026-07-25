@@ -136,7 +136,7 @@ namespace MortierFu
                 input = Vector2.zero;
 
             if (input.sqrMagnitude > 0.04f)
-                character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Move);
+                character.NotifyTutorialAction(PlayerLobbyTutorialAction.Move);
             
             Vector2 targetDirection = input.normalized;
             float targetSpeed = Stats.MoveSpeed.Value * factor * Character.ExternalSpeedMultiplier; // pour le caca qui slow

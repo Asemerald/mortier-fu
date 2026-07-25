@@ -1,29 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
-using PrimeTween;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace MortierFu
 {
     public sealed class PlayerLobbyTutorial
     {
-        private const float k_appearDuration = 0.25f;
-
         private readonly List<SO_Tutorial> _steps;
         private readonly PlayerManager _player;
         private readonly PlayerCharacter _character;
-        private readonly Transform _container;
-        private readonly Image _image;
-        private readonly TextMeshProUGUI _text;
+        private readonly PlayerTutorialView _view;
+        private readonly PlayerGameplayUI _gameplayUI;
+        private readonly CancellationTokenSource _cancellation = new();
+        private readonly HashSet<PlayerLobbyTutorialAction> _performedActions = new();
 
         private int _index;
+        private bool _isAimHeld;
         private bool _isRunning;
+        private bool _isVisible;
         private bool _isDisposed;
-        private Tween _scaleTween;
 
         public PlayerLobbyTutorial(List<SO_Tutorial> steps, PlayerManager player)
         {
@@ -37,53 +34,57 @@ namespace MortierFu
                 return;
             }
 
-            _container = _character.TutorialContainer;
-            _image = _character.TutorialImage;
-            _text = _character.TutorialText;
+            _view = _character.TutorialView;
+            _gameplayUI = _character.GameplayUI;
 
-            HideInstant();
+            if (!_view)
+            {
+                Logs.LogWarning("[PlayerLobbyTutorial] TutorialView reference is missing on PlayerCharacter.");
+                return;
+            }
 
-            RunAsync().Forget();
+            _view.HideInstant();
+
+            RunAsync(_cancellation.Token).Forget();
         }
 
-        private async UniTaskVoid RunAsync()
+        private async UniTaskVoid RunAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await WaitUntilPlayerCanRunTutorialAsync();
-                await WaitUntilHudIntroReadyAsync();
-
-                if (_isDisposed)
-                    return;
-
-                ApplyCurrentStep();
-
-                if (!_container)
-                {
-                    Logs.LogWarning("[PlayerLobbyTutorial] Tutorial container is missing.");
-                    return;
-                }
-
-                _container.gameObject.SetActive(true);
-                _container.localScale = Vector3.zero;
-
-                _scaleTween = Tween.Scale(
-                    _container,
-                    Vector3.one,
-                    k_appearDuration,
-                    Ease.OutBack
-                );
-
-                await WaitForTweenAsync(_scaleTween);
+                await WaitUntilPlayerCanRunTutorialAsync(cancellationToken);
 
                 if (_isDisposed || !_character)
                     return;
 
-                _character.OnLobbyTutorialAction -= HandleTutorialAction;
-                _character.OnLobbyTutorialAction += HandleTutorialAction;
+                _character.OnTutorialActionPerformed -= HandleTutorialAction;
+                _character.OnTutorialActionPerformed += HandleTutorialAction;
 
                 _isRunning = true;
+
+                await WaitUntilHudIntroReadyAsync(cancellationToken);
+
+                if (_isDisposed)
+                    return;
+
+                SkipAlreadyPerformedSteps();
+
+                SO_Tutorial firstStep = GetCurrentStep();
+
+                if (!firstStep)
+                {
+                    Complete();
+                    return;
+                }
+
+                bool isKeyboard = _player.IsKeyboardAndMouseControlScheme();
+
+                await _view.ShowStepAsync(firstStep, isKeyboard, cancellationToken);
+
+                _isVisible = true;
             }
+            catch (OperationCanceledException)
+            { }
             catch (Exception e)
             {
                 Logs.LogError($"[PlayerLobbyTutorial] Failed to start tutorial: {e.Message}");
@@ -91,25 +92,49 @@ namespace MortierFu
             }
         }
 
-        private async UniTask WaitUntilPlayerCanRunTutorialAsync()
+        private async UniTask WaitUntilPlayerCanRunTutorialAsync(CancellationToken cancellationToken)
         {
             while (!_isDisposed)
             {
                 if (_character && _character.CanProgressLobbyTutorial)
                     return;
 
-                await UniTask.Yield();
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
         }
-        
-        private async UniTask WaitUntilHudIntroReadyAsync()
-        {
-            while (!_isDisposed)
-            {
-                if (_character && _character.IsHudIntroReady)
-                    return;
 
-                await UniTask.Yield();
+        private async UniTask WaitUntilHudIntroReadyAsync(CancellationToken cancellationToken)
+        {
+            if (!_gameplayUI)
+            {
+                Logs.LogWarning("[PlayerLobbyTutorial] GameplayUI reference is missing. Tutorial will start without waiting for HUD intro.");
+                return;
+            }
+
+            if (_gameplayUI.IsIntroReady)
+                return;
+
+            bool introReady = false;
+
+            void HandleIntroReady(bool ready)
+            {
+                introReady = true;
+            }
+
+            _gameplayUI.OnIntroReady += HandleIntroReady;
+
+            try
+            {
+                while (!_isDisposed && !introReady && !_gameplayUI.IsIntroReady)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+            }
+            finally
+            {
+                if (_gameplayUI)
+                    _gameplayUI.OnIntroReady -= HandleIntroReady;
             }
         }
 
@@ -121,15 +146,68 @@ namespace MortierFu
             if (!_character || !_character.CanProgressLobbyTutorial)
                 return;
 
-            if (_index < 0 || _index >= _steps.Count)
+            UpdateRuntimeFlags(action);
+
+            if (action == PlayerLobbyTutorialAction.AimReleased)
+            {
+                HandleAimReleased();
+                return;
+            }
+
+            _performedActions.Add(action);
+
+            SO_Tutorial currentStep = GetCurrentStep();
+
+            if (!currentStep)
+            {
+                Complete();
+                return;
+            }
+
+            if (!CanValidateCurrentStep(currentStep, action))
                 return;
 
-            SO_Tutorial currentStep = _steps[_index];
+            Advance();
+        }
 
-            if (!currentStep || currentStep.RequiredAction != action)
+        private void UpdateRuntimeFlags(PlayerLobbyTutorialAction action)
+        {
+            if (action == PlayerLobbyTutorialAction.Aim)
+            {
+                _isAimHeld = true;
+                return;
+            }
+
+            if (action == PlayerLobbyTutorialAction.AimReleased)
+                _isAimHeld = false;
+        }
+
+        private bool CanValidateCurrentStep(SO_Tutorial step, PlayerLobbyTutorialAction action)
+        {
+            if (step.RequiredAction != action)
+                return false;
+
+            return !step.RequiresAimHeld || _isAimHeld;
+        }
+
+        private void HandleAimReleased()
+        {
+            SO_Tutorial currentStep = GetCurrentStep();
+
+            if (!currentStep)
                 return;
 
+            if (!currentStep.ReturnToAimStepWhenAimReleased)
+                return;
+
+            ResetToAction(PlayerLobbyTutorialAction.Aim);
+        }
+
+        private void Advance()
+        {
             _index++;
+
+            SkipAlreadyPerformedSteps();
 
             if (_index >= _steps.Count)
             {
@@ -140,35 +218,94 @@ namespace MortierFu
             ApplyCurrentStep();
         }
 
-        private void ApplyCurrentStep()
+        private void SkipAlreadyPerformedSteps()
         {
-            if (_index < 0 || _index >= _steps.Count)
+            while (_index < _steps.Count)
+            {
+                SO_Tutorial step = _steps[_index];
+
+                if (!step)
+                {
+                    _index++;
+                    continue;
+                }
+
+                if (!step.SkipIfAlreadyPerformed)
+                    return;
+
+                if (!_performedActions.Contains(step.RequiredAction))
+                    return;
+
+                _index++;
+            }
+        }
+
+        private void ResetToAction(PlayerLobbyTutorialAction action)
+        {
+            int targetIndex = FindStepIndex(action);
+
+            if (targetIndex < 0)
                 return;
 
-            SO_Tutorial step = _steps[_index];
+            _index = targetIndex;
+
+            RemovePerformedActionsFromIndex(_index);
+
+            ApplyCurrentStep();
+        }
+
+        private int FindStepIndex(PlayerLobbyTutorialAction action)
+        {
+            for (int i = 0; i < _steps.Count; i++)
+            {
+                SO_Tutorial step = _steps[i];
+
+                if (!step)
+                    continue;
+
+                if (step.RequiredAction == action)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void RemovePerformedActionsFromIndex(int startIndex)
+        {
+            for (int i = startIndex; i < _steps.Count; i++)
+            {
+                SO_Tutorial step = _steps[i];
+
+                if (!step)
+                    continue;
+
+                _performedActions.Remove(step.RequiredAction);
+            }
+        }
+
+        private void ApplyCurrentStep()
+        {
+            if (!_isVisible)
+                return;
+
+            SO_Tutorial step = GetCurrentStep();
 
             if (!step)
             {
-                Logs.LogWarning($"[PlayerLobbyTutorial] Tutorial step {_index} is missing.");
+                Complete();
                 return;
             }
 
             bool isKeyboard = _player.IsKeyboardAndMouseControlScheme();
-            Sprite sprite = step.GetSpriteByInput(isKeyboard);
+            _view.ApplyStep(step, isKeyboard);
+        }
 
-            if (_image)
-            {
-                _image.sprite = sprite;
-                _image.enabled = sprite != null;
+        private SO_Tutorial GetCurrentStep()
+        {
+            if (_index < 0 || _index >= _steps.Count)
+                return null;
 
-                if (sprite)
-                    _image.rectTransform.sizeDelta = step.GetSizeByInput(isKeyboard);
-                else
-                    Logs.LogWarning($"[PlayerLobbyTutorial] Tutorial step '{step.name}' has no sprite for current input.");
-            }
-
-            if (_text)
-                _text.text = step.ExplanationText;
+            return _steps[_index];
         }
 
         private void Complete()
@@ -184,38 +321,17 @@ namespace MortierFu
 
             _isDisposed = true;
             _isRunning = false;
+            _isVisible = false;
 
-            if (_scaleTween.isAlive)
-                _scaleTween.Stop();
+            _cancellation.Cancel();
 
             if (_character)
-                _character.OnLobbyTutorialAction -= HandleTutorialAction;
+                _character.OnTutorialActionPerformed -= HandleTutorialAction;
 
-            HideInstant();
-        }
+            if (_view)
+                _view.HideInstant();
 
-        private void HideInstant()
-        {
-            if (_container)
-            {
-                _container.localScale = Vector3.zero;
-                _container.gameObject.SetActive(false);
-            }
-
-            if (_image)
-            {
-                _image.sprite = null;
-                _image.enabled = false;
-            }
-
-            if (_text)
-                _text.text = string.Empty;
-        }
-
-        private static async UniTask WaitForTweenAsync(Tween tween)
-        {
-            while (tween.isAlive)
-                await UniTask.Yield();
+            _cancellation.Dispose();
         }
     }
 }

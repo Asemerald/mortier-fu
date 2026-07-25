@@ -4,11 +4,9 @@ using System.Collections.ObjectModel;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 namespace MortierFu
@@ -76,10 +74,12 @@ namespace MortierFu
         [field: SerializeField, Expandable, ShowIf("ShouldShowStats")]
         public SO_CharacterStats Stats { get; private set; }
 
-        [SerializeField] private Transform _tutorialContainer;
-        public Transform TutorialContainer => _tutorialContainer;
-        public Image TutorialImage;
-        public TextMeshProUGUI TutorialText;
+        [Header("UI")]
+        [SerializeField] private PlayerTutorialView _tutorialView;
+        [SerializeField] private PlayerGameplayUI _gameplayUI;
+
+        public PlayerTutorialView TutorialView => _tutorialView;
+        public PlayerGameplayUI GameplayUI => _gameplayUI;
 
         private readonly List<SO_Augment> _ownedAugments = new();
         private readonly List<IAugment> _activeAugments = new();
@@ -112,9 +112,7 @@ namespace MortierFu
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;
         
-        public bool IsHudIntroReady { get; private set; }
-        
-        public event Action<PlayerLobbyTutorialAction> OnLobbyTutorialAction;
+        public event Action<PlayerLobbyTutorialAction> OnTutorialActionPerformed;
         public event Action<PlayerControlContext> OnControlContextChanged;
 
         public bool CanProgressLobbyTutorial => ControlContext == PlayerControlContext.LobbySandbox && Health is { IsAlive: true };
@@ -137,6 +135,7 @@ namespace MortierFu
             Augments = _activeAugments.AsReadOnly();
             
             ResolveCustomizationVisual();
+            ResolvePlayerUIReferences();
             InitStateMachine();
         }
 
@@ -167,7 +166,6 @@ namespace MortierFu
             _tauntAction3.started += Taunt3;
             _tauntAction4.started += Taunt4;
             
-
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
             _dashState.Reset();
@@ -191,7 +189,7 @@ namespace MortierFu
             Mortar?.Dispose();
             SafeGround?.Dispose();
 
-            OnLobbyTutorialAction = null;
+            OnTutorialActionPerformed = null;
             OnControlContextChanged = null;
             
             if (_dashAction != null)
@@ -301,7 +299,6 @@ namespace MortierFu
             
             FXService fxService = ServiceManager.Instance.Get<FXService>();
             fxService?.Reset(this);
-
             
             RefreshRuntimeAfterAugmentStateChanged();
         }
@@ -370,10 +367,6 @@ namespace MortierFu
             // Set initial state
             _stateMachine.SetState(_locomotionState);
         }
-        
-        public void ResetHudIntroReady() => IsHudIntroReady = false;
-
-        public void NotifyHudIntroReady() => IsHudIntroReady = true;
         
         public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
         {
@@ -650,12 +643,7 @@ namespace MortierFu
                 Health.RemoveInvincibility(k_controlContextInvincibilitySource);
         }
 
-        private static bool ShouldBeInvincibleInContext(PlayerControlContext context)
-        {
-            return context is PlayerControlContext.LobbyCustomization
-                or PlayerControlContext.LobbySettingsOwner
-                or PlayerControlContext.LobbyReturnConfirmationOwner;
-        }
+        private static bool ShouldBeInvincibleInContext(PlayerControlContext context) => context is PlayerControlContext.LobbyCustomization or PlayerControlContext.LobbySettingsOwner or PlayerControlContext.LobbyReturnConfirmationOwner;
 
         private sealed class ControlContextInvincibilitySource
         { }
@@ -670,7 +658,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(1);
-            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt2(InputAction.CallbackContext ctx)
@@ -679,7 +667,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(2);
-            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt3(InputAction.CallbackContext ctx)
@@ -688,7 +676,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(3);
-            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt4(InputAction.CallbackContext ctx)
@@ -697,7 +685,24 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(4);
-            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
+        }
+        
+        public void NotifyTutorialAction(PlayerLobbyTutorialAction action)
+        {
+            if (!CanProgressLobbyTutorial)
+                return;
+
+            OnTutorialActionPerformed?.Invoke(action);
+        }
+        
+        private void ResolvePlayerUIReferences()
+        {
+            if (!_tutorialView)
+                _tutorialView = GetComponentInChildren<PlayerTutorialView>(true);
+
+            if (!_gameplayUI)
+                _gameplayUI = GetComponentInChildren<PlayerGameplayUI>(true);
         }
 
         private void ResolveCustomizationVisual()
@@ -725,14 +730,6 @@ namespace MortierFu
         public bool CanPlayerInteractWithBombShell()
         {
             return Health.IsAlive && ActionPermissions.CanBeStun;
-        }
-        
-        public void NotifyLobbyTutorialAction(PlayerLobbyTutorialAction action)
-        {
-            if (!CanProgressLobbyTutorial)
-                return;
-
-            OnLobbyTutorialAction?.Invoke(action);
         }
     }
 }

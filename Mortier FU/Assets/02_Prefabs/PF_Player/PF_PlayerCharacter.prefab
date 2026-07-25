@@ -1093,9 +1093,8 @@ MonoBehaviour:
   _augmentVfxController: {fileID: 1300814118797214782}
   _customizationVisual: {fileID: 6139260222370270294}
   <Stats>k__BackingField: {fileID: 0}
-  _tutorialContainer: {fileID: 2858073784225908701}
-  TutorialImage: {fileID: 2882676395004836494}
-  TutorialText: {fileID: 379130420291954512}
+  _tutorialView: {fileID: 281024323911832942}
+  _gameplayUI: {fileID: 8537908433334717502}
   <Assets>k__BackingField: {fileID: 11400000, guid: 9f5b573084091eb40b33099237d0b7e1, type: 2}
 --- !u!54 &8940724329505566821
 Rigidbody:
@@ -1960,6 +1959,7 @@ GameObject:
   - component: {fileID: 2858073784225908701}
   - component: {fileID: 3144455944671111778}
   - component: {fileID: 6085833476102383102}
+  - component: {fileID: 281024323911832942}
   m_Layer: 3
   m_Name: Horizontal Layout Tuto
   m_TagString: Untagged
@@ -2034,6 +2034,23 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &281024323911832942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7633903660748619915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 867aeeb891afb6d4d8dfbb388a96b5c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.PlayerTutorialView
+  _container: {fileID: 2858073784225908701}
+  _inputImage: {fileID: 2882676395004836494}
+  _descriptionText: {fileID: 379130420291954512}
+  _showDuration: 0.25
+  _showEase: 27
 --- !u!1 &8023714888944586360
 GameObject:
   m_ObjectHideFlags: 0

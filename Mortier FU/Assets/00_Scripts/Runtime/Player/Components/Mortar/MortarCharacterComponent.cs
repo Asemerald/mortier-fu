@@ -158,7 +158,7 @@ namespace MortierFu
             Vector3 currentRelativePosition = AimWidget.RelativePosition;
 
             if ((currentRelativePosition - previousRelativePosition).sqrMagnitude > 0.04f)
-                Character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.AimMoved);
+                Character.NotifyTutorialAction(PlayerLobbyTutorialAction.AimMoved);
         }
 
         public void Shoot()
@@ -202,7 +202,7 @@ namespace MortierFu
                 Bombshell = bombshell,
             });
             
-            character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Shoot);
+            character.NotifyTutorialAction(PlayerLobbyTutorialAction.Shoot);
 
             _shootCooldownTimer.Start();
 
@@ -232,7 +232,7 @@ namespace MortierFu
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
 
-            Character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Aim);
+            character.NotifyTutorialAction(PlayerLobbyTutorialAction.Aim);
         }
 
         public void EndAiming(InputAction.CallbackContext ctx)
@@ -250,22 +250,25 @@ namespace MortierFu
 
             if (_shootAction != null)
                 _shootAction.Disable();
+
+            character.NotifyTutorialAction(PlayerLobbyTutorialAction.AimReleased);
         }
         
         public void CancelAiming()
         {
-            if (character.Owner != null && character.Owner.IsControllingGhost)
+            if (character.Owner && character.Owner.IsControllingGhost)
                 return;
 
             if (AimWidget)
                 AimWidget.Hide();
-            
 
             _shootStrategy?.CancelAiming();
 
             _shootAction?.Disable();
 
             IsShooting = false;
+
+            character.NotifyTutorialAction(PlayerLobbyTutorialAction.AimReleased);
         }
     }
 }
