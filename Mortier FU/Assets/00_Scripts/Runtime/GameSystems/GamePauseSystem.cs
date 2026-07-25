@@ -91,12 +91,12 @@ namespace MortierFu
         {
             var s = _saveService.Settings;
 
-            fullscreenToggle.isOn = s.IsFullscreen;
-            vsyncToggle.isOn = s.IsVSyncEnabled;
+            fullscreenToggle.SetIsOnWithoutNotify(s.IsFullscreen);
+            vsyncToggle.SetIsOnWithoutNotify(s.IsVSyncEnabled);
 
-            masterVolumeSlider.value = s.MasterVolume;
-            musicVolumeSlider.value = s.MusicVolume;
-            sFXVolumeSlider.value = s.SfxVolume;
+            masterVolumeSlider.SetValueWithoutNotify(s.MasterVolume);
+            musicVolumeSlider.SetValueWithoutNotify(s.MusicVolume);
+            sFXVolumeSlider.SetValueWithoutNotify(s.SfxVolume);
         }
 
         public void BindUIEvents(Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterVolumeSlider, Slider musicVolumeSlider, Slider sfxVolumeSlider)
@@ -144,6 +144,11 @@ namespace MortierFu
             IsPaused = false;
             _saveService = ServiceManager.Instance.Get<SaveService>();
             return UniTask.CompletedTask;
+        }
+        
+        public void SaveSettings()
+        {
+            _saveService.SaveSettings().Forget();
         }
         
         public void Dispose()

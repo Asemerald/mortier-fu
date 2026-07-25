@@ -195,21 +195,9 @@ namespace MortierFu
 
             _gamePauseSystem.RestoreSettingsFromSave();
 
-            _gamePauseSystem.UpdateUIFromSave(
-                _fullscreenToggle,
-                _vSyncToggle,
-                _masterVolumeSlider,
-                _musicVolumeSlider,
-                _sfxVolumeSlider
-            );
+            _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
 
-            _gamePauseSystem.BindUIEvents(
-                _fullscreenToggle,
-                _vSyncToggle,
-                _masterVolumeSlider,
-                _musicVolumeSlider,
-                _sfxVolumeSlider
-            );
+            _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
 
             _settingsInitialized = true;
         }
@@ -217,18 +205,18 @@ namespace MortierFu
         private void ApplyLabels()
         {
             if (_settingsButtonText)
-                _settingsButtonText.text = "SETTINGS";
+                _settingsButtonText.text = "Settings";
 
             if (_controlsButtonText)
-                _controlsButtonText.text = "CONTROLS";
+                _controlsButtonText.text = "Controls";
 
             if (_primaryActionButtonText)
                 _primaryActionButtonText.text = _sceneContext == PauseUISceneContext.Lobby
-                    ? "RETURN TO MAIN MENU"
-                    : "END GAME";
+                    ? "Return to Main menu"
+                    : "End Game";
 
             if (_quitButtonText)
-                _quitButtonText.text = "QUIT GAME";
+                _quitButtonText.text = "Quit Game";
         }
 
         private void BindPauseSystemEvents()
@@ -282,11 +270,10 @@ namespace MortierFu
                 _primaryActionButton.onClick.AddListener(OpenPrimaryConfirmation);
             }
 
-            if (_quitButton)
-            {
-                _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
-                _quitButton.onClick.AddListener(OpenQuitConfirmation);
-            }
+            if (!_quitButton) return;
+            
+            _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
+            _quitButton.onClick.AddListener(OpenQuitConfirmation);
         }
 
         private void UnbindButtonEvents()
@@ -576,32 +563,11 @@ namespace MortierFu
                 OpenEndGameConfirmation();
         }
 
-        private void OpenReturnToMainMenuConfirmation()
-        {
-            OpenPauseConfirmation(
-                _returnToMainMenuDescription,
-                ConfirmReturnToMainMenuAsync,
-                _primaryActionButton
-            );
-        }
+        private void OpenReturnToMainMenuConfirmation() => OpenPauseConfirmation(_returnToMainMenuDescription, ConfirmReturnToMainMenuAsync, _primaryActionButton);
 
-        private void OpenEndGameConfirmation()
-        {
-            OpenPauseConfirmation(
-                _endGameDescription,
-                ConfirmEndGameAsync,
-                _primaryActionButton
-            );
-        }
+        private void OpenEndGameConfirmation() => OpenPauseConfirmation(_endGameDescription, ConfirmEndGameAsync, _primaryActionButton);
 
-        private void OpenQuitConfirmation()
-        {
-            OpenPauseConfirmation(
-                _quitGameDescription,
-                ConfirmQuitGameAsync,
-                _quitButton
-            );
-        }
+        private void OpenQuitConfirmation() => OpenPauseConfirmation(_quitGameDescription, ConfirmQuitGameAsync, _quitButton);
 
         private void OpenPauseConfirmation(string description, Func<UniTask> onConfirmAsync, Selectable returnSelection)
         {
@@ -691,6 +657,7 @@ namespace MortierFu
             _confirmationModal?.ForceCloseInstant(restorePlayers: false);
 
             ClearSelectedObject();
+            _gamePauseSystem?.SaveSettings();
             HideInstant();
 
             if (restorePlayers)
@@ -751,30 +718,24 @@ namespace MortierFu
                 _shakeService?.ShakeController(_owner, ShakeService.ShakeType.MID);
         }
 
-        private void PlayToggleFeedback(bool value)
-        {
-            PlayMinorUIFeedback();
-        }
+        private void PlayToggleFeedback(bool value) => PlayMinorUIFeedback();
 
         private void OnMasterVolumeChanged(float value)
         {
-            PlayMinorUIFeedback();
             AudioService.SetVolume(AudioService.BusEnum.MASTER, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+            PlayMinorUIFeedback();
         }
 
         private void OnMusicVolumeChanged(float value)
         {
-            PlayMinorUIFeedback();
             AudioService.SetVolume(AudioService.BusEnum.MUSIC, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+            PlayMinorUIFeedback();
         }
 
         private void OnSfxVolumeChanged(float value)
         {
-            PlayMinorUIFeedback();
             AudioService.SetVolume(AudioService.BusEnum.SFX, value);
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
+            PlayMinorUIFeedback();
         }
 
         private void PlayMinorUIFeedback()
