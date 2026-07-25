@@ -40,7 +40,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = !Application.isEditor ? "b.1.4" : "Editor",
+                officialGameVersion = !Application.isEditor ? "b.1.5" : "Editor",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
