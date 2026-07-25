@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using MortierFu;
 using MortierFu.Shared;
-using TMPro;
 using PrimeTween;
+using System.Threading;
 
 public class PlayerGameplayUI : MonoBehaviour
 {
@@ -25,7 +25,7 @@ public class PlayerGameplayUI : MonoBehaviour
     [SerializeField] private Image _healthTicksImg;
     private Material _ticksMaterialInstance;
     [SerializeField] private Image _playerHUD;
-    
+
     [SerializeField] private Image _characterIcon;
 
     [SerializeField] private Sprite[] _characterIcons;
@@ -35,15 +35,17 @@ public class PlayerGameplayUI : MonoBehaviour
     [SerializeField] private float _startFadeDelay = 2f;
 
     [SerializeField] private Ease _healthBarEase = Ease.OutBack;
-    
+
     [SerializeField] private Image _reloadCdImage;
 
-    [Header("Dash")] 
-    [SerializeField] private Image _strikeCdImage;
+    [Header("Dash")] [SerializeField] private Image _strikeCdImage;
     [SerializeField] private RawImage _dashChargeTiledImg;
     private int _currentDashCharges = 0;
 
     private GameModeBase _gm;
+
+    private Tween _hudTween;
+    private CancellationTokenSource _hudCancellation;
 
     private const int k_maxDashCharges = 7;
 
@@ -52,10 +54,7 @@ public class PlayerGameplayUI : MonoBehaviour
     private static readonly int FillID = Shader.PropertyToID("_Fill");
     private static readonly int ScalingYID = Shader.PropertyToID("_ScalingY");
 
-    private void Awake()
-    {
-        _gm = GameService.CurrentGameMode as GameModeBase;
-    }
+    private void Awake() => _gm = GameService.CurrentGameMode as GameModeBase;
 
     private void OnEnable()
     {
@@ -92,10 +91,10 @@ public class PlayerGameplayUI : MonoBehaviour
             _character.Stats.DashCharges.OnDirtyUpdated -= OnDashChargeUpdated;
             _character.Stats.DashCharges.OnDirtyUpdated += OnDashChargeUpdated;
         }
-        
-        Material strikeMat = new Material(_strikeCdImage.material);
+
+        Material strikeMat = new(_strikeCdImage.material);
         _strikeCdImage.material = strikeMat;
-        Material reloadMat = new Material(_reloadCdImage.material);
+        Material reloadMat = new(_reloadCdImage.material);
         _reloadCdImage.material = reloadMat;
     }
 
@@ -130,24 +129,41 @@ public class PlayerGameplayUI : MonoBehaviour
 
     private void Start()
     {
-        _playerHUD.sprite = _playerHUDSprites[_character.Owner.PlayerIndex];
-        ShowPlayerHUD(true).Forget();
+        ApplyPlayerHudSprite();
+        StartShowPlayerHUD(showIcon: true);
 
         OnHealthChanged(0f, 1f);
         OnMaxHealthChanged(1f);
 
-        // Calculate damage bar width
-        var parentRect = _damageFillImg.rectTransform.parent as RectTransform;
+        RectTransform parentRect = _damageFillImg.rectTransform.parent as RectTransform;
+
         if (parentRect)
-        {
             _damageBarWidth = parentRect.rect.width;
-        }
     }
-    
+
+    private void ApplyPlayerHudSprite()
+    {
+        if (!_playerHUD || !_character || !_character.Owner)
+            return;
+
+        int playerIndex = _character.Owner.PlayerIndex;
+
+        if (_playerHUDSprites == null || playerIndex < 0 || playerIndex >= _playerHUDSprites.Length)
+        {
+            Logs.LogWarning($"[PlayerGameplayUI] Missing HUD sprite for Player {playerIndex + 1}.", this);
+            return;
+        }
+
+        _playerHUD.sprite = _playerHUDSprites[playerIndex];
+    }
+
     private void OnDestroy()
     {
-        if (_ticksMaterialInstance == null) return;
-        
+        CancelHudAnimation();
+
+        if (_ticksMaterialInstance == null)
+            return;
+    
         Destroy(_ticksMaterialInstance);
         _ticksMaterialInstance = null;
     }
@@ -156,9 +172,9 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         UpdateReloadUI();
         UpdateStrikeUI();
-        
+
         //TODO : Refacto ce bousin si possible (Eliot)
-        
+
         if (_gm?.CurrentGameState is GameState.AugmentRace or GameState.Round or GameState.RoundCountdown)
         {
             ScaleHUDToAvatarSize();
@@ -170,18 +186,10 @@ public class PlayerGameplayUI : MonoBehaviour
         // Reverse progress bar
         float strikeProgress = 1 - _character.GetStrikeCooldownProgress;
 
-        // _strikeCdImage.enabled = strikeProgress >= 0;
         _strikeCdImage.fillAmount = strikeProgress;
 
-        if (_character.AvailableDashCharges > 0)
-        {
-            _strikeCdImage.color = Color.Lerp(_strikeCdImage.color, Color.white, 25 * Time.deltaTime);
-        }
-        else
-        {
-            _strikeCdImage.color = new Color(0.75f, 0.75f, 0.75f, 1);
-        }
-        
+        _strikeCdImage.color = _character.AvailableDashCharges > 0 ? Color.Lerp(_strikeCdImage.color, Color.white, 25 * Time.deltaTime) : new Color(0.75f, 0.75f, 0.75f, 1);
+
         UpdateDashChargeSprite();
     }
 
@@ -189,50 +197,107 @@ public class PlayerGameplayUI : MonoBehaviour
     {
         // Reverse progress bar
         float reloadProgress = 1 - _character.Mortar.ShootCooldownProgress;
-        
+
         _reloadCdImage.fillAmount = reloadProgress;
-        if (reloadProgress >= 1f)
+        _reloadCdImage.color = reloadProgress >= 1f ? Color.Lerp(_reloadCdImage.color, Color.white, 25 * Time.deltaTime) : new Color(0.75f, 0.75f, 0.75f, 1);
+    }
+
+    private void StartShowPlayerHUD(bool showIcon)
+    {
+        CancelHudAnimation();
+
+        _hudCancellation = new CancellationTokenSource();
+        ShowPlayerHUDAsync(showIcon, _hudCancellation.Token).Forget();
+    }
+
+    private async UniTaskVoid ShowPlayerHUDAsync(bool showIcon, CancellationToken cancellationToken)
+    {
+        try
         {
-            _reloadCdImage.color = Color.Lerp(_reloadCdImage.color, Color.white, 25 * Time.deltaTime);
+            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+
+            if (_character)
+                _character.ResetHudIntroReady();
+
+            PrepareHUDVisuals();
+
+            if (showIcon)
+                SetupCharacterIcon();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay), DelayType.UnscaledDeltaTime, PlayerLoopTiming.Update, cancellationToken);
+
+            await AnimateHUDInAsync(cancellationToken);
+
+            if (_character)
+                _character.NotifyHudIntroReady();
         }
-        else
+        catch (OperationCanceledException)
+        { }
+        catch (Exception e)
         {
-            _reloadCdImage.color = new Color(0.75f, 0.75f, 0.75f, 1);
+            Logs.LogError($"[PlayerGameplayUI] HUD intro failed: {e.Message}", this);
         }
     }
 
-    private async UniTask ShowPlayerHUD(bool showIcon = false)
+    private async UniTask AnimateHUDInAsync(CancellationToken cancellationToken)
     {
-        await UniTask.Yield();
-
-        PrepareHUDVisuals();
-
-        if (showIcon)
+        if (!_playerHUD)
         {
-            SetupCharacterIcon();
+            Logs.LogError("[PlayerGameplayUI] Player HUD reference is missing.", this);
+
+            if (_character)
+                _character.NotifyHudIntroReady();
+
+            return;
         }
 
-        await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
-        
-        await AnimateHUDIn();
-    }
-    
-
-    private async UniTask AnimateHUDIn()
-    {
         _playerHUD.transform.localScale = Vector3.zero;
 
-        await Tween.Scale(
-            _playerHUD.transform,
-            _scaleOne,
-            _tweenDuration,
-            _healthBarEase
-        );
+        _hudTween = Tween.Scale(_playerHUD.transform, _scaleOne, _tweenDuration, _healthBarEase, useUnscaledTime: true);
+
+        await WaitForTweenAsync(_hudTween, cancellationToken);
     }
 
     private void PrepareHUDVisuals()
     {
-        _playerHUD.transform.localScale = Vector3.zero;
+        if (_playerHUD)
+            _playerHUD.transform.localScale = Vector3.zero;
+    }
+
+    private void OnRaceStart() => StartShowPlayerHUD(showIcon: false);
+
+    private async UniTask HidePlayerHUD()
+    {
+        CancelHudAnimation();
+
+        if (_character)
+            _character.ResetHudIntroReady();
+
+        if (!_playerHUD)
+            return;
+
+        _hudTween = Tween.Scale(_playerHUD.transform, Vector3.zero, _tweenDuration, _healthBarEase, useUnscaledTime: true);
+
+        await WaitForTweenAsync(_hudTween, CancellationToken.None);
+    }
+
+    private static async UniTask WaitForTweenAsync(Tween tween, CancellationToken cancellationToken)
+    {
+        while (tween.isAlive)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+        }
+    }
+
+    private void CancelHudAnimation()
+    {
+        _hudCancellation?.Cancel();
+        _hudCancellation?.Dispose();
+        _hudCancellation = null;
+
+        if (_hudTween.isAlive)
+            _hudTween.Stop();
     }
 
     private void SetupCharacterIcon()
@@ -241,15 +306,11 @@ public class PlayerGameplayUI : MonoBehaviour
 
         _characterIcon.transform.localScale = _scaleOne;
         _characterIcon.enabled = true;
-        
+
         _characterIcon.sprite = _characterIcons[_character.Owner.PlayerIndex];
     }
 
     private void OnRoundEnded(RoundInfo roundInfo) => HidePlayerHUD().Forget();
-    
-    private void OnRaceStart() => ShowPlayerHUD().Forget();
-
-    private async UniTask HidePlayerHUD() => await Tween.Scale(_playerHUD.transform, Vector3.zero, _tweenDuration, _healthBarEase);
 
     private void OnHealthChanged(float oldHealth, float newHealth)
     {
@@ -315,10 +376,7 @@ public class PlayerGameplayUI : MonoBehaviour
         OnHealthChanged(0f, 0f);
     }
 
-    private void OnDashChargeUpdated()
-    {
-        UpdateDashChargeSprite();
-    }
+    private void OnDashChargeUpdated() => UpdateDashChargeSprite();
 
     private void UpdateDashChargeSprite()
     {
@@ -328,7 +386,7 @@ public class PlayerGameplayUI : MonoBehaviour
         // If we the amount hasn't change, no reason to change the sprite.
         if (_currentDashCharges == dashCharges)
             return;
- 
+
         _currentDashCharges = dashCharges;
         BlinkUI(_strikeCdImage, 0.07f).Forget();
 
@@ -337,8 +395,8 @@ public class PlayerGameplayUI : MonoBehaviour
             _dashChargeTiledImg.enabled = false;
             return;
         }
-        
-        _dashChargeTiledImg.enabled = true; 
+
+        _dashChargeTiledImg.enabled = true;
 
         Rect rect = _dashChargeTiledImg.uvRect;
         rect.x = 1f / k_maxDashCharges * dashCharges;
@@ -355,14 +413,15 @@ public class PlayerGameplayUI : MonoBehaviour
     private void ScaleHUDToAvatarSize()
     {
         //TODO : Refacto ce bousin si possible (Eliot)
-        
+
         var scale = 1 / _character.transform.localScale.x;
         if (scale < 1)
         {
             scale += _character.transform.localScale.x * 0.04f;
         }
+
         _playerHUD.rectTransform.localScale = new Vector3(scale, scale, scale);
-        
+
         var yOffset = 1.27f - (Mathf.Abs(1 - _character.transform.localScale.x) * 0.25f);
         _playerHUD.rectTransform.localPosition = new Vector3(0, yOffset, 0);
     }

@@ -32,10 +32,7 @@ namespace MortierFu
         public event Action OnGlobalLockStarted;
         public event Action OnGlobalLockEnded;
 
-        private void Awake()
-        {
-            InitializeAsync().Forget();
-        }
+        private void Awake() => InitializeAsync().Forget();
 
         private void OnDestroy()
         {
@@ -45,8 +42,8 @@ namespace MortierFu
 
             _spawnedPlayers.Clear();
             
-            foreach (PlayerLobbyTutorial tuto in _playerLobbyTutorial)
-                tuto?.Disconnect();
+            foreach (PlayerLobbyTutorial playerTutorial in _playerLobbyTutorial)
+                playerTutorial?.Disconnect();
         }
 
         private async UniTaskVoid InitializeAsync()
@@ -96,9 +93,7 @@ namespace MortierFu
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
 
             if (_lobbyService == null)
-            {
                 Logs.LogError("[LobbySandboxController] LobbyService is not available.");
-            }
         }
 
         private void SyncLobbyPlayers()
@@ -189,9 +184,11 @@ namespace MortierFu
             {
                 _playerFirstJoin.Add(player);
 
-
-                PlayerLobbyTutorial tempTuto = new PlayerLobbyTutorial(_tutorials, player);
-                _playerLobbyTutorial.Add(tempTuto);
+                if (!PlayerLobbyTutorialSession.HasCompleted(player.PlayerIndex))
+                {
+                    PlayerLobbyTutorial tempTuto = new(new List<SO_Tutorial>(_tutorials), player);
+                    _playerLobbyTutorial.Add(tempTuto);
+                }
             }
             
             Logs.Log($"[LobbySandboxController] Spawned Player {player.PlayerIndex + 1} in lobby sandbox with context {player.ControlContext}.");
@@ -216,25 +213,7 @@ namespace MortierFu
             }
         }
 
-        public void UnlockAllPlayers()
-        {
-            if (!_isGlobalLockActive)
-                return;
-
-            _isGlobalLockActive = false;
-
-            for (var i = 0; i < _spawnedPlayers.Count; i++)
-            {
-                ApplyCurrentContextToPlayer(_spawnedPlayers[i]);
-            }
-
-            OnGlobalLockEnded?.Invoke();
-        }
-
-        public IReadOnlyList<PlayerManager> GetSpawnedPlayers()
-        {
-            return _spawnedPlayers;
-        }
+        public IReadOnlyList<PlayerManager> GetSpawnedPlayers() => _spawnedPlayers;
 
         public bool TryGetSpawnPoint(int playerIndex, out Transform spawnPoint)
         {
@@ -242,10 +221,7 @@ namespace MortierFu
             return spawnPoint;
         }
 
-        private PlayerControlContext GetCurrentContextForPlayer(PlayerManager player)
-        {
-            return PlayerControlContext.LobbySandbox;
-        }
+        private PlayerControlContext GetCurrentContextForPlayer(PlayerManager player) => PlayerControlContext.LobbySandbox;
 
         public void ApplyCurrentContextToPlayer(PlayerManager player)
         {
@@ -269,6 +245,7 @@ namespace MortierFu
         private void OnApplicationQuit()
         {
             _playerFirstJoin.Clear();
+            PlayerLobbyTutorialSession.Clear();
         }
     }
 }

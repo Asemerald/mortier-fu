@@ -41,6 +41,8 @@ namespace MortierFu
 
         private void Awake()
         {
+            PlayerLobbyTutorialSession.Clear();
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 

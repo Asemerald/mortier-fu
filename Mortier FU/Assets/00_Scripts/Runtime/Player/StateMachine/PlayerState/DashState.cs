@@ -59,8 +59,6 @@ namespace MortierFu
 
         public override void OnEnter()
         {
-            //character.Mortar.CancelAiming();
-
             _availableCharges -= 1;
             
             if (!_dashCooldownTimer.IsRunning)
@@ -78,11 +76,13 @@ namespace MortierFu
             });
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Strike_Dash, character.transform.position);
-            //character.ShakeService.ShakeController(character.Owner, ShakeService.ShakeType.MID);
 
             Vector3 dashDir = character.Controller.GetDashDirection();
             character.Controller.rigidbody.AddForce(dashDir, ForceMode.Impulse);
 
+            if (character.Controller.HasDashInputDirection())
+                character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Dash);
+            
             // Pour éviter de détecter plusieurs fois les mêmes objets ou joueurs
             _processedRoots.Clear();
             _hitCharacters.Clear();

@@ -21,8 +21,6 @@ namespace MortierFu
         private bool _isAiming;
         private bool _isInitialized;
 
-        public bool CanShoot => _shootCooldownTimer != null && !_shootCooldownTimer.IsRunning;
-
         public float ShootCooldownProgress => _shootCooldownTimer?.Progress ?? 0f;
 
         public bool IsShooting { get; private set; }
@@ -150,7 +148,17 @@ namespace MortierFu
             if (!Character.CanAim)
                 return;
 
+            Vector3 previousRelativePosition = AimWidget ? AimWidget.RelativePosition : Vector3.zero;
+
             _shootStrategy?.Update();
+
+            if (!AimWidget || !AimWidget.IsActive)
+                return;
+
+            Vector3 currentRelativePosition = AimWidget.RelativePosition;
+
+            if ((currentRelativePosition - previousRelativePosition).sqrMagnitude > 0.04f)
+                Character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.AimMoved);
         }
 
         public void Shoot()
@@ -193,6 +201,8 @@ namespace MortierFu
                 Character = character,
                 Bombshell = bombshell,
             });
+            
+            character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Shoot);
 
             _shootCooldownTimer.Start();
 
@@ -221,6 +231,8 @@ namespace MortierFu
             AimWidget.Show();
             _shootStrategy?.BeginAiming();
             _shootAction.Enable();
+
+            Character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Aim);
         }
 
         public void EndAiming(InputAction.CallbackContext ctx)

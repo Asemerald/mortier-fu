@@ -2,251 +2,220 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using PrimeTween;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using PrimeTween;
 
 namespace MortierFu
 {
-    public class PlayerLobbyTutorial
+    public sealed class PlayerLobbyTutorial
     {
-        private readonly List<SO_Tutorial> _tutorialBinding;
-        private readonly Image _tutorialSlot;
-        private readonly TextMeshProUGUI _tutorialText;
-        private readonly PlayerManager _playerCharacter;
-        private readonly CountdownTimer _timer;
+        private const float k_appearDuration = 0.25f;
 
-        private List<InputActionReference> _currentInputToPress;
-        private List<InputActionReference> _aimToggleInputReference;
-        private InputActionMap _currentInputMap;
+        private readonly List<SO_Tutorial> _steps;
+        private readonly PlayerManager _player;
+        private readonly PlayerCharacter _character;
+        private readonly Transform _container;
+        private readonly Image _image;
+        private readonly TextMeshProUGUI _text;
 
         private int _index;
-        private bool _isSubscribed;
-        private const float timeInputDisable = 0.3f;
-        private const float appearTweenDuration = 0.5f;
-        private const float _startFadeDelay = 2f;
+        private bool _isRunning;
+        private bool _isDisposed;
+        private Tween _scaleTween;
 
-        private readonly Transform _tutorialContainer;
-
-        public PlayerLobbyTutorial(List<SO_Tutorial> pTutorialBinding, PlayerManager pCharacter)
+        public PlayerLobbyTutorial(List<SO_Tutorial> steps, PlayerManager player)
         {
-            if (pTutorialBinding == null || pTutorialBinding.Count == 0)
-                return;
+            _steps = steps;
+            _player = player;
+            _character = player ? player.Character : null;
 
-            _tutorialBinding = pTutorialBinding;
-            _tutorialSlot = pCharacter.Character.TutorialImage;
-            _tutorialText = pCharacter.Character.TutorialText;
-            _tutorialContainer = pCharacter.Character.TutorialContainer;
-            _playerCharacter = pCharacter;
-
-            SetVisible(true);
-
-            _timer = new CountdownTimer(timeInputDisable);
-            _timer.OnTimerStop += InitTuto;
-            _timer.Start();
-        }
-
-        private void InitTuto()
-        {
-            _timer.OnTimerStop -= InitTuto;
-
-            if (_tutorialBinding.Count > 1)
-                _aimToggleInputReference = _tutorialBinding[1].inputAction;
-
-            UpdateVisual();
-
-            _currentInputMap = _playerCharacter.PlayerInput.currentActionMap;
-            _currentInputMap.actionTriggered += UpdateStepTuto;
-            _isSubscribed = true;
-        }
-
-        private void UpdateStepTuto(InputAction.CallbackContext ctx)
-        {
-            if (ctx.performed)
+            if (_steps == null || _steps.Count == 0 || !_player || !_character)
             {
-                if (!IsActionInList(ctx.action.name, _currentInputToPress))
+                Logs.LogWarning("[PlayerLobbyTutorial] Cannot start tutorial because references or steps are missing.");
+                return;
+            }
+
+            _container = _character.TutorialContainer;
+            _image = _character.TutorialImage;
+            _text = _character.TutorialText;
+
+            HideInstant();
+
+            RunAsync().Forget();
+        }
+
+        private async UniTaskVoid RunAsync()
+        {
+            try
+            {
+                await WaitUntilPlayerCanRunTutorialAsync();
+                await WaitUntilHudIntroReadyAsync();
+
+                if (_isDisposed)
+                    return;
+
+                ApplyCurrentStep();
+
+                if (!_container)
                 {
+                    Logs.LogWarning("[PlayerLobbyTutorial] Tutorial container is missing.");
                     return;
                 }
-                
-                
-                if (_index != _tutorialBinding.Count - 1)
-                {
-                    _index++;
-                    UpdateVisual();
-                }
+
+                _container.gameObject.SetActive(true);
+                _container.localScale = Vector3.zero;
+
+                _scaleTween = Tween.Scale(
+                    _container,
+                    Vector3.one,
+                    k_appearDuration,
+                    Ease.OutBack
+                );
+
+                await WaitForTweenAsync(_scaleTween);
+
+                if (_isDisposed || !_character)
+                    return;
+
+                _character.OnLobbyTutorialAction -= HandleTutorialAction;
+                _character.OnLobbyTutorialAction += HandleTutorialAction;
+
+                _isRunning = true;
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"[PlayerLobbyTutorial] Failed to start tutorial: {e.Message}");
+                Disconnect();
+            }
+        }
+
+        private async UniTask WaitUntilPlayerCanRunTutorialAsync()
+        {
+            while (!_isDisposed)
+            {
+                if (_character && _character.CanProgressLobbyTutorial)
+                    return;
+
+                await UniTask.Yield();
+            }
+        }
+        
+        private async UniTask WaitUntilHudIntroReadyAsync()
+        {
+            while (!_isDisposed)
+            {
+                if (_character && _character.IsHudIntroReady)
+                    return;
+
+                await UniTask.Yield();
+            }
+        }
+
+        private void HandleTutorialAction(PlayerLobbyTutorialAction action)
+        {
+            if (!_isRunning || _isDisposed)
+                return;
+
+            if (!_character || !_character.CanProgressLobbyTutorial)
+                return;
+
+            if (_index < 0 || _index >= _steps.Count)
+                return;
+
+            SO_Tutorial currentStep = _steps[_index];
+
+            if (!currentStep || currentStep.RequiredAction != action)
+                return;
+
+            _index++;
+
+            if (_index >= _steps.Count)
+            {
+                Complete();
+                return;
+            }
+
+            ApplyCurrentStep();
+        }
+
+        private void ApplyCurrentStep()
+        {
+            if (_index < 0 || _index >= _steps.Count)
+                return;
+
+            SO_Tutorial step = _steps[_index];
+
+            if (!step)
+            {
+                Logs.LogWarning($"[PlayerLobbyTutorial] Tutorial step {_index} is missing.");
+                return;
+            }
+
+            bool isKeyboard = _player.IsKeyboardAndMouseControlScheme();
+            Sprite sprite = step.GetSpriteByInput(isKeyboard);
+
+            if (_image)
+            {
+                _image.sprite = sprite;
+                _image.enabled = sprite != null;
+
+                if (sprite)
+                    _image.rectTransform.sizeDelta = step.GetSizeByInput(isKeyboard);
                 else
-                {
-                    Unsubscribe();
-                    SetVisible(false);
-                }
+                    Logs.LogWarning($"[PlayerLobbyTutorial] Tutorial step '{step.name}' has no sprite for current input.");
             }
-            else if (ctx.canceled)
-            {
-                HoldCheck(ctx);
-            }
+
+            if (_text)
+                _text.text = step.ExplanationText;
         }
 
-        private bool IsActionInList(string actionName, List<InputActionReference> list)
+        private void Complete()
         {
-            if (list == null)
-                return false;
-
-            if (IsActionInReferenceList(actionName, list))
-                return true;
-
-            foreach (SO_Tutorial inputs in _tutorialBinding)
-            {
-                foreach (var reference in inputs.inputAction)
-                {
-                    if (reference != null && reference.action.name == actionName)
-                    {
-                        List<SO_Tutorial> toRemove = CheckConnectedGroup(inputs);
-                        if (toRemove == null)
-                            return false;
-                        foreach (SO_Tutorial tutorial in toRemove)
-                        {
-                            _tutorialBinding.Remove(tutorial);
-                        }
-
-                        return false;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private List<SO_Tutorial> CheckConnectedGroup(SO_Tutorial tutorial)
-        {
-            List<SO_Tutorial> result = new List<SO_Tutorial>();
-            int indexInList = _tutorialBinding.IndexOf(tutorial);
-            
-            bool hasNext = indexInList + 1 < _tutorialBinding.Count;
-            if ((hasNext && _tutorialBinding[indexInList + 1].connectedToActionBefore) || indexInList < _index)
-            {
-                return null;
-            }
-
-            if (tutorial.connectedToActionBefore)
-            {
-                for (int i = indexInList; i >= 0; i--)
-                {
-                    result.Add(_tutorialBinding[i]);
-                    if (!_tutorialBinding[i].connectedToActionBefore || i == 0)
-                        return result;
-                }
-            }
-            else
-            {
-                result.Add(tutorial);
-            }
-
-            return result;
-        }
-
-        private void UpdateVisual()
-        {
-            bool isKbm = _playerCharacter.IsKeyboardAndMouseControlScheme();
-
-            _currentInputToPress = _tutorialBinding[_index].inputAction;
-            _tutorialSlot.sprite = _tutorialBinding[_index].GetSpriteByInput(isKbm);
-            _tutorialSlot.rectTransform.sizeDelta = _tutorialBinding[_index].GetSizeByInput(isKbm);
-            _tutorialText.text = _tutorialBinding[_index].explanationText;
-        }
-
-        private void HoldCheck(InputAction.CallbackContext ctx)
-        {
-            if (_aimToggleInputReference == null)
-                return;
-
-            if (IsActionInList(ctx.action.name, _aimToggleInputReference))
-            {
-                if (!_tutorialBinding[_index].connectedToActionBefore)
-                    return;
-
-                for (int i = _index -1; i >= 0; i--)
-                {
-                    if (!_tutorialBinding[i].connectedToActionBefore)
-                    {
-                        _index = i;
-                        UpdateVisual();
-                        return;
-                    }
-                }
-            }
-        }
-
-        private bool IsActionInReferenceList(string actionName, List<InputActionReference> list)
-        {
-            if (list == null)
-                return false;
-
-            foreach (var reference in list)
-            {
-                if (reference != null && reference.action.name == actionName)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void SetVisible(bool visible)
-        {
-            if (!_tutorialSlot || !_tutorialContainer)
-            {
-                Debug.LogError($"Reference manquante ! Slot: {_tutorialSlot}, Container: {_tutorialContainer}");
-                return;
-            }
-
-            if (visible)
-            {
-                _tutorialContainer.gameObject.SetActive(true);
-                _tutorialSlot.gameObject.SetActive(true);
-                _tutorialText.gameObject.SetActive(true);
-
-                Debug.Log($"Container actif dans la hiérarchie ? {_tutorialContainer.gameObject.activeInHierarchy}");
-
-                ShowPlayerTuto().Forget();
-            }
-            else
-            {
-                _tutorialContainer.gameObject.SetActive(false);
-                _tutorialSlot.gameObject.SetActive(false);
-                _tutorialText.gameObject.SetActive(false);
-            }
-        }
-
-        private async UniTask ShowPlayerTuto()
-        {
-            await UniTask.Yield();
-
-            await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay));
-
-            _tutorialContainer.localScale = Vector3.zero;
-            Tween.Scale(_tutorialContainer, Vector3.one, appearTweenDuration)
-                .OnComplete(() => Debug.Log("Tween terminé, scale final : " + _tutorialContainer.localScale));
-        }
-
-        private void Unsubscribe()
-        {
-            if (!_isSubscribed)
-                return;
-
-            _currentInputMap.actionTriggered -= UpdateStepTuto;
-            _isSubscribed = false;
+            PlayerLobbyTutorialSession.MarkCompleted(_player.PlayerIndex);
+            Disconnect();
         }
 
         public void Disconnect()
         {
-            if (_tutorialBinding == null)
+            if (_isDisposed)
                 return;
 
-            _timer.OnTimerStop -= InitTuto;
-            Unsubscribe();
-            SetVisible(false);
+            _isDisposed = true;
+            _isRunning = false;
+
+            if (_scaleTween.isAlive)
+                _scaleTween.Stop();
+
+            if (_character)
+                _character.OnLobbyTutorialAction -= HandleTutorialAction;
+
+            HideInstant();
+        }
+
+        private void HideInstant()
+        {
+            if (_container)
+            {
+                _container.localScale = Vector3.zero;
+                _container.gameObject.SetActive(false);
+            }
+
+            if (_image)
+            {
+                _image.sprite = null;
+                _image.enabled = false;
+            }
+
+            if (_text)
+                _text.text = string.Empty;
+        }
+
+        private static async UniTask WaitForTweenAsync(Tween tween)
+        {
+            while (tween.isAlive)
+                await UniTask.Yield();
         }
     }
 }

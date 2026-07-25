@@ -135,6 +135,9 @@ namespace MortierFu
             if (input.sqrMagnitude < 0.01f)
                 input = Vector2.zero;
 
+            if (input.sqrMagnitude > 0.04f)
+                character.NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Move);
+            
             Vector2 targetDirection = input.normalized;
             float targetSpeed = Stats.MoveSpeed.Value * factor * Character.ExternalSpeedMultiplier; // pour le caca qui slow
 
@@ -196,6 +199,15 @@ namespace MortierFu
         {
             rigidbody.constraints = playerStatic ? RigidbodyConstraints.FreezePosition : RigidbodyConstraints.None;
             rigidbody.constraints |= RigidbodyConstraints.FreezeRotation;
+        }
+        
+        public bool HasDashInputDirection(float threshold = 0.35f)
+        {
+            if (_moveAction == null)
+                return false;
+
+            Vector2 input = _moveAction.ReadValue<Vector2>();
+            return input.sqrMagnitude >= threshold * threshold;
         }
     }
 }

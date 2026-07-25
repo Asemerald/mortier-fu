@@ -87,7 +87,7 @@ namespace MortierFu
         public ReadOnlyCollection<SO_Augment> OwnedAugments { get; private set; }
         public ReadOnlyCollection<IAugment> Augments { get; private set; }
     
-        public bool AreAugmentsActive { get; private set; }
+        private bool AreAugmentsActive { get; set; }
 
         // Assets specified by player color.
         [field: SerializeField] public SO_PlayerAssets Assets { get; private set; }
@@ -111,6 +111,13 @@ namespace MortierFu
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
         public Transform FeetPoint => _feetPoint;
+        
+        public bool IsHudIntroReady { get; private set; }
+        
+        public event Action<PlayerLobbyTutorialAction> OnLobbyTutorialAction;
+        public event Action<PlayerControlContext> OnControlContextChanged;
+
+        public bool CanProgressLobbyTutorial => ControlContext == PlayerControlContext.LobbySandbox && Health is { IsAlive: true };
 
         void Awake()
         {
@@ -184,9 +191,11 @@ namespace MortierFu
             Mortar?.Dispose();
             SafeGround?.Dispose();
 
+            OnLobbyTutorialAction = null;
+            OnControlContextChanged = null;
+            
             if (_dashAction != null)
                 _dashAction.started -= PlayDashSFX;
-
             if (_tauntAction1 != null)
                 _tauntAction1.started -= Taunt1;
             if (_tauntAction2 != null)
@@ -264,6 +273,8 @@ namespace MortierFu
             {
                 Controller?.ResetVelocity();
             }
+            
+            OnControlContextChanged?.Invoke(context);
         }
 
         public void Reset()
@@ -359,7 +370,11 @@ namespace MortierFu
             // Set initial state
             _stateMachine.SetState(_locomotionState);
         }
+        
+        public void ResetHudIntroReady() => IsHudIntroReady = false;
 
+        public void NotifyHudIntroReady() => IsHudIntroReady = true;
+        
         public void ReceiveKnockback(float duration, Vector3 force, float stunDuration, object source)
         {
             force /= 1 + (Stats.GetAvatarSize() - 1) * Stats.AvatarSizeToForceMitigationFactor;
@@ -655,6 +670,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(1);
+            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt2(InputAction.CallbackContext ctx)
@@ -663,6 +679,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(2);
+            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt3(InputAction.CallbackContext ctx)
@@ -671,6 +688,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(3);
+            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
         private void Taunt4(InputAction.CallbackContext ctx)
@@ -679,6 +697,7 @@ namespace MortierFu
                 return;
 
             _tauntFeedback.Taunt(4);
+            NotifyLobbyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
 
         private void ResolveCustomizationVisual()
@@ -706,6 +725,14 @@ namespace MortierFu
         public bool CanPlayerInteractWithBombShell()
         {
             return Health.IsAlive && ActionPermissions.CanBeStun;
+        }
+        
+        public void NotifyLobbyTutorialAction(PlayerLobbyTutorialAction action)
+        {
+            if (!CanProgressLobbyTutorial)
+                return;
+
+            OnLobbyTutorialAction?.Invoke(action);
         }
     }
 }
