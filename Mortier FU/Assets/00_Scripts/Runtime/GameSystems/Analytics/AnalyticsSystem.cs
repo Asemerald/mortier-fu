@@ -158,6 +158,7 @@ namespace MortierFu.Analytics
 
             SendGameOverviewToGoogleSheets().Forget();
             SendAugmentStatsToGoogleSheets().Forget();
+            SendPlayerStatsToGoogleSheets().Forget();
             SendAllRoundsOverviewToGoogleSheets().Forget();
         }
 
@@ -247,6 +248,26 @@ namespace MortierFu.Analytics
                         }
 
                         stats.score = teamScore;
+                        
+                        var characterStats = member.Character.Stats;
+                        if (characterStats != null)
+                        {
+                            stats.playerStats = new AnalyticsPlayerStats
+                            {
+                                maxHealth = characterStats.MaxHealth.Value,
+                                moveSpeed = characterStats.MoveSpeed.Value,
+                                bombshellDamage = characterStats.BombshellDamage.Value,
+                                bombshellImpactRadius = characterStats.BombshellImpactRadius.Value,
+                                bombshellSpeed = characterStats.BombshellSpeed.Value,
+                                fireRate = characterStats.FireRate.Value,
+                                shotRange = characterStats.ShotRange.Value,
+                                dashCharges = characterStats.DashCharges.Value,
+                                dashCooldown = characterStats.DashCooldown.Value,
+                                dashDistance = characterStats.DashForce.Value,
+                                strikePushForce = characterStats.StrikePushForce.Value,
+                                strikeStunDuration = characterStats.StrikeKnockbackDuration.Value
+                            };
+                        }
                     }
                 }
             }
@@ -263,11 +284,11 @@ namespace MortierFu.Analytics
 
         private bool ShouldSkipAnalyticsInEditor()
         {
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
             return Application.isEditor && !UnityEditor.EditorPrefs.GetBool("AnalyticsInEditor", false);
-#else
+            #else
             return false;
-#endif
+            #endif
         }
 
         private void ExportToExcel()

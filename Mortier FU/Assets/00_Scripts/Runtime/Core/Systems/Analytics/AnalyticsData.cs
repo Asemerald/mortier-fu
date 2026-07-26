@@ -41,6 +41,7 @@ namespace MortierFu
         public int shotsHit;
         public float damageDealt;
         public float damageTaken;
+        public AnalyticsPlayerStats playerStats;
     }
     
     [System.Serializable]
@@ -83,5 +84,22 @@ namespace MortierFu
 
         public int timesPickedByWinner;
         public bool winnerHadIt;
+    }
+
+    [System.Serializable]
+    public class AnalyticsPlayerStats
+    {
+        public float maxHealth;
+        public float moveSpeed;
+        public float bombshellDamage;
+        public float bombshellImpactRadius;
+        public float bombshellSpeed;
+        public float fireRate;
+        public float shotRange;
+        public float dashCharges;
+        public float dashCooldown;
+        public float dashDistance;
+        public float strikePushForce;
+        public float strikeStunDuration;
     }
 }

@@ -1,8 +1,10 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Linq;
 using MortierFu.Shared;
 using System.Collections.Generic;
+using PlasticPipe.PlasticProtocol.Messages;
 
 namespace MortierFu.Analytics
 {
@@ -196,6 +198,72 @@ namespace MortierFu.Analytics
                 {
                     Logs.LogError($"Exception while sending round overview ; {ex.Message}");
                 }
+        }
+
+        private async UniTask SendPlayerStatsToGoogleSheets()
+        {
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics player stats send skipped in editr");
+                return;
+            }
+
+            try
+            {
+                WWWForm form = new WWWForm();
+                form.AddField("dataType", "playerStats");
+                form.AddField("gameId", _gameData.gameId);
+                form.AddField("date", _gameData.date);
+                form.AddField("devVersion", _gameData.gameVersion);
+                form.AddField("officialGameVersion", _gameData.officialGameVersion);
+                form.AddField("durationSeconds", _gameData.durationSeconds.ToString());
+                form.AddField("numberOfPlayers", _gameData.numberOfPlayers.ToString());
+                form.AddField("roundsPlayed", _gameData.roundsPlayed.ToString());
+                form.AddField("winner", _gameData.winner);
+
+                for (int i = 0; i < 4; i++)
+                {
+                    string prefix = $"player{i}";
+
+                    if (_gameData.finalPlayerStats != null && i < _gameData.finalPlayerStats.Length &&
+                        _gameData.finalPlayerStats[i].playerStats != null)
+                    {
+                        var player = _gameData.finalPlayerStats[i].playerStats;
+                        form.AddField($"{prefix}MaxHealth", player.maxHealth.ToString("F2"));
+                        form.AddField($"{prefix}MoveSpeed", player.moveSpeed.ToString("F2"));
+                        form.AddField($"{prefix}BombshellDamage", player.bombshellDamage.ToString("F2"));
+                        form.AddField($"{prefix}ImpactRadius", player.bombshellImpactRadius.ToString("F2"));
+                        form.AddField($"{prefix}BulletSpeed", player.bombshellSpeed.ToString("F2"));
+                        form.AddField($"{prefix}FireRate", player.fireRate.ToString("F2"));
+                        form.AddField($"{prefix}ShotRange", player.shotRange.ToString("F2"));
+                        form.AddField($"{prefix}DashCharges", player.dashCharges.ToString());
+                        form.AddField($"{prefix}DashCooldown", player.dashCooldown.ToString("F2"));
+                        form.AddField($"{prefix}DashDistance", player.dashDistance.ToString());
+                        form.AddField($"{prefix}StrikePushForce", player.strikePushForce.ToString());
+                        form.AddField($"{prefix}StunDuration", player.strikeStunDuration.ToString());
+                    }
+                    else
+                    {
+                        form.AddField($"{prefix}MaxHealth", "");
+                        form.AddField($"{prefix}MoveSpeed", "");
+                        form.AddField($"{prefix}BombshellDamage", "");
+                        form.AddField($"{prefix}ImpactRadius", "");
+                        form.AddField($"{prefix}BulletSpeed", "");
+                        form.AddField($"{prefix}FireRate", "");
+                        form.AddField($"{prefix}ShotRange", "");
+                        form.AddField($"{prefix}DashCharges", "");
+                        form.AddField($"{prefix}DashCooldown", "");
+                        form.AddField($"{prefix}DashDistance", "");
+                        form.AddField($"{prefix}StrikePushForce", "");
+                        form.AddField($"{prefix}StunDuration", "");
+                    }
+                }
+                await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "playerStats");
+            }
+            catch (System.Exception ex)
+            {
+                Logs.LogError($"Exception while sending player stats ; {ex.Message}");
+            }
         }
     }
 }
