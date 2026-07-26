@@ -8,7 +8,7 @@ namespace MortierFu
         [Header("Selection Visual")]
         [SerializeField] private Graphic _selectionGraphic;
         [SerializeField] private Color _normalColor = Color.white;
-        [SerializeField] private Color _selectedColor = Color.yellow;
+        [SerializeField] private Color _selectedArrowColor = Color.yellow;
 
         public virtual bool IsAvailable => isActiveAndEnabled;
 
@@ -16,7 +16,7 @@ namespace MortierFu
         {
             if (_selectionGraphic)
             {
-                _selectionGraphic.color = selected ? _selectedColor : _normalColor;
+                _selectionGraphic.color = selected ? _selectedArrowColor : _normalColor;
             }
 
             OnSelectionChanged(selected);

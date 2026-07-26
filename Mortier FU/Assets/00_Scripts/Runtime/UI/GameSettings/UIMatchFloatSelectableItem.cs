@@ -26,7 +26,6 @@ namespace MortierFu
         [SerializeField] private Graphic _leftArrow;
         [SerializeField] private Graphic _rightArrow;
         [SerializeField] private Color _normalArrowColor = Color.white;
-        [SerializeField] private Color _selectedArrowColor = Color.yellow;
         [SerializeField] private Color _usedArrowColor = Color.green;
         [SerializeField] private Color _disabledArrowColor = Color.gray;
 

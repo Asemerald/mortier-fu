@@ -9,7 +9,7 @@ namespace MortierFu
         [Header("Selection Visual")]
         [SerializeField] private Graphic _selectionGraphic;
         [SerializeField] private Color _normalColor = new(1f, 1f, 1f, 0f);
-        [SerializeField] private Color _selectedColor = Color.yellow;
+        [SerializeField] protected Color _selectedArrowColor = Color.yellow;
 
         [Header("Read Only")]
         [SerializeField] private CanvasGroup _contentGroup;
@@ -124,7 +124,7 @@ namespace MortierFu
         private void SetSelectedVisual(bool selected)
         {
             if (_selectionGraphic)
-                _selectionGraphic.color = selected ? _selectedColor : _normalColor;
+                _selectionGraphic.color = selected ? _selectedArrowColor : _normalColor;
         }
     }
 }

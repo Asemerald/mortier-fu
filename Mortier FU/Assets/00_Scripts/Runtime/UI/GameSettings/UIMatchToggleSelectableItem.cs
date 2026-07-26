@@ -19,7 +19,6 @@ namespace MortierFu
         [SerializeField] private Graphic _toggleGraphic;
         [SerializeField] private Color _falseColor = Color.white;
         [SerializeField] private Color _trueColor = Color.green;
-        [SerializeField] private Color _selectedColor = Color.yellow;
         [SerializeField] private Color _disabledColor = Color.gray;
 
         private bool _isSelected;
@@ -69,7 +68,7 @@ namespace MortierFu
                 if (!editable)
                     _toggleGraphic.color = _disabledColor;
                 else if (_isSelected)
-                    _toggleGraphic.color = _selectedColor;
+                    _toggleGraphic.color = _selectedArrowColor;
                 else
                     _toggleGraphic.color = value ? _trueColor : _falseColor;
             }
