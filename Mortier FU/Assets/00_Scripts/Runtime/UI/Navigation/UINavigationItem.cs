@@ -8,7 +8,7 @@ namespace MortierFu
         [Header("Selection Visual")]
         [SerializeField] private Graphic _selectionGraphic;
         [SerializeField] private Color _normalColor = Color.white;
-        [SerializeField] private Color _selectedArrowColor = Color.yellow;
+        [SerializeField] protected Color _selectedArrowColor = Color.yellow;
 
         public virtual bool IsAvailable => isActiveAndEnabled;
 
