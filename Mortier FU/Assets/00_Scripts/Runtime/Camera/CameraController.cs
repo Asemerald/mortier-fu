@@ -1,10 +1,8 @@
 using System;
-using System.Numerics;
 using Cysharp.Threading.Tasks;
 using Unity.Cinemachine;
 using UnityEngine;
 using System.Threading;
-using MortierFu.Shared;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -27,7 +25,8 @@ namespace MortierFu
         [SerializeField] private Transform _virtualTarget;
         [SerializeField] private Camera _camera;
         [SerializeField] private Camera _renderOnTopCamera;
-
+        
+        [SerializeField] private CinemachineFollow _cinemachineFollow;
         [SerializeField] private CinemachineCamera zoomCineCam;
 
         [SerializeField] private BoxCollider _boundbox;
@@ -53,7 +52,10 @@ namespace MortierFu
 
         private bool _isInLobby = true;
         
+        private bool _isEndFightCameraActive;
+        
         private CancellationTokenSource _winnerTrackerTokenSource;
+        private CancellationTokenSource _renderOnTopSyncTokenSource;
 
         private void Start()
         {
@@ -74,10 +76,7 @@ namespace MortierFu
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (SceneName, loadMode) =>
             {
                 if (SceneName.name != "Lobby")
-                {
                     _isInLobby = false;
-                }
-
                 else if (SceneName.name == "Lobby")
                 {
                     transform.position = new Vector3(-13, 30.3999996f, -2);
@@ -86,15 +85,47 @@ namespace MortierFu
                 }
             };
         }
+        
+        private async UniTaskVoid SyncRenderOnTopDuringEndFightAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, cancellationToken);
+                    SyncRenderOnTopCameraToMainCamera();
+                }
+            }
+            catch (OperationCanceledException)
+            { }
+        }
+        
+        private void SyncRenderOnTopCameraToMainCamera()
+        {
+            if (!_camera || !_renderOnTopCamera)
+                return;
+
+            _renderOnTopCamera.transform.SetPositionAndRotation(_camera.transform.position, _camera.transform.rotation);
+
+            _renderOnTopCamera.orthographic = _camera.orthographic;
+            _renderOnTopCamera.orthographicSize = _camera.orthographicSize;
+            _renderOnTopCamera.fieldOfView = _camera.fieldOfView;
+            _renderOnTopCamera.aspect = _camera.aspect;
+            _renderOnTopCamera.nearClipPlane = _camera.nearClipPlane;
+            _renderOnTopCamera.farClipPlane = _camera.farClipPlane;
+        }
 
         public void SetArenaMode(bool isArena) => _isArenaMap = isArena;
 
         private void LateUpdate()
         {
-            if (_isStaticRaceCamera) return;
+            if (_isEndFightCameraActive)
+                return;
 
-            if (!_targetGroup.IsEmpty)
+            if (!_isStaticRaceCamera && !_targetGroup.IsEmpty)
                 UpdateCameraForTargets();
+
+            SyncRenderOnTopCameraToMainCamera();
         }
 
         public void PopulateTargetGroup(Transform[] playerTransforms, float weight = 1f, float radius = 0f)
@@ -117,7 +148,6 @@ namespace MortierFu
         public void RemoveTarget(Transform playerTransform)
         {
             if (playerTransform == null) return;
-
             _targetGroup.RemoveMember(playerTransform);
         }
 
@@ -147,7 +177,6 @@ namespace MortierFu
             if (_isArenaMap)
             {
                 HandleArenaFallback(bounds.center, extent);
-
                 return;
             }
 
@@ -156,15 +185,12 @@ namespace MortierFu
 
         private void HandleArenaFallback(Vector3 center, float extent)
         {
-            if (_arenaMode == ArenaCameraMode.FollowingPlayers &&
-                extent > _cameraSettings.ArenaStopFollowExtent)
+            if (_arenaMode == ArenaCameraMode.FollowingPlayers && extent > _cameraSettings.ArenaStopFollowExtent)
             {
                 _arenaMode = ArenaCameraMode.StaticMapView;
-                _virtualTarget.position = Camera.transform.position -
-                                          _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
+                _virtualTarget.position = Camera.transform.position - _cinemachineFollow.FollowOffset;
             }
-            else if (_arenaMode == ArenaCameraMode.StaticMapView &&
-                     extent < _cameraSettings.ArenaResumeFollowExtent)
+            else if (_arenaMode == ArenaCameraMode.StaticMapView && extent < _cameraSettings.ArenaResumeFollowExtent)
             {
                 _arenaMode = ArenaCameraMode.FollowingPlayers;
             }
@@ -173,17 +199,8 @@ namespace MortierFu
 
             if (_arenaMode == ArenaCameraMode.StaticMapView)
             {
-                _virtualTarget.position = Vector3.Lerp(
-                    _virtualTarget.position,
-                    _levelSystem.CurrentCameraMapConfig.PositionForMap,
-                    Time.deltaTime * _cameraSettings.MinPositionLerpSpeed
-                );
-
-                _currentOrthoSize = Mathf.Lerp(
-                    _currentOrthoSize,
-                    _levelSystem.CurrentCameraMapConfig.OrthoSize,
-                    Time.deltaTime * _cameraSettings.ZoomLerpSpeed
-                );
+                _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, _levelSystem.CurrentCameraMapConfig.PositionForMap, Time.deltaTime * _cameraSettings.MinPositionLerpSpeed);
+                _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, _levelSystem.CurrentCameraMapConfig.OrthoSize, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
 
                 ApplyLens();
             }
@@ -194,45 +211,19 @@ namespace MortierFu
         }
 
 
-        private void HandleBoundBox() => _boundbox.size = new Vector3(
-            (_maxArenaOrthoSize - _currentOrthoSize + _dampingBound) * _camera.aspect,
-            _maxArenaOrthoSize - _currentOrthoSize + _dampingBound, 1);
+        private void HandleBoundBox() => _boundbox.size = new Vector3((_maxArenaOrthoSize - _currentOrthoSize + _dampingBound) * _camera.aspect, _maxArenaOrthoSize - _currentOrthoSize + _dampingBound, 1);
 
         private void FollowPlayers(Vector3 center, float extent)
         {
-            _actualLerpSpeed = Mathf.Lerp(_actualLerpSpeed, _cameraSettings.MaxPositionLerpSpeed,
-                Time.deltaTime * _cameraSettings.LerpSpeed);
+            _actualLerpSpeed = Mathf.Lerp(_actualLerpSpeed, _cameraSettings.MaxPositionLerpSpeed, Time.deltaTime * _cameraSettings.LerpSpeed);
 
-            _virtualTarget.position = Vector3.Lerp(
-                _virtualTarget.position,
-                center,
-                Time.deltaTime * _actualLerpSpeed
-            );
+            _virtualTarget.position = Vector3.Lerp(_virtualTarget.position, center, Time.deltaTime * _actualLerpSpeed);
+            
+            float clampedExtent = Mathf.Clamp(extent, _cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent);
+            float t = Mathf.InverseLerp(_cameraSettings.MinPlayersExtent, _cameraSettings.MaxPlayersExtent, clampedExtent);
+            float targetOrtho = Mathf.Lerp(_cameraSettings.MinOrthoSize, _levelSystem.CurrentCameraMapConfig.OrthoSize, t);
 
-
-            float clampedExtent = Mathf.Clamp(
-                extent,
-                _cameraSettings.MinPlayersExtent,
-                _cameraSettings.MaxPlayersExtent
-            );
-
-            float t = Mathf.InverseLerp(
-                _cameraSettings.MinPlayersExtent,
-                _cameraSettings.MaxPlayersExtent,
-                clampedExtent
-            );
-
-            float targetOrtho = Mathf.Lerp(
-                _cameraSettings.MinOrthoSize,
-                _levelSystem.CurrentCameraMapConfig.OrthoSize,
-                t
-            );
-
-            _currentOrthoSize = Mathf.Lerp(
-                _currentOrthoSize,
-                targetOrtho,
-                Time.deltaTime * _cameraSettings.ZoomLerpSpeed
-            );
+            _currentOrthoSize = Mathf.Lerp(_currentOrthoSize, targetOrtho, Time.deltaTime * _cameraSettings.ZoomLerpSpeed);
 
             ApplyLens();
         }
@@ -269,12 +260,10 @@ namespace MortierFu
 
         private Vector3 GetCameraPositionForVirtualTarget()
         {
-            var follow = _cinemachineCamera.GetComponent<CinemachineFollow>();
-
-            if (!follow)
+            if (!_cinemachineFollow)
                 return _virtualTarget.position;
 
-            return _virtualTarget.position + follow.FollowOffset;
+            return _virtualTarget.position + _cinemachineFollow.FollowOffset;
         }
 
         private void ResetCameraInstant()
@@ -303,11 +292,10 @@ namespace MortierFu
         private void SetupBoundBox(Vector3 position, float orthoSize)
         {
             _maxArenaOrthoSize = orthoSize;
-            _boundbox.transform.position = position + _cinemachineCamera.GetComponent<CinemachineFollow>().FollowOffset;
+            _boundbox.transform.position = position + _cinemachineFollow.FollowOffset;
         }
 
-        public void Shake(float aoeRange, float power, float travelTime, float delay = 0f) =>
-            _shakeController?.CallCameraShake(aoeRange, power, travelTime, delay);
+        public void Shake(float aoeRange, float power, float travelTime, float delay = 0f) => _shakeController?.CallCameraShake(aoeRange, power, travelTime, delay);
 
         private void ApplyLens()
         {
@@ -341,9 +329,7 @@ namespace MortierFu
             }
 
             if (!firstFound)
-            {
                 bounds = new Bounds(_virtualTarget.position, Vector3.one);
-            }
 
             return bounds;
         }
@@ -355,8 +341,7 @@ namespace MortierFu
             _endFightTarget = go.transform;
         }
 
-        public async UniTask EndFightCameraMovement(Transform playerWin, float zoomDuration,
-            CancellationToken cancellationToken = default)
+        public async UniTask EndFightCameraMovement(Transform playerWin, float zoomDuration, CancellationToken cancellationToken = default)
         {
             if (!playerWin || !zoomCineCam)
                 return;
@@ -375,42 +360,27 @@ namespace MortierFu
             if (hasBrain)
             {
                 previousBlend = _cinemachineBrain.DefaultBlend;
-                _cinemachineBrain.DefaultBlend =
-                    new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Custom, duration);
+                _cinemachineBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Custom, duration);
             }
-
-            float startRenderOrtho = _renderOnTopCamera ? _renderOnTopCamera.orthographicSize : 0f;
-            float targetRenderOrtho = zoomCineCam.Lens.OrthographicSize;
 
             _winnerTrackerTokenSource?.Cancel();
             _winnerTrackerTokenSource?.Dispose();
             _winnerTrackerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             
+            _isEndFightCameraActive = true;
+
+            _renderOnTopSyncTokenSource?.Cancel();
+            _renderOnTopSyncTokenSource?.Dispose();
+            _renderOnTopSyncTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            SyncRenderOnTopDuringEndFightAsync(_renderOnTopSyncTokenSource.Token).Forget();
             TrackWinnerPosition(playerWin,_winnerTrackerTokenSource).Forget();
             
             try
             {
                 zoomCineCam.gameObject.SetActive(true);
 
-                float elapsed = 0f;
-                
-                while (elapsed < duration)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    
-                    elapsed += Time.deltaTime;
-
-                    float t = Mathf.Clamp01(elapsed / duration);
-                    float easedT = t * t * (3f - 2f * t);
-                    
-                    if (_renderOnTopCamera)
-                        _renderOnTopCamera.orthographicSize = Mathf.Lerp(startRenderOrtho, targetRenderOrtho, easedT);
-                    
-                    await UniTask.Yield();
-                }
-
-                if (_renderOnTopCamera)
-                    _renderOnTopCamera.orthographicSize = targetRenderOrtho;
+                await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: cancellationToken);
 
                 FaceWinnerTowardCamera(playerWin);
             }
@@ -448,23 +418,27 @@ namespace MortierFu
                 }
             }
             catch (OperationCanceledException)
-            {
-                
-            }
-            
+            { }
         }
         
-
         public void ResetToMainCamera()
         {
+            _isEndFightCameraActive = false;
+
+            _renderOnTopSyncTokenSource?.Cancel();
+            _renderOnTopSyncTokenSource?.Dispose();
+            _renderOnTopSyncTokenSource = null;
+
             if (!zoomCineCam)
                 return;
 
             _winnerTrackerTokenSource?.Cancel();
             _winnerTrackerTokenSource?.Dispose();
             _winnerTrackerTokenSource = null;
-            
+
             zoomCineCam.gameObject.SetActive(false);
+
+            SyncRenderOnTopCameraToMainCamera();
         }
 
         public async UniTask ApplyRaceCameraMapConfigAsync(CancellationToken cancellationToken)

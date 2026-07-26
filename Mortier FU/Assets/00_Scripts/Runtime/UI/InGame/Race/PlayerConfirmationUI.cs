@@ -17,8 +17,6 @@ namespace MortierFu
         [Header("UI References")]
         [SerializeField] private GameObject _raceGameObject;
 
-        [SerializeField] private CanvasGroup _countdownCanvasGroup;
-
         [SerializeField] private CanvasGroup _raceCanvasGroup;
 
         [Header("General Animation Settings")] [SerializeField]
