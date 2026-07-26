@@ -16,28 +16,30 @@ namespace MortierFu
     public class AugmentSummaryUI : MonoBehaviour
     {
         #region Variables
+
         private Image[] _playerImages;
-        
-        [Header("References")]
-        [SerializeField, Required] private SO_RaritySpritesFactory _raritySpritesFactory;
+
+        [Header("References")] [SerializeField, Required]
+        private SO_RaritySpritesFactory _raritySpritesFactory;
+
         [SerializeField, Required] private SO_AugmentSummaryUISettings _settings;
-        
+
         [SerializeField] private RectTransform _layoutRectTAugments;
         [SerializeField] private RectTransform _layoutRectTCard;
-        
+
         [SerializeField] private GameObject _background;
-        
+
         private readonly List<Tween> _activeTweens = new();
-        
+
         private GameModeBase _gameModeBase;
         private Transform[] _playerCards;
 
-        [Header("Settings")] 
-        [SerializeField] private bool bullyPossesCard = true;
+        [Header("Settings")] [SerializeField] private bool bullyPossesCard = true;
         [SerializeField] private bool bullyPossesIndicator = false;
         [SerializeField] private bool cardDisplay = true;
-        
+
         private Action _requestSkip;
+
         #endregion
 
         #region Unity LifeCycle
@@ -46,7 +48,7 @@ namespace MortierFu
         {
             _skipCts?.Cancel();
             _skipCts?.Dispose();
-            
+
             _skipCts = new CancellationTokenSource();
             _gameModeBase = GameService.CurrentGameMode as GameModeBase;
             _confirmationService = ServiceManager.Instance.Get<ConfirmationService>();
@@ -55,16 +57,16 @@ namespace MortierFu
         private void OnDisable()
         {
             CancelAnimations();
-            
+
             EndSkipConfirmation();
         }
 
         private void OnDestroy()
         {
             EndSkipConfirmation();
-            
+
             CancelAnimations();
-            
+
             _skipCts?.Dispose();
             _skipCts = null;
 
@@ -72,7 +74,7 @@ namespace MortierFu
         }
 
         #endregion
-        
+
         #region Stacking
 
         private List<AugmentStack> BuildAugmentStacks(List<SO_Augment> augments)
@@ -106,12 +108,12 @@ namespace MortierFu
         {
             for (int i = 0; i < playerCount; i++)
             {
-                Image playerImageRef = InitializePlayer(i,playerAugmentStacks[i]);
+                Image playerImageRef = InitializePlayer(i, playerAugmentStacks[i]);
 
                 if (playerImageRef)
                 {
                     _playerImages[i] = playerImageRef;
-                    playerImageRef.sprite = _settings.GetPlayerIconByPlayerIndex(i); 
+                    playerImageRef.sprite = _settings.GetPlayerIconByPlayerIndex(i);
                 }
             }
         }
@@ -130,31 +132,33 @@ namespace MortierFu
                 InitializeAugment(playerIndex, i, augmentStacks, playerTransform);
         }
 
-        private void InitializeAugment(int playerIndex, int slotIndex, List<AugmentStack> augmentStacks, Transform playerTransform)
+        private void InitializeAugment(int playerIndex, int slotIndex, List<AugmentStack> augmentStacks,
+            Transform playerTransform)
         {
             Transform augmentsIcon = Instantiate(_settings.RarityIcon, playerTransform).transform;
             augmentsIcon.localScale = Vector3.zero;
             augmentsIcon.localPosition = Vector3.zero;
-            
-            int stackIndex = augmentStacks.Count - 1 - slotIndex; 
-            
+
+            int stackIndex = augmentStacks.Count - 1 - slotIndex;
+
             if (stackIndex < 0 || stackIndex >= augmentStacks.Count)
             {
                 augmentsIcon.gameObject.SetActive(false);
                 return;
             }
-            
+
             AugmentStack augmentStack = augmentStacks[stackIndex];
 
             AugmentIconData iconData = augmentsIcon.gameObject.AddComponent<AugmentIconData>();
             iconData.Augment = augmentStack.Augment;
             iconData.StackCount = augmentStack.Count;
-            
+
             if (slotIndex == 0)
             {
-                LastAugmentAnimation lastAugmentAnimation = augmentsIcon.gameObject.AddComponent<LastAugmentAnimation>();
+                LastAugmentAnimation lastAugmentAnimation =
+                    augmentsIcon.gameObject.AddComponent<LastAugmentAnimation>();
                 lastAugmentAnimation.enabled = false;
-                
+
                 InitializeCard(playerIndex, augmentStack);
             }
 
@@ -194,18 +198,18 @@ namespace MortierFu
         private void InitializeCard(int playerIndex, AugmentStack augmentStack)
         {
             AugmentCardSummaryRaceUI cardObj = Instantiate(_settings.Card, _layoutRectTCard);
-            
+
             cardObj.transform.localScale = Vector3.zero;
             
             cardObj.Initialize();
-            
+
             cardObj.SetAugmentVisual(augmentStack.Augment);
-            
+
             _playerCards[playerIndex] = cardObj.transform;
 
             if (bullyPossesIndicator)
             {
-                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0,_skipCts.Token);
+                cardObj.EnableIndicatorCard(cardObj.transform.childCount > 0, _skipCts.Token);
             }
             else
             {
@@ -222,46 +226,43 @@ namespace MortierFu
                 Logs.LogError("No SkippFillImage was found on AugmentSummaryUI");
                 return;
             }
-            
+
             if (!skipFillImage.material)
             {
                 Logs.LogError("No Material was found on SkipFillImage of AugmentSummaryUI");
                 return;
             }
-            
+
             _skipFillMaterialInstance = new Material(skipFillImage.material);
 
             skipFillImage.material = _skipFillMaterialInstance;
         }
-        
+
         #endregion
 
         #region Core Logic
-        
+
         private CancellationTokenSource _skipCts;
 
         public async UniTask AnimatePlayerImagesWithAugments(
             List<List<SO_Augment>> playerAugments,
             UniTask canHideTask,
+            Action onRevealComplete,
             Action requestSkip,
             CancellationToken externalCancellationToken)
         {
             _requestSkip = requestSkip;
-            
+
             var ownCts = _skipCts ??= new CancellationTokenSource();
-            
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_skipCts.Token, externalCancellationToken);
-            
+
             _background.SetActive(true);
 
             InitializeSkipUI();
-            
             BeginSkipConfirmation();
 
             try
             {
                 int playerCount = playerAugments.Count;
-
                 _playerImages = new Image[playerCount];
                 _playerCards = new Transform[playerCount];
 
@@ -271,13 +272,33 @@ namespace MortierFu
 
                 InitializePlayers(playerAugmentStacks, playerCount);
 
-                await AnimateSummaryUI(playerCount, _skipCts.Token , playerAugmentStacks);
+                try
+                {
+                    await AnimateSummaryUI(playerCount, _skipCts.Token, playerAugmentStacks);
+                }
+                catch (OperationCanceledException)
+                {
+                    CancelAnimations();
+                }
+                finally
+                {
+                    onRevealComplete?.Invoke(); 
+                }
 
-                await HandleAnimationLastAugment(playerCount, _skipCts.Token , canHideTask);
-            }
-            catch (OperationCanceledException)
-            {
-                
+                try
+                {
+                    await HandleAnimationLastAugment(playerCount, _skipCts.Token, canHideTask);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                try
+                {
+                    await UniTask.WhenAny(canHideTask, UniTask.WaitUntilCanceled(externalCancellationToken));
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
             finally
             {
@@ -290,7 +311,7 @@ namespace MortierFu
                 {
                     ownCts.Dispose();
                 }
-    
+
                 EndSkipConfirmation();
                 CleanAugmentSummaryForNextRound();
                 _background.SetActive(false);
@@ -298,14 +319,15 @@ namespace MortierFu
             }
         }
 
-        private async UniTask AnimateSummaryUI(int playerCount, CancellationToken ct, List<List<AugmentStack>> playerAugmentStacks)
+        private async UniTask AnimateSummaryUI(int playerCount, CancellationToken ct,
+            List<List<AugmentStack>> playerAugmentStacks)
         {
             for (int i = 0; i < playerCount; i++)
             {
                 ct.ThrowIfCancellationRequested();
-                
+
                 Transform playerTransform = _playerImages[i].transform;
-                
+
                 Tween playerTween = Tween.Scale(
                     playerTransform,
                     Vector3.zero,
@@ -313,26 +335,26 @@ namespace MortierFu
                     _settings.PlayerScaleDuration,
                     _settings.PlayerScaleEase
                 );
-                
+
                 _activeTweens.Add(playerTween);
-                
+
                 await UniTask.Yield();
-                
+
                 AnimateAugmentIcons(playerTransform, ct, playerAugmentStacks[i]).Forget();
-                
+
                 await UniTask.Yield();
-                
+
                 if (!bullyPossesCard && _gameModeBase.GetWinnerPlayerIndex() == i)
                     continue;
-                
-                await AnimateCard(_playerCards[i],ct);
-                
+
+                await AnimateCard(_playerCards[i], ct);
+
                 await UniTask.Delay(
                     TimeSpan.FromSeconds(_settings.PlayerAnimDelay),
                     cancellationToken: ct
                 );
             }
-            
+
             var tweensSnapshot = _activeTweens.ToArray();
 
             foreach (var tween in tweensSnapshot)
@@ -347,15 +369,15 @@ namespace MortierFu
         private async UniTask HandleAnimationLastAugment(int playerCount, CancellationToken ct, UniTask canHideTask)
         {
             var runningBreathingAnimations = new List<LastAugmentAnimation>();
-            
+
             for (int i = 0; i < playerCount; i++)
             {
                 Transform playerIcon = _playerImages[i].transform;
                 Transform lastAugment = playerIcon.GetChild(0);
 
-                if (_gameModeBase.GetWinnerPlayerIndex() == i) 
+                if (_gameModeBase.GetWinnerPlayerIndex() == i)
                     continue;
-                
+
                 if (lastAugment.gameObject.activeSelf &&
                     lastAugment.TryGetComponent(out LastAugmentAnimation breathingAnim))
                 {
@@ -363,12 +385,12 @@ namespace MortierFu
                     runningBreathingAnimations.Add(breathingAnim);
                 }
             }
-            
+
             while (canHideTask.Status == UniTaskStatus.Pending && !ct.IsCancellationRequested)
             {
                 await UniTask.Yield();
             }
-            
+
             ct.ThrowIfCancellationRequested();
 
             foreach (var breathingAnim in runningBreathingAnimations)
@@ -380,15 +402,16 @@ namespace MortierFu
             runningBreathingAnimations.Clear();
         }
 
-        private async UniTask AnimateAugmentIcons(Transform parent, CancellationToken ct, List<AugmentStack> playerAugmentStacks) 
+        private async UniTask AnimateAugmentIcons(Transform parent, CancellationToken ct,
+            List<AugmentStack> playerAugmentStacks)
         {
             try
             {
                 int augmentsCount = playerAugmentStacks.Count;
                 int childCount = parent.childCount;
-                
+
                 if (childCount == 0) return;
-                
+
                 Vector3[] finalPositions = new Vector3[childCount];
                 float angleStep = 360f / childCount;
 
@@ -413,12 +436,13 @@ namespace MortierFu
                     Transform child = parent.GetChild(i);
 
                     if (i >= augmentsCount) child.gameObject.SetActive(false);
-                    
+
                     if (!child.gameObject.activeSelf) continue;
 
                     var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _settings.AugmentIconAnimDuration,
                         _settings.AugmentIconScaleEase);
-                    var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i], _settings.AugmentIconAnimDuration,
+                    var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i],
+                        _settings.AugmentIconAnimDuration,
                         _settings.AugmentIconMoveEase);
 
                     _activeTweens.Add(scaleTween);
@@ -441,18 +465,17 @@ namespace MortierFu
         private async UniTask AnimateCard(Transform card, CancellationToken ct)
         {
             if (!card || !cardDisplay) return;
-            
+
             Tween cardTween = Tween.Scale(
                 card,
                 Vector3.zero,
                 Vector3.one * _settings.CardScaleMultiplier,
                 _settings.CardDurationScale,
                 _settings.CardScaleEase);
-            
+
             await cardTween.ToUniTask(cancellationToken: ct);
         }
-        
-        
+
         #endregion
 
         #region Clean
@@ -462,23 +485,23 @@ namespace MortierFu
             foreach (var tween in _activeTweens)
                 tween.Stop();
             _activeTweens.Clear();
-            
+
             _skipCts?.Cancel();
         }
-        
-        
-        private void CleanAugmentSummaryForNextRound() 
+
+
+        private void CleanAugmentSummaryForNextRound()
         {
-            List<Transform> childrenLayoutCardElement  = _layoutRectTCard.Cast<Transform>().ToList(); 
-            List<Transform> childrenLayoutAugmentElement  = _layoutRectTAugments.Cast<Transform>().ToList();
+            List<Transform> childrenLayoutCardElement = _layoutRectTCard.Cast<Transform>().ToList();
+            List<Transform> childrenLayoutAugmentElement = _layoutRectTAugments.Cast<Transform>().ToList();
 
             List<Transform> allElementToClean = new List<Transform>();
-            
+
             allElementToClean.AddRange(childrenLayoutCardElement);
             allElementToClean.AddRange(childrenLayoutAugmentElement);
-            
+
             int childCount = allElementToClean.Count;
-            
+
             for (int i = 0; i < childCount; i++)
                 Destroy(allElementToClean[i].gameObject);
         }
@@ -488,15 +511,15 @@ namespace MortierFu
         #region Skip Summary
 
         [SerializeField] private Image skipFillImage;
-        
+
         private Material _skipFillMaterialInstance;
 
         private float _currentSkippFillValue;
-        
+
         private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
 
         private ConfirmationService _confirmationService;
-        
+
         private bool _isSubscribedToSkipConfirmation;
 
         private void BeginSkipConfirmation()
@@ -523,7 +546,7 @@ namespace MortierFu
 
             _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirm;
             _confirmationService.ResetRuntimeState();
-            
+
             _isSubscribedToSkipConfirmation = false;
         }
 
@@ -546,24 +569,25 @@ namespace MortierFu
                     elapsedTime += Time.deltaTime;
                     _currentSkippFillValue = Mathf.Lerp(startValue, target, elapsedTime / duration);
                     skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
-                    
+
                     await UniTask.Yield(PlayerLoopTiming.Update, ct);
                 }
             }
-            catch (OperationCanceledException) { }
-            
+            catch (OperationCanceledException)
+            {
+            }
+
             finally
             {
                 skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
 
                 if (_currentSkippFillValue >= 0.99f)
                 {
-                    
                     await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
                     EndSkipConfirmation();
                     _skipCts?.Cancel();
                     _requestSkip?.Invoke();
-                } 
+                }
             }
         }
 
@@ -572,11 +596,11 @@ namespace MortierFu
             if (_confirmationService == null || _confirmationService.PlayersParticipantsCount <= 0)
                 return 1f;
 
-            int confirmedCount = _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
+            int confirmedCount =
+                _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
             return Mathf.Clamp01((float)confirmedCount / _confirmationService.PlayersParticipantsCount);
         }
 
         #endregion
-        
     }
 }
