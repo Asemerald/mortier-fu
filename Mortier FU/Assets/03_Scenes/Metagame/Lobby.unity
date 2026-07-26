@@ -20558,7 +20558,6 @@ GameObject:
   - component: {fileID: 619199220}
   - component: {fileID: 619199219}
   - component: {fileID: 619199218}
-  - component: {fileID: 619199217}
   - component: {fileID: 619199221}
   m_Layer: 5
   m_Name: JoinPromptCanvas
@@ -20567,23 +20566,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &619199217
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 619199216}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!114 &619199218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20601,7 +20583,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -53188,6 +53170,7 @@ MonoBehaviour:
   _rulesetLibrary: {fileID: 11400000, guid: daa73f2ef08256c47ab3a640d9624f1c, type: 2}
   _selectedRuleset: {fileID: 0}
   _config:
+    Subtitle: Default Config
     ScoreToWin: 1000
     RaceTimeLimit: 20
     EqualizeDropRateForAllRarities: 0
@@ -53196,7 +53179,6 @@ MonoBehaviour:
     StrikeMultiplier: 1
     DisableGhosts: 0
     DisableSelfDamage: 0
-    DisableAugments: 0
 --- !u!114 &1547654678
 MonoBehaviour:
   m_ObjectHideFlags: 0
