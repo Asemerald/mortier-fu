@@ -3,8 +3,6 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Linq;
 using MortierFu.Shared;
-using System.Collections.Generic;
-using PlasticPipe.PlasticProtocol.Messages;
 
 namespace MortierFu.Analytics
 {

@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using MortierFu.Shared;
 
 namespace MortierFu.Analytics
 {
