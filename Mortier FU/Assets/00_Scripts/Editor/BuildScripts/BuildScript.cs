@@ -28,18 +28,18 @@ public static class BuildScript
     public static void BuildWindows()
     {
         Build(BuildTarget.StandaloneWindows64,
-            "Build/Windows/Go Kaboom!.exe");
+            "Builds/Windows/Go Kaboom!.exe");
     }
 
     public static void BuildLinux()
     {
         Build(BuildTarget.StandaloneLinux64,
-            "Build/Linux/Go Kaboom!.x86_64");
+            "Builds/Linux/Go Kaboom!.x86_64");
     }
 
     public static void BuildMacOS()
     {
         Build(BuildTarget.StandaloneOSX,
-            "Build/macOS/Go Kaboom!.app");
+            "Builds/macOS/Go Kaboom!.app");
     }
 }
