@@ -44,8 +44,11 @@ namespace MortierFu
         [Tooltip("Valeur ajoutée à CameraZoomOnWinnerDuration avant de montrer le scoreboard.")]
         public float ShowScoreboardDelayFactor = 0.5f;
         
-        [Tooltip("Durée de chaque transition.")]
-        public float TransitionDuration = 0.3f;
+        [Tooltip("Durée des transitions de round.")]
+        public float RoundTransitionDuration = 0.3f;
+
+        [Tooltip("Durée des transitions de race.")]
+        public float RaceTransitionDuration = 0.5f;
 
         [Header("Race Modes")]
         public SO_RaceModeDefinition DefaultRaceModeDefinition;
