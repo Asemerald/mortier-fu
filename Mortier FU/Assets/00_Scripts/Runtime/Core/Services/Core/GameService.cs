@@ -34,6 +34,7 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
+            
             _sceneService = ServiceManager.Instance.Get<SceneService>();
 
             if (_sceneService == null)

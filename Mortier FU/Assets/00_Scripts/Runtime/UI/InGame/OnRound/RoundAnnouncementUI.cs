@@ -158,7 +158,7 @@ namespace MortierFu
                     character.gameObject.SetActive(false);
             }
 
-            await CircleTransition.Instance.OpenAsync(1f);
+            await CircleTransition.Instance.OpenAsync(_gameMode.FlowSettings.TransitionDuration);
             foreach (var character in gm.AlivePlayers)
             {
                 ct.ThrowIfCancellationRequested();
