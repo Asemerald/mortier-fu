@@ -394,6 +394,7 @@ namespace MortierFu
                 return;
 
             Transform feedbackTarget = ResolveConfirmedFeedbackTarget(slot);
+            
 
             if (!feedbackTarget)
                 return;
@@ -415,7 +416,9 @@ namespace MortierFu
 
 
             slot.ImagePlayer.sprite = slot.ImageSpam;
-
+            
+            slot.Animator.ResetTrigger("Angry");
+            slot.Animator.SetTrigger("Angry");
         }
 
         public  void NotifyPlayerReleaseSpam(int playerIndex)
