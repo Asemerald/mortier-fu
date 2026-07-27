@@ -360,6 +360,7 @@ namespace MortierFu
                 slot.Animator.Play(0, 0, 0f);
             }
 
+            slot.ImageWait.sprite = slot.ImageConfirm;
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
@@ -489,7 +490,10 @@ namespace MortierFu
             public Image KeyBoardInputImage;
 
             public Image OkImage;
-
+            public Image ImageWait;
+            public Sprite ImageConfirm;
+            public Sprite ImageSpam;
+            
             public Animator Animator;
             public Transform AnimatorTransform;
 
