@@ -703,6 +703,7 @@ namespace MortierFu.Editor
             try
             {
                 player.AddAugment(augment);
+                SystemManager.Instance.Get<AugmentSelectionSystem>().AddAugmentInPickedAugment(player, augment);
 
                 int playerIndex = player.Owner ? player.Owner.PlayerIndex + 1 : 0;
 
