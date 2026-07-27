@@ -718,7 +718,7 @@ namespace MortierFu
             await WaitOrSkip(FlowSettings.AugmentSummaryDuration, summarySkipCts.Token);
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(1f);
+            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
 
             canHideCts.TrySetResult();
             await presentationTask;
@@ -790,7 +790,7 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(1f);
+            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
             
             SetPlayersControlContext(PlayerControlContext.Loading);
             
@@ -810,7 +810,7 @@ namespace MortierFu
             
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(1f);
+            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
             
         }
 
