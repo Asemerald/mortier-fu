@@ -26,10 +26,14 @@ namespace MortierFu
 
         [SerializeField] private RectTransform _layoutRectTAugments;
         [SerializeField] private RectTransform _layoutRectTCard;
+        [SerializeField] private RectTransform _layoutRectTSkip;
 
         [SerializeField] private GameObject _background;
 
         private readonly List<Tween> _activeTweens = new();
+        private readonly List<Image> _skipImages = new();
+        private int _skipPlayersAcceptedCount = 0;
+        private HashSet<int> playerIdsAccepted = new HashSet<int>();
 
         private GameModeBase _gameModeBase;
         private Transform[] _playerCards;
@@ -69,8 +73,7 @@ namespace MortierFu
 
             _skipCts?.Dispose();
             _skipCts = null;
-
-            _skipFillMaterialInstance = null;
+            
         }
 
         #endregion
@@ -104,6 +107,30 @@ namespace MortierFu
 
         #region Initialization
 
+        private void InitializeSkipSummaryUI(int playerCount)
+        {
+            _skipImages.Clear();
+            playerIdsAccepted.Clear();
+            _skipPlayersAcceptedCount = 0;
+            
+            for (int i = 0; i < _gameModeBase.MaxPlayerCount; i++)
+            {
+                Image skipSummaryImage = Instantiate(_settings.PlayerSkipImage, _layoutRectTSkip).GetComponent<Image>();
+
+                bool isActive = i < playerCount && skipSummaryImage;
+                
+                if (isActive)
+                {
+                    _skipImages.Add(skipSummaryImage);
+                }
+                else
+                {
+                    skipSummaryImage?.gameObject.SetActive(false);
+                }
+            }
+            
+        }
+        
         private void InitializePlayers(List<List<AugmentStack>> playerAugmentStacks, int playerCount)
         {
             for (int i = 0; i < playerCount; i++)
@@ -242,25 +269,6 @@ namespace MortierFu
             }
         }
 
-        private void InitializeSkipUI()
-        {
-            if (!skipFillImage)
-            {
-                Logs.LogError("No SkippFillImage was found on AugmentSummaryUI");
-                return;
-            }
-
-            if (!skipFillImage.material)
-            {
-                Logs.LogError("No Material was found on SkipFillImage of AugmentSummaryUI");
-                return;
-            }
-
-            _skipFillMaterialInstance = new Material(skipFillImage.material);
-
-            skipFillImage.material = _skipFillMaterialInstance;
-        }
-
         #endregion
 
         #region Core Logic
@@ -278,14 +286,17 @@ namespace MortierFu
 
             var ownCts = _skipCts ??= new CancellationTokenSource();
 
+            int playerCount = playerAugments.Count;
+            
             _background.SetActive(true);
 
-            InitializeSkipUI();
+            InitializeSkipSummaryUI(playerCount);
+            
             BeginSkipConfirmation();
 
             try
             {
-                int playerCount = playerAugments.Count;
+                
                 _playerImages = new Image[playerCount];
                 _playerCards = new Transform[playerCount];
 
@@ -517,11 +528,13 @@ namespace MortierFu
         {
             List<Transform> childrenLayoutCardElement = _layoutRectTCard.Cast<Transform>().ToList();
             List<Transform> childrenLayoutAugmentElement = _layoutRectTAugments.Cast<Transform>().ToList();
+            List<Transform> childrenLayoutSkipElement = _layoutRectTSkip.Cast<Transform>().ToList();
 
             List<Transform> allElementToClean = new List<Transform>();
 
             allElementToClean.AddRange(childrenLayoutCardElement);
             allElementToClean.AddRange(childrenLayoutAugmentElement);
+            allElementToClean.AddRange(childrenLayoutSkipElement);
 
             int childCount = allElementToClean.Count;
 
@@ -532,14 +545,6 @@ namespace MortierFu
         #endregion
 
         #region Skip Summary
-
-        [SerializeField] private Image skipFillImage;
-
-        private Material _skipFillMaterialInstance;
-
-        private float _currentSkippFillValue;
-
-        private static readonly int FillAmount = Shader.PropertyToID("_fillAmount");
 
         private ConfirmationService _confirmationService;
 
@@ -553,9 +558,6 @@ namespace MortierFu
             List<PlayerManager> players = _confirmationService.GetAvailablePlayers();
 
             _confirmationService.BeginConfirmation(players);
-
-            _currentSkippFillValue = 0f;
-            skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
 
             _confirmationService.OnPlayerConfirmed += HandlePlayerConfirm;
 
@@ -575,38 +577,35 @@ namespace MortierFu
 
         private void HandlePlayerConfirm(int playerIndex)
         {
-            PlayerConfirmAsync(_skipCts.Token).Forget();
+            PlayerConfirmAsync(_skipCts.Token, playerIndex).Forget();
         }
 
-        private async UniTask PlayerConfirmAsync(CancellationToken ct)
+        private async UniTask PlayerConfirmAsync(CancellationToken ct, int playerIndex)
         {
-            float target = GetCurrentPlayersPercentageReady();
-            float startValue = _currentSkippFillValue;
-            const float duration = 0.15f;
-            float elapsedTime = 0f;
+            if (playerIndex >= _skipImages.Count || !playerIdsAccepted.Add(playerIndex)) return;
 
             try
             {
-                while (elapsedTime < duration)
-                {
-                    elapsedTime += Time.deltaTime;
-                    _currentSkippFillValue = Mathf.Lerp(startValue, target, elapsedTime / duration);
-                    skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
+                Image targetSkipImage = _skipImages[playerIndex];
+                
+                Tween tweenPlayerConfirm = Tween.Scale(targetSkipImage.rectTransform, Vector3.one * 1.2f,
+                    0.15f, Ease.OutElastic);
 
-                    await UniTask.Yield(PlayerLoopTiming.Update, ct);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
+                targetSkipImage.color = GetColorByIndex(playerIndex);
+                
+                await tweenPlayerConfirm.ToUniTask(cancellationToken: ct);
 
+                _skipPlayersAcceptedCount++;
+            }
+            
+            catch (OperationCanceledException) { }
+            
             finally
             {
-                skipFillImage.materialForRendering.SetFloat(FillAmount, _currentSkippFillValue);
-
-                if (_currentSkippFillValue >= 0.99f)
+                if (AreAllPlayersReadyToSkip())
                 {
                     await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
+                    
                     EndSkipConfirmation();
                     _skipCts?.Cancel();
                     _requestSkip?.Invoke();
@@ -614,14 +613,21 @@ namespace MortierFu
             }
         }
 
-        private float GetCurrentPlayersPercentageReady()
+        private bool AreAllPlayersReadyToSkip()
         {
-            if (_confirmationService == null || _confirmationService.PlayersParticipantsCount <= 0)
-                return 1f;
+            return _skipImages.Count == _skipPlayersAcceptedCount;
+        }
 
-            int confirmedCount =
-                _confirmationService.PlayersParticipantsCount - _confirmationService.PendingPlayersCount;
-            return Mathf.Clamp01((float)confirmedCount / _confirmationService.PlayersParticipantsCount);
+        private Color GetColorByIndex(int index)
+        {
+            return index switch
+            {
+                0 => Color.blue,
+                1 => Color.red,
+                2 => Color.green,
+                3 => Color.yellow,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, null)
+            };
         }
 
         #endregion
