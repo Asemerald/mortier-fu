@@ -9,7 +9,8 @@ public enum E_AugmentVariable
     BulletSpeed, Damage, ImpactRadius, FireRate, ShotRange, // BOMBSHELL 
     Bounce, BouncySnowball, SelfBounce, // BOUNCE
     StrikeForce, DashCooldown, DashForce, ExtraDash, // DASH
-    KnockbackStunDuration // STUN
+    KnockbackStunDuration, // STUN
+    OnEnemyHit, AfterDashCondition, OnEnemyStun, AfterTenSecondsCondition // CONDITION
 }
 
 public enum E_AugmentValue
@@ -27,7 +28,7 @@ public static class AugmentVariableDescription
         { E_AugmentVariable.BulletSpeed, "Bullet Speed" },
         { E_AugmentVariable.Damage, "Damage" },
         { E_AugmentVariable.ImpactRadius, "Impact Radius" },
-        { E_AugmentVariable.FireRate, "FireRate" },
+        { E_AugmentVariable.FireRate, "Fire Rate" },
         { E_AugmentVariable.ShotRange, "ShotRange" },
         { E_AugmentVariable.Bounce, "Bounce" },
         { E_AugmentVariable.BouncySnowball, "For Each Bounce, Impact Radius" },
@@ -37,6 +38,10 @@ public static class AugmentVariableDescription
         { E_AugmentVariable.DashForce, "Dash Distance" },
         { E_AugmentVariable.ExtraDash, "Extra Dash" },
         { E_AugmentVariable.KnockbackStunDuration, "Stun Duration" },
+        { E_AugmentVariable.OnEnemyHit, "When Hit Enemy: " },
+        { E_AugmentVariable.AfterDashCondition, "For 1.5s After A Dash: "},
+        { E_AugmentVariable.OnEnemyStun , "When Stun Enemy: "},
+        { E_AugmentVariable.AfterTenSecondsCondition, "After 10 Seconds: "},
     };
     
     public static string Get(E_AugmentVariable variable) => Description[variable];
