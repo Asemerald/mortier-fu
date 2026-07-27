@@ -33,12 +33,17 @@ jobs:
         shell: cmd
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildLinux -logFile -'
 
+      - name: Build macOS
+        if: github.ref == 'refs/heads/main'
+        shell: cmd
+        run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildMacOS -logFile -'
+
       # --- WINDOWS PACKAGING ---
       - name: Zip Windows Build
         shell: powershell
         run: |
           $buildPath = "Mortier FU\Build\Windows"
-          $zipPath = "Mortier FU\Build-Windows.zip"
+          $zipPath = "Mortier FU\Builds\Build-Windows.zip"
           if (Test-Path $buildPath) {
               Compress-Archive -Path "$buildPath\*" -DestinationPath $zipPath -Force
           } else {
@@ -49,26 +54,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-Windows
-          path: Mortier FU/Build-Windows.zip
-          if-no-files-found: ignore
-
-      # --- LINUX PACKAGING ---
-      - name: Zip Linux Build
-        if: github.ref == 'refs/heads/main'
-        shell: powershell
-        run: |
-          $buildPath = "Mortier FU\Build\Linux"
-          $zipPath = "Mortier FU\Build-Linux.zip"
-          if (Test-Path $buildPath) {
-              Compress-Archive -Path "$buildPath\*" -DestinationPath $zipPath -Force
-          } else {
-              Write-Host "Le dossier de build Linux est introuvable."
-          }
-
-      - name: Upload Linux Build
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-Linux
-          path: Mortier FU/Build-Linux.zip
+          path: Mortier FU/Builds/Build-Windows.zip
           if-no-files-found: ignore
