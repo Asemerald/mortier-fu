@@ -28,7 +28,7 @@ public static class AugmentVariableDescription
         { E_AugmentVariable.BulletSpeed, "Bullet Speed" },
         { E_AugmentVariable.Damage, "Damage" },
         { E_AugmentVariable.ImpactRadius, "Impact Radius" },
-        { E_AugmentVariable.FireRate, "FireRate" },
+        { E_AugmentVariable.FireRate, "Fire Rate" },
         { E_AugmentVariable.ShotRange, "ShotRange" },
         { E_AugmentVariable.Bounce, "Bounce" },
         { E_AugmentVariable.BouncySnowball, "For Each Bounce, Impact Radius" },
