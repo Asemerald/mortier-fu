@@ -130,10 +130,33 @@ namespace MortierFu
         {
             for (int i = 0; i < _settings.RarityIconCount; i++)
                 InitializeAugment(playerIndex, i, augmentStacks, playerTransform);
+            
+            int rest = augmentStacks.Count - _settings.RarityIconCount; 
+
+            if (rest > 0) 
+            {
+                Transform oldElementVisuals = playerTransform.GetChild(_settings.RarityIconCount - 1);
+
+                if (!oldElementVisuals) return;
+                
+                Destroy(oldElementVisuals.gameObject);
+
+                Transform imageForAugmentsNotDisplay =
+                    Instantiate(_settings.ImageAugmentNotDisplay, playerTransform).transform;
+                
+                imageForAugmentsNotDisplay.localScale = Vector3.zero;
+                imageForAugmentsNotDisplay.localPosition = Vector3.zero;
+
+                TMP_Text augmentsText = imageForAugmentsNotDisplay.GetChild(0).GetComponent<TMP_Text>();
+
+                if (!augmentsText) return;
+                
+                augmentsText.text = $"+{rest + 1 }"; 
+            }
         }
 
-        private void InitializeAugment(int playerIndex, int slotIndex, List<AugmentStack> augmentStacks,
-            Transform playerTransform)
+        private void InitializeAugment
+            (int playerIndex, int slotIndex, List<AugmentStack> augmentStacks, Transform playerTransform)
         {
             Transform augmentsIcon = Instantiate(_settings.RarityIcon, playerTransform).transform;
             augmentsIcon.localScale = Vector3.zero;
