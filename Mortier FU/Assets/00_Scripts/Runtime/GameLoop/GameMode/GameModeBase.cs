@@ -105,7 +105,7 @@ namespace MortierFu
         public event Action OnRaceStart;
         public event Func<CancellationToken, UniTask> OnAugmentRaceStartPresentationAsync;
         public event Action OnRacePlayerConfirmation;
-        public event Func<UniTask, Action, CancellationToken, UniTask> OnRaceEndedUI;
+        public event Func<UniTask, Action, Action, CancellationToken, UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
 
         public virtual async UniTask Initialize()
@@ -296,7 +296,7 @@ namespace MortierFu
 
             await RunRoundStartPresentationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-
+            
             SetPlayersControlContext(PlayerControlContext.RoundGameplay);
             OnRoundGameplayStarted?.Invoke(_currentRound);
 
@@ -678,7 +678,11 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        protected virtual async UniTask RunAugmentSummaryPresentationAsync(UniTask canHideTask, Action requestSkip, CancellationToken cancellationToken)
+        protected virtual async UniTask RunAugmentSummaryPresentationAsync(
+            UniTask canHideTask,
+            Action onRevealComplete,
+            Action requestSkip,
+            CancellationToken cancellationToken)
         {
             if (OnRaceEndedUI == null)
                 return;
@@ -687,8 +691,8 @@ namespace MortierFu
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var handler = (Func<UniTask, Action, CancellationToken, UniTask>)@delegate;
-                await handler.Invoke(canHideTask, requestSkip, cancellationToken);
+                var handler = (Func<UniTask, Action, Action, CancellationToken, UniTask>)@delegate;
+                await handler.Invoke(canHideTask, onRevealComplete, requestSkip, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -699,21 +703,29 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
 
             using var summarySkipCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var revealCompleteCts = new UniTaskCompletionSource();
+            var canHideCts = new UniTaskCompletionSource();
 
-            UniTask minimumDurationTask = WaitOrSkip(FlowSettings.AugmentSummaryDuration, summarySkipCts.Token);
-            
-            UniTask loadArenaTask = PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
+            UniTask presentationTask = RunAugmentSummaryPresentationAsync(
+                canHideCts.Task,
+                () => revealCompleteCts.TrySetResult(),
+                summarySkipCts.Cancel,
+                cancellationToken);
 
-            UniTask canHideSummaryTask = UniTask.WhenAll(minimumDurationTask, loadArenaTask).Preserve();
+            await revealCompleteCts.Task;
+            cancellationToken.ThrowIfCancellationRequested();
 
-            await RunAugmentSummaryPresentationAsync(canHideSummaryTask, summarySkipCts.Cancel, cancellationToken);
-            
-            ServiceManager.Instance.Get<SceneService>().ShowLoadingScreen();
-            
-            await canHideSummaryTask;
-            
-            ServiceManager.Instance.Get<SceneService>().HideLoadingScreen();
-            
+            await WaitOrSkip(FlowSettings.AugmentSummaryDuration, summarySkipCts.Token);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await CircleTransition.Instance.CloseAsync(1f);
+
+            canHideCts.TrySetResult();
+            await presentationTask;
+
+            await PreloadArenaMapDuringAugmentSummaryAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -778,7 +790,7 @@ namespace MortierFu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await CircleTransition.Instance.CloseAsync(FlowSettings.TransitionDuration);
+            await CircleTransition.Instance.CloseAsync(1f);
             
             SetPlayersControlContext(PlayerControlContext.Loading);
             
@@ -795,10 +807,11 @@ namespace MortierFu
             cancellationToken.ThrowIfCancellationRequested();
             
             HideScores();
-
+            
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.RacePreloadDelay), cancellationToken: cancellationToken);
             
-            await CircleTransition.Instance.OpenAsync(FlowSettings.TransitionDuration);
+            await CircleTransition.Instance.OpenAsync(1f);
+            
         }
 
         private void ActivatePlayerAugmentsForRound()=> ForEachCurrentPlayerCharacter(character => character.ActivateRoundAugments());

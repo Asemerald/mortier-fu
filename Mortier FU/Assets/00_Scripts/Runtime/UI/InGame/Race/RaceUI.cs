@@ -217,16 +217,16 @@ namespace MortierFu
 
             _racePressureUI.StopVignettePressure();
             _racePressureUI.gameObject.SetActive(false);
-
-            //SIMON enlève l'explication de la race
+            
             if (!_explanation)
                 return;
             _explanation.SetActive(false);
-            //
+           
         }
 
         private async UniTask PlayAugmentSummary(
             UniTask canHideTask,
+            Action onRevealComplete,   
             Action requestSkip,
             CancellationToken cancellationToken
         )
@@ -258,7 +258,7 @@ namespace MortierFu
                 foreach (var player in players)
                 {
                     player.SetControlContext(PlayerControlContext.AugmentRaceSummary);
-                    
+
                     if (player &&
                         player.Character &&
                         _augmentSelectionSystem.PickedAugments.TryGetValue(player.Character, out var augments))
@@ -274,6 +274,7 @@ namespace MortierFu
                 await _augmentSummaryUI.AnimatePlayerImagesWithAugments(
                     playerAugments,
                     canHideTask,
+                    onRevealComplete,  
                     requestSkip,
                     cancellationToken);
 
