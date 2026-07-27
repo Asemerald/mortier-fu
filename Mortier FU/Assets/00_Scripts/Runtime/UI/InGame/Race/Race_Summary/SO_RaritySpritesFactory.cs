@@ -7,13 +7,13 @@ namespace MortierFu
     {
         [SerializeField] private RaritySpritesEntry[] _spritesPerRarity;
         
-        public Sprite GetAugmentIconSpriteFromRarity(E_AugmentRarity rarity)
+        public Sprite GetRarityBgSpriteFromRarity(E_AugmentRarity rarity)
         {
             foreach (var entry in _spritesPerRarity)
             {
                 if (entry.Rarity == rarity)
                 {
-                    return entry.AugmentIcon;
+                    return entry.BgSprite;
                 }
             }
 
@@ -21,7 +21,7 @@ namespace MortierFu
             return null;
         }
 
-        /*public Texture GetTitleRarityFilter(E_AugmentRarity rarity)
+        public Texture GetTitleRarityFilter(E_AugmentRarity rarity)
         {
             foreach (var entry in _spritesPerRarity)
             {
@@ -33,15 +33,15 @@ namespace MortierFu
 
             Debug.LogWarning($"RarityBgSpriteFactory: No background sprite found for rarity {rarity}. Returning null.");
             return null;
-        }*/
+        }
 
-        public Sprite GetAugmentCardSpriteFromRarity(E_AugmentRarity rarity)
+        public Sprite GetRarityBorderSpriteFromRarity(E_AugmentRarity rarity)
         {
             foreach (var entry in _spritesPerRarity)
             {
                 if (entry.Rarity == rarity)
                 {
-                    return entry.AugmentCard;
+                    return entry.BorderSprite;
                 }
             }
 
@@ -49,13 +49,13 @@ namespace MortierFu
             return null;
         }
         
-        public Sprite GetAugmentCardBgSpriteFromRarity(E_AugmentRarity rarity)
+        public Sprite GetRarityCardBgSpriteFromRarity(E_AugmentRarity rarity)
         {
             foreach (var entry in _spritesPerRarity)
             {
                 if (entry.Rarity == rarity)
                 {
-                    return entry.AugmentCardBackground;
+                    return entry.CardBgSprite;
                 }
             }
 
@@ -81,10 +81,10 @@ namespace MortierFu
         private struct RaritySpritesEntry
         {
             public E_AugmentRarity Rarity;
-            public Sprite AugmentCard;
-            public Sprite AugmentIcon;
-            public Sprite AugmentCardBackground;
-           // public Texture TitleFilter;
+            public Sprite BorderSprite;
+            public Sprite BgSprite;
+            public Sprite CardBgSprite;
+            public Texture TitleFilter;
             public GameObject cardVfx;
         }
     }

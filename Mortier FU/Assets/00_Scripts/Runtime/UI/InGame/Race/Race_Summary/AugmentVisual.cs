@@ -35,7 +35,7 @@ namespace MortierFu
                 _visualInstance.HideVfx();
             
             if (_visualInstance)
-                _visualInstance.SetLogoSprite(augment.AugmentIcon);
+                _visualInstance.SetLogoSprite(augment.SmallSprite);
             
             return _vfxInstance;
         }

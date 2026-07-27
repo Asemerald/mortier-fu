@@ -167,7 +167,7 @@ namespace MortierFu
             if (rarityImage)
             {
                 E_AugmentRarity rarity = augmentStack.Augment.Rarity;
-                rarityImage.sprite = _raritySpritesFactory.GetAugmentIconSpriteFromRarity(rarity);
+                rarityImage.sprite = _raritySpritesFactory.GetRarityBgSpriteFromRarity(rarity);
             }
 
             if (augmentsIcon.childCount > 0)
@@ -175,7 +175,7 @@ namespace MortierFu
                 var logoImage = augmentsIcon.GetChild(0).GetComponent<Image>();
 
                 if (logoImage)
-                    logoImage.sprite = augmentStack.Augment.AugmentIcon;
+                    logoImage.sprite = augmentStack.Augment.SmallSprite;
             }
 
             if (augmentsIcon.childCount > 1)
