@@ -9,7 +9,8 @@ public enum E_AugmentVariable
     BulletSpeed, Damage, ImpactRadius, FireRate, ShotRange, // BOMBSHELL 
     Bounce, BouncySnowball, SelfBounce, // BOUNCE
     StrikeForce, DashCooldown, DashForce, ExtraDash, // DASH
-    KnockbackStunDuration // STUN
+    KnockbackStunDuration, // STUN
+    VampireCondition // CONDITION
 }
 
 public enum E_AugmentValue
@@ -37,6 +38,7 @@ public static class AugmentVariableDescription
         { E_AugmentVariable.DashForce, "Dash Distance" },
         { E_AugmentVariable.ExtraDash, "Extra Dash" },
         { E_AugmentVariable.KnockbackStunDuration, "Stun Duration" },
+        { E_AugmentVariable.VampireCondition, "\n When Hit Enemies:" }
     };
     
     public static string Get(E_AugmentVariable variable) => Description[variable];
