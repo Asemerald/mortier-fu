@@ -10,6 +10,8 @@ namespace MortierFu
 {
     public sealed class PlayerUIInputService : IGameService
     {
+        public event Action<PlayerManager> OnSubmitReleased;
+        
         private readonly Dictionary<PlayerManager, List<IPlayerUIInputHandler>> _handlersByPlayer = new();
 
         private readonly Dictionary<PlayerManager, Vector2> _navigationInputByPlayer = new();
@@ -114,6 +116,16 @@ namespace MortierFu
                 return false;
             
             return TryHandle(player, handler => handler.HandleSubmit(player));
+        }
+
+        public bool TrySubmitReleased(PlayerManager player)
+        {
+            if (!player)
+                return false;
+            
+            Logs.LogWarning("here");
+            OnSubmitReleased?.Invoke(player);
+            return true;
         }
 
         public bool TryCancel(PlayerManager player)

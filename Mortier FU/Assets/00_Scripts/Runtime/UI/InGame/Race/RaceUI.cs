@@ -107,6 +107,7 @@ namespace MortierFu
             _confirmationService.OnStartConfirmation += HandleStartConfirmation;
             _confirmationService.OnPlayerConfirmed += HandlePlayerConfirmed;
             _confirmationService.OnPlayerConfirmedAgain += HandlePlayerConfirmedAgain;
+            _confirmationService.OnPlayerReleasedAgain += HandlePlayerRealeseAgain;
             _confirmationService.OnAllPlayersConfirmed += HandleAllPlayersConfirmed;
         }
 
@@ -118,6 +119,7 @@ namespace MortierFu
             _confirmationService.OnStartConfirmation -= HandleStartConfirmation;
             _confirmationService.OnPlayerConfirmed -= HandlePlayerConfirmed;
             _confirmationService.OnPlayerConfirmedAgain -= HandlePlayerConfirmedAgain;
+            _confirmationService.OnPlayerReleasedAgain -= HandlePlayerRealeseAgain;
             _confirmationService.OnAllPlayersConfirmed -= HandleAllPlayersConfirmed;
         }
 
@@ -191,6 +193,15 @@ namespace MortierFu
                 return;
             
             _playerConfirmationUI.NotifyConfirmedPlayerPressedAgain(playerIndex);
+        }
+
+        private void HandlePlayerRealeseAgain(int playerIndex)
+        {
+            if (!_playerConfirmationUI)
+                return;
+            
+            Logs.LogWarning("here");
+            _playerConfirmationUI.NotifyPlayerReleaseSpam(playerIndex);
         }
 
         private void HandleAllPlayersConfirmed()

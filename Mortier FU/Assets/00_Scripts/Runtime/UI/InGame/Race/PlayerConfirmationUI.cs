@@ -414,18 +414,13 @@ namespace MortierFu
                 });
 
 
-            _ctsAnim?.Cancel();
-            _ctsAnim?.Dispose();
-            _ctsAnim = new CancellationTokenSource();
-            slot.ImagePlayer.sprite = slot.ImageConfirm;
+            slot.ImagePlayer.sprite = slot.ImageSpam;
 
-            PlayerConfirmedAgain(slot, _ctsAnim.Token).Forget();
         }
 
-        private async UniTask PlayerConfirmedAgain(PlayerSlot slot, CancellationToken ctx)
+        public  void NotifyPlayerReleaseSpam(int playerIndex)
         {
-            slot.ImagePlayer.sprite = slot.ImageSpam;
-            await UniTask.Delay(TimeSpan.FromSeconds(.15f));
+            PlayerSlot slot = _playerSlots[playerIndex];
             slot.ImagePlayer.sprite = slot.ImageConfirm;
         }
 
