@@ -17,7 +17,6 @@ namespace MortierFu
 
         private MatchConfig? _pendingMatchConfig;
         private MatchConfig _lastMatchConfig = MatchConfig.Default;
-        private GameModeBase _gm;
 
         private static IGameMode _currentGameModeInstance;
 
@@ -35,7 +34,7 @@ namespace MortierFu
 
         public UniTask OnInitialize()
         {
-            _gm = GameService.CurrentGameMode as GameModeBase;
+            
             _sceneService = ServiceManager.Instance.Get<SceneService>();
 
             if (_sceneService == null)
@@ -140,7 +139,7 @@ namespace MortierFu
             await sceneService.UnloadScene("MainMenu");
             
             _sceneService.HideLoadingScreen();
-            await CircleTransition.Instance.OpenAsync(_gm.FlowSettings.TransitionDuration);
+            await CircleTransition.Instance.OpenAsync(1f);
         }
         
         public void ReturnToLobby()
