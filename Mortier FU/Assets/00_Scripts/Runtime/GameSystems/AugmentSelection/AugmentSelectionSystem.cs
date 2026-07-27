@@ -489,5 +489,10 @@ namespace MortierFu
             public SO_Augment Augment;
             public bool IsPicked;
         }
+
+        public void AddAugmentInPickedAugment(PlayerCharacter player,SO_Augment augment)
+        {
+            _pickedAugments[player].Add(augment);
+        }
     }
 }
