@@ -73,6 +73,7 @@ namespace MortierFu.Analytics
             if (character != null && character.Owner != null)
             {
                 string playerId = GetPlayerIdFromCharacter(character.Owner);
+                _augmentPerPlayer[playerId] = augment;
                 if (_currentRoundPlayers != null && _currentRoundPlayers.TryGetValue(playerId, out var playerData))
                 {
                     playerData.selectedAugment = augment;
