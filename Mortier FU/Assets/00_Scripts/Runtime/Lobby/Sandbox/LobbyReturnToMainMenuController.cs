@@ -18,7 +18,6 @@ namespace MortierFu
         [SerializeField] private string _cancelLabel = "Cancel";
 
         private const bool _despawnLobbyCharacters = true;
-        private const bool _disableJoining = true;
 
         private PlayerManager _activePlayer;
         private bool _isReturning;
@@ -153,13 +152,7 @@ namespace MortierFu
                 _readyController.ResetReady();
         }
 
-        private void DisableJoining()
-        {
-            if (!_disableJoining)
-                return;
-
-            PlayerInputBridge.Instance?.CanJoin(false);
-        }
+        private void DisableJoining() => PlayerInputBridge.Instance?.CanJoin(false);
 
         private void ClearActiveBombshells()
         {

@@ -19,8 +19,6 @@ namespace MortierFu
 
         [Min(0f)] [SerializeField] private float _floatHeight = 0.45f;
 
-        [Min(0.01f)] [SerializeField] private float _collisionRadius = 0.35f;
-
         [Min(0.01f)] [SerializeField] private float _groundRaycastStartHeight = 3f;
 
         [Min(0.01f)] [SerializeField] private float _groundRaycastLength = 8f;

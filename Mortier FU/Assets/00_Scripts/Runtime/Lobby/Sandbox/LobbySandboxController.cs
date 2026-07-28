@@ -30,7 +30,6 @@ namespace MortierFu
 
         public event Action<PlayerManager> OnPlayerSpawned;
         public event Action OnGlobalLockStarted;
-        public event Action OnGlobalLockEnded;
 
         private void Awake() => InitializeAsync().Forget();
 
@@ -38,7 +37,6 @@ namespace MortierFu
         {
             OnPlayerSpawned = null;
             OnGlobalLockStarted = null;
-            OnGlobalLockEnded = null;
 
             _spawnedPlayers.Clear();
             
