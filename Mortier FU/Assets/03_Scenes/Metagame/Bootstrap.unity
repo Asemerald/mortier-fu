@@ -249,7 +249,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -1669,7 +1669,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1208791217}
   - component: {fileID: 1208791219}
-  - component: {fileID: 1208791218}
   - component: {fileID: 1208791220}
   m_Layer: 5
   m_Name: BootstrapPanel
@@ -1701,36 +1700,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1208791218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1208791216}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ad4148593b05d0f47980774815c325fe, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!222 &1208791219
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1966,7 +1935,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 2100000, guid: cfb1126230428534e982f0d45565671a, type: 2}
   m_Color: {r: 0, g: 0, b: 0, a: 0.29803923}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2132,7 +2101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 2100000, guid: 7bb0464308f33174cb6ef78996a266ee, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2250,36 +2219,12 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2497990277649750467, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5748455811640966842, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_audioModuleState
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5748455811640966842, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_findAudioListenerInCameraIfNull
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 7122515921895446280, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
       propertyPath: m_Name
       value: '[DebugManager]'
       objectReference: {fileID: 0}
-    - target: {fileID: 7122515921895446280, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8245993414839338909, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8245993414839338909, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
       propertyPath: playerInputManager
-      value: 
-      objectReference: {fileID: 1829325158}
-    - target: {fileID: 8245993414839338909, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: _playerInputManager
       value: 
       objectReference: {fileID: 1829325158}
     - target: {fileID: 8828831538657107683, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
@@ -2320,10 +2265,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8828831538657107683, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9144117917262259869, guid: 9bc99b0527dc878429cd6a4e21180069, type: 3}
-      propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

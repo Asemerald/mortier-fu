@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 using MortierFu.Shared;
 
 namespace MortierFu.Analytics
@@ -10,7 +11,7 @@ namespace MortierFu.Analytics
     {
         private const string GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbweVP5xpPXn1yIb4mxnllOAtJM8LTol0cVZU5_Unl4Q--GwPC3WhOXVvPjAMfwlgJSF/exec";
 
-        private async UniTask SendGameOverviewToGoogleSheets()
+        private async UniTask SendGameOverviewToGoogleSheets()  
         {
             if (ShouldSkipAnalyticsInEditor())
             {
@@ -115,6 +116,52 @@ namespace MortierFu.Analytics
                 Logs.LogError($"Exception while sending augment stats: {ex.Message}");
             }
         }
+
+        private async UniTask SendAllRoundsBatchToGoogleSheets()
+        {
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics augment send skipped in editor.");
+                return;
+            }
+
+            try
+            {
+                var batch = new RoundBatch
+                {
+                    gameId = _gameData.gameId,
+                    date = _gameData.date,
+                    gameVersion = _gameData.gameVersion,
+                    officialGameVersion = _gameData.officialGameVersion,
+                    numberOfPlayers = _gameData.numberOfPlayers,
+                    rounds = _gameData.rounds.Take(_gameData.roundsPlayed).ToList()
+                };
+                
+                string jsonPayload = JsonUtility.ToJson(batch);
+                Logs.Log($"[Analytics] Batch JSON: {jsonPayload}");
+                
+                WWWForm form  = new WWWForm();
+                form.AddField("dataType", "batch-rounds");
+                form.AddField("jsonData", jsonPayload);
+                
+                await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "batch-rounds");
+            }
+            catch (Exception ex)
+            {
+                Logs.LogError($"Exception while sending batch-rounds: {ex.Message}");
+            }
+        }
+
+        [Serializable]
+        public class RoundBatch
+        {
+            public string gameId;
+            public string date;
+            public string gameVersion;
+            public string officialGameVersion;
+            public int numberOfPlayers;
+            public List<AnalyticsRoundData> rounds;
+        }
         
         private async UniTask SendAllRoundsOverviewToGoogleSheets()
         {
@@ -170,7 +217,7 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
                             form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
                             form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
-                            form.AddField($"{prefix}DeathCause", player.playerId == round.roundWinner ? "Win" : ShortenDeathCause(player.deathCause));
+                            form.AddField($"{prefix}DeathCause", player.deathCauseName);
                         }
                         else
                         {

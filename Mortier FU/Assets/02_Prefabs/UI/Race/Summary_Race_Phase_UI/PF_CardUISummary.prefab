@@ -54,8 +54,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99bf2d14bad24344785250ff40efc9da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.AugmentCardSummaryRaceUI
+  _augmentVFXRarityPrototypes: []
   _raritySpritesFactory: {fileID: 11400000, guid: 15dd99e61f44be9449d6017014686d90, type: 2}
-  _titleImageBg: {fileID: 3583935621119016873}
   _nameTxt: {fileID: 6852629433893764895}
   _titleRarityFilter: {fileID: 9122887542151394684}
   _descTxt: {fileID: 8335125776719569016}
@@ -79,11 +79,15 @@ MonoBehaviour:
   - Rarity: 4
     NameColor: {r: 1, g: 0.95294124, b: 0.5686275, a: 1}
     DescriptionColor: {r: 0.96862745, g: 0.5411765, b: 0.29411766, a: 1}
+  anchor: {fileID: 0}
   _canvasGroup: {fileID: 4356207538100072339}
   _infoRoot: {fileID: 8471198505051907154}
   _explosionCardVFXPrefab: {fileID: 989115887285445215}
   _showExplosionDelay: 0.1
   _hideInfoDelay: 0.2
+  _symboleSize: 200
+  _sizeIcon: {x: 0.3, y: 0.3, z: 0.3}
+  AnchorIncon: {fileID: 0}
   indicatorPickCard: {fileID: 5070677884103952841}
   yOffset: 15
 --- !u!225 &4356207538100072339
@@ -44713,8 +44717,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: e6066fc4f85a0014eadc6ca1d5995562, type: 2}
-  m_sharedMaterial: {fileID: 2469389990321731942, guid: e6066fc4f85a0014eadc6ca1d5995562, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
+  m_sharedMaterial: {fileID: -1492481152366971632, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

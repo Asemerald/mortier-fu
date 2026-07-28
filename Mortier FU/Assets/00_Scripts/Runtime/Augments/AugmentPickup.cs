@@ -7,6 +7,12 @@ namespace MortierFu
 {
     public class AugmentPickup : AugmentVisual
     {
+        [Header("Pickup Grab VFX Pose")]
+        [SerializeField] private Vector3 _pickupGrabVfxPositionOffset;
+        [SerializeField] private Vector3 _pickupGrabVfxRotationOffset;
+        [SerializeField] private bool _overridePickupGrabVfxScale;
+        [SerializeField] private Vector3 _pickupGrabVfxScale = Vector3.one;
+        
         [SerializeField] private E_AugmentRarity _rarity;
 
         [SerializeField] private GameObject[] _pickupVFX;
@@ -96,7 +102,7 @@ namespace MortierFu
 
             HideVfx();
         }
-
+        
         private void PlayParticles()
         {
             CacheRuntimeComponents();
@@ -224,9 +230,15 @@ namespace MortierFu
             if (!prefab)
                 return;
 
-            Instantiate(prefab, transform.position, transform.rotation);
-        }
+            Vector3 spawnPosition = transform.TransformPoint(_pickupGrabVfxPositionOffset);
+            Quaternion spawnRotation = transform.rotation * Quaternion.Euler(_pickupGrabVfxRotationOffset);
 
+            GameObject instance = Instantiate(prefab, spawnPosition, spawnRotation);
+
+            if (_overridePickupGrabVfxScale)
+                instance.transform.localScale = _pickupGrabVfxScale;
+        }
+        
         public void SetAugmentVisual(SO_Augment augment)
         {
             if (!augment)

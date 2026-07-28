@@ -11,6 +11,8 @@ namespace MortierFu
         public GameObject RarityIcon;
         public AugmentCardSummaryRaceUI Card;
         public int RarityIconCount = 9;
+        public GameObject ImageAugmentNotDisplay;
+        public GameObject PlayerSkipImage;
 
         [Header("Player Animation Settings")]
         public float PlayerScaleDuration = 0.4f;
