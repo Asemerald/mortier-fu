@@ -161,7 +161,7 @@ namespace MortierFu.Analytics
             SendAugmentStatsToGoogleSheets().Forget();
             SendPlayerStatsToGoogleSheets().Forget();
             SendAllRoundsBatchToGoogleSheets().Forget();
-            SendAllRoundsOverviewToGoogleSheets().Forget();
+            //SendAllRoundsOverviewToGoogleSheets().Forget();
         }
 
         private void FinalizeGame()
