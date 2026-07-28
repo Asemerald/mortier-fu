@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
-
+using UnityEngine;
 
 namespace MortierFu
 {
@@ -61,7 +61,8 @@ namespace MortierFu
         public int rank;
         public int score;
         public int kills;
-        [CanBeNull, System.NonSerialized] public SO_Augment selectedAugment;
+        [System.NonSerialized] public SO_Augment selectedAugment;
+        public string selectedAugmentName;
         public float damageDealt;
         public float damageTaken;
         public int shotsFired;
@@ -72,6 +73,7 @@ namespace MortierFu
         public int stunsUnderwented;
         public int killerId;
         public E_DeathCause deathCause;
+        public string deathCauseName;
     }
 
     [System.Serializable]
