@@ -58,6 +58,8 @@ namespace MortierFu
 
         private CancellationTokenSource _cts;
 
+        private Sprite _spriteDefaultPlayer;
+
         private void Awake()
         {
             _raceGameObject.SetActive(false);
@@ -76,6 +78,10 @@ namespace MortierFu
             _ctsAnim?.Cancel();
             _ctsAnim?.Dispose();
             _ctsAnim = new CancellationTokenSource();
+            foreach (var slot in _playerSlots)
+            {
+                slot.DefaultImage = slot.ImagePlayer.sprite;
+            }
 
             SubscribeGameMode();
         }
@@ -93,6 +99,13 @@ namespace MortierFu
 
             _cts?.Cancel();
             _ctsAnim?.Cancel();
+            
+            foreach (var slot in _playerSlots)
+            {
+                slot.ImagePlayer.sprite = slot.DefaultImage;
+            }
+
+            
         }
 
         private void OnDestroy()
@@ -524,6 +537,7 @@ namespace MortierFu
 
             public Image OkImage;
             public Image ImagePlayer;
+            public Sprite DefaultImage;
             public Sprite ImageConfirm;
             public Sprite ImageSpam;
 
