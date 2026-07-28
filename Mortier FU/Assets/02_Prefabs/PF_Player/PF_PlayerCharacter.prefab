@@ -2388,27 +2388,16 @@ MonoBehaviour:
   _damageFbDelay: 0.3
   _damageFbDepleteDuration: 0.8
   _character: {fileID: 7161519617783280849}
-  _healthFillImg: {fileID: 2265403100437197865}
-  _damageFillImg: {fileID: 7310322042742947382}
-  _healthTicksImg: {fileID: 3092501404945620659}
-  _playerHUD: {fileID: 6948162952634498923}
-  _characterIcon: {fileID: 0}
-  _characterIcons:
-  - {fileID: 2018756260, guid: f8161f0500a507e439d1dcc0e83f4592, type: 3}
-  - {fileID: -2031282299, guid: f8161f0500a507e439d1dcc0e83f4592, type: 3}
-  - {fileID: 1544999081, guid: f8161f0500a507e439d1dcc0e83f4592, type: 3}
-  - {fileID: -1184083823, guid: f8161f0500a507e439d1dcc0e83f4592, type: 3}
-  _playerHUDSprites:
-  - {fileID: 2064894566, guid: 04bd8f2f8ee4b8345a2b6bbdc6c32f78, type: 3}
-  - {fileID: -462282696, guid: 04bd8f2f8ee4b8345a2b6bbdc6c32f78, type: 3}
-  - {fileID: 507054442, guid: 04bd8f2f8ee4b8345a2b6bbdc6c32f78, type: 3}
-  - {fileID: -321270456, guid: 04bd8f2f8ee4b8345a2b6bbdc6c32f78, type: 3}
+  _healthFillImg: {fileID: 3332477467800754025}
+  _damageFillImg: {fileID: 8358631453116912349}
+  _healthTicksImg: {fileID: 8231721650119184927}
+  _playerHUD: {fileID: 2015949701731507385}
   _tweenDuration: 0.5
   _startFadeDelay: 2
   _healthBarEase: 27
-  _reloadCdImage: {fileID: 7880725106173631209}
-  _strikeCdImage: {fileID: 8119642382066545626}
-  _dashChargeTiledImg: {fileID: 2132596596638210075}
+  _reloadCdImage: {fileID: 7788391698451475156}
+  _strikeCdImage: {fileID: 6314968071026553890}
+  _dashChargeTiledImg: {fileID: 7402536072377568331}
 --- !u!114 &7181580456864181083
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2438,7 +2427,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5234472891530339615
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3286,13 +3275,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8125870990903888195, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
       propertyPath: m_Name
       value: PF_Player_HUD
-      objectReference: {fileID: 0}
-    - target: {fileID: 8125870990903888195, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3304,3 +3293,80 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
   m_PrefabInstance: {fileID: 5525702895439160675}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2015949701731507385 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6292982317161740762, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &3332477467800754025 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7102294363232694794, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &6314968071026553890 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1949068534496039233, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &7402536072377568331 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3032095554984945960, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+--- !u!114 &7788391698451475156 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2358427693528289207, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &8231721650119184927 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4509174958336817020, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &8358631453116912349 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4562408675436623806, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+  m_PrefabInstance: {fileID: 5525702895439160675}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image

@@ -27,11 +27,6 @@ namespace MortierFu
         private Material _ticksMaterialInstance;
         [SerializeField] private Image _playerHUD;
 
-        [SerializeField] private Image _characterIcon;
-
-        [SerializeField] private Sprite[] _characterIcons;
-        [SerializeField] private Sprite[] _playerHUDSprites;
-
         [SerializeField] private float _tweenDuration = 0.5f;
         [SerializeField] private float _startFadeDelay = 2f;
 
@@ -135,7 +130,6 @@ namespace MortierFu
 
         private void Start()
         {
-            ApplyPlayerHudSprite();
             StartShowPlayerHUD(showIcon: true);
 
             OnHealthChanged(0f, 1f);
@@ -146,22 +140,7 @@ namespace MortierFu
             if (parentRect)
                 _damageBarWidth = parentRect.rect.width;
         }
-
-        private void ApplyPlayerHudSprite()
-        {
-            if (!_playerHUD || !_character || !_character.Owner)
-                return;
-
-            int playerIndex = _character.Owner.PlayerIndex;
-
-            if (_playerHUDSprites == null || playerIndex < 0 || playerIndex >= _playerHUDSprites.Length)
-            {
-                Logs.LogWarning($"[PlayerGameplayUI] Missing HUD sprite for Player {playerIndex + 1}.", this);
-                return;
-            }
-
-            _playerHUD.sprite = _playerHUDSprites[playerIndex];
-        }
+        
 
         private void OnDestroy()
         {
@@ -225,9 +204,6 @@ namespace MortierFu
                 ResetIntroReady();
 
                 PrepareHUDVisuals();
-
-                if (showIcon)
-                    SetupCharacterIcon();
 
                 await UniTask.Delay(TimeSpan.FromSeconds(_startFadeDelay), DelayType.UnscaledDeltaTime, PlayerLoopTiming.Update, cancellationToken);
 
@@ -310,16 +286,7 @@ namespace MortierFu
             if (_hudTween.isAlive)
                 _hudTween.Stop();
         }
-
-        private void SetupCharacterIcon()
-        {
-            if (_characterIcon == null || _character == null) return;
-
-            _characterIcon.transform.localScale = _scaleOne;
-            _characterIcon.enabled = true;
-
-            _characterIcon.sprite = _characterIcons[_character.Owner.PlayerIndex];
-        }
+        
 
         private void OnRoundEnded(RoundInfo roundInfo) => HidePlayerHUD().Forget();
 
