@@ -11,6 +11,7 @@ namespace MortierFu.Analytics
         private AnalyticsData _gameData;
         private int _currentRoundIndex = 0;
         private Dictionary<string, AnalyticsPlayerData> _currentRoundPlayers;
+        private Dictionary<string, SO_Augment> _augmentPerPlayer = new ();
         private System.DateTime _gameStartTime;
         private Dictionary<string, int> _lastKnownScorePerPlayer = new();
 
@@ -40,7 +41,7 @@ namespace MortierFu.Analytics
                 numberOfPlayers = ServiceManager.Instance.Get<LobbyService>().CurrentPlayerCount,
                 gameVersion = Application.version,
                 scoreToWin = (GameService.CurrentGameMode as GameModeBase)?.ScoreToWin ?? 0,
-                officialGameVersion = !Application.isEditor ? "b.1.5" : "Editor",
+                officialGameVersion = !Application.isEditor ? "b.1.6" : "Editor",
                 rounds = new AnalyticsRoundData[1000],
                 winner = "",
                 roundsPlayed = 0,
@@ -79,16 +80,6 @@ namespace MortierFu.Analytics
             InitializePlayersForRound();
         }
         
-        private string ShortenDeathCause(E_DeathCause cause)
-        {
-            return cause switch
-            {
-                E_DeathCause.BombshellExplosion => "Explosion",
-                E_DeathCause.FallAfterExplosion => "FallExplosion",
-                _ => cause.ToString()
-            };
-        }
-
         private void InitializePlayersForRound()
         {
             var lobbyService = ServiceManager.Instance.Get<LobbyService>();
@@ -97,6 +88,7 @@ namespace MortierFu.Analytics
             foreach (var player in players)
             {
                 string playerId = GetPlayerIdFromCharacter(player);
+                _augmentPerPlayer.TryGetValue(playerId, out var currentAugment);
                 var playerData = new AnalyticsPlayerData()
                 {
                     playerId = playerId,
@@ -104,6 +96,7 @@ namespace MortierFu.Analytics
                     score = _lastKnownScorePerPlayer.TryGetValue(playerId, out var lastScore) ? lastScore : 0,
                     kills = 0,
                     selectedAugment = null,
+                    selectedAugmentName = "-",
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
@@ -119,7 +112,16 @@ namespace MortierFu.Analytics
                 _currentRoundPlayers[playerId] = playerData;
             }
         }
-
+        private string ShortenDeathCause(E_DeathCause cause)
+        {
+            return cause switch
+            {
+                E_DeathCause.BombshellExplosion => "Explosion",
+                E_DeathCause.FallAfterExplosion => "FallExplosion",
+                _ => cause.ToString()
+            };
+        }
+        
         private void OnTriggerEndRound(TriggerEndRound endRound)
         {
             if (!IsInCombatPhase()) return;
@@ -138,13 +140,14 @@ namespace MortierFu.Analytics
 
             currentRound.players = _currentRoundPlayers.Values.ToList();
             currentRound.roundDurationSeconds = (int)(System.DateTime.UtcNow - _roundStartTime).TotalSeconds; 
-
-            var winner = currentRound.players.OrderByDescending(p => p.kills)
-                                            .ThenByDescending(p => p.score)
-                                            .FirstOrDefault();
-
+            
             if (winningTeam != null && winningTeam.Members.Count > 0)
                 currentRound.roundWinner = GetPlayerIdFromCharacter(winningTeam.Members[0]);
+
+            foreach (var player in currentRound.players)
+            {
+                player.deathCauseName = player.playerId == currentRound.roundWinner ? "Win" : ShortenDeathCause(player.deathCause);
+            }
 
             AssignRanks(currentRound.players);
         }
@@ -159,7 +162,8 @@ namespace MortierFu.Analytics
             SendGameOverviewToGoogleSheets().Forget();
             SendAugmentStatsToGoogleSheets().Forget();
             SendPlayerStatsToGoogleSheets().Forget();
-            SendAllRoundsOverviewToGoogleSheets().Forget();
+            SendAllRoundsBatchToGoogleSheets().Forget();
+            //SendAllRoundsOverviewToGoogleSheets().Forget();
         }
 
         private void FinalizeGame()
@@ -273,7 +277,7 @@ namespace MortierFu.Analytics
             }
             else
             {
-                Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase, scores finaux non lus depuis Teams.");
+                Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase.");
             }
 
             _gameData.finalPlayerStats = statsByPlayer.Values
