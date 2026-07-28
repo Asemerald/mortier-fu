@@ -496,14 +496,29 @@ namespace MortierFu
 
         public int GetWinnerPlayerIndex()
         {
-            if (IsGameOver(out var victor))
-                return victor?.Index ?? -1;
+            PlayerManager winner = GetWinnerPlayer();
 
-            if (_currentRound.WinningTeam != null)
-                return _currentRound.WinningTeam.Index;
+            if (winner)
+                return winner.PlayerIndex;
 
-            Logs.LogWarning("[GameModeBase] GetWinnerPlayerIndex called but no game victor or round winner was found.");
+            Logs.LogWarning("[GameModeBase] GetWinnerPlayerIndex called but no winner player was found.");
             return -1;
+        }
+        
+        public PlayerManager GetWinnerPlayer()
+        {
+            PlayerTeam winnerTeam = gameVictor;
+
+            if (winnerTeam == null && IsGameOver(out PlayerTeam resolvedVictor))
+                winnerTeam = resolvedVictor;
+
+            if (winnerTeam == null)
+                winnerTeam = _currentRound.WinningTeam;
+
+            if (winnerTeam?.Members != null && winnerTeam.Members.Count != 0) return winnerTeam.Members[0];
+            
+            Logs.LogWarning("[GameModeBase] GetWinnerPlayer called but no winner player was found.");
+            return null;
         }
 
         protected virtual void EndGame()
