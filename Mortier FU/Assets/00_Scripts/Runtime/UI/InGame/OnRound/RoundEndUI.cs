@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using PrimeTween;
 using TMPro;
 using UnityEngine;
@@ -11,13 +10,38 @@ using UnityEngine.UI;
 
 namespace MortierFu
 {
+    [Serializable]
+    public struct PlayerWinnerElements
+    {
+        public Color BackgroundColor;
+        public Color DarkerBackgroundColor;
+        public Color DotsColor;
+        public Color FirstShadowColor;
+        public Color SecondShadowColor;
+        public Color OutlineColor;
+        public Color MainExplosionColor;
+        public Color InsideColor;
+        public Color StarShadowColor;
+        public Color TitleWinColor;
+        public Sprite TitleWinSprite;
+    }
+    
     public class RoundEndUI : MonoBehaviour
     {
         [Header("Winner UI")]
-        [SerializeField] private Image _winnerTitleImage;
-        [SerializeField] private Image _winnerBackgroundImage;
-        [SerializeField] private Image _winnerBackgroundColorImage;
-
+        [SerializeField] private PlayerWinnerElements[] _winnerElements;
+        [SerializeField] private Image _titleWinImage;
+        [SerializeField] private Image _backgroundImage;
+        [SerializeField] private Image _darkerBackgroundImage;
+        [SerializeField] private Image _dotsImage;
+        [SerializeField] private Image _firstShadowImage;
+        [SerializeField] private Image _secondShadowImage;
+        [SerializeField] private Image _outlineImage;
+        [SerializeField] private Image _mainExplosionImage;
+        [SerializeField] private Image _insideImage;
+        [SerializeField] private Image _starShadowImage;
+        [SerializeField] private GameObject _winRoundUIRoot;
+        
         [Header("Player Panels")]
         [SerializeField] private RectTransform[] _playerSlots;
         [SerializeField] private Image[] _playerIcons;
@@ -796,14 +820,21 @@ namespace MortierFu
                 return;
 
             int idx = winningTeam.Index;
+            PlayerWinnerElements winnerElements = _winnerElements[idx];
 
-            _winnerTitleImage.sprite = _winnerTitleSprites[idx];
-            _winnerBackgroundImage.sprite = _winnerBackgrounds[idx];
-            _winnerBackgroundColorImage.sprite = _winnerBackgroundColors[idx];
-
-            _winnerTitleImage.gameObject.SetActive(true);
-            _winnerBackgroundImage.gameObject.SetActive(true);
-            _winnerBackgroundColorImage.gameObject.SetActive(true);
+            _backgroundImage.color = winnerElements.BackgroundColor;
+            _darkerBackgroundImage.color = winnerElements.DarkerBackgroundColor;
+            _dotsImage.color = winnerElements.DotsColor;
+            _firstShadowImage.color = winnerElements.FirstShadowColor;
+            _secondShadowImage.color = winnerElements.SecondShadowColor;
+            _outlineImage.color = winnerElements.OutlineColor;
+            _mainExplosionImage.color = winnerElements.MainExplosionColor;
+            _insideImage.color = winnerElements.InsideColor;
+            _starShadowImage.color = winnerElements.StarShadowColor;
+            _titleWinImage.sprite = winnerElements.TitleWinSprite;
+            _titleWinImage.color = winnerElements.TitleWinColor;
+            
+            _winRoundUIRoot.gameObject.SetActive(true);
         }
 
         private void SetPlayersToLeaderboardOrder(int[] order)
@@ -932,11 +963,9 @@ namespace MortierFu
         private void ResetUI()
         {
             _goldenBombshellCts?.Cancel();
-
-            _winnerTitleImage.gameObject.SetActive(false);
-            _winnerBackgroundImage.gameObject.SetActive(false);
-            _winnerBackgroundColorImage.gameObject.SetActive(false);
-
+            
+            _winRoundUIRoot.gameObject.SetActive(false);
+            
             for (int i = 0; i < _playerSlots.Length; i++)
             {
                 _playerSlots[i].gameObject.SetActive(false);
