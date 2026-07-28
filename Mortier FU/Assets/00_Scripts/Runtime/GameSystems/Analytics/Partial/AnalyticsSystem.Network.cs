@@ -138,6 +138,7 @@ namespace MortierFu.Analytics
                 };
                 
                 string jsonPayload = JsonUtility.ToJson(batch);
+                Logs.Log($"[Analytics] Batch JSON: {jsonPayload}");
                 
                 WWWForm form  = new WWWForm();
                 form.AddField("dataType", "batch-rounds");
@@ -216,7 +217,7 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
                             form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
                             form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
-                            form.AddField($"{prefix}DeathCause", player.playerId == round.roundWinner ? "Win" : ShortenDeathCause(player.deathCause));
+                            form.AddField($"{prefix}DeathCause", player.deathCauseName);
                         }
                         else
                         {

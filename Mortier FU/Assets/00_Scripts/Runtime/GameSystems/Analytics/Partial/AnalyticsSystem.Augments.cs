@@ -77,6 +77,7 @@ namespace MortierFu.Analytics
                 if (_currentRoundPlayers != null && _currentRoundPlayers.TryGetValue(playerId, out var playerData))
                 {
                     playerData.selectedAugment = augment;
+                    playerData.selectedAugmentName = augment.Name;
                 }
             }
         }

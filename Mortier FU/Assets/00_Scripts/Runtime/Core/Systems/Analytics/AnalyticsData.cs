@@ -62,6 +62,7 @@ namespace MortierFu
         public int score;
         public int kills;
         [System.NonSerialized] public SO_Augment selectedAugment;
+        public string selectedAugmentName;
         public float damageDealt;
         public float damageTaken;
         public int shotsFired;
@@ -72,6 +73,7 @@ namespace MortierFu
         public int stunsUnderwented;
         public int killerId;
         public E_DeathCause deathCause;
+        public string deathCauseName;
     }
 
     [System.Serializable]
