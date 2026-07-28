@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 using MortierFu.Shared;
 
 namespace MortierFu.Analytics
@@ -10,7 +11,7 @@ namespace MortierFu.Analytics
     {
         private const string GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbweVP5xpPXn1yIb4mxnllOAtJM8LTol0cVZU5_Unl4Q--GwPC3WhOXVvPjAMfwlgJSF/exec";
 
-        private async UniTask SendGameOverviewToGoogleSheets()
+        private async UniTask SendGameOverviewToGoogleSheets()  
         {
             if (ShouldSkipAnalyticsInEditor())
             {
@@ -115,7 +116,92 @@ namespace MortierFu.Analytics
                 Logs.LogError($"Exception while sending augment stats: {ex.Message}");
             }
         }
-        
+
+        private async UniTask SendAllRoundsBatchToGoogleSheets()
+        {
+            if (ShouldSkipAnalyticsInEditor())
+            {
+                Logs.Log("Analytics augment send skipped in editor.");
+                return;
+            }
+
+            try
+            {
+                List<RoundBatch> batchRounds = new List<RoundBatch>();
+
+                for (int i = 0; i < _gameData.roundsPlayed; i++)
+                {
+                    var round = _gameData.rounds[i];
+                    if (round?.players == null) continue;
+
+                    var roundDto = new RoundBatch
+                    {
+                        gameId = _gameData.gameId,
+                        date = _gameData.date,
+                        gameVersion = _gameData.gameVersion,
+                        officialGameVersion = _gameData.officialGameVersion,
+                        numberOfPlayers = _gameData.numberOfPlayers,
+                        roundsNumber = round.roundNumber,
+                        durationSeconds = round.roundDurationSeconds,
+                        roundWinner = round.roundWinner
+                    };
+
+                    for (int p = 0; p < 4; p++)
+                    {
+                        string playerId = p.ToString();
+                        var playerData = round.players.FirstOrDefault(x => x.playerId == playerId);
+
+                        string augmentName = (playerData != null && playerData.selectedAugment != null)
+                            ? playerData.selectedAugment.Name
+                            : "-";
+                        
+                        roundDto.playerAugments.Add(augmentName);
+                    }
+                    
+                    batchRounds.Add(roundDto);
+                }
+
+                RoundBatchPayload batch = new RoundBatchPayload
+                {
+                    dataType = "batch-rounds",
+                    rounds = batchRounds,
+                };
+                
+                string jsonPayload = JsonUtility.ToJson(batch);
+                
+                WWWForm form  = new WWWForm();
+                form.AddField("dataType", "batch-rounds");
+                form.AddField("jsonData", jsonPayload);
+                
+                await AnalyticsNetwork.SendFormWithRedirectHandling(GOOGLE_SHEETS_URL, form, "batch-rounds");
+            }
+            catch (Exception ex)
+            {
+                Logs.LogError($"Exception while sending batch-rounds: {ex.Message}");
+            }
+        }
+
+        [Serializable]
+        public class RoundBatch
+        {
+            public string gameId;
+            public string date;
+            public string gameVersion;
+            public string officialGameVersion;
+            public int numberOfPlayers;
+            public int roundsNumber;
+            public int durationSeconds;
+            public string roundWinner;
+            
+            public List<string> playerAugments = new List<string>();
+        }
+
+        [Serializable]
+        public class RoundBatchPayload
+        {
+            public string dataType;
+            public List<RoundBatch> rounds;
+        }
         private async UniTask SendAllRoundsOverviewToGoogleSheets()
         {
             if (ShouldSkipAnalyticsInEditor())
