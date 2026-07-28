@@ -326,7 +326,7 @@ MonoBehaviour:
   m_text: NAME
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
-  m_sharedMaterial: {fileID: 2469389990321731942, guid: e6066fc4f85a0014eadc6ca1d5995562, type: 2}
+  m_sharedMaterial: {fileID: -1492481152366971632, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -973,7 +973,7 @@ Transform:
   m_GameObject: {fileID: 8322403393388040827}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.11, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1082,7 +1082,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0.95}
+  m_AnchoredPosition: {x: 0, y: 1.06}
   m_SizeDelta: {x: 1200, y: 1800}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &4383984802654732978
@@ -1195,6 +1195,14 @@ PrefabInstance:
     - target: {fileID: 3698138987432158116, guid: 46211f83f8a930b4a9ddf0a29b326581, type: 3}
       propertyPath: m_Name
       value: PF_PS_ExplosionToScreen
+      objectReference: {fileID: 0}
+    - target: {fileID: 3698138987432158116, guid: 46211f83f8a930b4a9ddf0a29b326581, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5693936644070834920, guid: 46211f83f8a930b4a9ddf0a29b326581, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
