@@ -107,8 +107,6 @@ namespace MortierFu
             activePlayer = allPlayers[nextIndex];
 
             UpdateActivePlayer();
-
-            Debug.Log($"Switched to player: {activePlayer.name}");
         }
 
         public void UpdateActivePlayer()

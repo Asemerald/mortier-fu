@@ -206,7 +206,7 @@ namespace MortierFu
 
             InputRouter?.ApplyCurrentContextTo(RuntimeController.Character);
 
-            if (createdCharacter)
+            if (createdCharacter) 
                 OnPlayerInitialized?.Invoke(this);
         }
 
@@ -252,14 +252,23 @@ namespace MortierFu
 
         private void SubmitUI(InputAction.CallbackContext ctx)
         {
+            
             if (_unityEventSystemUIActive)
                 return;
+            
+            if (ctx.canceled)
+            {
+                UIInputService?.TrySubmitReleased(this);
+                Logs.LogWarning("here");
+                return;
+            }
 
             if (!ctx.performed)
                 return;
 
             if (!CurrentPermissions.CanConfirmUI)
                 return;
+            
 
             UIInputService?.TrySubmit(this);
         }

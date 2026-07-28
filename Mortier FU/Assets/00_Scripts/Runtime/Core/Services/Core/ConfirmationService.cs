@@ -24,9 +24,11 @@ namespace MortierFu
 
         public event Action<int> OnPlayerConfirmed;
         public event Action<int> OnPlayerConfirmedAgain;
+        public event Action<int> OnPlayerReleasedAgain;
+        
         public event Action OnAllPlayersConfirmed;
         public event Action<int> OnStartConfirmation;
-        
+
         public int PendingPlayersCount => _pendingPlayers.Count;
         public int PlayersParticipantsCount => _participants.Count;
 
@@ -35,7 +37,8 @@ namespace MortierFu
             _lobbyService = ServiceManager.Instance.Get<LobbyService>();
             _uiInputService = ServiceManager.Instance.Get<PlayerUIInputService>();
             _shakeService = ServiceManager.Instance.Get<ShakeService>();
-
+            _uiInputService.OnSubmitReleased += HandleSubmitCancel;
+            
             return UniTask.CompletedTask;
         }
 
@@ -132,7 +135,8 @@ namespace MortierFu
             OnPlayerConfirmed?.Invoke(player.PlayerIndex);
             _shakeService?.ShakeController(player, ShakeService.ShakeType.MID);
 
-            Logs.Log($"[ConfirmationService] Player {player.PlayerIndex + 1} confirmed. Remaining: {_pendingPlayers.Count}.");
+            Logs.Log(
+                $"[ConfirmationService] Player {player.PlayerIndex + 1} confirmed. Remaining: {_pendingPlayers.Count}.");
 
             if (_pendingPlayers.Count <= 0)
                 FinishConfirmation(true);
@@ -198,10 +202,11 @@ namespace MortierFu
             return result;
         }
 
-        public bool CanHandleUIInput(PlayerManager player) => _isWaitingForConfirmation && player && _participants.Contains(player);
+        public bool CanHandleUIInput(PlayerManager player) =>
+            _isWaitingForConfirmation && player && _participants.Contains(player);
 
         public bool HandleNavigate(PlayerManager player, Vector2 direction) => false;
-        
+
         public bool HandleSubmit(PlayerManager player)
         {
             if (!CanHandleUIInput(player))
@@ -215,6 +220,18 @@ namespace MortierFu
 
             OnPlayerConfirmedAgain?.Invoke(player.PlayerIndex);
             return true;
+        }
+
+        private void HandleSubmitCancel(PlayerManager player)
+        {
+            if (!CanHandleUIInput(player))
+                return;
+            if (_participants.Contains(player) && !_pendingPlayers.Contains(player))
+            {
+                OnPlayerReleasedAgain?.Invoke(player.PlayerIndex);
+                Logs.LogWarning("here");
+            }
+
         }
 
         public bool HandleCancel(PlayerManager player) => false;

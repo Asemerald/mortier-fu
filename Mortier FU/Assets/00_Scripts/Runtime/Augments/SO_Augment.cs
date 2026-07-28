@@ -15,8 +15,8 @@ namespace MortierFu
         //stoian
         
         public E_AugmentRarity Rarity;
-        public Sprite AugmentIllustration;
-        public Sprite AugmentIcon;
+        public Sprite CardSprite;
+        public Sprite SmallSprite;
         
         [TypeFilter(typeof(IAugment))]
         public SerializableType AugmentType;
