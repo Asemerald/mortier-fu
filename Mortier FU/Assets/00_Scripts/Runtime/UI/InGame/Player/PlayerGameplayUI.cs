@@ -25,7 +25,7 @@ namespace MortierFu
         private float _previousDamageNormalized;
         [SerializeField] private Image _healthTicksImg;
         private Material _ticksMaterialInstance;
-        [SerializeField] private Image _playerHUD;
+        [SerializeField] private RectTransform _playerHUD;
 
         [SerializeField] private float _tweenDuration = 0.5f;
         [SerializeField] private float _startFadeDelay = 2f;
@@ -228,9 +228,9 @@ namespace MortierFu
                 return;
             }
 
-            _playerHUD.transform.localScale = Vector3.zero;
+            _playerHUD.localScale = Vector3.zero;
 
-            _hudTween = Tween.Scale(_playerHUD.transform, _scaleOne, _tweenDuration, _healthBarEase, useUnscaledTime: true);
+            _hudTween = Tween.Scale(_playerHUD, _scaleOne, _tweenDuration, _healthBarEase, useUnscaledTime: true);
 
             await WaitForTweenAsync(_hudTween, cancellationToken);
         }
@@ -238,7 +238,7 @@ namespace MortierFu
         private void PrepareHUDVisuals()
         {
             if (_playerHUD)
-                _playerHUD.transform.localScale = Vector3.zero;
+                _playerHUD.localScale = Vector3.zero;
         }
 
         private void ResetIntroReady() => IsIntroReady = false;
@@ -263,7 +263,7 @@ namespace MortierFu
             if (!_playerHUD)
                 return;
 
-            _hudTween = Tween.Scale(_playerHUD.transform, Vector3.zero, _tweenDuration, _healthBarEase, useUnscaledTime: true);
+            _hudTween = Tween.Scale(_playerHUD, Vector3.zero, _tweenDuration, _healthBarEase, useUnscaledTime: true);
 
             await WaitForTweenAsync(_hudTween, CancellationToken.None);
         }
@@ -397,10 +397,10 @@ namespace MortierFu
                 scale += _character.transform.localScale.x * 0.04f;
             }
 
-            _playerHUD.rectTransform.localScale = new Vector3(scale, scale, scale);
+            _playerHUD.localScale = new Vector3(scale, scale, scale);
 
             var yOffset = 1.27f - (Mathf.Abs(1 - _character.transform.localScale.x) * 0.25f);
-            _playerHUD.rectTransform.localPosition = new Vector3(0, yOffset, 0);
+            _playerHUD.localPosition = new Vector3(0, yOffset, 0);
         }
     }
 }
