@@ -1,10 +1,7 @@
-    using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MortierFu.Shared;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
@@ -15,7 +12,7 @@ namespace MortierFu
     {
         [SerializeField] private SO_RaritySpritesFactory _raritySpritesFactory;
 
-        [SerializeField] private Image _titleImageBg;
+        //[SerializeField] private Image _titleImageBg;
         [SerializeField] private TextMeshProUGUI _nameTxt;
         [SerializeField] private RawImage _titleRarityFilter;
         [SerializeField] private TextMeshProUGUI _descTxt;
@@ -72,15 +69,9 @@ namespace MortierFu
             _initialCanvasAlpha = _canvasGroup.alpha;
         }
 
-        private void Start()
-        {
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-        }
+        private void Start() => _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
-        private void OnDisable()
-        {
-            _cts?.Cancel();
-        }
+        private void OnDisable() => _cts?.Cancel();
 
         private void OnDestroy()
         {
@@ -97,7 +88,7 @@ namespace MortierFu
             }
 
             var data = GetRarityData(augment.Rarity);
-
+            
             _augmentIcon.gameObject.SetActive(false);
             _augmentBack.gameObject.SetActive(false);
             _explosionCardVFXPrefab.SetActive(false);
@@ -118,8 +109,6 @@ namespace MortierFu
                 _sb.Append(GetValueSuffix(desc.value));
                 _sb.AppendLine();
             }
-            
-            
 
             _descTxt.color = data.DescriptionColor;
             _descTxt.SetText(_sb.ToString());
@@ -136,8 +125,6 @@ namespace MortierFu
                 
                 _vfxCard.transform.position = transform.position;
             }
-
-            
             
             _augmentIcon.sprite = augment.SmallSprite;
             _augmentCard.sprite = augment.CardSprite;
@@ -160,12 +147,10 @@ namespace MortierFu
             
             return symbol == "" ? "" : $"<size={_symboleSize}%><b>{symbol}</b></size>";
         }
-        
 
         public void SetIconCardVisual(SO_Augment augment)
         {
-            _vfxInstance = SetAugmentVisualIcon(augment, Vector3.zero, Quaternion.Euler(_visualRotationIcon),
-                anchor, _sizeIcon, true);
+            _vfxInstance = SetAugmentVisualIcon(augment, Vector3.zero, Quaternion.Euler(_visualRotationIcon), anchor, _sizeIcon, true);
 
             var children = _vfxInstance.GetComponentsInChildren<Transform>(true);
             foreach (var child in children)
@@ -203,18 +188,22 @@ namespace MortierFu
 
         public void DisableObjectsOnFlip()
         {
-            _titleImageBg.gameObject.SetActive(false);
+            //_titleImageBg.gameObject.SetActive(false);
+            _nameTxt.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
             _vfxInstance.SetActive(false);
+            
             if(_vfxCard != null)
                 _vfxCard.SetActive(false);
+            
             _augmentBack.gameObject.SetActive(true);
             _augmentIcon.gameObject.SetActive(true);
         }
 
         private void DisableObjects()
         {
-            _titleImageBg.gameObject.SetActive(false);
+            //_titleImageBg.gameObject.SetActive(false);
+            _nameTxt.gameObject.SetActive(false);
             _descTxt.gameObject.SetActive(false);
 
             _augmentBack.gameObject.SetActive(false);
@@ -245,7 +234,8 @@ namespace MortierFu
 
             _infoRoot.anchoredPosition = _initialInfoPos;
 
-            _titleImageBg.gameObject.SetActive(true);
+            //_titleImageBg.gameObject.SetActive(true);
+            _nameTxt.gameObject.SetActive(true);
             _descTxt.gameObject.SetActive(true);
             _augmentCard.gameObject.SetActive(true);
             _augmentBorder.gameObject.SetActive(true);
@@ -256,10 +246,7 @@ namespace MortierFu
             SetFaceCameraEnabled(true);
         }
 
-        public void Reset()
-        {
-            _explosionCardVFXPrefab.SetActive(false);
-        }
+        public void Reset() => _explosionCardVFXPrefab.SetActive(false);
 
         [Serializable]
         private struct RarityData

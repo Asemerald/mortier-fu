@@ -86,7 +86,7 @@ namespace MortierFu
                 pickupVFX.transform.localPosition = pickup.transform.position;
 
                 // TODO : Atroce hack to fix VFX rotation
-                pickupVFX.transform.rotation *= Quaternion.Euler(0f, 15f, 0f);
+               // pickupVFX.transform.rotation *= Quaternion.Euler(0f, 18f, 0f);
                 
                 await GrowPickup(pickup, cardScale, ct);
 
