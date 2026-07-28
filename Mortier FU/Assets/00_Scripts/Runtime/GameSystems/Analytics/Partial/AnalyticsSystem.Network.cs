@@ -127,44 +127,14 @@ namespace MortierFu.Analytics
 
             try
             {
-                List<RoundBatch> batchRounds = new List<RoundBatch>();
-
-                for (int i = 0; i < _gameData.roundsPlayed; i++)
+                var batch = new RoundBatch
                 {
-                    var round = _gameData.rounds[i];
-                    if (round?.players == null) continue;
-
-                    var roundDto = new RoundBatch
-                    {
-                        gameId = _gameData.gameId,
-                        date = _gameData.date,
-                        gameVersion = _gameData.gameVersion,
-                        officialGameVersion = _gameData.officialGameVersion,
-                        numberOfPlayers = _gameData.numberOfPlayers,
-                        roundsNumber = round.roundNumber,
-                        durationSeconds = round.roundDurationSeconds,
-                        roundWinner = round.roundWinner
-                    };
-
-                    for (int p = 0; p < 4; p++)
-                    {
-                        string playerId = p.ToString();
-                        var playerData = round.players.FirstOrDefault(x => x.playerId == playerId);
-
-                        string augmentName = (playerData != null && playerData.selectedAugment != null)
-                            ? playerData.selectedAugment.Name
-                            : "-";
-                        
-                        roundDto.playerAugments.Add(augmentName);
-                    }
-                    
-                    batchRounds.Add(roundDto);
-                }
-
-                RoundBatchPayload batch = new RoundBatchPayload
-                {
-                    dataType = "batch-rounds",
-                    rounds = batchRounds,
+                    gameId = _gameData.gameId,
+                    date = _gameData.date,
+                    gameVersion = _gameData.gameVersion,
+                    officialGameVersion = _gameData.officialGameVersion,
+                    numberOfPlayers = _gameData.numberOfPlayers,
+                    rounds = _gameData.rounds.Take(_gameData.roundsPlayed).ToList()
                 };
                 
                 string jsonPayload = JsonUtility.ToJson(batch);
@@ -189,19 +159,9 @@ namespace MortierFu.Analytics
             public string gameVersion;
             public string officialGameVersion;
             public int numberOfPlayers;
-            public int roundsNumber;
-            public int durationSeconds;
-            public string roundWinner;
-            
-            public List<string> playerAugments = new List<string>();
+            public List<AnalyticsRoundData> rounds;
         }
-
-        [Serializable]
-        public class RoundBatchPayload
-        {
-            public string dataType;
-            public List<RoundBatch> rounds;
-        }
+        
         private async UniTask SendAllRoundsOverviewToGoogleSheets()
         {
             if (ShouldSkipAnalyticsInEditor())
