@@ -96,6 +96,7 @@ namespace MortierFu.Analytics
                     score = _lastKnownScorePerPlayer.TryGetValue(playerId, out var lastScore) ? lastScore : 0,
                     kills = 0,
                     selectedAugment = null,
+                    selectedAugmentName = "-",
                     damageDealt = 0f,
                     damageTaken = 0f,
                     shotsFired = 0,
@@ -139,13 +140,14 @@ namespace MortierFu.Analytics
 
             currentRound.players = _currentRoundPlayers.Values.ToList();
             currentRound.roundDurationSeconds = (int)(System.DateTime.UtcNow - _roundStartTime).TotalSeconds; 
-
-            var winner = currentRound.players.OrderByDescending(p => p.kills)
-                                            .ThenByDescending(p => p.score)
-                                            .FirstOrDefault();
-
+            
             if (winningTeam != null && winningTeam.Members.Count > 0)
                 currentRound.roundWinner = GetPlayerIdFromCharacter(winningTeam.Members[0]);
+
+            foreach (var player in currentRound.players)
+            {
+                player.deathCauseName = player.playerId == currentRound.roundWinner ? "Win" : ShortenDeathCause(player.deathCause);
+            }
 
             AssignRanks(currentRound.players);
         }
@@ -275,7 +277,7 @@ namespace MortierFu.Analytics
             }
             else
             {
-                Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase, scores finaux non lus depuis Teams.");
+                Logs.LogWarning("[AnalyticsSystem] Impossible de caster CurrentGameMode en GameModeBase.");
             }
 
             _gameData.finalPlayerStats = statsByPlayer.Values
