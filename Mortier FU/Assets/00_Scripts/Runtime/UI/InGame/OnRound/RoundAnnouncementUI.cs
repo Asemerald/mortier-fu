@@ -191,7 +191,7 @@ namespace MortierFu
 
             t.position = startPos;
             t.localScale = Vector3.one * _playStartingScale;
-            _playCanvasGroup.alpha = 0f;
+            //_playCanvasGroup.alpha = 0f;
 
             _playGameObject.SetActive(true);
 
@@ -210,7 +210,7 @@ namespace MortierFu
                 ))
                 .Group(Tween.Alpha(
                     _playCanvasGroup,
-                    0f,
+                    1f,
                     1f,
                     _playPopDuration,
                     Ease.OutQuad
@@ -231,7 +231,7 @@ namespace MortierFu
             await Tween.Alpha(
                 _playCanvasGroup,
                 1f,
-                0f,
+                1f,
                 _playFadeOutDuration,
                 Ease.InQuad
             );
