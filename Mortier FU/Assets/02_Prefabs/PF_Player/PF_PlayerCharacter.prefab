@@ -239,7 +239,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2028226504, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
+  m_Sprite: {fileID: -462729369, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1347,15 +1347,21 @@ MonoBehaviour:
   _healthTweenDuration: 0.18
   _damageFbDelay: 0.3
   _damageFbDepleteDuration: 0.8
+  _tweenDuration: 0.5
+  _startFadeDelay: 1
+  _healthBarEase: 27
   _character: {fileID: 7161519617783280849}
+  backgroundPlayerColor:
+  - {fileID: 2028226504, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
+  - {fileID: -462729369, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
+  - {fileID: -993608489, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
+  - {fileID: 30991418, guid: b8b65f31db01c9041a02f371ad989a74, type: 3}
+  _playerColorImg: {fileID: 9156914465600479496}
   _healthFillImg: {fileID: 556339723087707777}
   _damageFillImg: {fileID: 6518962227195018037}
   _healthTicksImg: {fileID: 6609913867267619831}
-  _playerHUD: {fileID: 5700917863404535320}
-  _tweenDuration: 0.5
-  _startFadeDelay: 2
-  _healthBarEase: 27
   _reloadCdImage: {fileID: 5013137926760432444}
+  _playerHUD: {fileID: 5700917863404535320}
   _strikeCdImage: {fileID: 9089553357389798858}
   _dashChargeTiledImg: {fileID: 5709655892467754403}
 --- !u!114 &7181580456864181083
@@ -2073,6 +2079,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5700917863404535320}
     m_Modifications:
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 7.079999
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0.91999996
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.71000016
+      objectReference: {fileID: 0}
+    - target: {fileID: 2206303946283849005, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.26399934
+      objectReference: {fileID: 0}
     - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2104,18 +2142,6 @@ PrefabInstance:
     - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
       propertyPath: m_SizeDelta.y
       value: 1.78
-      objectReference: {fileID: 0}
-    - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 6574724799914388072, guid: 0068d9e11965dcc41a114d4e6911462c, type: 3}
       propertyPath: m_LocalPosition.x
