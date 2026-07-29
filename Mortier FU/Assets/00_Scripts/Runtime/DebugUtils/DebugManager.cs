@@ -52,11 +52,16 @@ public class DebugManager : MonoBehaviour
 
     private void Awake()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (!enableDebugMode)
         {
+            Logs.LogWarning("DebugManager is disabled in the editor. Enable it to use debug features.");
             Destroy(gameObject);
             return;
         }
+#else
+        Destroy(gameObject);
+#endif
         
         // Singleton setup
         if (instance != null && instance != this)
