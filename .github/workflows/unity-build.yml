@@ -56,3 +56,12 @@ jobs:
           name: Build-Windows
           path: Mortier FU/Builds/Build-Windows.zip
           if-no-files-found: ignore
+            
+      # --- STEAM DEPLOY ---
+      - name: Deploy to Steam
+        shell: cmd
+        env:
+          STEAM_USER: ${{ secrets.STEAM_USERNAME }}
+          STEAM_PASS: ${{ secrets.STEAM_PASSWORD }}
+        run: |
+            "C:\Users\t.druesne\Downloads\steamworks_sdk_164\sdk\tools\ContentBuilder\builder\steamcmd.exe" +login %STEAM_USER% %STEAM_PASS% +run_app_build "C:\Users\t.druesne\Downloads\steamworks_sdk_164\sdk\tools\ContentBuilder\scripts\app_4916100.vdf" +quit
