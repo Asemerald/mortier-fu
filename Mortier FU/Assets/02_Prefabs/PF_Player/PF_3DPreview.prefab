@@ -277,7 +277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
   _selectionGraphic: {fileID: 0}
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
-  _selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _selectedArrowColor: {r: 1, g: 0.21509093, b: 0.015686274, a: 1}
   _minValue: 1
   _maxValue: 10
   _step: 1
@@ -287,8 +287,9 @@ MonoBehaviour:
   _leftArrow: {fileID: 2602925171271801932}
   _rightArrow: {fileID: 5219108441605046817}
   _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _selectedArrowColor: {r: 1, g: 0.21509093, b: 0.015686274, a: 1}
   _usedArrowColor: {r: 0, g: 1, b: 0, a: 1}
+  _usedFlashDuration: 0.3
+  _usedFlashEase: 6
   _onValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -303,7 +304,6 @@ GameObject:
   - component: {fileID: 4343647086678590143}
   - component: {fileID: 4898258325317369519}
   - component: {fileID: 3135103843509053728}
-  - component: {fileID: 6730487803265512122}
   m_Layer: 11
   m_Name: CustomizationCanvas
   m_TagString: Untagged
@@ -380,23 +380,6 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 1
---- !u!114 &6730487803265512122
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5799953550585244196}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &6685796937784139517
 GameObject:
   m_ObjectHideFlags: 0
@@ -524,7 +507,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIIntStepperItem
   _selectionGraphic: {fileID: 0}
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
-  _selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _selectedArrowColor: {r: 1, g: 0.21913917, b: 0.015686274, a: 1}
   _minValue: 1
   _maxValue: 10
   _step: 1
@@ -534,8 +517,9 @@ MonoBehaviour:
   _leftArrow: {fileID: 4161024017653212329}
   _rightArrow: {fileID: 6501853984616130019}
   _normalArrowColor: {r: 1, g: 1, b: 1, a: 1}
-  _selectedArrowColor: {r: 1, g: 0.21913917, b: 0.015686274, a: 1}
   _usedArrowColor: {r: 0, g: 1, b: 0, a: 1}
+  _usedFlashDuration: 0.3
+  _usedFlashEase: 6
   _onValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -605,8 +589,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4810084955676261785}
-  - component: {fileID: 750389596664957526}
-  - component: {fileID: 905116937098137458}
   - component: {fileID: 1766480175715752023}
   - component: {fileID: 2984828235087880591}
   m_Layer: 11
@@ -626,47 +608,13 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.06526313, y: 0.8586165, z: 0.4957224, w: -0.11303909}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4.2781878, y: 4.2781873, z: 4.2781873}
+  m_LocalScale: {x: 4.278188, y: 4.2781873, z: 4.278187}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5511883651524205118}
   - {fileID: 4343647086678590143}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -60, y: 195, z: 0}
---- !u!95 &750389596664957526
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8887413936584953537}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 2c0497b879590e34eb44495e548e065e, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &905116937098137458
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8887413936584953537}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b63cf748106924c44aee4ac6829496b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::AnimatorToAudioBridge
 --- !u!114 &1766480175715752023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -720,12 +668,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.LobbyCustomizationPreview
   _root: {fileID: 8887413936584953537}
-  _animator: {fileID: 750389596664957526}
+  _animator: {fileID: 8084932545970293679}
   _customizationVisual: {fileID: 1766480175715752023}
+  _customizationCanvas: {fileID: 5799953550585244196}
   _enterStateName: 
   _exitStateName: A_Player_Lobby_ReadyToSitting
-  _enterDuration: 0.4
-  _exitDuration: 0.5
+  _enterDuration: 0
+  _exitDuration: 0.45
 --- !u!1001 &2503118256413828898
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -791,28 +740,8 @@ PrefabInstance:
     - {fileID: 1730139205179396775, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
     - {fileID: 2756406362194943415, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1091089241000586317, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3397728510431564991}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
---- !u!1 &3285533332481264495 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1091089241000586317, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
-  m_PrefabInstance: {fileID: 2503118256413828898}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3397728510431564991
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3285533332481264495}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b63cf748106924c44aee4ac6829496b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Mortierfu.Runtime::AnimatorToAudioBridge
 --- !u!137 &5032743881932071049 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 7452112885263861675, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
@@ -821,6 +750,11 @@ SkinnedMeshRenderer:
 --- !u!4 &5511883651524205118 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7981214377316810012, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
+  m_PrefabInstance: {fileID: 2503118256413828898}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8084932545970293679 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5949166710280596621, guid: 956f40a60a2983047a8b1500cf39e332, type: 3}
   m_PrefabInstance: {fileID: 2503118256413828898}
   m_PrefabAsset: {fileID: 0}
 --- !u!137 &8563517508809214567 stripped

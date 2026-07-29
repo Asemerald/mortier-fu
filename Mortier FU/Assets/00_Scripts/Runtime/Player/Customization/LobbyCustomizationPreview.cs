@@ -12,6 +12,7 @@ namespace MortierFu
         [SerializeField] private GameObject _root;
         [SerializeField] private Animator _animator;
         [SerializeField] private PlayerCustomizationVisual _customizationVisual;
+        [SerializeField] private GameObject _customizationCanvas;
 
         [Header("Animations")]
         [Tooltip("(Optionnel) Si vide, cela lance l'animation de base de l'animator.")]
@@ -32,15 +33,13 @@ namespace MortierFu
                 _root.SetActive(false);
         }
 
-        public async UniTask ShowAsync(
-            PlayerCustomizationData customization,
-            int colorIndex,
-            CancellationToken cancellationToken
-        )
+        public async UniTask ShowAsync(PlayerCustomizationData customization, int colorIndex, CancellationToken cancellationToken)
         {
             if (_root)
                 _root.SetActive(true);
 
+            _customizationCanvas.SetActive(true);
+            
             SetCustomColor(colorIndex);
             
             Apply(customization);
@@ -48,28 +47,20 @@ namespace MortierFu
             PlayState(_enterStateName);
 
             if (_enterDuration > 0f)
-            {
-                await UniTask.Delay(
-                    TimeSpan.FromSeconds(_enterDuration),
-                    cancellationToken: cancellationToken
-                );
-            }
+                await UniTask.Delay(TimeSpan.FromSeconds(_enterDuration), cancellationToken: cancellationToken );
         }
 
         public async UniTask HideAsync(CancellationToken cancellationToken)
         {
             if (!_root || !_root.activeSelf)
                 return;
-
+            
+            _customizationCanvas.SetActive(false);
+            
             PlayState(_exitStateName);
 
             if (_exitDuration > 0f)
-            {
-                await UniTask.Delay(
-                    TimeSpan.FromSeconds(_exitDuration),
-                    cancellationToken: cancellationToken
-                );
-            }
+                await UniTask.Delay(TimeSpan.FromSeconds(_exitDuration), cancellationToken: cancellationToken);
 
             if (_root)
                 _root.SetActive(false);
