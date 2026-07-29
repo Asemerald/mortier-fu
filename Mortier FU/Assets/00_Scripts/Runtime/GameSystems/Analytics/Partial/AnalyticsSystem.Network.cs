@@ -215,8 +215,8 @@ namespace MortierFu.Analytics
                             form.AddField($"{prefix}Stunned", player.stunsUnderwented.ToString());
                             form.AddField($"{prefix}ShotFired", player.shotsFired.ToString());
                             form.AddField($"{prefix}ShotHit", player.shotsHit.ToString());
-                            form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString("F2"));
-                            form.AddField($"{prefix}Taken", player.damageTaken.ToString("F2"));
+                            form.AddField($"{prefix}DamageDealt", player.damageDealt.ToString());
+                            form.AddField($"{prefix}Taken", player.damageTaken.ToString());
                             form.AddField($"{prefix}DeathCause", player.deathCauseName);
                         }
                         else
