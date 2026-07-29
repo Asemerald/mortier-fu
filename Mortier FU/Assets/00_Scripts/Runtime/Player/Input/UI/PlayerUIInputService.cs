@@ -123,7 +123,6 @@ namespace MortierFu
             if (!player)
                 return false;
             
-            Logs.LogWarning("here");
             OnSubmitReleased?.Invoke(player);
             return true;
         }

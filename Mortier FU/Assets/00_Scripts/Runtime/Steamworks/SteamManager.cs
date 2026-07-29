@@ -144,6 +144,9 @@ public class SteamManager : MonoBehaviour {
 			m_SteamAPIWarningMessageHook = new SteamAPIWarningMessageHook_t(SteamAPIDebugTextHook);
 			SteamClient.SetWarningMessageHook(m_SteamAPIWarningMessageHook);
 		}
+		
+		SteamUserStats.ResetAllStats(true);
+		SteamUserStats.StoreStats();
 	}
 
 	// OnApplicationQuit gets called too early to shutdown the SteamAPI.
@@ -174,45 +177,22 @@ public class SteamManager : MonoBehaviour {
 		
 	}
 
-	public static void AddProgressToAchievement(string achievementID, int maxProgress, int progressToAdd = 1)
+	public static void AddProgressToStat(string statID, int progressToAdd = 1)
 	{
 		if (!Initialized)
 		{
-			Logs.LogWarning("[Steamworks.NET] SteamAPI is not initialized. Cannot add progress to achievement.");
-			return;
-		}
-
-		bool alreadyDone; 
-		if (!SteamUserStats.GetAchievement(achievementID, out alreadyDone))
-		{
-			Logs.LogWarning($"[Steamworks.NET] Achievement '{achievementID}' does not exist or could not be retrieved.");
-			return;
-		}
-		
-		if (alreadyDone)
-		{
-			Logs.LogWarning($"[Steamworks.NET] Achievement '{achievementID}' is already unlocked.");
+			Logs.LogWarning("[Steamworks.NET] SteamAPI is not initialized. Cannot add progress to stat.");
 			return;
 		}
 
 		int currentStat;
-		if (!SteamUserStats.GetStat(achievementID, out currentStat))
-		{
-			Logs.LogWarning($"[Steamworks.NET] Failed to get stat for achievement '{achievementID}'.");
-			return;
-		}
 		
+		currentStat = SteamUserStats.GetStat(statID, out currentStat) ? currentStat : 0;
 		currentStat += progressToAdd;
 
-		if (!SteamUserStats.SetStat(achievementID, currentStat))
-		{
-			Logs.LogError($"[Steamworks.NET] Failed to set stat for achievement '{achievementID}'.");
-			return;
-		}
+		SteamUserStats.SetStat(statID, progressToAdd);
 		
-		// Update Stats 
-		
-		SteamUserStats.IndicateAchievementProgress(achievementID, (uint)currentStat, (uint)maxProgress);
+		SteamUserStats.StoreStats();
 	}
 
 	public static void UnlockAchievement(string achievementID)

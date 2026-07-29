@@ -110,6 +110,12 @@ namespace MortierFu
             _currentHealth = 0;
             OnDeath?.Invoke(source);
 
+            if (character.StunState.IsActive && character.ControlContext is PlayerControlContext.RoundGameplay)
+            {
+                SteamManager.UnlockAchievement("KILL_WHILE_STUNNED");
+            }
+               
+
             DeathContext context = ResolveDeathContext(character, source);
 
             EventBus<EventPlayerDeath>.Raise(new EventPlayerDeath
@@ -141,12 +147,24 @@ namespace MortierFu
                     if (kn.LastBumpSource is Bumper)
                     {
                         AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_CarCrash, character.transform.position);
+                        
+                        if (character.ControlContext is PlayerControlContext.RoundGameplay)
+                        {
+                            SteamManager.UnlockAchievement("TRAFFIC_DEATH");
+                        }
+                        
                         return CreateDeathContext(character, source, kn.LastPusher, E_DeathCause.VehicleCrash);
                     }
 
                     if (kn.LastPusher)
                     {
                         AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
+                        
+                        if (character.ControlContext is PlayerControlContext.RoundGameplay)
+                        {
+                            SteamManager.UnlockAchievement("PUSH_WATER_KILL");
+                        }
+                        
                         return CreateDeathContext(character, source, kn.LastPusher, E_DeathCause.Fall);
                     }
                 }

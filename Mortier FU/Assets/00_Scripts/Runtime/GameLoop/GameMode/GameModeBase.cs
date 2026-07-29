@@ -201,6 +201,11 @@ namespace MortierFu
             GameplayLoop(_gameplayCancellation.Token).Forget();
 
             Logs.Log("Starting the game...");
+            
+            if (lobbyService.Players.Count == 4)
+            {
+                SteamManager.UnlockAchievement("START_FOUR_PLAYERS");
+            }
         }
 
         protected virtual async UniTask RunAugmentRacePhaseAsync(CancellationToken cancellationToken)

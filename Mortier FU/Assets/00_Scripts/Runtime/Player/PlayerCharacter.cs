@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -110,6 +111,7 @@ namespace MortierFu
         
         public Transform GetStrikePoint() => _strikePoint;
         public KnockbackState KnockbackState => _knockbackState;
+        public StunState StunState => _stunState;
         public Transform FeetPoint => _feetPoint;
         
         public event Action<PlayerLobbyTutorialAction> OnTutorialActionPerformed;
@@ -604,9 +606,16 @@ namespace MortierFu
                     Character = this,
                     Source = _knockbackState.LastBumpSource,
                 });
+                
+                if (_knockbackState.LastBumpSource is PlayerCharacter && ControlContext is PlayerControlContext.RoundGameplay)
+                {
+                    SteamManager.UnlockAchievement("STUN_PLAYER");
+                }
 
                 _knockbackState.ClearLastBumpSource();
             }
+            
+            
         }
 
 #if UNITY_EDITOR
