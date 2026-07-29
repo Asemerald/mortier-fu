@@ -274,15 +274,15 @@ namespace MortierFu.Analytics
                         _gameData.finalPlayerStats[i].playerStats != null)
                     {
                         var player = _gameData.finalPlayerStats[i].playerStats;
-                        form.AddField($"{prefix}MaxHealth", player.maxHealth.ToString("F2"));
-                        form.AddField($"{prefix}MoveSpeed", player.moveSpeed.ToString("F2"));
-                        form.AddField($"{prefix}BombshellDamage", player.bombshellDamage.ToString("F2"));
-                        form.AddField($"{prefix}ImpactRadius", player.bombshellImpactRadius.ToString("F2"));
-                        form.AddField($"{prefix}BulletSpeed", player.bombshellSpeed.ToString("F2"));
-                        form.AddField($"{prefix}FireRate", player.fireRate.ToString("F2"));
-                        form.AddField($"{prefix}ShotRange", player.shotRange.ToString("F2"));
+                        form.AddField($"{prefix}MaxHealth", player.maxHealth.ToString());
+                        form.AddField($"{prefix}MoveSpeed", player.moveSpeed.ToString());
+                        form.AddField($"{prefix}BombshellDamage", player.bombshellDamage.ToString());
+                        form.AddField($"{prefix}ImpactRadius", player.bombshellImpactRadius.ToString());
+                        form.AddField($"{prefix}BulletSpeed", player.bombshellSpeed.ToString());
+                        form.AddField($"{prefix}FireRate", player.fireRate.ToString());
+                        form.AddField($"{prefix}ShotRange", player.shotRange.ToString());
                         form.AddField($"{prefix}DashCharges", player.dashCharges.ToString());
-                        form.AddField($"{prefix}DashCooldown", player.dashCooldown.ToString("F2"));
+                        form.AddField($"{prefix}DashCooldown", player.dashCooldown.ToString());
                         form.AddField($"{prefix}DashDistance", player.dashDistance.ToString());
                         form.AddField($"{prefix}StrikePushForce", player.strikePushForce.ToString());
                         form.AddField($"{prefix}StunDuration", player.strikeStunDuration.ToString());
