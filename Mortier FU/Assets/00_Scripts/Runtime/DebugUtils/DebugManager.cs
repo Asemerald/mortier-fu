@@ -52,6 +52,12 @@ public class DebugManager : MonoBehaviour
 
     private void Awake()
     {
+        if (!enableDebugMode)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
         // Singleton setup
         if (instance != null && instance != this)
         {
