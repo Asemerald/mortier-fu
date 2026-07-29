@@ -20903,7 +20903,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &619199218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20926,7 +20926,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &619199219
 Canvas:
   m_ObjectHideFlags: 0
@@ -71056,6 +71056,14 @@ PrefabInstance:
       value: 0 / 0
       objectReference: {fileID: 0}
     - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
+      propertyPath: m_fontSize
+      value: 39.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
+    - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
       propertyPath: m_fontColor.b
       value: 0.21960784
       objectReference: {fileID: 0}
@@ -71068,8 +71076,16 @@ PrefabInstance:
       value: 0.5058824
       objectReference: {fileID: 0}
     - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -1492481152366971632, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
+    - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4281883265
+      objectReference: {fileID: 0}
+    - target: {fileID: 2451087662456111632, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2711034429119941409, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
       propertyPath: m_Name
@@ -71111,6 +71127,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 14.5822115
       objectReference: {fileID: 0}
+    - target: {fileID: 2852308518923140588, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: -1492481152366971632, guid: 6d8de0dc8272c0b41a76f62892136e31, type: 2}
     - target: {fileID: 2860157978226562376, guid: d4124edb98e537d40a808fd056cd16ff, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.011479914
@@ -73502,7 +73522,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7516332630184552114, guid: 223b067112fc25b418a6abdad2ab75dc, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
