@@ -37,25 +37,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         shell: cmd
         run: '"C:\Program Files\Unity\Hub\Editor\6000.4.11f1\Editor\Unity.exe" -batchmode -quit -projectPath "%GITHUB_WORKSPACE%\Mortier FU" -executeMethod BuildScript.BuildMacOS -logFile -'
-
-      # --- WINDOWS PACKAGING ---
-      - name: Zip Windows Build
-        shell: powershell
-        run: |
-          $buildPath = "Mortier FU\Build\Windows"
-          $zipPath = "Mortier FU\Builds\Build-Windows.zip"
-          if (Test-Path $buildPath) {
-              Compress-Archive -Path "$buildPath\*" -DestinationPath $zipPath -Force
-          } else {
-              Write-Host "Le dossier de build Windows est introuvable."
-          }
-
-      - name: Upload Windows Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-Windows
-          path: Mortier FU/Builds/Build-Windows.zip
-          if-no-files-found: ignore
             
       # --- STEAM DEPLOY ---
       - name: Deploy to Steam
