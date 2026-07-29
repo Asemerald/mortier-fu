@@ -200,24 +200,23 @@ namespace MortierFu
         {
             bool isReady = _readyPlayers.Add(player);
 
-            if (isReady)
-            {
+            if (!isReady) return;
                 _startTarget?.PlayDongAnimation();
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is ready.");
-            }
-            else
+            
+            /*else
             {
                 _readyPlayers.Remove(player);
                 _isLaunchConfirmationRequested = false;
                 CancelLaunchTask();
                 Logs.Log($"[LobbyStartReadyController] Player {player.PlayerIndex + 1} is no longer ready.");
-            }
+            }*/
 
             UpdateFeedbackAnimation(player.PlayerIndex);
             RefreshReadyTxt();
 
-            if (isReady)
-                ScheduleLaunchIfAllReady(player);
+            //if (isReady)
+            ScheduleLaunchIfAllReady(player);
         }
 
         private bool IsPlayerInSandbox(PlayerManager player)
