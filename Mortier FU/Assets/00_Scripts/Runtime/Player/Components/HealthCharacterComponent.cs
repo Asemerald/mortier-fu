@@ -52,6 +52,8 @@ namespace MortierFu
         public float MaxHealth => _maxHealth;
         public float HealthRatio => Mathf.Clamp01(_currentHealth / _maxHealth);
         public bool IsAlive => _currentHealth > 0f;
+        
+        public float CurrentHealth => _currentHealth;
 
         public override void Initialize()
         {

@@ -33,6 +33,8 @@ namespace MortierFu
 
         private AsyncOperationHandle<GameObject> _bombshellPrefabHandle;
         
+        HashSet<PlayerCharacter> hitCharacters;
+        
         public Bombshell RequestBombshell(Bombshell.Data bombshellData)
         {
             Bombshell bombshell = _pool.Get();
@@ -60,8 +62,8 @@ namespace MortierFu
         public void NotifyImpact(Bombshell bombshell, RaycastHit hit)
         {
             Vector3 impactPoint = hit.point;
-
-            var hitCharacters = new HashSet<PlayerCharacter>();
+            hitCharacters.Clear();
+            
             var hits = new HashSet<GameObject>();
 
             int numHits = Physics.OverlapSphereNonAlloc(
@@ -116,6 +118,23 @@ namespace MortierFu
                         hitCollider.transform.position, hitCollider.transform.rotation);
 
                     interactable.Interact(contactPoint);
+                }
+                
+                
+            }
+            
+            // If impactResults contains bombshell shooter and another player, call a steam achievement
+            if (hitCharacters.Contains(bombshell.Owner) && hitCharacters.Count > 1)
+            {
+                // If i kill the other player and not the shooter
+                foreach (var character in hitCharacters)
+                {
+                    if (bombshell.Owner == character) continue;
+
+                    if (!character.Health.IsAlive)
+                    {
+                        SteamManager.UnlockAchievement("SHOOT_SELF_KILL");
+                    }
                 }
             }
 
@@ -258,6 +277,8 @@ namespace MortierFu
             );
 
             _impactResults = new Collider[k_maxImpactTargets];
+            
+            hitCharacters = new HashSet<PlayerCharacter>();
         }
 
         public void Dispose()
