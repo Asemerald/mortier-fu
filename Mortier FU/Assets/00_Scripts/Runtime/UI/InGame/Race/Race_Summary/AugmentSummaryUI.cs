@@ -499,6 +499,8 @@ namespace MortierFu
         private async UniTask AnimateCard(Transform card, CancellationToken ct)
         {
             if (!card || !cardDisplay) return;
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, card.position);
 
             Tween cardTween = Tween.Scale(
                 card,

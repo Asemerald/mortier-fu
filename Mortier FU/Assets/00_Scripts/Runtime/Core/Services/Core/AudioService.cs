@@ -31,8 +31,15 @@ namespace MortierFu
         protected EventInstance musicEventInstance, ambienceEventInstance;
         private static bool breakPlayed;
 
+        public enum PhaseType
+        {
+            MUSIC,
+            AMBIENCE,
+            TWICE
+        }
+
         #region EventInstance functions
-        
+
         public static EventInstance PlayOneShot(EventReference eventRef, float panning = 0)
         {
             EventInstance instance = RuntimeManager.CreateInstance(eventRef);
@@ -136,7 +143,9 @@ namespace MortierFu
             float rangeValue = FMODEvents.rangeCurve.Evaluate(bombshell.AoeRange);
             float damageValue = FMODEvents.damageCurve.Evaluate(bombshell.Damage);
 
-            return (rangeValue + damageValue) * 0.5f;
+            var finalValue = Mathf.Clamp((rangeValue + damageValue) * 0.5f, 0, 1);
+
+            return finalValue;
         }
         
         #endregion
@@ -174,7 +183,7 @@ namespace MortierFu
             StartMusic(eventReference).Forget();
         }
 
-        private UniTask StopMusic()
+        public UniTask StopMusic()
         {
             if (musicEventInstance.isValid())
             {
@@ -184,9 +193,21 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public void SetPhase(int value)
+        public void SetPhase(int value, PhaseType type)
         {
-            RuntimeManager.StudioSystem.setParameterByName("Phase", value);
+            switch (type)
+            {
+                case PhaseType.MUSIC :
+                    RuntimeManager.StudioSystem.setParameterByName("MusicPhase", value);
+                    break;
+                case PhaseType.AMBIENCE :
+                    RuntimeManager.StudioSystem.setParameterByName("AmbiPhase", value);
+                    break;
+                case PhaseType.TWICE :
+                    RuntimeManager.StudioSystem.setParameterByName("MusicPhase", value);
+                    RuntimeManager.StudioSystem.setParameterByName("AmbiPhase", value);
+                    break;
+            }
         }
         
         public void SetPause(int value)
@@ -194,18 +215,38 @@ namespace MortierFu
             RuntimeManager.StudioSystem.setParameterByName("Pause", value);
         }
         
-        public async UniTask StartAmbience(EventReference eventReference)
+        public async UniTask StartAmbience(bool night, bool rain)
         {
-            if (ambienceEventInstance.isValid())
+            if (!RuntimeManager.IsInitialized)
             {
-                await StopAmbience();
+                Logs.LogWarning("[SoundManager] FMOD not initialized yet, retrying...");
+                await WaitForFMODAndStartAmbience(night, rain);
+                return;
             }
-            
-            ambienceEventInstance = CreateInstance(FMODEvents.MUS_Gameplay, false);
+
+            if (musicEventInstance.isValid())
+            {
+                await StopAmbiance();
+            }
+
+            EventReference eventRef;
+            if (night) 
+                eventRef = FMODEvents.AMBI_Night;
+            else
+                eventRef = FMODEvents.AMBI_Day;
+
+            ambienceEventInstance = CreateInstance(eventRef, false);
+            ambienceEventInstance.setParameterByName("Rain", rain? 1 : 0);
             ambienceEventInstance.start();
         }
-        
-        private UniTask StopAmbience()
+
+        private async UniTask WaitForFMODAndStartAmbience(bool night, bool rain)
+        {
+            while (!RuntimeManager.IsInitialized) await Task.Delay(TimeSpan.FromSeconds(0.1f)) ;
+            StartAmbience(night, rain).Forget();
+        }
+
+        public UniTask StopAmbiance()
         {
             if (ambienceEventInstance.isValid())
             {

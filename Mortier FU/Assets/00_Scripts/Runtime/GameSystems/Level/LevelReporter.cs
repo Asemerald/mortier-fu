@@ -1,4 +1,5 @@
 ﻿using System;
+using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace MortierFu
         [SerializeField] private CameraMapConfig _cameraMapConfig;
 
         public CameraMapConfig CameraConfig => _cameraMapConfig;
+        
+        private AudioService audioService => ServiceManager.Instance.Get<AudioService>();
         
         [Button]
         private void AutoPopulate()
@@ -44,6 +47,8 @@ namespace MortierFu
         }
 
         [HorizontalLine] public bool IsRaceMap = false;
+        [SerializeField] private bool Night, Rain;
+        
         [ShowIf("IsRaceMap")] public Transform WinnerSpawnPoint;
         [ShowIf("IsRaceMap")] public Transform AugmentPivot;
         [ShowIf("IsRaceMap")] public float Radius = 4f;
@@ -60,6 +65,8 @@ namespace MortierFu
             // When this LD is loaded, should bound itself to the LevelSystem
 
             levelSystem.BindReporter(this);
+            
+            audioService.StartAmbience(Night, Rain).Forget();
         }
 
 #if UNITY_EDITOR
