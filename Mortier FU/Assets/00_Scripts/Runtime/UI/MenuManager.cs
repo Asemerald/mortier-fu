@@ -327,6 +327,8 @@ namespace MortierFu
 
         private void CloseSettingsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+            
             SettingsPanel?.Hide();
             MainMenuPanel?.Show();
 
@@ -352,6 +354,8 @@ namespace MortierFu
 
         private void CloseCreditsPanel()
         {
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
+            
             CreditsPanel?.Hide();
             MainMenuPanel?.Show();
 

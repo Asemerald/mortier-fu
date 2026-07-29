@@ -54,6 +54,12 @@ namespace MortierFu
             {
                 SyncLobbyPlayers();
             }
+            
+            var audioService = ServiceManager.Instance.Get<AudioService>();
+            if (audioService != null)
+            {
+                audioService.StartAmbience(true, false).Forget();
+            }
         }
         
         public void SpawnJoinedPlayer(PlayerManager player)

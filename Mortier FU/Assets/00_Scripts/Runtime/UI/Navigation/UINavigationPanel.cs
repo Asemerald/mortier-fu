@@ -122,10 +122,17 @@ namespace MortierFu
                 return true;
 
             if (navigation.Axis == UINavigationAxis.Vertical)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Slider);
                 MoveSelection(-navigation.Direction);
+            }
+                
             else if (navigation.Axis == UINavigationAxis.Horizontal)
+            {
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_ChangeSkin);
                 GetSelectedItem()?.HandleHorizontal(navigation.Direction);
-
+            }
+            
             return true;
         }
 
@@ -135,6 +142,7 @@ namespace MortierFu
                 return false;
 
             UINavigationItem item = GetSelectedItem();
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
             if (item && item.HandleSubmit())
                 return true;
@@ -149,6 +157,7 @@ namespace MortierFu
                 return false;
 
             UINavigationItem item = GetSelectedItem();
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
 
             if (item && item.HandleCancel())
                 return true;

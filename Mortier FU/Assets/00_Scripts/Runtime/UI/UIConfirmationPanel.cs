@@ -69,6 +69,8 @@ namespace MortierFu
         public async UniTask OpenAsync(CancellationToken cancellationToken)
         {
             StopTweens();
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownNumber);
 
             _isOpen = true;
 
@@ -97,6 +99,8 @@ namespace MortierFu
                 return;
 
             StopTweens();
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return);
 
             if (_blackPanel)
                 _fadeTween = Tween.Alpha(_blackPanel, 0f, _closeFadeDuration, _closeFadeEase, useUnscaledTime: true);

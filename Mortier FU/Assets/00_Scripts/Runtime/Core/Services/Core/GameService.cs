@@ -71,6 +71,11 @@ namespace MortierFu
             }
 
             _sceneService.ShowLoadingScreen();
+            
+            var audioService = ServiceManager.Instance.Get<AudioService>();
+            audioService?.SetPhase(1, AudioService.PhaseType.AMBIENCE);
+            audioService?.StopAmbiance();
+            
 
             await CleanupSandboxRuntimeAsync();
 

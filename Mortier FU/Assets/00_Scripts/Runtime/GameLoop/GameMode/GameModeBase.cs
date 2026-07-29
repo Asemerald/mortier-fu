@@ -226,7 +226,7 @@ namespace MortierFu
                 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                audioService.SetPhase(0);
+                audioService.SetPhase(0, AudioService.PhaseType.TWICE);
 
                 await RunAugmentRaceStartPresentationAsync(cancellationToken);
 
@@ -450,6 +450,8 @@ namespace MortierFu
             cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform, FlowSettings.CameraZoomOnWinnerDuration, _gameplayCancellation?.Token ?? CancellationToken.None).Forget();
             
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
+
+            audioService.SetPhase(1, AudioService.PhaseType.AMBIENCE);
             
             OnRoundEnded?.Invoke(_currentRound);
         }
@@ -495,6 +497,8 @@ namespace MortierFu
         protected virtual void EndRace()
         {
             UpdateGameState(GameState.EndAugmentRace);
+
+            audioService.StopAmbiance();
 
             _augmentRaceController.EndRace();
         }
@@ -780,7 +784,7 @@ namespace MortierFu
             
             EnablePlayerGravity(false);
 
-            audioService.SetPhase(1);
+            audioService.SetPhase(1, AudioService.PhaseType.TWICE);
 
             UpdateGameState(GameState.AugmentIntro);
 

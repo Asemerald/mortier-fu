@@ -147,6 +147,8 @@ namespace MortierFu
             _isProcessing = true;
 
             ClearSelectedObject();
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_CountdownGo);
 
             if (_panel)
                 _panel.HideInstant();

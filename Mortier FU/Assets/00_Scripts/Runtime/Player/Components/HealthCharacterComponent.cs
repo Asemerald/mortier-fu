@@ -160,7 +160,7 @@ namespace MortierFu
 
                     if (kn.LastPusher)
                     {
-                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Death, character.transform.position);
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, character.transform.position);
                         
                         if (character.ControlContext is PlayerControlContext.RoundGameplay)
                         {
@@ -173,11 +173,13 @@ namespace MortierFu
 
                 if (Time.time - _lastBombShellDamageTime < 4f)
                 {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Fall, character.transform.position);
+                    
                     return CreateDeathContext(character, source, _lastDamageCause , E_DeathCause.FallAfterExplosion);
                 }
             }
-
-            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Player_Fall, character.transform.position);
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Mortar_Water, character.transform.position);
             return CreateDeathContext(character, source, null, E_DeathCause.Fall);
         }
 
