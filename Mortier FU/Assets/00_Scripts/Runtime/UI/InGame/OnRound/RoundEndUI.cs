@@ -212,7 +212,8 @@ namespace MortierFu
             await AnimatePlacementRewards(ct);
             await UniTask.Delay(TimeSpan.FromSeconds(_reorderPlayerDelay), cancellationToken: ct);
 
-            var sortedTeams = _gm.GetPlayerTeamsWinnersOrder();
+            List<PlayerTeam> scoreSortedTeams = _gm.GetPlayerTeamsWinnersOrder();
+            List<PlayerTeam> sortedTeams = BuildScoreboardOrderAfterScoreReveal(scoreSortedTeams);
 
             await AnimateLeaderboardPositions(sortedTeams, ct);
 
@@ -897,6 +898,72 @@ namespace MortierFu
             }
 
             return result;
+        }
+        
+        private List<PlayerTeam> BuildScoreboardOrderAfterScoreReveal(List<PlayerTeam> scoreSortedTeams)
+        {
+            if (scoreSortedTeams == null || scoreSortedTeams.Count == 0)
+                return new List<PlayerTeam>();
+
+            var goldenTeams = new List<PlayerTeam>();
+            var regularTeams = new List<PlayerTeam>();
+
+            for (int i = 0; i < scoreSortedTeams.Count; i++)
+            {
+                PlayerTeam team = scoreSortedTeams[i];
+
+                if (team == null)
+                    continue;
+
+                int idx = team.Index;
+
+                if (!IsValidPlayerIndex(idx))
+                    continue;
+
+                if (IsPlayerDisplayedAtMatchPoint(idx))
+                    goldenTeams.Add(team);
+                else
+                    regularTeams.Add(team);
+            }
+
+            goldenTeams.Sort(CompareGoldenBombshellTeams);
+
+            var result = new List<PlayerTeam>(goldenTeams.Count + regularTeams.Count);
+            result.AddRange(goldenTeams);
+            result.AddRange(regularTeams);
+
+            return result;
+        }
+
+        private int CompareGoldenBombshellTeams(PlayerTeam left, PlayerTeam right)
+        {
+            int leftRank = GetRoundRank(left);
+            int rightRank = GetRoundRank(right);
+
+            int rankComparison = leftRank.CompareTo(rightRank);
+
+            if (rankComparison != 0)
+                return rankComparison;
+
+            int previousOrderComparison = GetPreviousLeaderboardRank(left.Index).CompareTo(GetPreviousLeaderboardRank(right.Index));
+
+            return previousOrderComparison != 0 ? previousOrderComparison : left.Index.CompareTo(right.Index);
+        }
+
+        private static int GetRoundRank(PlayerTeam team) => team is not { Rank: > 0 } ? int.MaxValue : team.Rank;
+
+        private int GetPreviousLeaderboardRank(int playerIndex)
+        {
+            if (_leaderboardOrder == null)
+                return int.MaxValue;
+
+            for (int i = 0; i < _leaderboardOrder.Length; i++)
+            {
+                if (_leaderboardOrder[i] == playerIndex)
+                    return i;
+            }
+
+            return int.MaxValue;
         }
     }
 }
