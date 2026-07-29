@@ -18,13 +18,21 @@ namespace MortierFu
         private void OnEnable()
         {
             if (_stateController)
-                _stateController.OnSettingsInterrupted += HandleSettingsInterrupted;
+            {
+                 _stateController.OnSettingsInterrupted += HandleSettingsInterrupted;
+                 _stateController.OnSettingsResume += ResumeSettings;
+            }
+               
         }
 
         protected override void OnDisable()
         {
             if (_stateController)
+            {
                 _stateController.OnSettingsInterrupted -= HandleSettingsInterrupted;
+                _stateController.OnSettingsResume -= ResumeSettings;
+            }
+                
 
             ForceCloseActiveSettings(closePanel: true, exitState: true, lockPlayer: false);
 
@@ -61,6 +69,7 @@ namespace MortierFu
 
             if (!_stateController.TryEnterSettings(player))
                 return;
+ 
 
             _activePlayer = player;
 
@@ -98,6 +107,14 @@ namespace MortierFu
             ForceCloseActiveSettings(closePanel: true, exitState: false, lockPlayer: true);
         }
 
+        private void ResumeSettings(PlayerManager player)
+        {
+            if (!player)
+                return;
+            
+            OnPlayerEntered(player);
+        }
+
         private void ForceCloseActiveSettings(bool closePanel, bool exitState, bool lockPlayer)
         {
             if (!_activePlayer)
@@ -116,6 +133,7 @@ namespace MortierFu
                 _stateController.TryExitSettings(player);
             else if (lockPlayer)
                 player.SetControlContext(PlayerControlContext.LobbyLocked);
+            
         }
     }
 }

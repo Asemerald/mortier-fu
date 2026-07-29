@@ -31,7 +31,7 @@ namespace MortierFu
         [Header("Optional")]
         [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
-        private readonly UnityPlayerUISession _uiSession = new();
+        public readonly UnityPlayerUISession _uiSession = new();
 
         private PlayerManager _activePlayer;
         private Action<PlayerManager> _onClosed;
@@ -97,10 +97,7 @@ namespace MortierFu
             StopSelectionRoutine();
 
             _activePlayer = player;
-            _onClosed = onClosed;
-            _currentPlayerCount = GetCurrentLobbyPlayerCount();
-
-            _isOpen = true;
+            _onClosed = onClosed; 
             _isOpening = true;
 
             if (_matchSettingsData)

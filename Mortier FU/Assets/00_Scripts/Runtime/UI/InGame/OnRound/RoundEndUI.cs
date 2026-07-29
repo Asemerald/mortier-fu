@@ -26,6 +26,10 @@ namespace MortierFu
         [Header("Player Assets")]
         [SerializeField] private Sprite[] _playerDefaultSprites;
         [SerializeField] private Sprite[] _playerWinnerIcons;
+        [SerializeField] private Sprite[] _playerLooseRoundWin;
+        [SerializeField] private Sprite[] _playerWinRound;
+        [SerializeField] private Sprite[] _playerWinRoundCrown;
+        [SerializeField] private Sprite[] _playerLooseIcons;
         [SerializeField] private Sprite[] _winnerTitleSprites;
         [SerializeField] private Sprite[] _winnerBackgrounds;
         [SerializeField] private Sprite[] _winnerBackgroundColors;
@@ -574,6 +578,8 @@ namespace MortierFu
         {
             _gm.ScoreController.UpdatePlayerVisualsAfterRound(_gm.Teams);
             await UniTask.WhenAll(RevealWinnerIcons(), ShowGoldenBombshellIndicator(ct));
+            //await ResetVisualDDefault();
+
         }
 
         private UniTask RevealWinnerIcons()
@@ -804,6 +810,34 @@ namespace MortierFu
             _winnerTitleImage.gameObject.SetActive(true);
             _winnerBackgroundImage.gameObject.SetActive(true);
             _winnerBackgroundColorImage.gameObject.SetActive(true);
+
+            foreach (PlayerTeam team in _gm.Teams)
+            {
+                int indx = team.Index;
+
+                if (!IsValidPlayerIndex(indx))
+                    continue;
+
+
+                Logs.LogWarning(_winnerIconPlayerIndexes.Contains(indx).ToString());
+                if(indx == idx && _winnerIconPlayerIndexes.Contains(indx))
+                {
+                    _playerIcons[indx].sprite = _playerWinRoundCrown[indx];
+                }
+                else if (indx == idx)
+                {
+                    _playerIcons[indx].sprite = _playerWinRound[indx];
+                }
+                else if (_winnerIconPlayerIndexes.Contains(indx))
+                {
+                    _playerIcons[indx].sprite = _playerLooseRoundWin[indx];
+                }
+                else
+                {
+                    _playerIcons[indx].sprite = _playerLooseIcons[indx];
+                }
+
+            }
         }
 
         private void SetPlayersToLeaderboardOrder(int[] order)

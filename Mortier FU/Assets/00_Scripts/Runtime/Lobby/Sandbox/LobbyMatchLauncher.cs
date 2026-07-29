@@ -78,6 +78,8 @@ namespace MortierFu
                 return false;
 
             _isLaunchConfirmationOpen = true;
+            
+            _stateController?.InterruptActiveSettings();
 
             Logs.Log($"[LobbyMatchLauncher] Launch confirmation opened by Player {owner.PlayerIndex + 1}.");
 
@@ -115,7 +117,6 @@ namespace MortierFu
             _isLaunchConfirmationOpen = false;
 
             Logs.Log("[LobbyMatchLauncher] Launch match canceled.");
-
             if (onCanceledAsync != null)
                 await onCanceledAsync();
         }
