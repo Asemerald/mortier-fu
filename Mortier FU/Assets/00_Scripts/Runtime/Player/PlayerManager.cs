@@ -259,7 +259,6 @@ namespace MortierFu
             if (ctx.canceled)
             {
                 UIInputService?.TrySubmitReleased(this);
-                Logs.LogWarning("here");
                 return;
             }
 

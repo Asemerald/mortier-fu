@@ -480,7 +480,6 @@ namespace MortierFu
         public void ResetReady()
         {
             CancelLaunchTask();
-            
             SetStartMatchPauseBlocked(false);
 
             _isLaunchConfirmationRequested = false;
@@ -490,6 +489,7 @@ namespace MortierFu
             _lastShooter = null;
 
             RefreshFeedback();
+            _stateController?.ResumeSettings();
 
             Logs.Log("[LobbyStartReadyController] Ready state reset.");
         }

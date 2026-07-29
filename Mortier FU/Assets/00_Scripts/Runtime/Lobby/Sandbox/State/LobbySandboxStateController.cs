@@ -20,6 +20,10 @@ namespace MortierFu
 
         public event Action<PlayerManager> OnCustomizationInterrupted;
         public event Action<PlayerManager> OnSettingsInterrupted;
+        
+        public event Action<PlayerManager> OnSettingsResume;
+        
+        private bool _settingsOpen;
 
         public bool TryEnterCustomization(PlayerManager player)
         {
@@ -58,6 +62,8 @@ namespace MortierFu
             player.SetControlContext(PlayerControlContext.LobbySettingsOwner);
             
             player.Character.Controller.HandlePlayerStatic(playerStatic: true);
+
+            _settingsOpen = true;
             
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} entered settings.");
 
@@ -78,6 +84,8 @@ namespace MortierFu
             
             player.Character.Controller.HandlePlayerStatic(playerStatic: false);
 
+            _settingsOpen = false;
+            
             Logs.Log($"[LobbySandboxStateController] Player {player.PlayerIndex + 1} exited settings.");
 
             return true;
@@ -124,9 +132,6 @@ namespace MortierFu
             if (IsLaunching)
                 return false;
 
-            if (ActiveSettingsPlayer)
-                return false;
-
             return !_customizationPlayers.Contains(player);
         }
 
@@ -151,13 +156,20 @@ namespace MortierFu
             }
         }
 
-        private void InterruptActiveSettings()
+        public void ResumeSettings()
+        {
+            if (!_settingsOpen)
+                return;
+            
+            OnSettingsResume?.Invoke(ActiveSettingsPlayer);
+        }
+
+        public void InterruptActiveSettings()
         {
             if (!ActiveSettingsPlayer)
                 return;
 
             var interruptedPlayer = ActiveSettingsPlayer;
-            ActiveSettingsPlayer = null;
 
             Logs.Log($"[LobbySandboxStateController] Interrupting settings for Player {interruptedPlayer.PlayerIndex + 1}.");
             OnSettingsInterrupted?.Invoke(interruptedPlayer);
