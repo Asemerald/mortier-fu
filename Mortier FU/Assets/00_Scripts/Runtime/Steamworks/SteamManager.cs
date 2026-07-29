@@ -24,7 +24,7 @@ public class SteamManager : MonoBehaviour {
 	protected static bool s_EverInitialized = false;
 
 	protected static SteamManager s_instance;
-	protected static SteamManager Instance {
+	public static SteamManager Instance {
 		get {
 			if (s_instance == null) {
 				return new GameObject("SteamManager").AddComponent<SteamManager>();
@@ -174,7 +174,7 @@ public class SteamManager : MonoBehaviour {
 		
 	}
 
-	public static void AddProgressToAchievement(string achievementID, int progressToAdd = 1)
+	public static void AddProgressToAchievement(string achievementID, int maxProgress, int progressToAdd = 1)
 	{
 		if (!Initialized)
 		{
@@ -212,7 +212,7 @@ public class SteamManager : MonoBehaviour {
 		
 		// Update Stats 
 		
-		SteamUserStats.IndicateAchievementProgress(achievementID, (uint)currentStat, 100);
+		SteamUserStats.IndicateAchievementProgress(achievementID, (uint)currentStat, (uint)maxProgress);
 	}
 
 	public static void UnlockAchievement(string achievementID)

@@ -30,10 +30,6 @@ namespace MortierFu
             IsInitialized = true;
         }
 
-        // ====================================================================
-        // SETTINGS SAVE/LOAD
-        // ====================================================================
-
         public async UniTask LoadOrCreateSettings()
         {
             if (!File.Exists(_settingsPath))
@@ -66,11 +62,7 @@ namespace MortierFu
             Settings = JsonUtility.FromJson<SettingsData>(json)
                        ?? SettingsData.CreateDefault();
         }
-
-        // ====================================================================
-        // GAME SAVE/LOAD
-        // ====================================================================
-
+        
         public async UniTask LoadOrCreateGame()
         {
             if (!File.Exists(_gamePath))
@@ -99,8 +91,6 @@ namespace MortierFu
             Game = JsonUtility.FromJson<GameData>(json)
                     ?? GameData.CreateDefault();
         }
-
-        // ====================================================================
 
         public void Dispose() { }
     }

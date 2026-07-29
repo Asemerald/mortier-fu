@@ -90,6 +90,7 @@ namespace MortierFu
                     if (character.ControlContext is PlayerControlContext.AugmentRace)
                     {
                         character.ReceiveStun(character.Stats.GetKnockbackStunDuration());
+                        SteamManager.UnlockAchievement("BULLY_STUN_SHOOT");
                         continue;
                     }
 

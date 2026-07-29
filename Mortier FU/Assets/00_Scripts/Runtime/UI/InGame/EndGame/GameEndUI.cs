@@ -152,6 +152,8 @@ namespace MortierFu
             ApplyWinnerSprites(playerIndex);
             ShowWinnerPresentation();
             BeginWinnerUISession(winner);
+            
+            SteamManager.AddProgressToAchievement("COMPLETE_TEN_GAMES", 10);
         }
 
         private void BeginWinnerUISession(PlayerManager winner)

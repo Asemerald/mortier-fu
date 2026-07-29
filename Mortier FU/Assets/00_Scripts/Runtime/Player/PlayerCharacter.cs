@@ -456,6 +456,11 @@ namespace MortierFu
             if (AreAugmentsActive)
                 ActivateAugment(augmentData);
 
+            if (augmentData.Rarity is E_AugmentRarity.Legendary)
+            {
+                SteamManager.UnlockAchievement("PICK_LEGENDARY_AUGMENT");
+            }
+
             AnalyticsSystem analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentPicked(this, augmentData);
                 
