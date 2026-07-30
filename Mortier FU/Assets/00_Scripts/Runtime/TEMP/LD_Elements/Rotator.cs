@@ -1,3 +1,6 @@
+using System;
+using FMOD.Studio;
+using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -23,6 +26,12 @@ namespace MortierFu
         {
             if (calculatePhysics)
                 _rb = GetComponent<Rigidbody>();
+            
+            if (transform.GetComponentInChildren<Bumper>())
+            {
+                AudioService audioService = ServiceManager.Instance.Get<AudioService>();
+                audioService.CreateMapInstance(AudioService.FMODEvents.SFX_Misc_TuktukEngine, transform.position);
+            }
         }
 
         void FixedUpdate()

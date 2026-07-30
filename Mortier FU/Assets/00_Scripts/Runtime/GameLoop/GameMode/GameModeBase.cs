@@ -319,10 +319,13 @@ namespace MortierFu
             InitializeEndRound();
 
             await UniTask.Delay(TimeSpan.FromSeconds(FlowSettings.CameraZoomOnWinnerDuration + FlowSettings.ShowScoreboardDelayFactor), cancellationToken: cancellationToken);
-            
+
             var matchWillEnd = IsGameOver(out gameVictor);
 
             await RunRoundEndPresentationAndOptionalRacePreloadAsync(cancellationToken);
+            
+            audioService.StopAmbiance();
+            audioService.ClearAllMapInstances();
 
             await PrepareRaceSceneUnderScoreboardCoverAsync(!matchWillEnd, cancellationToken);
             
@@ -452,7 +455,7 @@ namespace MortierFu
             EvaluateScores();
 
             _currentRound.WinningTeam = _roundController.WinningTeam;
-            
+
             cameraSystem.Controller.EndFightCameraMovement(_currentRound.WinningTeam.Members[0].Character.transform, FlowSettings.CameraZoomOnWinnerDuration, _gameplayCancellation?.Token ?? CancellationToken.None).Forget();
             
             _roundWinnerPresentationController.PresentWinner(_currentRound.WinningTeam);
@@ -505,6 +508,7 @@ namespace MortierFu
             UpdateGameState(GameState.EndAugmentRace);
 
             audioService.StopAmbiance();
+            audioService.ClearAllMapInstances();
 
             _augmentRaceController.EndRace();
         }

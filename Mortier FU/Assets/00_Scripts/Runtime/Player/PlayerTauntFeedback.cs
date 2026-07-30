@@ -94,6 +94,8 @@ namespace MortierFu
                     break;
             }
 
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Misc_Taunt, _character.transform.position);
+
             _tauntImg.transform.localScale = Vector3.zero;
             _tauntImg.enabled = true;
 

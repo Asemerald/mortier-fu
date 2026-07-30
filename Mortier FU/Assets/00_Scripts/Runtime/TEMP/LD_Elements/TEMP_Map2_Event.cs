@@ -1,4 +1,5 @@
 using System.Collections;
+using MortierFu;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -26,6 +27,7 @@ public class TEMP_Map2_Event : MonoBehaviour
     {
         float time =  Random.Range(eventTimeRange.x, eventTimeRange.y);
         yield return new WaitForSeconds(time);
+        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Misc_Earthquake);
         particules.SetActive(true);
         target.GetComponent<Renderer>().material = _newMaterial;
         yield return new WaitForSeconds(timeBeforeSink);
