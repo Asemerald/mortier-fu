@@ -43,7 +43,6 @@ namespace MortierFu
         protected GameObject _vfxCard;
         private Quaternion _initialRotation;
         private Vector3 _initialScale;
-        private Vector3 _visualRotationIcon = new (250f, 0f, 0f);
         private Vector2 _initialInfoPos;
         private float _initialCanvasAlpha;
 
@@ -149,7 +148,7 @@ namespace MortierFu
 
         public void SetIconCardVisual(SO_Augment augment)
         {
-            _vfxInstance = SetAugmentVisualIcon(augment, Vector3.zero, Quaternion.Euler(_visualRotationIcon), anchor, _sizeIcon, true);
+            _vfxInstance = SetAugmentVisualIcon(augment, Vector3.zero, anchor, _sizeIcon, true);
 
             var children = _vfxInstance.GetComponentsInChildren<Transform>(true);
             foreach (var child in children)

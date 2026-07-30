@@ -21,12 +21,11 @@ namespace MortierFu
             throw new Exception($"Prototype not found for rarity {rarity}");
         }
 
-        protected GameObject SetAugmentVisualIcon(SO_Augment augment, Vector3 position, Quaternion rotation, Transform parent, Vector3 scale, bool hideVfx = false)
+        protected GameObject SetAugmentVisualIcon(SO_Augment augment, Vector3 position, Transform parent, Vector3 scale, bool hideVfx = false)
         {
             AugmentPickupVisual prototype = GetVFXRarityPrototype(augment.Rarity);
-            _vfxInstance = Instantiate(prototype.gameObject, position,rotation , parent);
+            _vfxInstance = Instantiate(prototype.gameObject, position,Quaternion.identity, parent);
             _vfxInstance.transform.localPosition = position;
-            _vfxInstance.transform.localRotation =rotation;
             _vfxInstance.transform.localScale = scale;
 
             AugmentPickupVisual _visualInstance = _vfxInstance.GetComponent<AugmentPickupVisual>();
