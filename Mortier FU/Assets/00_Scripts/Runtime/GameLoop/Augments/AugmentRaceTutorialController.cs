@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
+using UnityEngine.SceneManagement;
 
 public enum AugmentRaceTutorialType
 {
@@ -57,7 +58,7 @@ public class AugmentRaceTutorialController
     cancellationToken.ThrowIfCancellationRequested();
 
     SO_RaceModeDefinition contextRace = levelSystem.CurrentRaceReporter.RaceModeDefinition;
-
+    
     bool displayFirstTutorial = contextRace is SO_ClassicRaceModeDefinition &&
                                 !saveService.Tutorial.TutorialFirstRaceDone;
 
@@ -127,7 +128,8 @@ public class AugmentRaceTutorialController
         }
 
         markTutorialDone();
-        await saveService.SaveTutorial();
+
+        if (saveService.Tutorial.IsTutorialFinished()) await saveService.SaveTutorial();
         
         confirmationService.ResetRuntimeState();
 

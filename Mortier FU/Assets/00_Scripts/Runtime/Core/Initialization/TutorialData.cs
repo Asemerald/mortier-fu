@@ -9,4 +9,9 @@ public class TutorialData
     public bool TutorialObstacleRaceDone = false;
     
     public static TutorialData CreateTutorialData() => new TutorialData();
+
+    public bool IsTutorialFinished()
+    {
+        return TutorialFirstRaceDone && TutorialSecondRaceDone && TutorialObstacleRaceDone && TutorialPinataRaceDone;
+    }
 }
