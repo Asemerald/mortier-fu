@@ -59,6 +59,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1096454426016020218, guid: 130a85215d2634646a6cda89307c5970, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4164007173566028780}
+    - targetCorrespondingSourceObject: {fileID: 1096454426016020218, guid: 130a85215d2634646a6cda89307c5970, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4931136719219955096}
   m_SourcePrefab: {fileID: 100100000, guid: 130a85215d2634646a6cda89307c5970, type: 3}
 --- !u!1 &7326704938667243438 stripped
 GameObject:
@@ -77,16 +80,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6297adcde648ca4cb28d7631d45d7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::GhostProp
-  settings: {fileID: 11400000, guid: 10422bd4cb66cf14087f83944fac53d9, type: 2}
-  rb: {fileID: 8159247928196344406}
+  rb: {fileID: 0}
   groundMask:
     serializedVersion: 2
     m_Bits: 2112
   detectionDistance: 0.96
   offsetAdjustment: {x: 0, y: 0.46, z: 0}
-  _isGrounded: 1
---- !u!54 &8159247928196344406 stripped
+  settings: {fileID: 11400000, guid: 10422bd4cb66cf14087f83944fac53d9, type: 2}
+--- !u!54 &-4931136719219955096
 Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 1991071444002843394, guid: 130a85215d2634646a6cda89307c5970, type: 3}
-  m_PrefabInstance: {fileID: 7681676616741323092}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7326704938667243438}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
