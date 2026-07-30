@@ -62,6 +62,7 @@ namespace MortierFu
         
         [Header("Race Override")]
         public SceneReference FirstArenaRaceOverride;
+        public SceneReference SecondArenaRaceOverride;
 
         [Header("Placement Rewards")]
         public PlacementScoreRewardsByPlayerCount[] PlacementRewardsByPlayerCount = { };
