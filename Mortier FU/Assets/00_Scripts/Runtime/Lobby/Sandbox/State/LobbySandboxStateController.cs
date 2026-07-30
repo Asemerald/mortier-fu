@@ -15,7 +15,8 @@ namespace MortierFu
         private readonly HashSet<PlayerManager> _customizationPlayers = new();
 
         private PlayerManager ActiveSettingsPlayer { get; set; }
-
+        private PlayerManager _oldPlayer;
+        
         private bool IsLaunching => CurrentState == LobbySandboxState.LaunchingGame;
 
         public event Action<PlayerManager> OnCustomizationInterrupted;
@@ -158,10 +159,18 @@ namespace MortierFu
 
         public void ResumeSettings()
         {
+            if (_oldPlayer == null)
+                return;
+            PlayerManager player = _oldPlayer;
+            ActiveSettingsPlayer = null;
+            player.SetControlContext(PlayerControlContext.LobbySandbox);
+            Logs.LogWarning(player.ControlContext.ToString());
             if (!_settingsOpen)
                 return;
             
             OnSettingsResume?.Invoke(ActiveSettingsPlayer);
+            
+            _oldPlayer = null;
         }
 
         public void InterruptActiveSettings()
@@ -170,7 +179,7 @@ namespace MortierFu
                 return;
 
             var interruptedPlayer = ActiveSettingsPlayer;
-
+            _oldPlayer =  interruptedPlayer;
             Logs.Log($"[LobbySandboxStateController] Interrupting settings for Player {interruptedPlayer.PlayerIndex + 1}.");
             OnSettingsInterrupted?.Invoke(interruptedPlayer);
         }

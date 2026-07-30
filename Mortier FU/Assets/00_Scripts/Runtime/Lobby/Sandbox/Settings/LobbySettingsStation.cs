@@ -1,4 +1,5 @@
 using MortierFu.Shared;
+using Unity.PerformanceTesting.Data;
 using UnityEngine;
 
 namespace MortierFu
@@ -19,7 +20,7 @@ namespace MortierFu
         {
             if (_stateController)
             {
-                 _stateController.OnSettingsInterrupted += HandleSettingsInterrupted;
+                 // _stateController.OnSettingsInterrupted += HandleSettingsInterrupted;
                  _stateController.OnSettingsResume += ResumeSettings;
             }
                
@@ -29,7 +30,7 @@ namespace MortierFu
         {
             if (_stateController)
             {
-                _stateController.OnSettingsInterrupted -= HandleSettingsInterrupted;
+                // _stateController.OnSettingsInterrupted -= HandleSettingsInterrupted;
                 _stateController.OnSettingsResume -= ResumeSettings;
             }
                 
@@ -104,7 +105,9 @@ namespace MortierFu
             if (!ReferenceEquals(_activePlayer, player))
                 return;
 
-            ForceCloseActiveSettings(closePanel: true, exitState: false, lockPlayer: true);
+            ForceCloseActiveSettings(closePanel: true, exitState: true, lockPlayer: false);
+            player.SetControlContext(PlayerControlContext.LobbySandbox);
+            Logs.LogWarning(player.ControlContext.ToString());
         }
 
         private void ResumeSettings(PlayerManager player)
@@ -112,6 +115,8 @@ namespace MortierFu
             if (!player)
                 return;
             
+            Logs.LogWarning(player.name);
+            _settingsPanel.SetSettingsEventSystemActive(true);
             OnPlayerEntered(player);
         }
 

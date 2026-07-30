@@ -490,6 +490,7 @@ namespace MortierFu
 
             RefreshFeedback();
             _stateController?.ResumeSettings();
+            
 
             Logs.Log("[LobbyStartReadyController] Ready state reset.");
         }

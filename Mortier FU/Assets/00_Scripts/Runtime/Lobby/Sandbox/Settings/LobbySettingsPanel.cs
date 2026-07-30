@@ -31,6 +31,9 @@ namespace MortierFu
         [Header("Optional")]
         [SerializeField] private TEMP_LobbyRecommendedScoreDisplay _recommendedScoreDisplay;
 
+        [SerializeField]
+        private LobbySandboxStateController _stateController;
+        
         public readonly UnityPlayerUISession _uiSession = new();
 
         private PlayerManager _activePlayer;
@@ -69,6 +72,7 @@ namespace MortierFu
         {
             _gamePauseSystem = SystemManager.Instance.Get<GamePauseSystem>();
             _gamePauseSystem.Resumed += RestartLobbySetting;
+            _stateController.OnSettingsInterrupted += CloseFromUI;
         }
 
         private void OnDisable()
@@ -84,6 +88,7 @@ namespace MortierFu
         private void OnDestroy()
         {
             _gamePauseSystem.Resumed -= RestartLobbySetting;
+            _stateController.OnSettingsInterrupted -= CloseFromUI;
             StopSelectionRoutine();
             _uiSession.End();
             SetSettingsEventSystemActive(false);
@@ -115,10 +120,10 @@ namespace MortierFu
 
             _selectionRoutine = StartCoroutine(SelectFirstWhenReady());
         }
-
+        
         public void Close() => CloseInternal(notifyClosed: false);
 
-        public void CloseFromUI() => CloseInternal(notifyClosed: true);
+        public void CloseFromUI(PlayerManager player = null) => CloseInternal(notifyClosed: true);
 
         public void ValidateCurrentSelection()
         {
@@ -282,7 +287,7 @@ namespace MortierFu
             ValidateCurrentSelection();
         }
 
-        private void SetSettingsEventSystemActive(bool active)
+        public void SetSettingsEventSystemActive(bool active)
         {
             if (active)
             {
