@@ -72,11 +72,13 @@ namespace MortierFu
             _ctsAnim?.Cancel();
             _ctsAnim?.Dispose();
             _ctsAnim = new CancellationTokenSource();
+            
             foreach (var slot in _playerSlots)
             {
                 slot.DefaultImage = slot.ImagePlayer.sprite;
+                ResetSlotVisualState(slot);
             }
-
+            
             SubscribeGameMode();
         }
 
@@ -380,7 +382,8 @@ namespace MortierFu
             if (slot.Animator)
             {
                 slot.Animator.enabled = true;
-                slot.Animator.Play(0, 0, 0f);
+                slot.Animator.Rebind();
+                slot.Animator.Update(0f);
             }
 
             slot.ImagePlayer.sprite = slot.ImageConfirm;
@@ -511,6 +514,7 @@ namespace MortierFu
 
             if (!slot.ConfirmationButtonImageTarget && slot.GamePadInputImage)
                 slot.ConfirmationButtonImageTarget = slot.GamePadInputImage;
+            
         }
 
         private static Transform ResolveConfirmedFeedbackTarget(PlayerSlot slot)

@@ -47,6 +47,7 @@ namespace MortierFu
         private string _currentLoadedMapKey;
 
         private bool _isFirstRound = true;
+        private bool _isSecondRound = false;
 
         public bool IsInitialized { get; set; }
 
@@ -65,7 +66,7 @@ namespace MortierFu
 
         private async UniTask LoadRaceMapAvoidingPreviousModeAsync()
         {
-            if (_isFirstRound || HasEditorOverride(k_editorOverrideRaceMapAddress))
+            if (_isFirstRound || _isSecondRound || HasEditorOverride(k_editorOverrideRaceMapAddress))
             {
                 bool loaded = await LoadMapAsync(_raceMapLocations, _raceMapCooldowns, arenaMode: false, editorOverrideKey: k_editorOverrideRaceMapAddress, debugMapTypeName: "race");
 
@@ -121,7 +122,7 @@ namespace MortierFu
 
             if (editorOverrideLoaded)
                 return true;
-
+            
             if (!arenaMode && _isFirstRound)
             {
                 bool firstRoundOverrideLoaded = await TryLoadFirstRoundRaceOverrideMapAsync(debugMapTypeName);
@@ -130,6 +131,16 @@ namespace MortierFu
                     return true;
 
                 _isFirstRound = false;
+            }
+            
+            if (!arenaMode && _isSecondRound)
+            {
+                bool secondRoundOverrideLoaded = await TryLoadSecondRoundRaceOverrideMapAsync(debugMapTypeName);
+                
+                if (secondRoundOverrideLoaded)
+                    return true;
+
+                _isSecondRound = false;
             }
 
             IResourceLocation mapLocation = GetRandomMapLocation(mapLocations, mapCooldowns, debugMapTypeName, excludedMapKeys);
@@ -206,8 +217,72 @@ namespace MortierFu
             {
                 if (mapOverrideHandle.IsValid())
                     Addressables.Release(mapOverrideHandle);
-
                 _isFirstRound = false;
+                _isSecondRound = true;
+            }
+        }
+        
+        private async UniTask<bool> TryLoadSecondRoundRaceOverrideMapAsync(string debugMapTypeName)
+        {
+            string overrideAddress = ResolveSecondRoundRaceOverrideAddress();
+
+            if (string.IsNullOrEmpty(overrideAddress))
+                return false;
+
+            IResourceLocation mapLocationOverride = null;
+
+            var mapOverrideHandle = Addressables.LoadResourceLocationsAsync(overrideAddress);
+
+            try
+            {
+                await mapOverrideHandle;
+
+                if (mapOverrideHandle.Status != AsyncOperationStatus.Succeeded || mapOverrideHandle.Result == null || mapOverrideHandle.Result.Count == 0)
+                {
+                    Logs.LogWarning(
+                        $"[LevelSystem] First round override scene key not found in Addressables: {overrideAddress}"
+                    );
+
+                    return false;
+                }
+
+                for (int i = 0; i < mapOverrideHandle.Result.Count; i++)
+                {
+                    IResourceLocation location = mapOverrideHandle.Result[i];
+
+                    if (!IsSceneLocation(location))
+                        continue;
+
+                    mapLocationOverride = location;
+                    break;
+                }
+
+                if (mapLocationOverride is null)
+                {
+                    Logs.LogError(
+                        $"[LevelSystem] First round override key found, but no valid scene location was found for: {overrideAddress}"
+                    );
+
+                    return false;
+                }
+
+                bool loadedOverride = await LoadAddressableMapAsync(mapLocationOverride, $"{debugMapTypeName} first round override");
+
+                if (!loadedOverride)
+                    return false;
+
+                ApplyLoadedMapData();
+
+                Logs.Log($"[LevelSystem] Enforced first round race override: {DescribeSceneKey(mapLocationOverride)}");
+
+                return true;
+            }
+            finally
+            {
+                if (mapOverrideHandle.IsValid())
+                    Addressables.Release(mapOverrideHandle);
+                
+                _isSecondRound = false;
             }
         }
 
@@ -217,6 +292,15 @@ namespace MortierFu
                 return string.Empty;
 
             return _gameModeBase.Data.FirstArenaRaceOverride.Address;
+        }
+
+        //un vieux ctrl c ctrl v mais j'ai ap le temps
+        private string ResolveSecondRoundRaceOverrideAddress()
+        {
+            if (_gameModeBase == null || _gameModeBase.Data == null || _gameModeBase.Data.SecondArenaRaceOverride == null)
+                return string.Empty;
+
+            return _gameModeBase.Data.SecondArenaRaceOverride.Address;
         }
 
         private async UniTask<bool> TryLoadEditorOverrideMapAsync(string editorOverrideKey, string debugMapTypeName)

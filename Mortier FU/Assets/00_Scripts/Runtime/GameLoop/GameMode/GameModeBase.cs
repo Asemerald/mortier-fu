@@ -40,6 +40,7 @@ namespace MortierFu
         private ScorePhaseController _scorePhaseController;
         private PlayerTeamSetupController _teamSetupController;
         private GameModeDependencies _dependencies;
+        private AugmentRaceTutorialController _augmentRaceTutorialController;
 
         // Dependencies
         private LobbyService lobbyService => _dependencies?.LobbyService;
@@ -66,6 +67,7 @@ namespace MortierFu
         public SO_GameFlowSettings FlowSettings => _flowSettingsHandle.Result;
         public GameState CurrentGameState => currentState;
         public ScoreController ScoreController => _scoreController;
+        public AugmentRaceTutorialController TutorialController => _augmentRaceTutorialController;
 
         public virtual int MinPlayerCount => Data.MinPlayerCount;
         public virtual int MaxPlayerCount => Data.MaxPlayerCount;
@@ -105,6 +107,8 @@ namespace MortierFu
         public event Action OnRacePlayerConfirmation;
         public event Func<UniTask, Action, Action, CancellationToken, UniTask> OnRaceEndedUI;
         public event Action<int> OnGameEnded;
+
+        public Action<AugmentRaceTutorialController> OnTutorialRaceControllerInit; //dégeulasse
 
         public virtual async UniTask Initialize()
         {
@@ -154,6 +158,8 @@ namespace MortierFu
             _roundWinnerPresentationController = new RoundWinnerPresentationController();
 
             _scorePhaseController = new ScorePhaseController(() => _roundStartController.StopCountdown(), () => OnScoreDisplayOver?.Invoke());
+            
+            _augmentRaceTutorialController = new AugmentRaceTutorialController(this);
             
             _augmentRaceController = new AugmentRaceController(teams, augmentSelectionSys, _playerSpawnController, SetPlayersControlContext, () => OnRaceStart?.Invoke(), 
                 () => _raceRuntimeController?.GetAugmentPickers(), augmentCount => _raceRuntimeController?.BuildAugmentLayout(augmentCount));
@@ -218,6 +224,8 @@ namespace MortierFu
             {
                 augmentSelectionSys?.SetMatchConfig(MatchConfig);
                 augmentSelectionSys?.SetCurrentRaceNumber(GetCurrentAugmentRaceNumber());
+                
+                await _augmentRaceTutorialController.WaitForTutorialCheck(cancellationToken); //TODO ADD TUTO
                 
                 await _augmentRaceController.PrepareSelectionAsync(cancellationToken, FlowSettings.AugmentStartShowcaseDelay);
                 await _raceRuntimeController.AfterShowcaseCompleted(cancellationToken);
