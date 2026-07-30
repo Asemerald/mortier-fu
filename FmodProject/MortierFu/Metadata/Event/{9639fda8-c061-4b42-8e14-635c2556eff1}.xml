@@ -105,8 +105,14 @@
 	<object class="MixerBusPanner" id="{bd1edc52-4e44-45b1-877f-7e06b735c15a}" />
 	<object class="SingleSound" id="{61e7723d-0aa6-48d0-a242-c95594a69d27}">
 		<property name="volume">
-			<value>-2</value>
+			<value>-3.5</value>
 		</property>
+		<property name="pitch">
+			<value>7</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{2c9a861d-b879-4747-adc5-55dfe73e40eb}</destination>
+		</relationship>
 		<relationship name="audioFile">
 			<destination>{4a8a8ca2-860d-4c06-a0d4-a817c0785071}</destination>
 		</relationship>
@@ -135,6 +141,14 @@
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{416efe10-178e-4500-a91a-1097e0bee961}" />
+	<object class="RandomizerModulator" id="{2c9a861d-b879-4747-adc5-55dfe73e40eb}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>2.5</value>
+		</property>
+	</object>
 	<object class="Automator" id="{69bcf973-77db-41ea-a13d-f8d76c9ce96b}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanDirection</value>

@@ -639,6 +639,8 @@ namespace MortierFu
                     _goldenBombshellPlayerIndexes.Add(idx);
 
                 SetGoldenBombshellActive(idx, _goldenBombshellPlayerIndexes.Contains(idx));
+                
+                AudioService.PlayOneShot(AudioService.FMODEvents.SFX_GameplayUI_GoldenBombshell);
             }
 
             return UniTask.CompletedTask;

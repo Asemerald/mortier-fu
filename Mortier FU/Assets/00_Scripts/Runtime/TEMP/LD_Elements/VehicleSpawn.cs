@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FMOD.Studio;
 using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine;
@@ -40,6 +41,7 @@ namespace MortierFu
         [SerializeField] private bool _collectionCheck = false;
         [SerializeField] private int _defaultCapacity = 10;
         [SerializeField] private int _maxSize = 64;
+        [SerializeField] private bool _emittingSound;
 
         private readonly List<VehicleModel> _activeVehicles = new();
         private readonly List<VehicleModel> _validPrototypes = new();
@@ -57,6 +59,9 @@ namespace MortierFu
         private float _trafficLightTimer;
         private bool _isRed;
         private bool _isInitialized;
+        private AudioService _audioService;
+        private EventInstance _eventInstance;
+        private bool skipSoundPlay;
 
         private void Awake()
         {
@@ -69,6 +74,7 @@ namespace MortierFu
         {
             if (!_isInitialized)
                 return;
+
             if (_useTrafficLights)
             {
                 SetTrafficLight(_startWithRedLight);
@@ -212,6 +218,29 @@ namespace MortierFu
         private void SetTrafficLight(bool red)
         {
             _isRed = red;
+
+            if (_emittingSound)
+            {
+                if (_audioService == null)
+                {
+                    _audioService = ServiceManager.Instance.Get<AudioService>();
+                }
+                
+                if (_isRed)
+                {
+                    if (skipSoundPlay)
+                    {
+                        AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Misc_TrafficLightOff, transform.position);
+                        _audioService.DestroyMapInstance(_eventInstance);
+                    }
+                    else skipSoundPlay = true;
+                }
+                else
+                {
+                    AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Misc_TrafficLightOn, transform.position);
+                    _eventInstance = _audioService.CreateMapInstance(AudioService.FMODEvents.SFX_Misc_CarTraffic, transform.position);
+                }
+            }
 
             if (_redLight)
                 _redLight.SetActive(_isRed);

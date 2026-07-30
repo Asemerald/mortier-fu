@@ -45,6 +45,8 @@ namespace MortierFu
         private float _spawnTimer;
         private bool _isInitialized;
         private Transform _startPoint;
+        
+        [SerializeField] private bool _emittingSound;
 
         private void Awake()
         {
@@ -60,6 +62,13 @@ namespace MortierFu
             {
                 _startPoint = _firstSpawnPoint;
             }
+
+            if (_emittingSound)
+            {
+                AudioService audioService = ServiceManager.Instance.Get<AudioService>();
+                audioService.CreateMapInstance(AudioService.FMODEvents.SFX_Misc_BoatTravelling, transform.position);
+            }
+            
             //
         }
 

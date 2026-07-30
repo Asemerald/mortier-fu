@@ -21,6 +21,7 @@ namespace MortierFu
 
         [SerializeField] private static AnimationCurve volumeCurve;
         private List<EventInstance> eventInstances;
+        private List<EventInstance> mapEventInstances;
         
         //BUS
         private static Bus masterBus;
@@ -132,6 +133,9 @@ namespace MortierFu
 
         private static float GetPanningFromWorldSpace(Vector3 position)
         {
+            if (Camera.main == null)
+                return 0;
+
             var screenPos = Camera.main.WorldToScreenPoint(position);
             float pan = (screenPos.x - (Screen.width/2)) / Screen.width * 2;
             
@@ -158,7 +162,58 @@ namespace MortierFu
                 eventInstances.Add(eventInstance);
             return eventInstance;
         }
+        
+        public EventInstance CreateMapInstance(EventReference eventReference, Vector3 position)
+        {
+            var eventInstance = CreateInstance(eventReference);
 
+            TrySetParameterIfExists(eventInstance, "Pan", GetPanningFromWorldSpace(position));
+            mapEventInstances.Add(eventInstance);
+            eventInstance.start();
+
+            return eventInstance;
+        }
+
+        public void DestroyInstance(EventInstance eventInstance)
+        {
+            if (!eventInstance.isValid()) return;
+
+                eventInstances.Remove(eventInstance);
+            eventInstance.stop(STOP_MODE.ALLOWFADEOUT);
+            eventInstance.release();
+        }
+        
+        public void DestroyMapInstance(EventInstance eventInstance)
+        {
+            if (!mapEventInstances.Contains(eventInstance)) return;
+            
+            mapEventInstances.Remove(eventInstance);
+            eventInstance.stop(STOP_MODE.ALLOWFADEOUT);
+            eventInstance.release();
+        }
+
+        public void ClearAllInstances()
+        {
+            foreach (var eventInstance in eventInstances)
+            {
+                eventInstance.stop(STOP_MODE.IMMEDIATE);
+                eventInstance.release();
+            }
+            
+            eventInstances.Clear();
+        }
+
+        public void ClearAllMapInstances()
+        {
+            foreach (var eventInstance in mapEventInstances)
+            {
+                eventInstance.stop(STOP_MODE.IMMEDIATE);
+                eventInstance.release();
+            }
+            
+            mapEventInstances.Clear();
+        }
+        
         public async UniTask StartMusic(EventReference eventReference)
         {
             if (!RuntimeManager.IsInitialized)
@@ -322,6 +377,7 @@ namespace MortierFu
         private UniTask OnPostBankLoad()
         {
             eventInstances = new List<EventInstance>();
+            mapEventInstances = new List<EventInstance>();
 
             masterBus = RuntimeManager.GetBus("bus:/");
             musicBus = RuntimeManager.GetBus("bus:/MUSIC");
