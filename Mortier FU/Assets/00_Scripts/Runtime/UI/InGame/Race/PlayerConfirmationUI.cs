@@ -49,7 +49,7 @@ namespace MortierFu
         [SerializeField] private Ease _confirmedSpamDownEase = Ease.InQuad;
         [SerializeField] private Ease _confirmedSpamUpEase = Ease.OutBack;
 
-        private CancellationTokenSource _ctsAnim = new CancellationTokenSource();
+        private CancellationTokenSource _ctsAnim = new();
         private ShakeService _shakeService;
         private GameModeBase _gm;
 
@@ -60,15 +60,9 @@ namespace MortierFu
 
         private Sprite _spriteDefaultPlayer;
 
-        private void Awake()
-        {
-            _raceGameObject.SetActive(false);
-        }
+        private void Awake() => _raceGameObject.SetActive(false);
 
-        private void Start()
-        {
-            _shakeService = ServiceManager.Instance.Get<ShakeService>();
-        }
+        private void Start() => _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
         private void OnEnable()
         {

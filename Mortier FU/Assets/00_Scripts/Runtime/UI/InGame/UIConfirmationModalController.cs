@@ -37,6 +37,8 @@ namespace MortierFu
         private bool _isOpen;
         private bool _isProcessing;
         private bool _shouldRestoreOnDestroy;
+        
+        public bool IsActive => _isOpen || _isProcessing;
 
         private void Awake()
         {
@@ -132,9 +134,15 @@ namespace MortierFu
             {
                 await _panel.OpenAsync(cancellationToken);
 
+                if (!_isOpen || _isProcessing)
+                    return;
+
                 SelectInputReceiver();
 
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+
+                if (!_isOpen || _isProcessing)
+                    return;
 
                 SelectInputReceiver();
             }

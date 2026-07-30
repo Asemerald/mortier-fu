@@ -563,11 +563,6 @@ namespace MortierFu
                 Select(_settingsButton);
         }
 
-        public void ReturnToMainPanelFromSubPanel()
-        {
-            ReturnToMainPanelFromSubPanel(_settingsButton);
-        }
-
         private void OpenPrimaryConfirmation()
         {
             if (_sceneContext == PauseUISceneContext.Lobby)
@@ -575,6 +570,8 @@ namespace MortierFu
             else
                 OpenEndGameConfirmation();
         }
+        
+        public void ReturnToMainPanelFromSubPanel() => ReturnToMainPanelFromSubPanel(_settingsButton);
 
         private void OpenReturnToMainMenuConfirmation() => OpenPauseConfirmation(_returnToMainMenuDescription, ConfirmReturnToMainMenuAsync, _primaryActionButton);
 
@@ -703,10 +700,7 @@ namespace MortierFu
                 _root.SetActive(false);
         }
 
-        private void Select(Selectable selectable)
-        {
-            Select(selectable ? selectable.gameObject : null);
-        }
+        private void Select(Selectable selectable) => Select(selectable ? selectable.gameObject : null);
 
         private void Select(GameObject selectedObject)
         {
@@ -760,6 +754,34 @@ namespace MortierFu
 
             if (_owner)
                 _shakeService?.ShakeController(_owner, ShakeService.ShakeType.LITTLE);
+        }
+        
+        public void HandleMainPanelCancel()
+        {
+            if (!_isOpen)
+                return;
+
+            if (_confirmationModal && _confirmationModal.IsActive)
+            {
+                _confirmationModal.RequestCancelFromInput();
+                return;
+            }
+
+            if (!IsMainPausePanelActive())
+                return;
+
+            _gamePauseSystem?.Resume();
+        }
+        
+        private bool IsMainPausePanelActive()
+        {
+            if (!_pausePanel || !_pausePanel.activeInHierarchy)
+                return false;
+
+            if (_settingsPanel && _settingsPanel.activeInHierarchy)
+                return false;
+
+            return !_controlsPanel || !_controlsPanel.activeInHierarchy;
         }
     }
 }

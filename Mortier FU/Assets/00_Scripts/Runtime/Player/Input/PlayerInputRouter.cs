@@ -50,7 +50,6 @@ namespace MortierFu
             globalMap?.Enable();
 
             character?.SetControlContext(context);
-            
         }
 
         public void ApplyCurrentContextTo(PlayerCharacter character) => character?.SetControlContext(ControlContext);
@@ -112,10 +111,9 @@ namespace MortierFu
             if (_submitUIAction is not null)
             {
                 _submitUIAction.performed -= _onSubmitUI;
-                _submitUIAction.canceled += _onSubmitUI;
+                _submitUIAction.canceled -= _onSubmitUI;
             }
                 
-
             if (_cancelUIAction is not null)
                 _cancelUIAction.performed -= _onCancelUI;
 
@@ -129,10 +127,7 @@ namespace MortierFu
             _callbacksBound = false;
         }
 
-        public void Dispose()
-        {
-            UnbindInputCallbacks();
-        }
+        public void Dispose() => UnbindInputCallbacks();
 
         private static bool UsesGameplayActionMap(PlayerControlContext context)
         {
