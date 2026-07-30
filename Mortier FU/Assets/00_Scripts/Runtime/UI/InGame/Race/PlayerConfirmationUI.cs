@@ -72,11 +72,13 @@ namespace MortierFu
             _ctsAnim?.Cancel();
             _ctsAnim?.Dispose();
             _ctsAnim = new CancellationTokenSource();
+            
             foreach (var slot in _playerSlots)
             {
                 slot.DefaultImage = slot.ImagePlayer.sprite;
+                ResetSlotVisualState(slot);
             }
-
+            
             SubscribeGameMode();
         }
 
