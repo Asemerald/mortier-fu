@@ -73,7 +73,7 @@ namespace MortierFu
             ScoreToWin = Mathf.Clamp(ScoreToWin, 500, 3000);
             RaceTimeLimit = Mathf.Clamp(RaceTimeLimit, 10f, 30f);
 
-            HealthMultiplier = Mathf.Clamp(HealthMultiplier, 0.5f, 3f);
+            HealthMultiplier = Mathf.Clamp(HealthMultiplier, 0.01f, 3f);
             StrikeMultiplier = Mathf.Clamp(StrikeMultiplier, 0.5f, 3f);
         }
     }
