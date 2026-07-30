@@ -13,19 +13,19 @@ namespace MortierFu
         [SerializeField] private SO_RaritySpritesFactory _raritySpritesFactory;
 
         //[SerializeField] private Image _titleImageBg;
-        [SerializeField] private TextMeshProUGUI _nameTxt;
+        [Header("UI References"),SerializeField] private TextMeshProUGUI _nameTxt;
         [SerializeField] private RawImage _titleRarityFilter;
         [SerializeField] private TextMeshProUGUI _descTxt;
         [SerializeField] private Image _augmentBorder;
         [SerializeField] private Image _augmentIcon;
         [SerializeField] private Image _augmentCard;
         [SerializeField] private Image _augmentBack;
+        [SerializeField] private CanvasGroup _canvasGroup;
+        
+        [Header("References")]
         [SerializeField] private RarityData[] _rarityData;
         [SerializeField] private Transform anchor;
-        [SerializeField] private CanvasGroup _canvasGroup;
-
         [SerializeField] private RectTransform _infoRoot;
-
         [SerializeField] private GameObject _explosionCardVFXPrefab;
 
         [SerializeField] private float _showExplosionDelay = 0.1f;
@@ -34,15 +34,16 @@ namespace MortierFu
         [Header("SymbolDescription")] 
         [SerializeField] private int _symboleSize = 200;
         
-        [Header("IconAugment")] 
-        [SerializeField] private Vector3 _sizeIcon = new Vector3(.3f, .3f,.3f);
+        [Header("Values")] 
+        [SerializeField] private Vector3 _sizeIcon = new (.3f, .3f,.3f);
+        [SerializeField] private Vector3 _vfxCardLocalPosition = new (-0.03f, 0.85f, 0f);
         
         private FaceCamera _faceCamera;
         private GameObject _vfxInstance;
         protected GameObject _vfxCard;
         private Quaternion _initialRotation;
         private Vector3 _initialScale;
-        private Vector3 _visualRotationIcon = new Vector3(250f, 0f, 0f);
+        private Vector3 _visualRotationIcon = new (250f, 0f, 0f);
         private Vector2 _initialInfoPos;
         private float _initialCanvasAlpha;
 
@@ -52,9 +53,7 @@ namespace MortierFu
         
         private ShakeService _shakeService;
 
-        private StringBuilder _sb = new StringBuilder();
-
-        public Transform AnchorIncon;
+        private StringBuilder _sb = new ();
 
         public void Initialize()
         {
@@ -123,7 +122,7 @@ namespace MortierFu
             {
                 _vfxCard = Instantiate(rarityVfx, Vector3.zero, Quaternion.identity, transform);
                 
-                _vfxCard.transform.position = transform.position;
+                _vfxCard.transform.localPosition = _vfxCardLocalPosition;
             }
             
             _augmentIcon.sprite = augment.SmallSprite;
