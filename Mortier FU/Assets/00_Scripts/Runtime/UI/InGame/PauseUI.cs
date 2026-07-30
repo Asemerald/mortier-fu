@@ -70,6 +70,10 @@ namespace MortierFu
         [SerializeField] private string _quitGameDescription = "Are you sure you want to quit the Game?";
         [SerializeField] private string _confirmLabel = "Confirm";
         [SerializeField] private string _cancelLabel = "Cancel";
+        
+        [Header("Switch by Input Element")]
+        [SerializeField] private GameObject _pauseButtonKeyboard;
+        [SerializeField] private GameObject _pauseButtonGamepad;
 
         private readonly List<PlayerPauseSnapshot> _snapshots = new();
 
@@ -351,13 +355,22 @@ namespace MortierFu
 
             CapturePlayers();
             ApplyPauseInputState();
-
+            
+            UpdateUiImageByInput(_owner);
+            
             ShowMainPanel();
             Select(_settingsButton);
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
             ServiceManager.Instance.Get<AudioService>()?.SetPause(1);
             _shakeService?.ShakeController(_owner, ShakeService.ShakeType.MID);
+        }
+
+        private void UpdateUiImageByInput(PlayerManager ownerInput)
+        {
+            bool isKeyboard = ownerInput.IsKeyboardAndMouseControlScheme();
+            _pauseButtonKeyboard.SetActive(isKeyboard);
+            _pauseButtonGamepad.SetActive(!isKeyboard);
         }
 
         private void HandleResumed()
