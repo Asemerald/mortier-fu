@@ -65,6 +65,8 @@ namespace MortierFu
             _dongAnimation.time = 0f;
             _dongAnimation.Evaluate();
             _dongAnimation.Play();
+
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Misc_Ding);
         }
 
         public void ConfirmAnimationEnd()

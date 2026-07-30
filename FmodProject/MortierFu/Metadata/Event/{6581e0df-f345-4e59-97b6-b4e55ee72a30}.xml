@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{6581e0df-f345-4e59-97b6-b4e55ee72a30}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_Misc_BoatTravelling</value>
@@ -56,7 +56,7 @@
 			<destination>{da9d6540-cc20-4ae7-81f2-6a4a23ea7222}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{b668158f-46c9-4d40-8906-e4fb8fc0d6f9}</destination>
+			<destination>{393d59c8-b90c-4cf8-8872-285963f0815b}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{e9412adc-5bc5-4b2b-899c-bba05df510bb}" />
@@ -207,8 +207,8 @@
 		</relationship>
 		<relationship name="automationPoints">
 			<destination>{e71946a6-1427-4927-8780-ea0ea92f7161}</destination>
-			<destination>{08d67bd2-0914-4fb2-b667-63dab1b9c359}</destination>
 			<destination>{812b234e-0375-4fd0-a13e-42d110fd5bba}</destination>
+			<destination>{fcb762c9-4132-449b-92aa-4f4a56f2b17f}</destination>
 		</relationship>
 	</object>
 	<object class="AutomationPoint" id="{dc7d31cf-aa60-42c9-aa43-21818197bb9d}">
@@ -238,23 +238,20 @@
 			<value>-0.0242556129</value>
 		</property>
 	</object>
-	<object class="AutomationPoint" id="{08d67bd2-0914-4fb2-b667-63dab1b9c359}">
-		<property name="position">
-			<value>-1</value>
-		</property>
-		<property name="value">
-			<value>0</value>
-		</property>
-		<property name="curveShape">
-			<value>-0.00158862327</value>
-		</property>
-	</object>
 	<object class="AutomationPoint" id="{812b234e-0375-4fd0-a13e-42d110fd5bba}">
 		<property name="position">
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>90</value>
+		</property>
+	</object>
+	<object class="AutomationPoint" id="{fcb762c9-4132-449b-92aa-4f4a56f2b17f}">
+		<property name="position">
+			<value>-1</value>
+		</property>
+		<property name="value">
+			<value>-90</value>
 		</property>
 	</object>
 </objects>

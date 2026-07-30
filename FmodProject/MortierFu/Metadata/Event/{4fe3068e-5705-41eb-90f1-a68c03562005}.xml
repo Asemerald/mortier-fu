@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{4fe3068e-5705-41eb-90f1-a68c03562005}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_Misc_TuktukEngine</value>
@@ -56,7 +56,7 @@
 			<destination>{d0be8c56-87b6-4918-9384-ce0bc65ae8ff}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{b668158f-46c9-4d40-8906-e4fb8fc0d6f9}</destination>
+			<destination>{393d59c8-b90c-4cf8-8872-285963f0815b}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{b7104560-412b-4a8b-bc33-e4c7ee350faf}" />
@@ -78,6 +78,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{61b1c45e-a6a1-42d9-b6c1-ead9fd74cc21}">
+		<relationship name="modulators">
+			<destination>{17843e61-3fa5-493e-8e5d-2d3e4dd8b890}</destination>
+		</relationship>
 		<relationship name="effectChain">
 			<destination>{b69b0d3e-c3ea-444d-a9dd-dea5ac64b91f}</destination>
 		</relationship>
@@ -106,6 +109,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{8483dfb7-1dec-41bb-86a7-ba0a5c2eebdd}">
+		<property name="volume">
+			<value>-8</value>
+		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -132,6 +138,20 @@
 		<relationship name="markerTrack">
 			<destination>{1e860666-4f2a-498a-a030-81a0b3aa07e5}</destination>
 		</relationship>
+	</object>
+	<object class="ADSRModulator" id="{17843e61-3fa5-493e-8e5d-2d3e4dd8b890}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="initialValue">
+			<value>-80</value>
+		</property>
+		<property name="releaseTime">
+			<value>500</value>
+		</property>
+		<property name="finalValue">
+			<value>-80</value>
+		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{b69b0d3e-c3ea-444d-a9dd-dea5ac64b91f}">
 		<relationship name="effects">
@@ -243,7 +263,7 @@
 			<value>-1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-50</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.00158862327</value>
@@ -254,7 +274,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>50</value>
 		</property>
 	</object>
 </objects>

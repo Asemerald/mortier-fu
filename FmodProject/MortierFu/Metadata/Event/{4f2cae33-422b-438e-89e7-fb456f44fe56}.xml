@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{4f2cae33-422b-438e-89e7-fb456f44fe56}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_Misc_CarHonk</value>
@@ -87,7 +87,7 @@
 	</object>
 	<object class="MultiSound" id="{597d2b1a-09aa-4320-8432-528c5057b8dc}">
 		<relationship name="sounds">
-			<destination>{fb5555fb-5d91-4b33-b6d0-112ea118c9bd}</destination>
+			<destination>{ddf47fb5-15d4-4fb4-b3b2-f4c4a3fbe8b9}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{728db3c4-6cae-42e9-b463-d1f3d240c379}">
@@ -100,13 +100,17 @@
 		<relationship name="effects">
 			<destination>{b825dd20-29c9-4ee9-882c-919624e2154c}</destination>
 			<destination>{f5ed3679-dccc-4ab0-9778-53a20bd6abcd}</destination>
+			<destination>{adb1da10-5ce0-4bc7-bbf8-1887431e80c9}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{762af641-59ad-448b-b506-1f6478ccfe46}" />
-	<object class="SingleSound" id="{fb5555fb-5d91-4b33-b6d0-112ea118c9bd}">
-		<property name="startOffset">
-			<value>4</value>
+	<object class="SingleSound" id="{ddf47fb5-15d4-4fb4-b3b2-f4c4a3fbe8b9}">
+		<property name="volume">
+			<value>-4</value>
 		</property>
+		<relationship name="modulators">
+			<destination>{318a2306-20d8-4f7b-82bd-477b9ec51ec9}</destination>
+		</relationship>
 		<relationship name="audioFile">
 			<destination>{1b9551f0-cfd4-4c41-ab68-2cf76c30603c}</destination>
 		</relationship>
@@ -135,6 +139,25 @@
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{f5ed3679-dccc-4ab0-9778-53a20bd6abcd}" />
+	<object class="SFXReverbEffect" id="{adb1da10-5ce0-4bc7-bbf8-1887431e80c9}">
+		<property name="decayTime">
+			<value>750</value>
+		</property>
+		<property name="earlyLateMix">
+			<value>100</value>
+		</property>
+		<property name="wetLevel">
+			<value>-7.5</value>
+		</property>
+	</object>
+	<object class="RandomizerModulator" id="{318a2306-20d8-4f7b-82bd-477b9ec51ec9}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>pitch</value>
+		</property>
+		<property name="amount">
+			<value>6.5</value>
+		</property>
+	</object>
 	<object class="Automator" id="{b2d8710a-9e3d-462b-8197-6ce032a7d50d}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanDirection</value>
@@ -207,7 +230,7 @@
 			<value>-1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-90</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.00158862327</value>
@@ -218,7 +241,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>90</value>
 		</property>
 	</object>
 </objects>

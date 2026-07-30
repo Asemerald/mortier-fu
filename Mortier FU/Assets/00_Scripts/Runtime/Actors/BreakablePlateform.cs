@@ -41,7 +41,7 @@ public class BreakablePlateform : Breakable
         }
          
         if (_life > 0) return;
-        AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_Break, contactPoint).Forget();
+        AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_PlatformFall, contactPoint).Forget();
 
         if (gameObject.GetComponent<BoxCollider>())
         {
@@ -55,6 +55,8 @@ public class BreakablePlateform : Breakable
 
     private void ChangeCurrentMesh(GameObject mesh)
     {
+        AudioService.PlayBreakAudio(AudioService.FMODEvents.SFX_Misc_PlatformDamage, _currentMesh.transform.position).Forget();
+        
         _currentMesh.SetActive(false);
         _currentMesh = mesh;
         _currentMesh.SetActive(true);

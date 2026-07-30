@@ -68,7 +68,23 @@ namespace MortierFu
         
         [field: SerializeField] public EventReference AMBI_Day { get; private set; }
         [field: SerializeField] public EventReference AMBI_Night { get; private set; }
-        [field: SerializeField] public EventReference AMBI_Tuktuk_Drift { get; private set; }
+        
+        
+        [field: SerializeField] public EventReference SFX_Misc_TrafficLightOn { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_TrafficLightOff { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_CarTraffic { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_CarHonk { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_TuktukEngine { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_TuktukHonk { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_ThunderStrike { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_Earthquake { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_PlatformDamage { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_PlatformFall { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_Taunt { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_Ding { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_BoatTravelling { get; private set; }
+        [field: SerializeField] public EventReference SFX_Misc_EndRaceAlert { get; private set; }
+        [field: SerializeField] public EventReference SFX_GameplayUI_GoldenBombshell { get; private set; }
 
         #endregion
         

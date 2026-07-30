@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{e97e8035-b7af-4a29-88d2-feb28edf22b0}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_Misc_Ding</value>
@@ -100,12 +100,16 @@
 		<relationship name="effects">
 			<destination>{c2520b58-e911-47e2-b6ec-1d0e4661bec8}</destination>
 			<destination>{dfe9fc02-74a6-4e99-b31b-cb866578e335}</destination>
+			<destination>{3a4fdb5e-2c7b-486b-9711-c5c27ca1da3a}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{069f3100-5e6f-46f2-afbe-45bc8d9ef680}" />
 	<object class="SingleSound" id="{23ae2be9-c676-414c-9cbc-d73e30276b10}">
 		<property name="startOffset">
 			<value>0.5</value>
+		</property>
+		<property name="volume">
+			<value>-3</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{fc0419e2-7ebf-4ce5-a2d4-f8e5ebac5161}</destination>
@@ -135,6 +139,17 @@
 		</relationship>
 	</object>
 	<object class="MixerBusFader" id="{dfe9fc02-74a6-4e99-b31b-cb866578e335}" />
+	<object class="SFXReverbEffect" id="{3a4fdb5e-2c7b-486b-9711-c5c27ca1da3a}">
+		<property name="decayTime">
+			<value>750</value>
+		</property>
+		<property name="earlyLateMix">
+			<value>100</value>
+		</property>
+		<property name="wetLevel">
+			<value>-7.5</value>
+		</property>
+	</object>
 	<object class="Automator" id="{3b38c614-7c63-457c-afcc-ed61390f3fb3}">
 		<property name="nameOfPropertyBeingAutomated">
 			<value>surroundPanDirection</value>
@@ -207,7 +222,7 @@
 			<value>-1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-90</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.00158862327</value>
@@ -218,7 +233,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>90</value>
 		</property>
 	</object>
 </objects>

@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{50bc362e-7a11-4645-aa81-2d541cb381e4}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_GameplayUI_GoldenBombshell</value>
@@ -104,6 +104,9 @@
 	</object>
 	<object class="MixerBusPanner" id="{63fe91c5-f1fa-4f47-a54f-b5114987c1e6}" />
 	<object class="SingleSound" id="{9adfd67f-4057-4c17-bbc2-68e2bcf510c9}">
+		<property name="volume">
+			<value>-6</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{cf0c7d4d-9a36-42a9-ab07-e977b21c1aa0}</destination>
 		</relationship>
@@ -204,7 +207,7 @@
 			<value>-1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-90</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.00158862327</value>
@@ -215,7 +218,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>90</value>
 		</property>
 	</object>
 </objects>

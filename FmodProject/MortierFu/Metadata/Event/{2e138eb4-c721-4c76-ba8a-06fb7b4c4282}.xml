@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{2e138eb4-c721-4c76-ba8a-06fb7b4c4282}">
 		<property name="color">
-			<value>Purple Light 2</value>
+			<value>Purple</value>
 		</property>
 		<property name="name">
 			<value>SFX_Misc_CarTraffic</value>
@@ -56,7 +56,7 @@
 			<destination>{2cb957bd-079c-4189-95a5-a5bd6d2c73a6}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{b668158f-46c9-4d40-8906-e4fb8fc0d6f9}</destination>
+			<destination>{393d59c8-b90c-4cf8-8872-285963f0815b}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{b451d413-5e90-4cd6-9c70-3aead7d78cfc}" />
@@ -78,6 +78,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{103a5281-71b4-4929-ae41-21124e58682d}">
+		<relationship name="modulators">
+			<destination>{3b1f2fcf-be51-4fbc-827e-c7c19269f4e6}</destination>
+		</relationship>
 		<relationship name="effectChain">
 			<destination>{6c13c54b-2c7d-44d8-8539-52e9b549e63f}</destination>
 		</relationship>
@@ -106,6 +109,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{8b47fcca-6c6c-40be-a5ab-6056f7f919f3}">
+		<property name="volume">
+			<value>-10</value>
+		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -121,10 +127,10 @@
 	</object>
 	<object class="LoopRegion" id="{e870dcba-6dee-4c08-bb36-a79363ef8b69}">
 		<property name="position">
-			<value>5.8878581816963242</value>
+			<value>0</value>
 		</property>
 		<property name="length">
-			<value>21.518391818303677</value>
+			<value>27.40625</value>
 		</property>
 		<relationship name="timeline">
 			<destination>{e527ff51-a959-4a1b-a3ea-8708698eab21}</destination>
@@ -132,6 +138,17 @@
 		<relationship name="markerTrack">
 			<destination>{54d66fcc-9725-4317-b7be-4158c30f66a1}</destination>
 		</relationship>
+	</object>
+	<object class="ADSRModulator" id="{3b1f2fcf-be51-4fbc-827e-c7c19269f4e6}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="initialValue">
+			<value>-80</value>
+		</property>
+		<property name="finalValue">
+			<value>-80</value>
+		</property>
 	</object>
 	<object class="MixerBusEffectChain" id="{6c13c54b-2c7d-44d8-8539-52e9b549e63f}">
 		<relationship name="effects">
@@ -243,7 +260,7 @@
 			<value>-1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>-50</value>
 		</property>
 		<property name="curveShape">
 			<value>-0.00158862327</value>
@@ -254,7 +271,7 @@
 			<value>1</value>
 		</property>
 		<property name="value">
-			<value>0</value>
+			<value>50</value>
 		</property>
 	</object>
 </objects>
