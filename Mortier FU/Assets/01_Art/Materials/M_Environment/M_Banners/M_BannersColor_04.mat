@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_BannersColor_04
-  m_Shader: {fileID: -6465566751694194690, guid: f41e976ab0d555b4f94e67fef8726e89, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 720479661dda1924dad899790155d525, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -37,6 +37,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _FirstTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: e1534dae3e928fa4c8cd8e3869b3673c, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -47,6 +51,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _RGBAMask:
         m_Texture: {fileID: 2800000, guid: 6ef8f9f9f0efb4042b71c69e71a2e32d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SecondTexture:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -63,6 +71,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Amount: 0.4
     - _BC_Contrast: 1
     - _Contrast: 1
     - _Contrast_A: 1
@@ -71,6 +80,8 @@ Material:
     - _Contrast_R: 0.71
     - _IsEmissive: 0
     - _Metallic: 0
+    - _NoiseScale: 2
+    - _Progression: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Roughness: 1
@@ -79,6 +90,7 @@ Material:
     - _Saturation_B: 1
     - _Saturation_G: 1.04
     - _Saturation_R: 1.02
+    - _Speed: 3
     - _UseAlpha: 0
     - _UseRGBAMask: 1
     m_Colors:
@@ -88,5 +100,6 @@ Material:
     - _Color_G: {r: 1, g: 0.8346923, b: 0.2028302, a: 1}
     - _Color_R: {r: 0.7264151, g: 0.044544343, b: 0.044544343, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _MovementDirection: {r: 0.1, g: 0.1, b: 0.1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
