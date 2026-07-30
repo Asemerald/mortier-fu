@@ -250,7 +250,7 @@ namespace MortierFu
                 _vfxInstance = null;
             }
             
-            _vfxInstance = SetAugmentVisualIcon(augment,Vector3.zero,  Quaternion.identity, transform, Vector3.one);
+            _vfxInstance = SetAugmentVisualIcon(augment,Vector3.zero, transform, Vector3.one);
 
             _rarity = augment.Rarity;
 
