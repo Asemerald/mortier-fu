@@ -137,13 +137,14 @@ namespace MortierFu
             string symbol = value switch
             {
                 E_AugmentValue.Empty => "",
-                E_AugmentValue.MinusThree => " ---",
-                E_AugmentValue.MinusTwo => " --",
-                E_AugmentValue.MinusOne => " -",
-                E_AugmentValue.PlusOne => " +",
-                E_AugmentValue.PlusTwo => " ++",
-                E_AugmentValue.PlusThree => " +++",
-                E_AugmentValue.OneNumber => " +1",
+                E_AugmentValue.MinusThree => " <sprite index=1> <sprite index=1> <sprite index=1>",
+                E_AugmentValue.MinusTwo => " <sprite index=1> <sprite index=1>",
+                E_AugmentValue.MinusOne => " <sprite index=1>",
+                E_AugmentValue.MinusOneGreen => " <sprite index=2>",
+                E_AugmentValue.PlusOne => " <sprite index=0>",
+                E_AugmentValue.PlusTwo => " <sprite index=0> <sprite index=0>",
+                E_AugmentValue.PlusThree => " <sprite index=0> <sprite index=0> <sprite index=0> ",
+                E_AugmentValue.OneNumber => " <sprite index=0> 1",
                 _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
             };
             
