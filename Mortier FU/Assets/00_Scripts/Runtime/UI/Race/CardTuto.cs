@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using PrimeTween;
 using TMPro;
 using UnityEngine;
@@ -33,18 +35,18 @@ public class CardTuto : MonoBehaviour
             nameText.text = data.Name;
     }
 
-    public Tween PlayAppear()
+    public UniTask PlayAppear(CancellationTokenSource cts)
     {
         canvasGroup.alpha = 0f;
         transform.localScale = appearScaleFrom;
 
-        Tween.Alpha(canvasGroup, 1f, appearDuration);
-        return Tween.Scale(transform,originScale, appearDuration, Ease.OutBack);
+        Tween.Alpha(canvasGroup, 1f, appearDuration).ToUniTask(cancellationToken:cts.Token).Forget();
+        return Tween.Scale(transform,originScale, appearDuration, Ease.OutBack).ToUniTask(cancellationToken: cts.Token);
     }
 
-    public Tween PlayDisappear()
+    public Tween PlayDisappear(CancellationTokenSource cts)
     {
-        Tween.Alpha(canvasGroup, 0f, disappearDuration);
+        Tween.Alpha(canvasGroup, 0f, disappearDuration).ToUniTask(cancellationToken:cts.Token).Forget();
         return Tween.Scale(transform, appearScaleFrom, disappearDuration, Ease.InBack);
     }
     
