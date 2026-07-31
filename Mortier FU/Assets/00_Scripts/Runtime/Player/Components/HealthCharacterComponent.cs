@@ -262,6 +262,11 @@ namespace MortierFu
 
             OnHealthChanged?.Invoke(previousHealth, _currentHealth);
             OnMaxHealthChanged?.Invoke(_maxHealth);
+
+            if (_maxHealth >= 250)
+            {
+                SteamManager.UnlockAchievement("HEALTH_THRESHOLD");
+            }
         }
 
         public void AddInvincibility(object source)
