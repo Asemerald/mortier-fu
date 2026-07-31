@@ -473,7 +473,7 @@ namespace MortierFu
 
                     if (!child.gameObject.activeSelf) continue;
 
-                    var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one, _settings.AugmentIconAnimDuration,
+                    var scaleTween = Tween.Scale(child, Vector3.zero, Vector3.one * _settings.AugmentIconSizeFactor, _settings.AugmentIconAnimDuration,
                         _settings.AugmentIconScaleEase);
                     var moveTween = Tween.LocalPosition(child, Vector3.zero, finalPositions[i],
                         _settings.AugmentIconAnimDuration,
