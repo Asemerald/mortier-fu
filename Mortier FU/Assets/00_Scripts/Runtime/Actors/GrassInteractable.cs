@@ -34,6 +34,8 @@ public class GrassInteractable : MonoBehaviour, IInteractable
         IsBombshellInteractable = false; 
         particleBurned.Play();
         LerpShaderGrass(_cts.Token).Forget();
+        
+        SteamManager.UnlockAchievement("BURN_GRASS");
     }
 
     private async UniTask LerpShaderGrass(CancellationToken token)
