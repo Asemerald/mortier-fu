@@ -58,6 +58,7 @@ namespace MortierFu
         [SerializeField] private Slider _masterVolumeSlider;
         [SerializeField] private Slider _musicVolumeSlider;
         [SerializeField] private Slider _sfxVolumeSlider;
+        [SerializeField] private Slider _ambienceVolumeSlider;
 
         [Header("Unity UI")]
         [SerializeField] private EventSystem _eventSystem;
@@ -199,9 +200,9 @@ namespace MortierFu
 
             _gamePauseSystem.RestoreSettingsFromSave();
 
-            _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
+            _gamePauseSystem.UpdateUIFromSave(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider, _ambienceVolumeSlider);
 
-            _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider);
+            _gamePauseSystem.BindUIEvents(_fullscreenToggle, _vSyncToggle, _masterVolumeSlider, _musicVolumeSlider, _sfxVolumeSlider, _ambienceVolumeSlider);
 
             _settingsInitialized = true;
         }
@@ -311,6 +312,9 @@ namespace MortierFu
 
             if (_sfxVolumeSlider)
                 _sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+            
+            if (_ambienceVolumeSlider)
+                _ambienceVolumeSlider.onValueChanged.AddListener(OnAmbienceVolumeChanged);
         }
 
         private void UnbindSettingsFeedbackEvents()
@@ -329,6 +333,9 @@ namespace MortierFu
 
             if (_sfxVolumeSlider)
                 _sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
+            
+            if (_ambienceVolumeSlider)
+                _ambienceVolumeSlider.onValueChanged.RemoveListener(OnAmbienceVolumeChanged);
         }
 
         private void HandlePaused(PlayerManager player)
@@ -763,6 +770,12 @@ namespace MortierFu
         private void OnSfxVolumeChanged(float value)
         {
             AudioService.SetVolume(AudioService.BusEnum.SFX, value);
+            PlayMinorUIFeedback();
+        }
+        
+        private void OnAmbienceVolumeChanged(float value)
+        {
+            AudioService.SetVolume(AudioService.BusEnum.AMBIENCE, value);
             PlayMinorUIFeedback();
         }
 
