@@ -22,6 +22,7 @@ namespace MortierFu
 
         [Header("Augment Icon Animation")]
         public float AugmentIconRadius = 225f;
+        public float AugmentIconSizeFactor = 1f;
         public float ChildAnimDelay = 0.3f;
         public float AugmentIconAnimDuration = 0.8f;
         public Ease AugmentIconScaleEase = Ease.OutBack;
