@@ -113,9 +113,22 @@ namespace MortierFu
         private async UniTask<bool> LoadMapAsync(List<IResourceLocation> mapLocations, Dictionary<string, int> mapCooldowns, bool arenaMode
             , string editorOverrideKey, string debugMapTypeName, HashSet<string> excludedMapKeys = null)
         {
+            // Set high prio for map loading
+            Application.backgroundLoadingPriority = ThreadPriority.High;
+            
+            // Augmente la taille du buffer d'upload GPU (ex: 64 Mo au lieu de 16 Mo par défaut)
+            QualitySettings.asyncUploadBufferSize = 64; 
+
+            // Permet d'allouer plus de millisecondes par frame à l'upload des textures
+            QualitySettings.asyncUploadTimeSlice = 16;
+            
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            
             await FinishUnfinishedBusiness();
             await UnloadCurrentMap();
 
+            Logs.Log($"[Perf] Unload pris : {sw.ElapsedMilliseconds} ms");
+            
             SetCameraArenaMode(arenaMode);
 
             bool editorOverrideLoaded = await TryLoadEditorOverrideMapAsync(editorOverrideKey, debugMapTypeName);
@@ -148,7 +161,11 @@ namespace MortierFu
             if (mapLocation is null)
                 return false;
 
+            sw.Restart();
+            
             bool loaded = await LoadAddressableMapAsync(mapLocation, debugMapTypeName);
+            
+            Logs.Log($"[Perf] Load pris : {sw.ElapsedMilliseconds} ms");
 
             if (!loaded)
                 return false;
