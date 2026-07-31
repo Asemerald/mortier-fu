@@ -104,6 +104,8 @@ namespace MortierFu
             PlayerManager victimPlayer = evt.Character.Owner;
 
             victimPlayer.Metrics.TotalDeaths++;
+            
+            SteamManager.AddProgressToStat("ELIMINATIONS", 1);
 
             OnPlayerDied?.Invoke(evt.Character);
 
