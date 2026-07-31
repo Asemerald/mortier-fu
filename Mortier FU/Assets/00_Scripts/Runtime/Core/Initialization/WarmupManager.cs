@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks; // 🎯 Utilisation de UniTask pour la sécurité du Main Thread
 using UnityEngine;
 
 namespace MortierFu
@@ -11,37 +11,42 @@ namespace MortierFu
 
         [Header("Particle Systems")]
         [SerializeField] private List<ParticleSystem> particlesToWarmup = new();
+        
+        [SerializeField] private ShaderVariantCollection shaderVariantCollectionToWarmup;
 
         [Header("Settings")]
-        [Tooltip("Nombre de warmups par frame pour éviter les spikes")]
-        [SerializeField] private int itemsPerFrame = 1;
+        [Tooltip("Nombre de warmups par frame pour éviter les freeze")]
+        [SerializeField] private int itemsPerFrame = 2;
 
         private Mesh _warmupMesh;
+        private readonly Matrix4x4 _farMatrix = Matrix4x4.TRS(new Vector3(10000f, 10000f, 10000f), Quaternion.identity, Vector3.one);
 
         private void Awake()
         {
-            _warmupMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            // Génère un quad/cube simple en mémoire pour ne pas dépendre des assets internes
+            GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _warmupMesh = tempCube.GetComponent<MeshFilter>().sharedMesh;
+            Destroy(tempCube);
         }
 
-        
         /// <summary>
-        /// To Call to warmup all materials and particle systems
+        /// À appeler pendant l'écran de chargement
         /// </summary>
-        public async Task WarmupAllAsync()
+        public async UniTask WarmupAllAsync()
         {
+            WarmupShaders();
             await WarmupMaterialsAsync();
             await WarmupParticlesAsync();
         }
-        
-        
-        private async Task WarmupMaterialsAsync()
+
+        private async UniTask WarmupMaterialsAsync()
         {
             int counter = 0;
 
-            foreach (var mat in materialsToWarmup)
+            for (int i = 0; i < materialsToWarmup.Count; i++)
             {
-                if (mat == null)
-                    continue;
+                Material mat = materialsToWarmup[i];
+                if (mat == null) continue;
 
                 WarmupMaterial(mat);
                 counter++;
@@ -49,66 +54,64 @@ namespace MortierFu
                 if (counter >= itemsPerFrame)
                 {
                     counter = 0;
-                    await Task.Yield(); 
+                    await UniTask.Yield(); // Garantit le retour sur le Main Thread
                 }
             }
         }
 
         private void WarmupMaterial(Material material)
         {
+            // Compiles TOUTES les passes du shader (Shadows, Light, Pass de base, etc.)
             for (int pass = 0; pass < material.passCount; pass++)
             {
                 if (material.SetPass(pass))
                 {
-                    Graphics.DrawMeshNow(
-                        _warmupMesh,
-                        Matrix4x4.TRS(
-                            new Vector3(10000, 10000, 10000),
-                            Quaternion.identity,
-                            Vector3.one
-                        )
-                    );
-                    return;
+                    Graphics.DrawMeshNow(_warmupMesh, _farMatrix);
                 }
             }
-
-            Debug.LogWarning(
-                $"[Warmup] Aucun pass valide pour le matériau {material.name}",
-                material
-            );
         }
 
-        
-
-        private async Task WarmupParticlesAsync()
+        private async UniTask WarmupParticlesAsync()
         {
             int counter = 0;
 
-            foreach (var ps in particlesToWarmup)
+            // Création d'un conteneur temporaire hors-champ pour éviter d'instancier/détruire en boucle
+            GameObject warmupContainer = new GameObject("Particle_Warmup_Container");
+            warmupContainer.transform.position = new Vector3(10000f, 10000f, 10000f);
+
+            try
             {
-                if (ps == null)
-                    continue;
-
-                WarmupParticleSystem(ps);
-                counter++;
-
-                if (counter >= itemsPerFrame)
+                for (int i = 0; i < particlesToWarmup.Count; i++)
                 {
-                    counter = 0;
-                    await Task.Yield();
+                    ParticleSystem psPrefab = particlesToWarmup[i];
+                    if (psPrefab == null) continue;
+
+                    var instance = Instantiate(psPrefab, warmupContainer.transform);
+                    instance.Play(true);
+                    instance.Simulate(0.05f, true, true);
+
+                    counter++;
+
+                    if (counter >= itemsPerFrame)
+                    {
+                        counter = 0;
+                        await UniTask.Yield();
+                    }
                 }
             }
+            finally
+            {
+                // Nettoyage unique de toutes les particules créées
+                Destroy(warmupContainer);
+            }
         }
-
-        private void WarmupParticleSystem(ParticleSystem ps)
+        
+        private void WarmupShaders()
         {
-            var go = Instantiate(ps.gameObject, Vector3.one * 10000f, Quaternion.identity);
-            var warmupParticleSystem = go.GetComponent<ParticleSystem>();
-
-            warmupParticleSystem.Play(true);
-            warmupParticleSystem.Simulate(0.05f, true, true);
-
-            Destroy(go);
+            if (!shaderVariantCollectionToWarmup.isWarmedUp)
+            {
+                shaderVariantCollectionToWarmup.WarmUp(); 
+            }
         }
     }
 }

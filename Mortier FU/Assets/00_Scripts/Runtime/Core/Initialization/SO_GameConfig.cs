@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace MortierFu
 {
@@ -9,8 +10,6 @@ namespace MortierFu
     {
         [Header("Core FMOD Banks")] public AssetReference[] fmodBanks;
         
-        [Header("Shaders to Preload")]
-        public ShaderVariantCollection shaderVariantsToPreload;
 
         [Header("Optional global assets")] 
         public AssetReferenceT<SO_LevelSettings> LevelSettings;
@@ -22,5 +21,7 @@ namespace MortierFu
         public AssetReferenceT<SO_AugmentLibrary> AugmentLibrary; // Rajouter pour le Tracking
         public List<AssetReference> globalPrefabs = new List<AssetReference>();
         public List<Texture> globalTextures = new List<Texture>();
+
+        public List<string> bundleLabelsToLoad = new List<string>();
     }   
 }

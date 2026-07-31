@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu.Services;
 using NaughtyAttributes;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MortierFu
 {
@@ -34,10 +36,11 @@ namespace MortierFu
         private GameService _gameService;
         private LobbyService _lobbyService;
         private PlayerUIInputService _playerUIInputService;
-        //private DiscordService _discordService;
         private SceneService _sceneService;
         private SaveService _saveService;
         private ShakeService _shakeService;
+        
+        private readonly List<AsyncOperationHandle> _preloadedBundleHandles = new();
 
         private void Awake()
         {
@@ -60,28 +63,26 @@ namespace MortierFu
             _serviceManager = new ServiceManager(this);
             _systemManager = new SystemManager(this);
 
-            config.shaderVariantsToPreload.WarmUp();
-
-            while (!config.shaderVariantsToPreload.isWarmedUp)
-            {
-                await UniTask.Yield();
-            }
-
-            _progress = 0.1f;
+            _progress = 0f;
 
             await InitializeGameService();
-            _progress = 0.2f;
+            _progress = 0.1f;
 
             // Initialise les services de base avant les mods
             await _serviceManager.Initialize();
-            _progress = 0.3f;
+            _progress = 0.2f;
 
             // Initialise les systèmes de base avant les mods
             await _systemManager.Initialize();
-            _progress = 0.4f;
+            _progress = 0.3f;
 
             // Initialise Addressables
             await Addressables.InitializeAsync();
+            _progress = 0.4f;
+            
+            // 🚀 PRÉCHARGEMENT DES MAPS EN RAM
+            List<string> labelsToPreload = GetMapLabelsToPreload();
+            await PreloadMapBundlesAsync(labelsToPreload);
             _progress = 0.5f;
 
             // Load mod resources
@@ -89,15 +90,15 @@ namespace MortierFu
             _progress = 0.6f;
 
             // Load GameConfig banks
-            await _audioService.LoadBanks(config.fmodBanks);
+            if (config != null && config.fmodBanks != null)
+            {
+                await _audioService.LoadBanks(config.fmodBanks);
+            }
             _progress = 0.7f;
 
             // Load mods banks
             await _audioService.LoadBanks(_modService.GetAllModFmodBanks());
             _progress = 0.8f;
-
-            // Check les services manquants
-            //await _serviceManager.CheckForMissingServices<IGameService>();
 
             if (isPortableBootstrap)
             {
@@ -107,7 +108,10 @@ namespace MortierFu
                 return;
             }
 
-            await warmupManager.WarmupAllAsync();
+            if (warmupManager != null)
+            {
+                await warmupManager.WarmupAllAsync();
+            }
             _progress = 0.9f;
 
             await _sceneService.LoadScene(sceneName, true);
@@ -118,6 +122,44 @@ namespace MortierFu
             IsInitialized = true;
         }
 
+        /// <summary>
+        /// Récupère la liste des labels à précharger (avec fallback de sécurité si la config n'est pas remplie)
+        /// </summary>
+        private List<string> GetMapLabelsToPreload()
+        {
+            if (config != null && config.bundleLabelsToLoad != null && config.bundleLabelsToLoad.Count > 0)
+            {
+                return config.bundleLabelsToLoad;
+            }
+
+            // Fallback par défaut si bundleLabelsToLoad n'est pas renseigné dans le ScriptableObject
+            return new List<string> { "ArenaMaps", "RaceMaps" };
+        }
+        
+        /// <summary>
+        /// Précharge en RAM les dépendances/bundles d'une liste de labels ou clés Addressables.
+        /// </summary>
+        private async UniTask PreloadMapBundlesAsync<T>(List<T> targets)
+        {
+            if (targets == null || targets.Count == 0) 
+                return;
+
+            var tasks = new List<UniTask>();
+
+            for (int i = 0; i < targets.Count; i++)
+            {
+                T target = targets[i];
+                if (target == null) 
+                    continue;
+
+                var handle = Addressables.DownloadDependenciesAsync(target, autoReleaseHandle: false);
+        
+                _preloadedBundleHandles.Add(handle);
+                tasks.Add(handle.ToUniTask());
+            }
+
+            await UniTask.WhenAll(tasks);
+        }
 
         private UniTask InitializeGameService()
         {
@@ -129,7 +171,6 @@ namespace MortierFu
             _gameService = new GameService();
             _lobbyService = new LobbyService();
             _playerUIInputService = new PlayerUIInputService();
-            //_discordService = new DiscordService();
             _confirmationService = new ConfirmationService();
             _sceneService = new SceneService();
             _saveService = new SaveService();
@@ -145,7 +186,6 @@ namespace MortierFu
             _serviceManager.Register(_gameService);
             _serviceManager.Register(_lobbyService);
             _serviceManager.Register(_playerUIInputService);
-            //_serviceManager.Register(_discordService);
             _serviceManager.Register(_confirmationService);
             _serviceManager.Register(_sceneService);
             _serviceManager.Register(_saveService);
@@ -154,10 +194,28 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
+        private void OnDestroy()
+        {
+            ReleasePreloadedBundles();
+        }
+
         private void OnApplicationQuit()
         {
+            ReleasePreloadedBundles();
             _serviceManager?.Dispose();
             _systemManager?.Dispose();
+        }
+
+        private void ReleasePreloadedBundles()
+        {
+            for (int i = 0; i < _preloadedBundleHandles.Count; i++)
+            {
+                if (_preloadedBundleHandles[i].IsValid())
+                {
+                    Addressables.Release(_preloadedBundleHandles[i]);
+                }
+            }
+            _preloadedBundleHandles.Clear();
         }
     }
 }

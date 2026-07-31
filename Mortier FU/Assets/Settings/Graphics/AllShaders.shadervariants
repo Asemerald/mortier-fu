@@ -1,0 +1,191 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AllShaders
+  m_Shaders:
+  - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: SHADOWS_DEPTH
+        passType: 8
+  - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9001, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9002, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9003, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9004, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9007, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9100, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: _UIE_FORCE_GAMMA
+        passType: 0
+  - first: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 19011, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+    second:
+      variants:
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHAPREMULTIPLY_ON
+          _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF
+          _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION
+          _SPECULAR_SETUP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _NORMALMAP _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SPECULAR_SETUP
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _EMISSION _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _NORMALMAP _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _EMISSION _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _NORMALMAP _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SPECULAR_SETUP
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _NORMALMAP _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SPECULAR_SETUP
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS
+          _NORMALMAP
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS
+          _RECEIVE_SHADOWS_OFF
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE
+          _NORMALMAP
+        passType: 13
+  - first: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
+    second:
+      variants:
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _ALPHAPREMULTIPLY_ON
+          _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 44245ab89240f51459a5077d7145c452, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _MAIN_LIGHT_SHADOWS
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 720479661dda1924dad899790155d525, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS
+          _CLUSTER_LIGHT_LOOP _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _WRITE_RENDERING_LAYERS
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: a948827106e5e7e43b60a296c53c4bb4, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 9de68336d556c244783ab9443f3d391a, type: 3}
+    second:
+      variants:
+      - keywords: PROBE_VOLUMES_L1 _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION
+        passType: 13
+      - keywords: PROBE_VOLUMES_L1 _CLUSTER_LIGHT_LOOP _MAIN_LIGHT_SHADOWS
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: be834d08fa147bd4f80ec6e70051a612, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: -6465566751694194690, guid: 124a18240b5686048878ce1ef7cc2d08, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: -6465566751694194690, guid: 2ec5a181b16ab4441b631b78aa9ac970, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
