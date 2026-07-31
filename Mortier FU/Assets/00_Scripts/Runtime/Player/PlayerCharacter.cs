@@ -491,6 +491,13 @@ namespace MortierFu
             {
                 SteamManager.UnlockAchievement("BOUNCE_BABY_REBONDI");
             }
+            
+            int dashCount = _ownedAugments.Count(a => a.AugmentType?.Type == typeof(AGM_DoubleDash));
+
+            if (dashCount >= 3)
+            {
+                SteamManager.UnlockAchievement("TRIPLE_DASH");
+            }
         }
 
         public void ActivateRoundAugments()
