@@ -39,7 +39,6 @@ namespace MortierFu
 
         [Header("Sub Panels")]
         [SerializeField] private GameObject _settingsPanel;
-        [SerializeField] private GameObject _controlsPanel;
 
         [Header("Buttons")]
         [SerializeField] private Button _settingsButton;
@@ -78,6 +77,9 @@ namespace MortierFu
         [Header("Switch by Input Element")]
         [SerializeField] private GameObject[] _buttonKeyboard;
         [SerializeField] private GameObject[] _buttonGamepad;
+
+        [Header("Animation")] 
+        [SerializeField, Min(0f)] private float _buttonAnimationDuration = 0.3f;
 
         private readonly List<PlayerPauseSnapshot> _snapshots = new();
 
@@ -268,13 +270,7 @@ namespace MortierFu
                 _settingsButton.onClick.RemoveListener(OpenSettingsPanel);
                 _settingsButton.onClick.AddListener(OpenSettingsPanel);
             }
-
-            if (_controlsButton)
-            {
-                _controlsButton.onClick.RemoveListener(OpenControlsPanel);
-                _controlsButton.onClick.AddListener(OpenControlsPanel);
-            }
-
+            
             if (_resumeButton)
             {
                 _resumeButton.onClick.RemoveListener(ResumeGame);
@@ -298,9 +294,6 @@ namespace MortierFu
         {
             if (_settingsButton)
                 _settingsButton.onClick.RemoveListener(OpenSettingsPanel);
-
-            if (_controlsButton)
-                _controlsButton.onClick.RemoveListener(OpenControlsPanel);
 
             if (_resumeButton)
                 _resumeButton.onClick.RemoveListener(ResumeGame);
@@ -555,9 +548,6 @@ namespace MortierFu
 
             if (_settingsPanel)
                 _settingsPanel.SetActive(false);
-
-            if (_controlsPanel)
-                _controlsPanel.SetActive(false);
         }
 
         private void OpenSettingsPanel()
@@ -567,31 +557,12 @@ namespace MortierFu
             if (_pausePanel)
                 _pausePanel.SetActive(false);
 
-            if (_controlsPanel)
-                _controlsPanel.SetActive(false);
-
             if (_settingsPanel)
                 _settingsPanel.SetActive(true);
 
             Select(_fullscreenToggle);
         }
-
-        private void OpenControlsPanel()
-        {
-            PlayPanelSelectionFeedback();
-
-            if (_pausePanel)
-                _pausePanel.SetActive(false);
-
-            if (_settingsPanel)
-                _settingsPanel.SetActive(false);
-
-            if (_controlsPanel)
-                _controlsPanel.SetActive(true);
-
-            Select(_controlsPanel);
-        }
-
+        
         public void ReturnToMainPanelFromSubPanel(Selectable returnSelection)
         {
             PlayPanelSelectionFeedback();
@@ -606,9 +577,14 @@ namespace MortierFu
 
         public void ReturnToMainPanelFromSubPanel() => ReturnToMainPanelFromSubPanel(_settingsButton);
 
-        private void ResumeGame()
+        private void ResumeGame() => ResumeGameAsync().Forget();
+
+        private async UniTask ResumeGameAsync()
         {
             PlayPanelSelectionFeedback();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration), ignoreTimeScale: true);
+                
             _gamePauseSystem?.Resume();
         }
 
@@ -704,7 +680,7 @@ namespace MortierFu
             if (_gamePauseSystem is not null && _gamePauseSystem.IsPaused)
                 _gamePauseSystem.Resume();
 
-            await UniTask.Yield();
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
         }
 
         private void ClosePauseUI(bool restorePlayers)
@@ -737,9 +713,6 @@ namespace MortierFu
 
             if (_settingsPanel)
                 _settingsPanel.SetActive(false);
-
-            if (_controlsPanel)
-                _controlsPanel.SetActive(false);
 
             if (_root)
                 _root.SetActive(false);
@@ -831,8 +804,8 @@ namespace MortierFu
 
             if (_settingsPanel && _settingsPanel.activeInHierarchy)
                 return false;
-
-            return !_controlsPanel || !_controlsPanel.activeInHierarchy;
+            
+            return  true;
         }
     }
 }
