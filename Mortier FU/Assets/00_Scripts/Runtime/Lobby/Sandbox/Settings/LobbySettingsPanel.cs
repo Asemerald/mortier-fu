@@ -117,6 +117,8 @@ namespace MortierFu
             _uiSession.Begin(player, _settingsEventSystem, _settingsInputModule, _firstSelected, PlayerControlContext.LobbySettingsOwner);
 
             _selectionRoutine = StartCoroutine(SelectFirstWhenReady());
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_Augment_Showcase, transform.position);
         }
 
         public void Close() => CloseInternal(notifyClosed: false);
@@ -255,6 +257,8 @@ namespace MortierFu
 
             if (notifyClosed && activePlayer)
                 onClosed?.Invoke(activePlayer);
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, transform.position);
         }
 
         private void BindItems()
