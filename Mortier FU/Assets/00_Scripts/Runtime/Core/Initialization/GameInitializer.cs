@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using MortierFu.Services;
+using MortierFu.Shared;
 using NaughtyAttributes;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -80,7 +81,7 @@ namespace MortierFu
             await Addressables.InitializeAsync();
             _progress = 0.4f;
             
-            // 🚀 PRÉCHARGEMENT DES MAPS EN RAM
+            // Load map en ram
             List<string> labelsToPreload = GetMapLabelsToPreload();
             await PreloadMapBundlesAsync(labelsToPreload);
             _progress = 0.5f;
@@ -133,7 +134,7 @@ namespace MortierFu
             }
 
             // Fallback par défaut si bundleLabelsToLoad n'est pas renseigné dans le ScriptableObject
-            return new List<string> { "ArenaMaps", "RaceMaps" };
+            return new List<string> { "Maps" };
         }
         
         /// <summary>
@@ -156,8 +157,10 @@ namespace MortierFu
         
                 _preloadedBundleHandles.Add(handle);
                 tasks.Add(handle.ToUniTask());
+                
+                Logs.Log("[GameInitializer] Preloading Addressable bundle for target: " + target.ToString());
             }
-
+            
             await UniTask.WhenAll(tasks);
         }
 
