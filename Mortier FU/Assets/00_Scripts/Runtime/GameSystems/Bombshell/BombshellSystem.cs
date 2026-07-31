@@ -137,6 +137,21 @@ namespace MortierFu
                     }
                 }
             }
+            
+            // If bombshell kill three people, call steam achievement 
+            if (hitCharacters.Count >= 3)
+            {
+                int killedPlayer = 0;
+                
+                foreach (var character in hitCharacters)
+                {
+                    if (!character.Health.IsAlive) killedPlayer++;
+                }
+                if (killedPlayer >= 3)
+                {
+                    SteamManager.UnlockAchievement("ONE_SHOT_THREE_KILLS");
+                }
+            }
 
             if (_fxService != null)
             {
