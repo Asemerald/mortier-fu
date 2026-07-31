@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
 using NaughtyAttributes;
+using NUnit.Framework.Constraints;
 using Steamworks;
+using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -462,7 +465,22 @@ namespace MortierFu
             {
                 SteamManager.UnlockAchievement("PICK_LEGENDARY_AUGMENT");
             }
+            
+            SaveService saveService = ServiceManager.Instance.Get<SaveService>();
+            
+            if (augmentData.AugmentType?.Type is { } type)
+            {
+                saveService.Game.pickedAugments.Add(type.Name);
+            }
+            
+            if (saveService.Game.pickedAugments.Count >= 30)
+            {
+                SteamManager.UnlockAchievement("PICK_ALL_AUGMENTS");
+            }
 
+            saveService.SaveGame().Forget();
+
+            
             AnalyticsSystem analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentPicked(this, augmentData);
                 
