@@ -16,7 +16,7 @@ public enum E_AugmentVariable
 
 public enum E_AugmentValue
 {
-    Empty, MinusThree, MinusTwo, MinusOne, PlusOne, PlusTwo, PlusThree, OneNumber
+    Empty, MinusThree, MinusTwo, MinusOne, PlusOne, PlusTwo, PlusThree, OneNumber,MinusOneGreen
 }
 
 public static class AugmentVariableDescription
