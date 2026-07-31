@@ -104,8 +104,6 @@ namespace MortierFu
             PlayerManager victimPlayer = evt.Character.Owner;
 
             victimPlayer.Metrics.TotalDeaths++;
-            
-            SteamManager.AddProgressToStat("ELIMINATIONS", 1);
 
             OnPlayerDied?.Invoke(evt.Character);
 
@@ -141,6 +139,8 @@ namespace MortierFu
             {
                 killerPlayer.Metrics.RoundKills.Add(evt.Context.DeathCause);
             }
+            
+            SteamManager.AddProgressToStat("ELIMINATIONS", 1);
 
             OnPlayerKilled?.Invoke(killerPlayer, victimPlayer);
         }
