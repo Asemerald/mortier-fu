@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MortierFu;
 using MortierFu.Shared;
@@ -16,6 +17,8 @@ public class AugmentRaceTutorialControllerUI : MonoBehaviour
 
     private readonly List<CardTuto> _activeCards = new();
     private AugmentRaceTutorialController _tutorialController;
+    
+    private CancellationTokenSource _cts;
 
     
     private void OnEnable()
@@ -68,6 +71,10 @@ public class AugmentRaceTutorialControllerUI : MonoBehaviour
 
     private async UniTaskVoid ShowTutorialAsync(AugmentRaceTutorialType tutorialType)
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        
         SO_TutorialStepData stepData = tutorialConfig.GetStepData(tutorialType);
 
         if (stepData is null)
@@ -77,7 +84,7 @@ public class AugmentRaceTutorialControllerUI : MonoBehaviour
         }
 
         background.gameObject.SetActive(true);
-        await Tween.Alpha(background, 1f, backgroundFadeDuration);
+        await Tween.Alpha(background, 1f, backgroundFadeDuration).ToUniTask(PlayerLoopTiming.Update,_cts.Token);
 
         foreach (TutorialCardData cardData in stepData.Cards)
         {
@@ -85,22 +92,26 @@ public class AugmentRaceTutorialControllerUI : MonoBehaviour
             card.SetData(cardData);
             _activeCards.Add(card);
 
-            await card.PlayAppear();
+            await card.PlayAppear(_cts);
 
-            await UniTask.Delay(System.TimeSpan.FromSeconds(cardStaggerDelay));
+            await UniTask.Delay(System.TimeSpan.FromSeconds(cardStaggerDelay),cancellationToken: _cts.Token);
         }
     }
 
     private async UniTaskVoid HideTutorialAsync()
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        
         Tween lastDisappearTween = default;
 
         foreach (CardTuto card in _activeCards)
         {
-            lastDisappearTween = card.PlayDisappear();
+            lastDisappearTween = card.PlayDisappear(_cts);
         }
 
-        await Tween.Alpha(background, 0f, backgroundFadeDuration);
+        await Tween.Alpha(background, 0f, backgroundFadeDuration).ToUniTask(PlayerLoopTiming.Update, _cts.Token);
 
         if (lastDisappearTween.isAlive)
             await lastDisappearTween;
