@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
@@ -114,6 +115,11 @@ namespace MortierFu
         {
             float fireRate = Stats.GetFireCooldownDuration();
             _shootCooldownTimer.DynamicUpdate(fireRate);
+
+            if (fireRate >= 15)
+            {
+                SteamManager.UnlockAchievement("HIGH_FIRE_RATE");
+            }
         }
 
         private void ResetAimWidget()
