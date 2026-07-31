@@ -36,6 +36,9 @@ namespace MortierFu
 
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
+        // Preloaded maps stored by their load key string (PrimaryKey or ToString of the provided key)
+        private readonly System.Collections.Generic.Dictionary<string, AsyncOperationHandle<SceneInstance>> _preloadedMaps = new();
+
         private CameraSystem _cameraSystem;
         private LevelReporter _boundReporter;
         private RaceReporter _boundRaceReporter;
@@ -400,6 +403,51 @@ namespace MortierFu
 #endif
         }
 
+        // Preloads a map into memory/GPU without activating it. Use this during UI/end-of-round to avoid hitches.
+        public async UniTask PreloadMapAsync(object sceneKey)
+        {
+            if (sceneKey is null)
+            {
+                Logs.LogError("[LevelSystem] Cannot preload map: scene key is null.");
+                return;
+            }
+
+            object loadKey = sceneKey;
+            if (sceneKey is IResourceLocation location)
+                loadKey = location.PrimaryKey;
+
+            string loadKeyStr = loadKey.ToString();
+
+            if (_preloadedMaps.TryGetValue(loadKeyStr, out var existingHandle) && existingHandle.IsValid() && existingHandle.Status == AsyncOperationStatus.Succeeded)
+            {
+                Logs.Log($"[LevelSystem] Map already preloaded: {loadKeyStr}");
+                return;
+            }
+
+            try
+            {
+                // Load with activateOnLoad = false so scene stays unloaded/disabled until activation
+                var handle = Addressables.LoadSceneAsync(loadKey, LoadSceneMode.Additive, false, 0);
+                await handle;
+
+                if (handle.Status != AsyncOperationStatus.Succeeded)
+                {
+                    Logs.LogError($"[LevelSystem] Failed to preload map with loadKey '{loadKeyStr}': {handle.OperationException?.Message}");
+                    if (handle.IsValid())
+                        Addressables.Release(handle);
+                    return;
+                }
+
+                _preloadedMaps[loadKeyStr] = handle;
+                Logs.Log($"[LevelSystem] Preloaded map: {handle.Result.Scene.name}");
+            }
+            catch (Exception e)
+            {
+                Logs.LogError($"[LevelSystem] Exception while preloading map '{DescribeSceneKey(sceneKey)}' loadKey '{loadKey}': {e.Message}");
+            }
+        }
+
+        // Loads (or activates if already preloaded) an addressable scene.
         private async UniTask<bool> LoadAddressableMapAsync(object sceneKey, string debugMapTypeName)
         {
             if (sceneKey is null)
@@ -417,11 +465,25 @@ namespace MortierFu
                 Logs.Log($"[LevelSystem] Loading {debugMapTypeName} map from location. {DescribeSceneKey(location)}. LoadKey='{loadKey}'");
             }
 
+            string loadKeyStr = loadKey.ToString();
+
             try
             {
-                _mapHandle = Addressables.LoadSceneAsync(loadKey, LoadSceneMode.Additive, SceneReleaseMode.ReleaseSceneWhenSceneUnloaded);
+                // If a preloaded handle exists for this map, activate it instead of loading again.
+                if (_preloadedMaps.TryGetValue(loadKeyStr, out var preloadedHandle) && preloadedHandle.IsValid() && preloadedHandle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Logs.Log($"[LevelSystem] Activating preloaded map: {loadKeyStr}");
+                    _mapHandle = preloadedHandle;
 
-                await _mapHandle;
+                    // Activate the scene that was loaded with activateOnLoad = false
+                    var activateOp = _mapHandle.Result.ActivateAsync();
+                }
+                else
+                {
+                    // No preload available: load and activate immediately (priority 0)
+                    _mapHandle = Addressables.LoadSceneAsync(loadKey, LoadSceneMode.Additive, true, 0);
+                    await _mapHandle;
+                }
             }
             catch (Exception e)
             {
@@ -431,7 +493,7 @@ namespace MortierFu
                 return false;
             }
 
-            if (_mapHandle.Status != AsyncOperationStatus.Succeeded)
+            if (!_mapHandle.IsValid() || _mapHandle.Status != AsyncOperationStatus.Succeeded)
             {
                 Logs.LogError($"[LevelSystem] Failed to load {debugMapTypeName} map with key '{DescribeSceneKey(sceneKey)}' and loadKey '{loadKey}': {_mapHandle.OperationException?.Message}");
 
@@ -465,6 +527,16 @@ namespace MortierFu
             else
             {
                 Addressables.Release(_mapHandle);
+            }
+
+            // If the current loaded map was also a preloaded entry, remove that mapping to keep dict consistent.
+            if (!string.IsNullOrEmpty(_currentLoadedMapKey) && _preloadedMaps.TryGetValue(_currentLoadedMapKey, out var preloadedHandle))
+            {
+                // If the stored preloaded handle is the same as the one we just unloaded, remove the entry.
+                if (preloadedHandle.Equals(_mapHandle))
+                {
+                    _preloadedMaps.Remove(_currentLoadedMapKey);
+                }
             }
 
             _mapHandle = default;
