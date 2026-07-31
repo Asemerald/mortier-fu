@@ -53,6 +53,8 @@ namespace MortierFu
         [SerializeField] private float _circleTransitionDuration = 1f;
         [SerializeField] private float _contactEaseDuration = 0.7f;
         [SerializeField] private float _contactScale = 1.25f;
+        
+        [SerializeField] private float _buttonAnimationDuration = 0.3f;
 
         [Header("Settings References")]
         [field: SerializeField] public SettingsPanel SettingsPanel { get; private set; }
@@ -81,6 +83,7 @@ namespace MortierFu
         private InputAction _cancelAction;
 
         private bool _isLoadingLobby;
+        private bool _isTransitioning;
 
         private void Awake()
         {
@@ -88,6 +91,8 @@ namespace MortierFu
 
             AudioService audioService = ServiceManager.Instance?.Get<AudioService>();
             audioService?.StartMusic(AudioService.FMODEvents.MUS_MainMenu).Forget();
+            
+            _isTransitioning = false;
         }
 
         private void Start()
@@ -303,22 +308,36 @@ namespace MortierFu
             await AnimateMainMenu();
         }
 
-        private void LoadLobbyScene()
+        private void LoadLobbyScene() => LoadLobbySceneAsync().Forget();
+        
+        private async UniTask LoadLobbySceneAsync()
         {
-            if (_isLoadingLobby)
+            if (_isLoadingLobby || _isTransitioning)
                 return;
-
+            
+            _isTransitioning = true;
             _isLoadingLobby = true;
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
+            
             _gameService?.LoadLobbySceneAsync().Forget();
         }
 
-        public void OpenSettingsPanel()
+        private void OpenSettingsPanel() => OpenSettingsPanelAsync().Forget();
+        
+        private async UniTask OpenSettingsPanelAsync()
         {
-            if (_isLoadingLobby)
+            if (_isLoadingLobby || _isTransitioning)
                 return;
 
+            _isTransitioning = true;
+            
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
-
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
+            
             MainMenuPanel?.Hide();
             SettingsPanel?.Show();
 
@@ -336,13 +355,19 @@ namespace MortierFu
             SelectButton(SettingsButton);
         }
 
-        public void OpenCreditsPanel()
+        private void OpenCreditsPanel() => OpenCreditsPanelAsync().Forget();
+        
+        private async UniTask OpenCreditsPanelAsync()
         {
-            if (_isLoadingLobby)
+            if (_isLoadingLobby || _isTransitioning)
                 return;
 
+            _isTransitioning = true;
+            
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
 
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
+            
             MainMenuPanel?.Hide();
             CreditsPanel?.Show();
 
@@ -367,10 +392,18 @@ namespace MortierFu
             SelectButton(CreditsButton);
         }
 
-        public void QuitGame()
+        private void QuitGame() => QuitGameAsync().Forget();
+        
+        private async UniTask QuitGameAsync()
         {
-            Logs.Log("[MenuManager] Quitting game.");
+            if (_isTransitioning)
+                return;
 
+            _isTransitioning = true;
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
             Application.Quit();
 
 #if UNITY_EDITOR
@@ -384,12 +417,14 @@ namespace MortierFu
 
             if (SettingsPanel && SettingsPanel.IsVisible())
             {
+                _isTransitioning = false;
                 CloseSettingsPanel();
                 return true;
             }
 
             if (CreditsPanel && CreditsPanel.IsVisible())
             {
+                _isTransitioning = false;
                 CloseCreditsPanel();
                 return true;
             }
