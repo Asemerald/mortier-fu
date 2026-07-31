@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using PlasticGui.WorkspaceWindow.PendingChanges;
 using UnityEngine;
 
 public class SandboxProps : MonoBehaviour
