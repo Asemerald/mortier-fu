@@ -287,7 +287,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.9
+      scalar: 2.9
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -340,7 +340,7 @@ ParticleSystem:
     startSizeY:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2.8
+      scalar: 5.85
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -670,7 +670,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 1
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 0}
+    m_Position: {x: 0.03, y: 0.05, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -19863,7 +19863,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.9
+      scalar: 2.9
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -19916,7 +19916,7 @@ ParticleSystem:
     startSizeY:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2.8
+      scalar: 5.85
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -20246,7 +20246,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 1
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 0}
+    m_Position: {x: 0.03, y: 0.05, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -24757,7 +24757,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.9
+      scalar: 2.9
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -24810,7 +24810,7 @@ ParticleSystem:
     startSizeY:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2.8
+      scalar: 5.85
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -25140,7 +25140,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 1
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 0}
+    m_Position: {x: 0.03, y: 0.05, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -34286,6 +34286,10 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 32709
       objectReference: {fileID: 0}
+    - target: {fileID: 1639024945804128976, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
+      propertyPath: InitialModule.startSizeY.scalar
+      value: 3.2
+      objectReference: {fileID: 0}
     - target: {fileID: 1997826655215933651, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
       propertyPath: m_SortingLayer
       value: 0
@@ -34394,6 +34398,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -15
       objectReference: {fileID: 0}
+    - target: {fileID: 5492250582984610882, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5675111598694851023, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
       propertyPath: m_SortingLayer
       value: 0
@@ -34498,8 +34506,8 @@ PrefabInstance:
       addedObject: {fileID: 6584355481326357687}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
---- !u!224 &9004571275565199330 stripped
-RectTransform:
+--- !u!4 &9004571275565199330 stripped
+Transform:
   m_CorrespondingSourceObject: {fileID: 2132547061460144956, guid: 72a638dbcc28e9146b53300bba888d45, type: 3}
   m_PrefabInstance: {fileID: 7020827720332180702}
   m_PrefabAsset: {fileID: 0}

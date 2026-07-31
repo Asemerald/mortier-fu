@@ -324,7 +324,7 @@ namespace MortierFu
 
             await RunRoundEndPresentationAndOptionalRacePreloadAsync(cancellationToken);
             
-            audioService.StopAmbiance();
+            audioService.StopAmbiance().Forget();
             audioService.ClearAllMapInstances();
 
             await PrepareRaceSceneUnderScoreboardCoverAsync(!matchWillEnd, cancellationToken);
