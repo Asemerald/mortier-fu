@@ -318,6 +318,8 @@ namespace MortierFu
             _isTransitioning = true;
             _isLoadingLobby = true;
             
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
+            
             await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
             
             _gameService?.LoadLobbySceneAsync().Forget();
@@ -398,6 +400,8 @@ namespace MortierFu
                 return;
 
             _isTransitioning = true;
+            
+            AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Select);
             
             await UniTask.Delay(TimeSpan.FromSeconds(_buttonAnimationDuration));
             Application.Quit();
