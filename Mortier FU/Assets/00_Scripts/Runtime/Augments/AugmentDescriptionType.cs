@@ -7,7 +7,7 @@ public enum E_AugmentVariable
 {
     Health, LifeSteal, MoveSpeed, // DURABILITY
     BulletSpeed, Damage, ImpactRadius, FireRate, ShotRange, // BOMBSHELL 
-    Bounce, BouncySnowball, SelfBounce, // BOUNCE
+    Bounce, BouncySnowball, EachBounce, // BOUNCE
     StrikeForce, DashCooldown, DashForce, ExtraDash, // DASH
     KnockbackStunDuration, // STUN
     OnEnemyHit, AfterDashCondition, OnEnemyStun, AfterTenSecondsCondition, // CONDITION
@@ -33,7 +33,7 @@ public static class AugmentVariableDescription
         { E_AugmentVariable.ShotRange, "Shot Range" },
         { E_AugmentVariable.Bounce, "Bounce" },
         { E_AugmentVariable.BouncySnowball, "For Each Bounce, Impact Radius" },
-        { E_AugmentVariable.SelfBounce, "For Each Bounce" },
+        { E_AugmentVariable.EachBounce, "For Each Bounce" },
         { E_AugmentVariable.StrikeForce, "Push Force"},
         { E_AugmentVariable.DashCooldown, "Dash Cooldown" },
         { E_AugmentVariable.DashForce, "Dash Distance" },
