@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MortierFu.Analytics;
 using MortierFu.Shared;
@@ -481,6 +482,15 @@ namespace MortierFu
             AnalyticsSystem analyticsSystem = SystemManager.Instance.Get<AnalyticsSystem>();
             analyticsSystem?.OnAugmentPicked(this, augmentData);
                 
+            // Dans AddAugment :
+            int bounceAugmentCount = _ownedAugments.Count(a => a.AugmentType?.Type == typeof(AGM_Bouncy) ||
+                                                               a.AugmentType?.Type == typeof(AGM_BouncySnowball) ||
+                                                               a.AugmentType?.Type == typeof(AGM_SelfBounce));
+
+            if (bounceAugmentCount >= 5)
+            {
+                SteamManager.UnlockAchievement("BOUNCE_BABY_REBONDI");
+            }
         }
 
         public void ActivateRoundAugments()
