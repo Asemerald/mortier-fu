@@ -108,7 +108,6 @@ RectTransform:
   - {fileID: 834109465044121830}
   - {fileID: 2884998810771715846}
   - {fileID: 7570981260439564907}
-  - {fileID: 8901078872800875170}
   - {fileID: 579202416518756683}
   m_Father: {fileID: 619460216630397414}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -224,12 +223,14 @@ MonoBehaviour:
   _controlsPanel: {fileID: 4206112518183783789}
   _settingsButton: {fileID: 5017423780808928076}
   _controlsButton: {fileID: 0}
-  _primaryActionButton: {fileID: 2739562172352302420}
-  _quitButton: {fileID: 7984360616989113783}
-  _settingsButtonText: {fileID: 0}
+  _resumeButton: {fileID: 2739562172352302420}
+  _primaryActionButton: {fileID: 7984360616989113783}
+  _mainMenuButton: {fileID: 2242645569561036168}
+  _settingsButtonText: {fileID: 4338612357483403214}
   _controlsButtonText: {fileID: 0}
-  _primaryActionButtonText: {fileID: 0}
-  _quitButtonText: {fileID: 0}
+  _resumeButtonText: {fileID: 6886076314071445974}
+  _primaryActionButtonText: {fileID: 1682803671611244853}
+  _mainMenuButtonText: {fileID: 7389240307584841994}
   _fullscreenToggle: {fileID: 655712697100179267}
   _vSyncToggle: {fileID: 8847854649006895281}
   _masterVolumeSlider: {fileID: 4044993869893273440}
@@ -1424,6 +1425,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIPauseMainPanelBackHandler
   _pauseUI: {fileID: 831808697495301160}
+--- !u!114 &4338612357483403214 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 1632063516882410223}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &5017423780808928076 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5982813608165257635, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
@@ -1446,7 +1458,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 937648753209190328}
+    m_TransformParent: {fileID: 1322402108416224311}
     m_Modifications:
     - target: {fileID: 440171303063815683, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1528,6 +1540,14 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4608124594003558669, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 879
+      objectReference: {fileID: 0}
+    - target: {fileID: 4608124594003558669, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -188
+      objectReference: {fileID: 0}
     - target: {fileID: 4711560926666434802, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1558,11 +1578,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 1297.625
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 786.82996
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1574,7 +1594,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1594,11 +1614,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: -289.71252
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 44.684998
       objectReference: {fileID: 0}
     - target: {fileID: 4757798486136571333, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1616,6 +1636,10 @@ PrefabInstance:
       propertyPath: _editingHandleSprite
       value: 
       objectReference: {fileID: -2038321913, guid: 64cee376777b65a4bbead7d513c7edf1, type: 3}
+    - target: {fileID: 5350505396732279930, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 32
+      objectReference: {fileID: 0}
     - target: {fileID: 5982985691979759739, guid: 704628022ff5e864a9edc4cd1ed74827, type: 3}
       propertyPath: m_Name
       value: SettingPanel
@@ -1813,7 +1837,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3647743497181010189, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_Name
-      value: Main menu
+      value: Primary Button
       objectReference: {fileID: 0}
     - target: {fileID: 5080067176852584006, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_Pivot.x
@@ -1897,7 +1921,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3428085239433486371, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: 8901078872800875170}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3647743497181010189, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       insertIndex: -1
@@ -1921,6 +1948,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIPauseMainPanelBackHandler
   _pauseUI: {fileID: 831808697495301160}
+--- !u!224 &1322402108416224311 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3428085239433486371, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 4452121501710224404}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1682803671611244853 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 4452121501710224404}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &7984360616989113783 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5982813608165257635, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
@@ -1947,15 +1990,17 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_text
-      value: end game
+      value: 'main menu
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_fontSize
-      value: 22.85
+      value: 19.15
       objectReference: {fileID: 0}
     - target: {fileID: 3647743497181010189, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_Name
-      value: End Game
+      value: MainMenu
       objectReference: {fileID: 0}
     - target: {fileID: 5080067176852584006, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
       propertyPath: m_Pivot.x
@@ -2050,6 +2095,28 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5080067176852584006, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
   m_PrefabInstance: {fileID: 5483206231635670059}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2242645569561036168 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5982813608165257635, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 5483206231635670059}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9117291594837208358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &7389240307584841994 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 5483206231635670059}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &9117291594837208358 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3647743497181010189, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
@@ -2206,3 +2273,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Mortierfu.Runtime::MortierFu.UIPauseMainPanelBackHandler
   _pauseUI: {fileID: 831808697495301160}
+--- !u!114 &6886076314071445974 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3067965013807172897, guid: 2848e885c9710654ebdfcaff76be55ae, type: 3}
+  m_PrefabInstance: {fileID: 8431820424751889655}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI

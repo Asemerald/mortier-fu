@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using System.Threading;
+using UnityEngine.Serialization;
 
 namespace MortierFu
 {
@@ -43,14 +44,16 @@ namespace MortierFu
         [Header("Buttons")]
         [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _controlsButton;
+        [SerializeField] private Button _resumeButton;
         [SerializeField] private Button _primaryActionButton;
-        [SerializeField] private Button _quitButton;
+        [SerializeField] private Button _mainMenuButton;
 
         [Header("Button Text")]
         [SerializeField] private TMP_Text _settingsButtonText;
         [SerializeField] private TMP_Text _controlsButtonText;
+        [SerializeField] private TMP_Text _resumeButtonText;
         [SerializeField] private TMP_Text _primaryActionButtonText;
-        [SerializeField] private TMP_Text _quitButtonText;
+        [SerializeField] private TMP_Text _mainMenuButtonText;
 
         [Header("Settings UI")]
         [SerializeField] private Toggle _fullscreenToggle;
@@ -215,13 +218,16 @@ namespace MortierFu
             if (_controlsButtonText)
                 _controlsButtonText.text = "Controls";
 
+            if (_resumeButtonText)
+                _resumeButtonText.text = "Resume";
+
             if (_primaryActionButtonText)
                 _primaryActionButtonText.text = _sceneContext == PauseUISceneContext.Lobby
-                    ? "Return to Main menu"
+                    ? "Quit Game"
                     : "End Game";
 
-            if (_quitButtonText)
-                _quitButtonText.text = "Quit Game";
+            if (_mainMenuButtonText)
+                _mainMenuButtonText.text = "Main menu";
         }
 
         private void BindPauseSystemEvents()
@@ -269,16 +275,23 @@ namespace MortierFu
                 _controlsButton.onClick.AddListener(OpenControlsPanel);
             }
 
-            if (_primaryActionButton)
+            if (_resumeButton)
             {
-                _primaryActionButton.onClick.RemoveListener(OpenPrimaryConfirmation);
-                _primaryActionButton.onClick.AddListener(OpenPrimaryConfirmation);
+                _resumeButton.onClick.RemoveListener(ResumeGame);
+                _resumeButton.onClick.AddListener(ResumeGame);
             }
 
-            if (!_quitButton) return;
-            
-            _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
-            _quitButton.onClick.AddListener(OpenQuitConfirmation);
+            if (_primaryActionButton) 
+            {
+                _primaryActionButton.onClick.RemoveListener(OpenPrimaryActionConfirmation);
+                _primaryActionButton.onClick.AddListener(OpenPrimaryActionConfirmation);
+            }
+
+            if (_mainMenuButton)
+            {
+                _mainMenuButton.onClick.RemoveListener(OpenMainMenuConfirmation);
+                _mainMenuButton.onClick.AddListener(OpenMainMenuConfirmation);
+            }
         }
 
         private void UnbindButtonEvents()
@@ -289,11 +302,14 @@ namespace MortierFu
             if (_controlsButton)
                 _controlsButton.onClick.RemoveListener(OpenControlsPanel);
 
-            if (_primaryActionButton)
-                _primaryActionButton.onClick.RemoveListener(OpenPrimaryConfirmation);
+            if (_resumeButton)
+                _resumeButton.onClick.RemoveListener(ResumeGame);
 
-            if (_quitButton)
-                _quitButton.onClick.RemoveListener(OpenQuitConfirmation);
+            if (_primaryActionButton)
+                _primaryActionButton.onClick.RemoveListener(OpenPrimaryActionConfirmation);
+
+            if (_mainMenuButton)
+                _mainMenuButton.onClick.RemoveListener(OpenMainMenuConfirmation);
         }
 
         private void BindSettingsFeedbackEvents()
@@ -588,21 +604,25 @@ namespace MortierFu
                 Select(_settingsButton);
         }
 
-        private void OpenPrimaryConfirmation()
-        {
-            if (_sceneContext == PauseUISceneContext.Lobby)
-                OpenReturnToMainMenuConfirmation();
-            else
-                OpenEndGameConfirmation();
-        }
-        
         public void ReturnToMainPanelFromSubPanel() => ReturnToMainPanelFromSubPanel(_settingsButton);
 
-        private void OpenReturnToMainMenuConfirmation() => OpenPauseConfirmation(_returnToMainMenuDescription, ConfirmReturnToMainMenuAsync, _primaryActionButton);
+        private void ResumeGame()
+        {
+            PlayPanelSelectionFeedback();
+            _gamePauseSystem?.Resume();
+        }
 
-        private void OpenEndGameConfirmation() => OpenPauseConfirmation(_endGameDescription, ConfirmEndGameAsync, _primaryActionButton);
-
-        private void OpenQuitConfirmation() => OpenPauseConfirmation(_quitGameDescription, ConfirmQuitGameAsync, _quitButton);
+        private void OpenMainMenuConfirmation() =>
+            OpenPauseConfirmation(_returnToMainMenuDescription, ConfirmReturnToMainMenuAsync, _mainMenuButton);
+        
+        private void OpenPrimaryActionConfirmation()
+        {
+            if (_sceneContext == PauseUISceneContext.Lobby)
+                OpenPauseConfirmation(_quitGameDescription, ConfirmQuitGameAsync, _primaryActionButton);
+            else
+                OpenPauseConfirmation(_endGameDescription, ConfirmEndGameAsync, _primaryActionButton);
+        }
+            
 
         private void OpenPauseConfirmation(string description, Func<UniTask> onConfirmAsync, Selectable returnSelection)
         {
