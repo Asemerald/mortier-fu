@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MortierFu
 {
@@ -8,11 +9,11 @@ namespace MortierFu
         public int ID;
         public string Name;
         
-        //stoian
+        [Header("Description")]
         [TextArea(2, 5)]
         public string ConditionText;
         public AugmentDescription[] Description;
-        //stoian
+        public float DescFontSize;
         
         public E_AugmentRarity Rarity;
         public Sprite CardSprite;

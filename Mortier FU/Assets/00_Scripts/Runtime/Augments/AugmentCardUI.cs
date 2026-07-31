@@ -32,7 +32,7 @@ namespace MortierFu
         [SerializeField] private float _hideInfoDelay = 0.2f;
 
         [Header("SymbolDescription")] 
-        [SerializeField] private int _symboleSize = 200;
+        [SerializeField] private int _symboleSize;
         
         [Header("Values")] 
         [SerializeField] private Vector3 _sizeIcon = new (.3f, .3f,.3f);
@@ -103,15 +103,18 @@ namespace MortierFu
             
             foreach (AugmentDescription desc in augment.Description)
             {
+                int lineTextSize = desc.TextSize > 0 ? desc.TextSize : (int)augment.DescFontSize;
+
+                _sb.Append($"<size={lineTextSize}>");
                 _sb.Append(AugmentVariableDescription.Get(desc.variable));
-                _sb.Append(GetValueSuffix(desc.value));
+                _sb.Append(GetValueSuffix(desc.value, desc.SymbolSize));
+                _sb.Append("</size>");
                 _sb.AppendLine();
             }
 
+
             _descTxt.color = data.DescriptionColor;
             _descTxt.SetText(_sb.ToString());
-            
-            //stoian
             
             _augmentBorder.sprite = _raritySpritesFactory.GetRarityBorderSpriteFromRarity(augment.Rarity);
             _augmentBack.sprite = _raritySpritesFactory.GetRarityCardBgSpriteFromRarity(augment.Rarity);
@@ -128,8 +131,9 @@ namespace MortierFu
             _augmentCard.sprite = augment.CardSprite;
         }
 
-        private string GetValueSuffix(E_AugmentValue value)
+        private string GetValueSuffix(E_AugmentValue value, int symbolSize)
         {
+
             string symbol = value switch
             {
                 E_AugmentValue.Empty => "",
@@ -143,7 +147,7 @@ namespace MortierFu
                 _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
             };
             
-            return symbol == "" ? "" : $"<size={_symboleSize}%><b>{symbol}</b></size>";
+            return symbol == "" ? "" : $"<size={symbolSize}><b>{symbol}</b></size>";
         }
 
         public void SetIconCardVisual(SO_Augment augment)
