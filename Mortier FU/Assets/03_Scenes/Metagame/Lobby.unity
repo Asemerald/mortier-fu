@@ -753,6 +753,19 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7742613307655279501, guid: 2f3d3146d44b39d4fa5067ebb900cb24, type: 3}
   m_PrefabInstance: {fileID: 143074029}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &144066483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 0
 --- !u!1 &168991920
 GameObject:
   m_ObjectHideFlags: 1
@@ -20399,8 +20412,121 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 4206112518183783789, guid: b13722acd739f394d993c908544f4b27, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6547316739675850880, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545151543}
+    - targetCorrespondingSourceObject: {fileID: 8130041869580824697, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545151542}
+    - targetCorrespondingSourceObject: {fileID: 7864789432325058720, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545151541}
+    - targetCorrespondingSourceObject: {fileID: 3607908889172526317, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545151540}
+    - targetCorrespondingSourceObject: {fileID: 1999317829735110807, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545151539}
+    - targetCorrespondingSourceObject: {fileID: 7525351341656506213, guid: b13722acd739f394d993c908544f4b27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 144066483}
   m_SourcePrefab: {fileID: 100100000, guid: b13722acd739f394d993c908544f4b27, type: 3}
+--- !u!1 &545151533 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7525351341656506213, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &545151534 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1999317829735110807, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &545151535 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3607908889172526317, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &545151536 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7864789432325058720, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &545151537 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8130041869580824697, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &545151538 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6547316739675850880, guid: b13722acd739f394d993c908544f4b27, type: 3}
+  m_PrefabInstance: {fileID: 545151532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &545151539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 0
+--- !u!114 &545151540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 1
+--- !u!114 &545151541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 1
+--- !u!114 &545151542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 1
+--- !u!114 &545151543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545151538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d68521a360c3648b9899fa942061e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mortierfu.Runtime::UIButtonHandler
+  submit: 1
 --- !u!1 &548467213
 GameObject:
   m_ObjectHideFlags: 0
