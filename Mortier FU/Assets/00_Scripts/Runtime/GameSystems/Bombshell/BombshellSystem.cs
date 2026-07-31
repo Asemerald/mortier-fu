@@ -153,6 +153,11 @@ namespace MortierFu
                 20 + bombshell.Damage * 10,
                 bombshell.GetTravelTime()
             );
+            
+            if (bombshell.AoeRange >= 15)
+            {
+                SteamManager.UnlockAchievement("IMPACT_RADIUS_THRESHOLD");
+            }
 
             if (hitCharacters.Count > 0)
             {
