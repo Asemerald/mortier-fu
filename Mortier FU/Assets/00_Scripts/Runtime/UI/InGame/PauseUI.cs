@@ -72,8 +72,8 @@ namespace MortierFu
         [SerializeField] private string _cancelLabel = "Cancel";
         
         [Header("Switch by Input Element")]
-        [SerializeField] private GameObject _pauseButtonKeyboard;
-        [SerializeField] private GameObject _pauseButtonGamepad;
+        [SerializeField] private GameObject[] _buttonKeyboard;
+        [SerializeField] private GameObject[] _buttonGamepad;
 
         private readonly List<PlayerPauseSnapshot> _snapshots = new();
 
@@ -369,8 +369,13 @@ namespace MortierFu
         private void UpdateUiImageByInput(PlayerManager ownerInput)
         {
             bool isKeyboard = ownerInput.IsKeyboardAndMouseControlScheme();
-            _pauseButtonKeyboard.SetActive(isKeyboard);
-            _pauseButtonGamepad.SetActive(!isKeyboard);
+
+            foreach (var buttonKeyboard in _buttonKeyboard)
+                buttonKeyboard.SetActive(isKeyboard);
+            
+            foreach (var buttonGamepad in _buttonGamepad)
+                buttonGamepad.SetActive(!isKeyboard);
+            
         }
 
         private void HandleResumed()
