@@ -325,6 +325,8 @@ namespace MortierFu
                 remainingAugments.Remove(randomAugment);
 
                 Logs.Log("[AugmentSelectionSystem] Assigned random augment " + randomAugment.Augment.name + " to player " + picker.PlayerIndex);
+                
+                SteamManager.UnlockAchievement("NO_AUGMENT");
             }
 
             foreach (var pickup in _pickupsVFX)
