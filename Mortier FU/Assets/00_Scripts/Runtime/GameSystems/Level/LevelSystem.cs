@@ -157,6 +157,26 @@ namespace MortierFu
 
             return true;
         }
+        
+        private void RegisterVisitedMap(string mapKey)
+        {
+            if (string.IsNullOrEmpty(mapKey)) return;
+
+            SaveService saveService = ServiceManager.Instance.Get<SaveService>();
+            if (saveService?.Game?.visitedMaps == null) return;
+
+            
+            if (saveService.Game.visitedMaps.Add(mapKey))
+            {
+                Logs.Log($"[LevelSystem] New map visited registered: {mapKey}");
+                saveService.SaveGame().Forget(); 
+            }
+
+            if (saveService.Game.visitedMaps.Count >= 24)
+            {
+                SteamManager.UnlockAchievement("VISIT_EVERY_MAP");
+            }
+        }
 
         private async UniTask<bool> TryLoadFirstRoundRaceOverrideMapAsync(string debugMapTypeName)
         {
@@ -403,6 +423,8 @@ namespace MortierFu
             }
 
             _currentLoadedMapKey = sceneKey is IResourceLocation loadedLocation ? GetMapCooldownKey(loadedLocation) : sceneKey.ToString();
+            
+            RegisterVisitedMap(_currentLoadedMapKey);
 
             Logs.Log($"[LevelSystem] Loaded {debugMapTypeName} map: {_mapHandle.Result.Scene.name}");
 

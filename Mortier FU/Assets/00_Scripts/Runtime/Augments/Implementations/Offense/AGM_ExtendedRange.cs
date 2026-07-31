@@ -1,6 +1,6 @@
 namespace MortierFu
 {
-    public class AGM_ExtentedRange : AugmentBase
+    public class AGM_ExtendedRange : AugmentBase
     {
         [System.Serializable]
         public struct Params
@@ -8,7 +8,7 @@ namespace MortierFu
             public AugmentStatMod ShotRangeMod;
         }
         
-        public AGM_ExtentedRange(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
+        public AGM_ExtendedRange(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
         public override void Initialize()
