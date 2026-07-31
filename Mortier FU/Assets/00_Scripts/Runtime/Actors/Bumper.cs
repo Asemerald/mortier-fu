@@ -25,7 +25,7 @@ namespace MortierFu {
 
             if (canPlaySpecialSound)
             {
-                PlayFirstBumpSound();
+                PlayFirstBumpSound().Forget();
                 canPlaySpecialSound = false;
             }
         }
