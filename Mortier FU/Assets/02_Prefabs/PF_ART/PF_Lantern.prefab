@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5222813035724921968}
   - component: {fileID: 3711073791658348966}
   - component: {fileID: 3574595286044458882}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: PS_Lantern_Fire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4847,7 +4847,7 @@ GameObject:
   - component: {fileID: 722201027489324576}
   - component: {fileID: 6553974455116768076}
   - component: {fileID: 9074803533384088929}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4974,7 +4974,7 @@ GameObject:
   - component: {fileID: 77955988794941289}
   - component: {fileID: 4384390485298049945}
   - component: {fileID: 2223890377309670374}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: PS_Lantern_Fire (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9859,6 +9859,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PF_Lantern
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 99190744b382bdd459aacc215513bd86, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -9875,6 +9879,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99190744b382bdd459aacc215513bd86, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5333369613474864687}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99190744b382bdd459aacc215513bd86, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1224800829176450990}
   m_SourcePrefab: {fileID: 100100000, guid: 99190744b382bdd459aacc215513bd86, type: 3}
 --- !u!4 &7260993038039129244 stripped
 Transform:
@@ -9907,3 +9914,30 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.3103651, y: 2.93, z: 1.3103651}
   m_Center: {x: 0.06990761, y: -1.41, z: -0.067766674}
+--- !u!54 &1224800829176450990
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8038901274555991590}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
