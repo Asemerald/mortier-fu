@@ -371,7 +371,7 @@ namespace MortierFu
                 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                EndGame();
+                await EndGame();
             }
             catch (OperationCanceledException)
             {
@@ -560,10 +560,11 @@ namespace MortierFu
             return player ? player.PlayerIndex : -1;
         }
 
-        private void EndGame()
+        private async UniTask EndGame()
         {
-            audioService.StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
+            await levelSystem.LoadWinGameMap();
 
+            audioService.StartMusic(AudioService.FMODEvents.MUS_Victory).Forget();
             SetPlayersControlContext(PlayerControlContext.EndGame);
             OnGameEnded?.Invoke(GetWinnerPlayerIndex());
             Logs.Log("Game has ended.");
