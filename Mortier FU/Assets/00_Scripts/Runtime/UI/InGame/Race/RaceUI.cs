@@ -18,6 +18,8 @@ namespace MortierFu
         [Header("RaceExplanation")]
         [SerializeField] private GameObject _explanation;
         [SerializeField] private Image _explanationImage;
+        [SerializeField] private  TextMeshProUGUI _explanationText;
+        [SerializeField] private TextMeshProUGUI _explanationTitle;
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
@@ -99,8 +101,14 @@ namespace MortierFu
             
             var raceModeDefinition = _levelSystem.CurrentRaceReporter.RaceModeDefinition;
 
-            _explanation.GetComponentInChildren<TextMeshProUGUI>().text = raceModeDefinition.RaceExplanationText;
-            _explanationImage.sprite = raceModeDefinition.RaceExplanationImage;
+            if (_explanationText != null) 
+                _explanationText.text = raceModeDefinition.RaceExplanationText;
+
+            if (_explanationTitle != null) 
+                _explanationTitle.text = raceModeDefinition.RaceExplanationTitle;
+
+            if (_explanationImage != null) 
+                _explanationImage.sprite = raceModeDefinition.RaceExplanationImage;
         }
         //
 
