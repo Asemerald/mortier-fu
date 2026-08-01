@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using MortierFu.Shared;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MortierFu
 {
@@ -13,7 +14,10 @@ namespace MortierFu
         [SerializeField] private PlayerConfirmationUI _playerConfirmationUI;
         [SerializeField] private RacePressureUI _racePressureUI;
         [SerializeField] private AugmentSummaryUI _augmentSummaryUI;
+        
+        [Header("RaceExplanation")]
         [SerializeField] private GameObject _explanation;
+        [SerializeField] private Image _explanationImage;
 
         private ConfirmationService _confirmationService;
         private AugmentSelectionSystem _augmentSelectionSystem;
@@ -92,7 +96,11 @@ namespace MortierFu
             if (_explanation == null)
                 return;
             _explanation.SetActive(true);
-            _explanation.GetComponentInChildren<TextMeshProUGUI>().text = _levelSystem.CurrentRaceReporter.RaceModeDefinition.RaceExplanationText;
+            
+            var raceModeDefinition = _levelSystem.CurrentRaceReporter.RaceModeDefinition;
+
+            _explanation.GetComponentInChildren<TextMeshProUGUI>().text = raceModeDefinition.RaceExplanationText;
+            _explanationImage.sprite = raceModeDefinition.RaceExplanationImage;
         }
         //
 
