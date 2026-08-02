@@ -9,22 +9,13 @@ namespace MortierFu
 {
     public class GameEndUI : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private Image _winnerImageBackground;
-
         [Header("Winner UI Input")]
         [SerializeField] private Selectable _firstSelected;
 
-        [Header("Assets")]
-        [SerializeField] private Sprite[] _winnerBackgroundSprites;
-
+        [Header("Buttons")]
         [SerializeField] private Button _returnToLobbyButton;
         [SerializeField] private Button _newGameButton;
         [SerializeField] private Button _mainMenuButton;
-
-        [SerializeField] private Sprite[] _returnToLobbySprites;
-        [SerializeField] private Sprite[] _newGameSprites;
-        [SerializeField] private Sprite[] _mainMenuSprites;
 
         private readonly UnityPlayerUISession _uiSession = new();
 
@@ -38,12 +29,16 @@ namespace MortierFu
 
         private void Awake()
         {
-            _gameService = ServiceManager.Instance.Get<GameService>();
-            _lobbyService = ServiceManager.Instance.Get<LobbyService>();
-            _eventSystem = EventSystem.current as MultiplayerEventSystem;
-            _inputModule = _eventSystem ? _eventSystem.currentInputModule as InputSystemUIInputModule : null;
+            _gameService = ServiceManager.Instance?.Get<GameService>();
+            _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
 
-            HideWinnerPresentation();
+            if (_gameService == null)
+                Logs.LogWarning("[GameEndUI] GameService introuvable au démarrage.");
+
+            if (_lobbyService == null)
+                Logs.LogWarning("[GameEndUI] LobbyService introuvable au démarrage.");
+
+            EnsureEventSystemReferences();
         }
 
         private void OnEnable()
@@ -65,15 +60,32 @@ namespace MortierFu
             EndWinnerUISession();
             UnbindButtonEvents();
         }
+        
+        private bool EnsureEventSystemReferences()
+        {
+            if (_eventSystem != null && _inputModule != null)
+                return true;
+
+            _eventSystem = EventSystem.current as MultiplayerEventSystem;
+            _inputModule = _eventSystem != null ? _eventSystem.currentInputModule as InputSystemUIInputModule : null;
+
+            return _eventSystem != null && _inputModule != null;
+        }
 
         private void SubscribeGameMode()
         {
             UnsubscribeGameMode();
 
+            if (_gameService == null)
+                _gameService = ServiceManager.Instance?.Get<GameService>();
+
             _gm = GameService.CurrentGameMode as GameModeBase;
 
             if (_gm == null)
+            {
+                Logs.LogWarning("[GameEndUI] Impossible d'abonner GameModeBase (CurrentGameMode null ou type incorrect).");
                 return;
+            }
 
             _gm.OnGameEnded += SetWinner;
         }
@@ -91,25 +103,25 @@ namespace MortierFu
         {
             UnbindButtonEvents();
 
-            if (_returnToLobbyButton)
+            if (_returnToLobbyButton != null)
                 _returnToLobbyButton.onClick.AddListener(OnClickReturnToLobby);
 
-            if (_newGameButton)
+            if (_newGameButton != null)
                 _newGameButton.onClick.AddListener(OnClickNewGame);
 
-            if (_mainMenuButton)
+            if (_mainMenuButton != null)
                 _mainMenuButton.onClick.AddListener(OnClickMainMenu);
         }
 
         private void UnbindButtonEvents()
         {
-            if (_returnToLobbyButton)
+            if (_returnToLobbyButton != null)
                 _returnToLobbyButton.onClick.RemoveListener(OnClickReturnToLobby);
 
-            if (_newGameButton)
+            if (_newGameButton != null)
                 _newGameButton.onClick.RemoveListener(OnClickNewGame);
 
-            if (_mainMenuButton)
+            if (_mainMenuButton != null)
                 _mainMenuButton.onClick.RemoveListener(OnClickMainMenu);
         }
 
@@ -133,37 +145,29 @@ namespace MortierFu
 
         private void SetWinner(int playerIndex)
         {
-            if (!IsValidPlayerIndex(playerIndex))
-            {
-                Logs.LogError($"[GameEndUI] Invalid winner player index: {playerIndex}.");
-                return;
-            }
+            PlayerManager winner = _gm != null ? _gm.GetWinnerPlayer() : null;
 
-            PlayerManager winner = _gm?.GetWinnerPlayer();
-
-            if (!winner)
+            if (winner == null)
             {
-                Logs.LogError("[GameEndUI] Cannot find winner PlayerManager.");
+                Logs.LogError("[GameEndUI] Impossible de récupérer le PlayerManager du gagnant.");
                 return;
             }
 
             _winnerPlayer = winner;
 
-            ApplyWinnerSprites(playerIndex);
-            ShowWinnerPresentation();
             BeginWinnerUISession(winner);
-            
+
             SteamManager.AddProgressToStat("GAME_PLAYED");
         }
 
         private void BeginWinnerUISession(PlayerManager winner)
         {
-            if (!winner)
+            if (winner == null)
                 return;
 
-            if (!_eventSystem || !_inputModule)
+            if (!EnsureEventSystemReferences())
             {
-                Logs.LogError("[GameEndUI] Missing MultiplayerEventSystem or InputSystemUIInputModule reference.");
+                Logs.LogError("[GameEndUI] Impossible de démarrer la session UI : MultiplayerEventSystem ou InputSystemUIInputModule manquant.");
                 return;
             }
 
@@ -171,24 +175,36 @@ namespace MortierFu
 
             _uiSession.Begin(winner, _eventSystem, _inputModule, _firstSelected, PlayerControlContext.EndGame);
 
-            _eventSystem.SetSelectedGameObject(null);
-            _eventSystem.SetSelectedGameObject(_firstSelected.gameObject);
+            if (_eventSystem != null)
+            {
+                _eventSystem.SetSelectedGameObject(null);
 
-            Logs.Log($"[GameEndUI] Winner menu controlled by Player {winner.PlayerIndex + 1}.");
+                if (_firstSelected != null)
+                    _eventSystem.SetSelectedGameObject(_firstSelected.gameObject);
+                else
+                    Logs.LogWarning("[GameEndUI] _firstSelected n'est pas assigné dans l'Inspecteur.");
+            }
+
+            Logs.Log($"[GameEndUI] Menu gagnant contrôlé par le Joueur {winner.PlayerIndex + 1}.");
         }
 
         private void EndWinnerUISession()
         {
-            _uiSession.End();
+            _uiSession?.End();
 
-            if (_eventSystem)
+            if (_eventSystem != null)
                 _eventSystem.SetSelectedGameObject(null);
+            
+            RestoreAllPlayersUIInput();
 
             _winnerPlayer = null;
         }
 
         private void DisableAllPlayersUIInput()
         {
+            if (_lobbyService == null)
+                _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
+
             IReadOnlyList<PlayerManager> players = _lobbyService?.GetPlayers();
 
             if (players == null)
@@ -198,7 +214,7 @@ namespace MortierFu
             {
                 PlayerManager player = players[i];
 
-                if (!player)
+                if (player == null)
                     continue;
 
                 player.SetUnityEventSystemUIActive(false);
@@ -207,49 +223,29 @@ namespace MortierFu
                     player.SetControlContext(PlayerControlContext.Loading);
             }
         }
-
-        private bool IsValidPlayerIndex(int playerIndex)
+        
+        private void RestoreAllPlayersUIInput()
         {
-            if (playerIndex < 0)
-                return false;
+            if (_lobbyService == null)
+                _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
 
-            if (_winnerBackgroundSprites == null || playerIndex >= _winnerBackgroundSprites.Length)
-                return false;
+            IReadOnlyList<PlayerManager> players = _lobbyService?.GetPlayers();
 
-            if (_returnToLobbySprites == null || playerIndex >= _returnToLobbySprites.Length)
-                return false;
+            if (players == null)
+                return;
 
-            if (_newGameSprites == null || playerIndex >= _newGameSprites.Length)
-                return false;
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerManager player = players[i];
 
-            return _mainMenuSprites != null && playerIndex < _mainMenuSprites.Length;
-        }
+                if (player == null)
+                    continue;
 
-        private void ApplyWinnerSprites(int playerIndex)
-        {
-            if (_winnerImageBackground)
-                _winnerImageBackground.sprite = _winnerBackgroundSprites[playerIndex];
-
-            if (_returnToLobbyButton)
-                _returnToLobbyButton.image.sprite = _returnToLobbySprites[playerIndex];
-
-            if (_newGameButton)
-                _newGameButton.image.sprite = _newGameSprites[playerIndex];
-
-            if (_mainMenuButton)
-                _mainMenuButton.image.sprite = _mainMenuSprites[playerIndex];
-        }
-
-        private void ShowWinnerPresentation()
-        {
-            if (_winnerImageBackground)
-                _winnerImageBackground.gameObject.SetActive(true);
-        }
-
-        private void HideWinnerPresentation()
-        {
-            if (_winnerImageBackground)
-                _winnerImageBackground.gameObject.SetActive(false);
+                if (player == _winnerPlayer)
+                    continue;
+                player.SetUnityEventSystemUIActive(true);
+                player.SetControlContext(PlayerControlContext.Lobby); 
+            }
         }
     }
 }
