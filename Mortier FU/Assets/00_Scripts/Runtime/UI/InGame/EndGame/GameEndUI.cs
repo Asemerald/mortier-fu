@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MortierFu.Shared;
 using UnityEngine;
@@ -7,13 +8,50 @@ using UnityEngine.UI;
 
 namespace MortierFu
 {
+    [Serializable]
+    public struct GameWinnerColor
+    {
+        public Color MainBackgroundColor;
+        public Color SecondBackgroundColor;
+        public Color GoldBannerColor;
+        public Color ThirdBackgroundColor;
+        public Color FourthBackgroundColor;
+        public Color GoldenDotColor;
+        public Color GoldenDotBackgroundColor;
+        public Color ExplosionColor;
+        public Color CheckerColor;
+        public Color BlurColor;
+        public Color ExplosionOutlineColor;
+        public Color GoldenCircleShadowColor;
+        public Color GoldenCircleColor;
+        public Sprite GameWinnerNameSprite;
+    }
+
     public class GameEndUI : MonoBehaviour
     {
-        [Header("Winner UI Input")]
-        [SerializeField] private Selectable _firstSelected;
+        [Header("Game Winner Colors")] [SerializeField]
+        private GameWinnerColor[] _gameWinnerColors;
 
-        [Header("Buttons")]
-        [SerializeField] private Button _returnToLobbyButton;
+        [Header("Game Winner UI Elements")] [SerializeField]
+        private Image _mainBackgroundImage;
+        [SerializeField] private Image _secondBackgroundImage;
+        [SerializeField] private Image _goldBannerImage;
+        [SerializeField] private Image _thirdBackgroundImage;
+        [SerializeField] private Image _fourthBackgroundImage;
+        [SerializeField] private Image _goldenDotImage;
+        [SerializeField] private Image _goldenDotBackgroundImage;
+        [SerializeField] private Image _explosionImage;
+        [SerializeField] private Image _checkerImage;
+        [SerializeField] private Image _blurImage;
+        [SerializeField] private Image _explosionOutlineImage;
+        [SerializeField] private Image _goldenCircleShadowImage;
+        [SerializeField] private Image _goldenCircleColor;
+        [SerializeField] private Image _gameWinnerNameImage;
+
+        [Header("Winner UI Input")] [SerializeField]
+        private Selectable _firstSelected;
+
+        [Header("Buttons")] [SerializeField] private Button _returnToLobbyButton;
         [SerializeField] private Button _newGameButton;
         [SerializeField] private Button _mainMenuButton;
 
@@ -60,7 +98,7 @@ namespace MortierFu
             EndWinnerUISession();
             UnbindButtonEvents();
         }
-        
+
         private bool EnsureEventSystemReferences()
         {
             if (_eventSystem != null && _inputModule != null)
@@ -83,7 +121,8 @@ namespace MortierFu
 
             if (_gm == null)
             {
-                Logs.LogWarning("[GameEndUI] Impossible d'abonner GameModeBase (CurrentGameMode null ou type incorrect).");
+                Logs.LogWarning(
+                    "[GameEndUI] Impossible d'abonner GameModeBase (CurrentGameMode null ou type incorrect).");
                 return;
             }
 
@@ -147,17 +186,21 @@ namespace MortierFu
         {
             PlayerManager winner = _gm != null ? _gm.GetWinnerPlayer() : null;
 
-            if (winner == null)
+            if (!winner)
             {
                 Logs.LogError("[GameEndUI] Impossible de récupérer le PlayerManager du gagnant.");
                 return;
             }
+
+            int winnerIndex = winner.Team != null ? winner.Team.Index : playerIndex;
 
             _winnerPlayer = winner;
 
             BeginWinnerUISession(winner);
 
             SteamManager.AddProgressToStat("GAME_PLAYED");
+
+            ApplyWinnerTheme(winnerIndex);
         }
 
         private void BeginWinnerUISession(PlayerManager winner)
@@ -167,7 +210,8 @@ namespace MortierFu
 
             if (!EnsureEventSystemReferences())
             {
-                Logs.LogError("[GameEndUI] Impossible de démarrer la session UI : MultiplayerEventSystem ou InputSystemUIInputModule manquant.");
+                Logs.LogError(
+                    "[GameEndUI] Impossible de démarrer la session UI : MultiplayerEventSystem ou InputSystemUIInputModule manquant.");
                 return;
             }
 
@@ -194,7 +238,7 @@ namespace MortierFu
 
             if (_eventSystem != null)
                 _eventSystem.SetSelectedGameObject(null);
-            
+
             RestoreAllPlayersUIInput();
 
             _winnerPlayer = null;
@@ -223,7 +267,30 @@ namespace MortierFu
                     player.SetControlContext(PlayerControlContext.Loading);
             }
         }
-        
+
+        private void ApplyWinnerTheme(int winnerIndex)
+        {
+            if (_gameWinnerColors == null || winnerIndex < 0 || winnerIndex >= _gameWinnerColors.Length)
+                return;
+            
+            GameWinnerColor gameWinnerColor = _gameWinnerColors[winnerIndex];
+
+            _mainBackgroundImage.color = gameWinnerColor.MainBackgroundColor;
+            _secondBackgroundImage.color = gameWinnerColor.SecondBackgroundColor;
+            _goldBannerImage.color = gameWinnerColor.GoldBannerColor;
+            _thirdBackgroundImage.color = gameWinnerColor.ThirdBackgroundColor;
+            _fourthBackgroundImage.color = gameWinnerColor.FourthBackgroundColor;
+            _goldenDotImage.color = gameWinnerColor.GoldenDotColor;
+            _goldenDotBackgroundImage.color = gameWinnerColor.GoldenDotBackgroundColor;
+            _explosionImage.color = gameWinnerColor.ExplosionColor;
+            _checkerImage.color = gameWinnerColor.CheckerColor;
+            _blurImage.color = gameWinnerColor.BlurColor;
+            _explosionOutlineImage.color = gameWinnerColor.ExplosionOutlineColor;
+            _goldenCircleShadowImage.color = gameWinnerColor.GoldenCircleShadowColor;
+            _goldenCircleColor.color = gameWinnerColor.GoldenCircleColor;
+            _gameWinnerNameImage.sprite = gameWinnerColor.GameWinnerNameSprite;
+        }
+
         private void RestoreAllPlayersUIInput()
         {
             if (_lobbyService == null)
@@ -244,7 +311,7 @@ namespace MortierFu
                 if (player == _winnerPlayer)
                     continue;
                 player.SetUnityEventSystemUIActive(true);
-                player.SetControlContext(PlayerControlContext.Lobby); 
+                player.SetControlContext(PlayerControlContext.Lobby);
             }
         }
     }
