@@ -200,6 +200,8 @@ namespace MortierFu
 
             SteamManager.AddProgressToStat("GAME_PLAYED");
 
+            _winnerPlayer.Character.WinRoundDance();
+            
             ApplyWinnerTheme(winnerIndex);
         }
 
