@@ -194,6 +194,8 @@ namespace MortierFu
 
             if (_eventSystem != null)
                 _eventSystem.SetSelectedGameObject(null);
+            
+            RestoreAllPlayersUIInput();
 
             _winnerPlayer = null;
         }
@@ -219,6 +221,30 @@ namespace MortierFu
 
                 if (player != _winnerPlayer)
                     player.SetControlContext(PlayerControlContext.Loading);
+            }
+        }
+        
+        private void RestoreAllPlayersUIInput()
+        {
+            if (_lobbyService == null)
+                _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
+
+            IReadOnlyList<PlayerManager> players = _lobbyService?.GetPlayers();
+
+            if (players == null)
+                return;
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerManager player = players[i];
+
+                if (player == null)
+                    continue;
+
+                if (player == _winnerPlayer)
+                    continue;
+                player.SetUnityEventSystemUIActive(true);
+                player.SetControlContext(PlayerControlContext.Lobby); 
             }
         }
     }
