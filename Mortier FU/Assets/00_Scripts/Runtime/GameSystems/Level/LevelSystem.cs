@@ -638,6 +638,14 @@ namespace MortierFu
 
             return BoundReporter.RoundWinnerSpawnPoint ?? FallbackTransform;
         }
+        
+        public Transform GetGameWinnerSpawnPoint()
+        {
+            if (BoundReporter == null)
+                return FallbackTransform;
+
+            return BoundReporter.GameWinnerSpawnPoint ?? FallbackTransform;
+        }
 
         public Transform GetSpawnPoint(int index)
         {
