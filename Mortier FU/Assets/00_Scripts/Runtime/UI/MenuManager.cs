@@ -269,13 +269,15 @@ namespace MortierFu
             if (!_uiInputModule)
                 return;
 
-            _cancelAction = _uiInputModule.cancel.action;
+            InputActionReference cancelActionRef = _uiInputModule.cancel;
 
-            if (_cancelAction == null)
+            if (cancelActionRef == null || cancelActionRef.action == null)
             {
-                Logs.LogWarning("[MenuManager] UI cancel action is missing on InputSystemUIInputModule.", this);
+                Logs.LogWarning("[MenuManager] UI cancel action reference is missing on InputSystemUIInputModule.", this);
                 return;
             }
+
+            _cancelAction = cancelActionRef.action;
 
             _cancelAction.performed += HandleGlobalCancelPerformed;
             _cancelAction.Enable();

@@ -312,7 +312,8 @@ namespace MortierFu
 
                 if (player == _winnerPlayer)
                     continue;
-                player.SetUnityEventSystemUIActive(true);
+
+                player.SetUnityEventSystemUIActive(false); 
                 player.SetControlContext(PlayerControlContext.Lobby);
             }
         }
