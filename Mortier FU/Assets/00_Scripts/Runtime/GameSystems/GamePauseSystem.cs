@@ -48,9 +48,14 @@ namespace MortierFu
 
         public void TogglePause(PlayerManager player)
         {
+            if (!player)
+                return;
+
             if (IsPaused)
             {
-                Resume();
+                if (player == PauseOwner)
+                    Resume();
+
                 return;
             }
 

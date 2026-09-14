@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using System.Threading;
-using UnityEngine.Serialization;
+using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
@@ -371,11 +371,10 @@ namespace MortierFu
 
             CapturePlayers();
             ApplyPauseInputState();
-            
             UpdateUiImageByInput(_owner);
             
             ShowMainPanel();
-            Select(_settingsButton);
+            Select(_resumeButton);
 
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Pause, 0);
             ServiceManager.Instance.Get<AudioService>()?.SetPause(1);
@@ -391,7 +390,6 @@ namespace MortierFu
             
             foreach (var buttonGamepad in _buttonGamepad)
                 buttonGamepad.SetActive(!isKeyboard);
-            
         }
 
         private void HandleResumed()
@@ -470,28 +468,35 @@ namespace MortierFu
 
         private void ApplyPauseInputState()
         {
-            bool ownerApplied = false;
+            // Clean de l'ancien owner, blockage des autres joueurs et attribution de l'InputSystemUIInputModule à celui qui a initié la pause.
+            DetachPauseInputModuleFromCapturedPlayers();
 
             for (int i = 0; i < _snapshots.Count; i++)
             {
                 PlayerManager player = _snapshots[i].Player;
 
-                if (!player)
+                if (!player || player == _owner)
                     continue;
 
-                if (ReferenceEquals(player, _owner))
-                {
-                    ApplyOwnerPauseInput(player);
-                    ownerApplied = true;
-                }
-                else
-                {
-                    ApplyBlockedInput(player);
-                }
+                ApplyBlockedInput(player);
             }
 
-            if (!ownerApplied)
-                ApplyOwnerPauseInput(_owner);
+            ApplyOwnerPauseInput(_owner);
+        }
+        
+        private void DetachPauseInputModuleFromCapturedPlayers()
+        {
+            for (int i = 0; i < _snapshots.Count; i++)
+            {
+                PlayerManager player = _snapshots[i].Player;
+
+                if (!player || !player.PlayerInput)
+                    continue;
+                
+                // L'InputSystemUIInputModule est partagé, il faut donc retirer les anciennes attributions avant de donner le nouvel ownership.
+                if (player.PlayerInput.uiInputModule == _uiInputModule)
+                    player.PlayerInput.uiInputModule = null;
+            }
         }
 
         private void ApplyOwnerPauseInput(PlayerManager player)
@@ -499,8 +504,13 @@ namespace MortierFu
             if (!player)
                 return;
 
+            if (player.PlayerInput)
+                player.PlayerInput.uiInputModule = _uiInputModule;
+
             player.SetControlContext(PlayerControlContext.PauseMenu);
-            player.PlayerInput.uiInputModule = _uiInputModule;
+
+            BindNativeUIModuleToOwner(player);
+
             player.SetUnityEventSystemUIActive(true);
         }
 
@@ -508,6 +518,10 @@ namespace MortierFu
         {
             if (!player)
                 return;
+
+            // UIBlocked, hmmm je pense il y un indice dans le nom, mais ça bloque notre système d'input custom (jure?). Il faut obligatoirement bloquer également le système natif UI d'Unity.
+            if (player.PlayerInput)
+                player.PlayerInput.uiInputModule = null;
 
             player.SetControlContext(PlayerControlContext.UIBlocked);
             player.SetUnityEventSystemUIActive(true);
@@ -522,11 +536,16 @@ namespace MortierFu
                 if (!snapshot.Player)
                     continue;
 
+                if (snapshot.Player.PlayerInput)
+                {
+                    // Il ne faut pas restaurer l'InputSystemUIInputModule partagé comme état permanent d'un joueur.
+                    InputSystemUIInputModule moduleToRestore = snapshot.UiInputModule == _uiInputModule ? null : snapshot.UiInputModule;
+
+                    snapshot.Player.PlayerInput.uiInputModule = moduleToRestore;
+                }
+
                 snapshot.Player.SetControlContext(snapshot.Context);
                 snapshot.Player.SetUnityEventSystemUIActive(snapshot.UnityEventSystemUIActive);
-
-                if (snapshot.UiInputModule)
-                    snapshot.Player.PlayerInput.uiInputModule = snapshot.UiInputModule;
             }
 
             _snapshots.Clear();
@@ -806,6 +825,48 @@ namespace MortierFu
                 return false;
             
             return  true;
+        }
+        
+        private void BindNativeUIModuleToOwner(PlayerManager player)
+        {
+            if (!_uiInputModule || !player || !player.PlayerInput || !player.PlayerInput.actions)
+                return;
+
+            // Chaque PlayerInput possède sa propre copie RUNTIME de l'InputActionAsset.
+            // L'InputSystemUIInputModule doit donc lire la copie du joueur qui contrôle réellement la pause.
+            InputActionAsset actions = player.PlayerInput.actions;
+            InputActionMap uiMap = actions.FindActionMap(PlayerInputActionNames.UIMap, throwIfNotFound: false);
+
+            if (uiMap == null)
+            {
+                Logs.LogError($"[PauseUI] UI action map not found for Player {player.PlayerIndex + 1}.");
+                return;
+            }
+
+            _uiInputModule.actionsAsset = actions;
+            
+            // Changer l'asset ne doit, certainement, pas suffire, c'est possible que les références Move/Submit/Cancel peuvent rester vides, donc on va les recréer nous même pour être sûr à 100%.
+            _uiInputModule.move = CreateUIActionReference(uiMap, PlayerInputActionNames.Navigate);
+            _uiInputModule.submit = CreateUIActionReference(uiMap, PlayerInputActionNames.Submit);
+            _uiInputModule.cancel = CreateUIActionReference(uiMap, PlayerInputActionNames.Cancel);
+
+            // Force le module à reconstruire ses bindings internes après le changement d'actions.
+            _uiInputModule.enabled = false;
+            _uiInputModule.enabled = true;
+        }
+
+        private static InputActionReference CreateUIActionReference(InputActionMap uiMap, string actionName)
+        {
+            InputAction action = uiMap.FindAction(actionName, throwIfNotFound: false);
+
+            if (action == null)
+            {
+                Logs.LogError($"[PauseUI] UI action '{actionName}' not found.");
+                return null;
+            }
+            
+            // Force la référence à pointer vers l'action runtime de l'owner.
+            return InputActionReference.Create(action);
         }
     }
 }

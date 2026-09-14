@@ -225,9 +225,6 @@ namespace MortierFu
             if (!ctx.performed)
                 return;
 
-            // if (PlayerIndex != 0)
-            //     return;
-
             if (!CurrentPermissions.CanPause)
                 return;
 
@@ -252,7 +249,6 @@ namespace MortierFu
 
         private void SubmitUI(InputAction.CallbackContext ctx)
         {
-            
             if (_unityEventSystemUIActive)
                 return;
             

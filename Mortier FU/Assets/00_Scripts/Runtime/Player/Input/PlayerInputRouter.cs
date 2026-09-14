@@ -131,7 +131,8 @@ namespace MortierFu
 
         private static bool UsesGameplayActionMap(PlayerControlContext context)
         {
-            return context is PlayerControlContext.LobbySandbox
+            return context is PlayerControlContext.UIBlocked
+                or PlayerControlContext.LobbySandbox
                 or PlayerControlContext.AugmentRace
                 or PlayerControlContext.AugmentRaceBullyClassic
                 or PlayerControlContext.AugmentRaceBullyMoveOnly
@@ -142,6 +143,5 @@ namespace MortierFu
                 or PlayerControlContext.RoundEnded
                 or PlayerControlContext.RoundGhost;
         }
-
     }
 }

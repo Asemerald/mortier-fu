@@ -216,7 +216,6 @@ namespace MortierFu
             if (!_playerConfirmationUI)
                 return;
             
-            Logs.LogWarning("here");
             _playerConfirmationUI.NotifyPlayerReleaseSpam(playerIndex);
         }
 
