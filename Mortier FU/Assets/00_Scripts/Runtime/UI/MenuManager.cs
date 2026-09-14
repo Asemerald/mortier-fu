@@ -16,6 +16,9 @@ namespace MortierFu
 {
     public sealed class MenuManager : MonoBehaviour
     {
+        [Header("Input")]
+        [SerializeField] private InputActionAsset _menuInputActions;
+        
         [Header("Main Menu References")]
         [field: SerializeField] public MainMenuPanel MainMenuPanel { get; private set; }
         [field: SerializeField] public Button PlayButton { get; private set; }
@@ -249,6 +252,8 @@ namespace MortierFu
                 Logs.LogWarning("[MenuManager] InputSystemUIInputModule is missing.", this);
                 return;
             }
+
+            BindNativeUIModuleToMenuActions();
 
             _uiInputModule.enabled = true;
 
@@ -484,6 +489,52 @@ namespace MortierFu
 
             if (CreditsPanel && !CreditsPanel.gameObject.activeSelf)
                 CreditsPanel.gameObject.SetActive(true);
+        }
+        
+        // Obligé de mettre ce fix étant donné que depuis le menu pause on peut revenir au menu principal.
+        // Il faut rebind les inputs UI du menu pour garantir Move/Submit/Cancel.
+        private void BindNativeUIModuleToMenuActions()
+        {
+            if (!_uiInputModule)
+                return;
+
+            InputActionAsset actions = _menuInputActions ? _menuInputActions : _uiInputModule.actionsAsset;
+
+            if (!actions)
+            {
+                Logs.LogError("[MenuManager] No input action asset assigned for menu UI.", this);
+                return;
+            }
+
+            InputActionMap uiMap = actions.FindActionMap(PlayerInputActionNames.UIMap, throwIfNotFound: false);
+
+            if (uiMap == null)
+            {
+                Logs.LogError("[MenuManager] UI action map not found.", this);
+                return;
+            }
+
+            _uiInputModule.actionsAsset = actions;
+
+            _uiInputModule.move = CreateUIActionReference(uiMap, PlayerInputActionNames.Navigate);
+            _uiInputModule.submit = CreateUIActionReference(uiMap, PlayerInputActionNames.Submit);
+            _uiInputModule.cancel = CreateUIActionReference(uiMap, PlayerInputActionNames.Cancel);
+
+            _uiInputModule.enabled = false;
+            _uiInputModule.enabled = true;
+        }
+
+        private static InputActionReference CreateUIActionReference(InputActionMap uiMap, string actionName)
+        {
+            InputAction action = uiMap.FindAction(actionName, throwIfNotFound: false);
+
+            if (action == null)
+            {
+                Logs.LogError($"[MenuManager] UI action '{actionName}' not found.");
+                return null;
+            }
+
+            return InputActionReference.Create(action);
         }
     }
 }
