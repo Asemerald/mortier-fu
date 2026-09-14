@@ -129,8 +129,13 @@ namespace MortierFu
             Game = JsonUtility.FromJson<GameData>(json)
                     ?? GameData.CreateDefault();
         }
+
+        public void ResetTutorial()
+        {
+            ResetTutorialAsync().Forget();
+        }
         
-        public async UniTask ResetTutorial()
+        private async UniTask ResetTutorialAsync()
         {
             Tutorial = TutorialData.CreateTutorialData();
             await SaveTutorial();

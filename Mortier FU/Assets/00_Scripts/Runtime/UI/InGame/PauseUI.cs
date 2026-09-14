@@ -42,14 +42,13 @@ namespace MortierFu
 
         [Header("Buttons")]
         [SerializeField] private Button _settingsButton;
-        [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _resumeButton;
         [SerializeField] private Button _primaryActionButton;
         [SerializeField] private Button _mainMenuButton;
-
+        [SerializeField] private Button _resetTutorialButton;
+        
         [Header("Button Text")]
         [SerializeField] private TMP_Text _settingsButtonText;
-        [SerializeField] private TMP_Text _controlsButtonText;
         [SerializeField] private TMP_Text _resumeButtonText;
         [SerializeField] private TMP_Text _primaryActionButtonText;
         [SerializeField] private TMP_Text _mainMenuButtonText;
@@ -95,6 +94,8 @@ namespace MortierFu
 
         private bool _pauseSystemEventsBound;
         private bool _settingsInitialized;
+        
+        private SaveService _saveService;
 
         private void Awake()
         {
@@ -136,6 +137,7 @@ namespace MortierFu
             _gameService = ServiceManager.Instance?.Get<GameService>();
             _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
             _shakeService = ServiceManager.Instance?.Get<ShakeService>();
+            _saveService = ServiceManager.Instance?.Get<SaveService>();
 
             TryResolveGamePauseSystem();
 
@@ -217,9 +219,6 @@ namespace MortierFu
             if (_settingsButtonText)
                 _settingsButtonText.text = "Settings";
 
-            if (_controlsButtonText)
-                _controlsButtonText.text = "Controls";
-
             if (_resumeButtonText)
                 _resumeButtonText.text = "Resume";
 
@@ -288,6 +287,10 @@ namespace MortierFu
                 _mainMenuButton.onClick.RemoveListener(OpenMainMenuConfirmation);
                 _mainMenuButton.onClick.AddListener(OpenMainMenuConfirmation);
             }
+
+            if (!_resetTutorialButton) return;
+            _resetTutorialButton.onClick.RemoveListener(_saveService.ResetTutorial);
+            _resetTutorialButton.onClick.AddListener(_saveService.ResetTutorial);
         }
 
         private void UnbindButtonEvents()
@@ -303,6 +306,9 @@ namespace MortierFu
 
             if (_mainMenuButton)
                 _mainMenuButton.onClick.RemoveListener(OpenMainMenuConfirmation);
+            
+            if (_resetTutorialButton)
+                _resetTutorialButton.onClick.RemoveListener(_saveService.ResetTutorial);
         }
 
         private void BindSettingsFeedbackEvents()

@@ -227,11 +227,7 @@ namespace MortierFu
             if (!CanHandleUIInput(player))
                 return;
             if (_participants.Contains(player) && !_pendingPlayers.Contains(player))
-            {
                 OnPlayerReleasedAgain?.Invoke(player.PlayerIndex);
-                Logs.LogWarning("here");
-            }
-
         }
 
         public bool HandleCancel(PlayerManager player) => false;
