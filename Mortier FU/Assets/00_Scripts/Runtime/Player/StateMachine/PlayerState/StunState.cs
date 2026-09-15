@@ -1,4 +1,3 @@
-using MortierFu.Shared;
 using UnityEngine;
 
 namespace MortierFu
@@ -46,14 +45,8 @@ namespace MortierFu
             });
         }
         
-        public override void FixedUpdate()
-        {
-            character.Controller.ResetVelocity();
-        }
-
-        public override void OnExit()
-        {
-            _stunTimer.Stop();
-        }
+        public override void FixedUpdate() => character.Controller.ResetHorizontalVelocity(cancelUpwardVelocity: true);
+        
+        public override void OnExit() => _stunTimer.Stop();
     }
 }

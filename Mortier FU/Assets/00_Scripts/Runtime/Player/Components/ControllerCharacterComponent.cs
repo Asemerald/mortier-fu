@@ -178,6 +178,23 @@ namespace MortierFu
             rigidbody.angularVelocity = Vector3.zero;
             _moveDirection = Vector3.zero;
         }
+        
+        public void ResetHorizontalVelocity(bool cancelUpwardVelocity = false)
+        {
+            _knockback = Vector3.zero;
+
+            Vector3 velocity = rigidbody.linearVelocity;
+
+            velocity.x = 0f;
+            velocity.z = 0f;
+
+            if (cancelUpwardVelocity && velocity.y > 0f)
+                velocity.y = 0f;
+
+            rigidbody.linearVelocity = velocity;
+            rigidbody.angularVelocity = Vector3.zero;
+            _moveDirection = Vector3.zero;
+        }
 
         public void DivideVelocity(float factor = 0.5f)
         {
