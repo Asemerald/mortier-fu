@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace MortierFu
@@ -26,6 +25,7 @@ namespace MortierFu
         [SerializeField] private Selectable _firstSelected;
         [SerializeField] private UISelectedScrollFollower _scrollFollower;
         [SerializeField] private TextMeshPro _gameModeText;
+        [SerializeField] private TMP_Text _scoreToWinText;
         
         [Header("Settings Items")]
         [SerializeField] private UIMatchSelectableItemBase[] _settingsItems;
@@ -286,7 +286,6 @@ namespace MortierFu
             }
         }
         
-        
         private void Refresh()
         {
             if (_settingsItems != null)
@@ -298,11 +297,19 @@ namespace MortierFu
                 }
             }
 
-            _recommendedScoreDisplay?.Refresh(_matchSettingsData ? _matchSettingsData.ScoreToWin : 0);
-            _gameModeText.text = _matchSettingsData.SelectedRuleset.DisplayName;
-            
-            HandleAnimationForCustom(isCustom: _matchSettingsData.SelectedRuleset.AllowEditing);
-            
+            if (_matchSettingsData)
+            {
+                _recommendedScoreDisplay?.Refresh(_matchSettingsData.ScoreToWin);
+
+                if (_gameModeText)
+                    _gameModeText.text = _matchSettingsData.SelectedRuleset.DisplayName;
+
+                if (_scoreToWinText)
+                    _scoreToWinText.text = $"SCORE TO WIN: {_matchSettingsData.ScoreToWin}";
+
+                HandleAnimationForCustom(_matchSettingsData.SelectedRuleset.AllowEditing);
+            }
+
             ValidateCurrentSelection();
         }
 
