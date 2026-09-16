@@ -13,7 +13,8 @@ namespace MortierFu
         [SerializeField] private LobbySandboxStateController _stateController;
         [SerializeField] private LobbyMatchSettingsData _settingsData;
         [SerializeField] private UIConfirmationModalController _confirmationModal;
-
+        [SerializeField] private LobbySettingsPanel _settingsPanel;
+        
         [Header("Confirmation Text")]
         [SerializeField] private string _description = "Are You sure You want to start the Game?";
         [SerializeField] private string _confirmLabel = "Confirm";
@@ -25,6 +26,8 @@ namespace MortierFu
         private bool _isLaunchConfirmationOpen;
         private bool _isLaunching;
 
+        private bool _settingsSuspendedForConfirmation;
+        
         public bool CanLaunch(IReadOnlyList<PlayerManager> players)
         {
             if (players is null)
@@ -74,6 +77,17 @@ namespace MortierFu
                 resumeTimeScaleOnConfirm: true
             );
 
+            _settingsSuspendedForConfirmation = _settingsPanel && _settingsPanel.SuspendForConfirmation();
+
+            if (!_confirmationModal.TryOpen(request))
+            {
+                if (_settingsSuspendedForConfirmation)
+                    _settingsPanel.ResumeAfterConfirmation();
+
+                _settingsSuspendedForConfirmation = false;
+                return false;
+            }
+            
             if (!_confirmationModal.TryOpen(request))
                 return false;
 
@@ -107,6 +121,11 @@ namespace MortierFu
         {
             _isLaunchConfirmationOpen = false;
 
+            if (_settingsSuspendedForConfirmation && _settingsPanel)
+                _settingsPanel.CloseAfterConfirmation();
+
+            _settingsSuspendedForConfirmation = false;
+
             await LaunchMatchAsync();
         }
 
@@ -118,6 +137,11 @@ namespace MortierFu
 
             if (onCanceledAsync != null)
                 await onCanceledAsync();
+
+            if (_settingsSuspendedForConfirmation && _settingsPanel)
+                _settingsPanel.ResumeAfterConfirmation();
+
+            _settingsSuspendedForConfirmation = false;
         }
 
         private async UniTask LaunchMatchAsync()

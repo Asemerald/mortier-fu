@@ -55,6 +55,9 @@ namespace MortierFu
         
         private Tween _panelGameModeTween;
         
+        private bool _isSuspendedForConfirmation;
+        private GameObject _selectedBeforeSuspension;
+        
         private void Awake()
         {
             if (_root)
@@ -272,6 +275,9 @@ namespace MortierFu
                 onClosed?.Invoke(activePlayer);
             
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Return, transform.position);
+            
+            _isSuspendedForConfirmation = false;
+            _selectedBeforeSuspension = null;
         }
 
         private void BindItems()
@@ -389,6 +395,80 @@ namespace MortierFu
                 return 1;
 
             return Mathf.Max(1, lobbyService.CurrentPlayerCount);
+        }
+        
+        public bool SuspendForConfirmation()
+        {
+            if (!_isOpen || _isSuspendedForConfirmation)
+                return false;
+
+            _isSuspendedForConfirmation = true;
+
+            StopSelectionRoutine();
+
+            if (_settingsEventSystem)
+                _selectedBeforeSuspension = _settingsEventSystem.currentSelectedGameObject;
+
+            _uiSession.End();
+            SetSettingsEventSystemActive(false);
+
+            return true;
+        }
+
+        public void ResumeAfterConfirmation()
+        {
+            if (!_isOpen || !_isSuspendedForConfirmation || !_activePlayer)
+                return;
+
+            _isSuspendedForConfirmation = false;
+
+            SetSettingsEventSystemActive(true);
+
+            _uiSession.Begin(
+                _activePlayer,
+                _settingsEventSystem,
+                _settingsInputModule,
+                _firstSelected,
+                PlayerControlContext.LobbySettingsOwner
+            );
+
+            _selectionRoutine = StartCoroutine(RestoreSelectionAfterConfirmation());
+        }
+
+        public void CloseAfterConfirmation()
+        {
+            if (!_isOpen)
+                return;
+
+            _isSuspendedForConfirmation = false;
+            _selectedBeforeSuspension = null;
+
+            CloseInternal(notifyClosed: false);
+        }
+        
+        private IEnumerator RestoreSelectionAfterConfirmation()
+        {
+            yield return null;
+
+            Canvas.ForceUpdateCanvases();
+
+            if (_settingsEventSystem)
+            {
+                GameObject target = _selectedBeforeSuspension;
+
+                if (!target || !target.activeInHierarchy)
+                    target = _firstSelected ? _firstSelected.gameObject : null;
+
+                _settingsEventSystem.SetSelectedGameObject(null);
+
+                if (target)
+                    _settingsEventSystem.SetSelectedGameObject(target);
+            }
+
+            _selectedBeforeSuspension = null;
+
+            _scrollFollower?.FollowSelectedNow();
+            _selectionRoutine = null;
         }
     }
 }
