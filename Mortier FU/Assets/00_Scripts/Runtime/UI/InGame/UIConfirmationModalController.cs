@@ -6,6 +6,7 @@ using MortierFu.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem;
 
 namespace MortierFu
 {
@@ -295,6 +296,8 @@ namespace MortierFu
 
         private void ApplyModalInputState()
         {
+            DetachModalInputModuleFromCapturedPlayers();
+
             bool ownerApplied = false;
 
             if (_currentRequest.LockPlayersWhileOpen)
@@ -312,9 +315,7 @@ namespace MortierFu
                         ownerApplied = true;
                     }
                     else
-                    {
                         ApplyBlockedInput(player);
-                    }
                 }
             }
 
@@ -322,20 +323,76 @@ namespace MortierFu
                 ApplyOwnerModalInput(_currentRequest.Owner);
         }
 
+        private void DetachModalInputModuleFromCapturedPlayers()
+        {
+            for (int i = 0; i < _playerSnapshots.Count; i++)
+            {
+                PlayerManager player = _playerSnapshots[i].Player;
+
+                if (!player || !player.PlayerInput)
+                    continue;
+
+                // Encore un problème d'input partagé... il faut retirer toutes les anciennes attributions avant de donner le nouvel ownership.
+                if (player.PlayerInput.uiInputModule == _uiInputModule)
+                    player.PlayerInput.uiInputModule = null;
+            }
+        }
+        
         private void ApplyOwnerModalInput(PlayerManager player)
         {
-            if (!player)
+            if (!player || !player.PlayerInput)
                 return;
 
-            player.SetControlContext(_currentRequest.OwnerContext);
             player.PlayerInput.uiInputModule = _uiInputModule;
+            player.SetControlContext(_currentRequest.OwnerContext);
+
+            BindNativeUIModuleToOwner(player);
+
             player.SetUnityEventSystemUIActive(true);
+        }
+        
+        private void BindNativeUIModuleToOwner(PlayerManager player)
+        {
+            if (!_uiInputModule || !player || !player.PlayerInput || !player.PlayerInput.actions)
+                return;
+
+            // Voir PauseUI pour les explications
+            InputActionAsset actions = player.PlayerInput.actions;
+            InputActionMap uiMap = actions.FindActionMap(PlayerInputActionNames.UIMap, throwIfNotFound: false);
+
+            if (uiMap == null)
+            {
+                Logs.LogError($"[UIConfirmationModalController] UI action map not found for Player {player.PlayerIndex + 1}.");
+                return;
+            }
+
+            _uiInputModule.actionsAsset = actions;
+
+            _uiInputModule.move = CreateUIActionReference(uiMap, PlayerInputActionNames.Navigate);
+            _uiInputModule.submit = CreateUIActionReference(uiMap, PlayerInputActionNames.Submit);
+            _uiInputModule.cancel = CreateUIActionReference(uiMap, PlayerInputActionNames.Cancel);
+
+            _uiInputModule.enabled = false;
+            _uiInputModule.enabled = true;
+        }
+
+        private static InputActionReference CreateUIActionReference(InputActionMap uiMap, string actionName)
+        {
+            InputAction action = uiMap.FindAction(actionName, throwIfNotFound: false);
+
+            if (action != null) return InputActionReference.Create(action);
+            Logs.LogError($"[UIConfirmationModalController] UI action '{actionName}' not found.");
+            return null;
+
         }
 
         private static void ApplyBlockedInput(PlayerManager player)
         {
             if (!player)
                 return;
+
+            if (player.PlayerInput)
+                player.PlayerInput.uiInputModule = null;
 
             player.SetControlContext(PlayerControlContext.UIBlocked);
             player.SetUnityEventSystemUIActive(true);
@@ -350,11 +407,14 @@ namespace MortierFu
                 if (!snapshot.Player)
                     continue;
 
+                if (snapshot.Player.PlayerInput)
+                {
+                    InputSystemUIInputModule moduleToRestore = snapshot.UiInputModule == _uiInputModule ? null : snapshot.UiInputModule;
+                    snapshot.Player.PlayerInput.uiInputModule = moduleToRestore;
+                }
+
                 snapshot.Player.SetControlContext(snapshot.Context);
                 snapshot.Player.SetUnityEventSystemUIActive(snapshot.UnityEventSystemUIActive);
-
-                if (snapshot.UiInputModule)
-                    snapshot.Player.PlayerInput.uiInputModule = snapshot.UiInputModule;
             }
 
             _playerSnapshots.Clear();
