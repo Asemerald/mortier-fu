@@ -22,7 +22,30 @@ namespace MortierFu
             systemManager.CreateAndRegister<AugmentSelectionSystem>();
             systemManager.CreateAndRegister<AnalyticsSystem>();
 
+            RegisterAchievementSystem(systemManager);
+            
             Logs.Log("[GameplaySystemRegistrar] Gameplay systems registered.");
+        }
+        
+        private static void RegisterAchievementSystem(SystemManager systemManager)
+        {
+            GameService gameService = ServiceManager.Instance?.Get<GameService>();
+
+            if (gameService == null)
+            {
+                Logs.LogWarning("[GameplaySystemRegistrar] GameService is missing. AchievementSystem will not be registered.");
+                return;
+            }
+
+            if (gameService.IsCustomMatch)
+            {
+                Logs.Log("[GameplaySystemRegistrar] Custom match detected. AchievementSystem disabled.");
+                return;
+            }
+
+            systemManager.CreateAndRegister<AchievementSystem>();
+
+            Logs.Log("[GameplaySystemRegistrar] AchievementSystem registered.");
         }
     }
 }

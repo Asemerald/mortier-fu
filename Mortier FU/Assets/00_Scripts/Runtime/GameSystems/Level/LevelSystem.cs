@@ -27,7 +27,8 @@ namespace MortierFu
         private const string k_winGameMapAddress = "WinGameMap";
 
         private const int k_maxRaceModeSelectionAttempts = 8;
-
+        private const int k_totalMapsRequiredForAchievement = 24;
+        
         private AsyncOperationHandle<SO_LevelSettings> _settingsHandle;
 
         private List<IResourceLocation> _arenaMapLocations;
@@ -213,7 +214,7 @@ namespace MortierFu
                 saveService.SaveGame().Forget(); 
             }
 
-            if (saveService.Game.visitedMaps.Count >= 24)
+            if (saveService.Game.visitedMaps.Count >= k_totalMapsRequiredForAchievement)
             {
                 SteamManager.UnlockAchievement("VISIT_EVERY_MAP");
             }
