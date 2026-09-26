@@ -111,4 +111,10 @@ namespace MortierFu
     {
         public SO_Augment[] Augments;
     }
+    
+    public struct TriggerTaunt : ITrigger
+    {
+        public PlayerCharacter Character;
+        public int TauntIndex;
+    }
 }

@@ -33,6 +33,8 @@ namespace MortierFu
         [SerializeField] private float _holdDuration = 0.5f;
         [SerializeField] private float _scaleOutDuration = 0.3f;
         
+        public bool IsTaunting => _isTaunting;
+        
         #endregion
 
         #region Private Fields

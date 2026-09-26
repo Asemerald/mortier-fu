@@ -716,39 +716,24 @@ namespace MortierFu
 
         private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
 
-        private void Taunt1(InputAction.CallbackContext ctx)
-        {
-            if (!CanTaunt)
-                return;
-
-            _tauntFeedback.Taunt(1);
-            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
-        }
+        private void Taunt1(InputAction.CallbackContext context) => PerformTaunt(1);
+        private void Taunt2(InputAction.CallbackContext context) => PerformTaunt(2);
+        private void Taunt3(InputAction.CallbackContext context) => PerformTaunt(3);
+        private void Taunt4(InputAction.CallbackContext context) => PerformTaunt(4);
         
-        private void Taunt2(InputAction.CallbackContext ctx)
+        private void PerformTaunt(int tauntIndex)
         {
-            if (!CanTaunt)
+            if (!CanTaunt || _tauntFeedback.IsTaunting)
                 return;
 
-            _tauntFeedback.Taunt(2);
-            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
-        }
-        
-        private void Taunt3(InputAction.CallbackContext ctx)
-        {
-            if (!CanTaunt)
-                return;
+            _tauntFeedback.Taunt(tauntIndex);
 
-            _tauntFeedback.Taunt(3);
-            NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
-        }
-        
-        private void Taunt4(InputAction.CallbackContext ctx)
-        {
-            if (!CanTaunt)
-                return;
+            EventBus<TriggerTaunt>.Raise(new TriggerTaunt
+            {
+                Character = this,
+                TauntIndex = tauntIndex
+            });
 
-            _tauntFeedback.Taunt(4);
             NotifyTutorialAction(PlayerLobbyTutorialAction.Taunt);
         }
         
