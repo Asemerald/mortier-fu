@@ -24,30 +24,38 @@ namespace MortierFu
         private const string FALL_IN_WATER_ACHIEVEMENT_ID = "FALL_IN_WATER";
         private const string POST_MORTEM_ACHIEVEMENT_ID = "POST_MORTEM";
         private const string ASCENSION_KILL_ACHIEVEMENT_ID = "ASCENSION_KILL";
+        private const string VAMPIRE_FULL_HEALTH_ACHIEVEMENT_ID = "VAMPIRE_FULL_HEALTH";
+        private const string GHOST_PLACE_OBJECT_ACHIEVEMENT_ID = "GHOST_PLACE_OBJECT";
+        private const string WIN_IN_POOP_ACHIEVEMENT_ID = "WIN_IN_POOP";
         
         private const int FIFTY_TAUNTS_REQUIRED_COUNT = 50;
         private const int THIRTY_KILLS_REQUIRED_COUNT = 30;
         private const int DIFFERENT_DEATHS_REQUIRED_COUNT = 3;
+        private const int GHOST_PLACE_OBJECT_REQUIRED_COUNT = 3;
         
         private const float TAUNT_THEN_KILL_WINDOW = 5f;
-
+        private const float VAMPIRE_LOW_HEALTH_THRESHOLD = 0.25f;
+        
         private readonly HashSet<PlayerManager> _playersWhoFiredThisRound = new();
         private readonly HashSet<PlayerManager> _playersWhoTookDamageThisGame = new();
         private readonly HashSet<PlayerManager> _eliminatedPlayersThisRound = new();
+        private readonly HashSet<PlayerManager> _vampireLowHealthPlayers = new();
         private readonly HashSet<DifferentDeathType> _deathTypesThisRound = new();
         
         private readonly Dictionary<PlayerManager, float> _lastTauntTimes = new();
         private readonly Dictionary<PlayerManager, int> _tauntsThisGame = new();
         private readonly Dictionary<PlayerManager, int> _killsThisGame = new();
+        private readonly Dictionary<PlayerManager, int> _ghostPlacedObjectsThisRound = new();
         private readonly Dictionary<PlayerManager, PlayerManager> _activeRevengeTargets = new();
         private readonly Dictionary<PlayerManager, PlayerManager> _pendingRevengeTargets = new();
-
+        
         private EventBinding<TriggerShootBombshell> _shootBombshellBinding;
         private EventBinding<TriggerEndRound> _endRoundBinding;
         private EventBinding<TriggerHealthChanged> _healthChangedBinding;
         private EventBinding<TriggerTaunt> _tauntBinding;
         private EventBinding<EventPlayerDeath> _playerDeathBinding;
-
+        private EventBinding<TriggerGhostPropPlaced> _ghostPropPlacedBinding;
+        
         private int _trackedDeathsThisRound;
         
         private GameModeBase _gameMode;
@@ -96,6 +104,9 @@ namespace MortierFu
             _playerDeathBinding = new EventBinding<EventPlayerDeath>(OnPlayerDeath);
             EventBus<EventPlayerDeath>.Register(_playerDeathBinding);
             
+            _ghostPropPlacedBinding = new EventBinding<TriggerGhostPropPlaced>(OnGhostPropPlaced);
+            EventBus<TriggerGhostPropPlaced>.Register(_ghostPropPlacedBinding);
+            
             if (_gameMode == null)
                 return;
 
@@ -134,6 +145,12 @@ namespace MortierFu
                 EventBus<EventPlayerDeath>.Deregister(_playerDeathBinding);
                 _playerDeathBinding = null;
             }
+            
+            if (_ghostPropPlacedBinding != null)
+            {
+                EventBus<TriggerGhostPropPlaced>.Deregister(_ghostPropPlacedBinding);
+                _ghostPropPlacedBinding = null;
+            }
 
             if (_gameMode == null)
                 return;
@@ -148,7 +165,9 @@ namespace MortierFu
             _lastTauntTimes.Clear();
             _deathTypesThisRound.Clear();
             _eliminatedPlayersThisRound.Clear();
-
+            _vampireLowHealthPlayers.Clear();
+            _ghostPlacedObjectsThisRound.Clear();
+            
             _trackedDeathsThisRound = 0;
 
             ActivatePendingRevengeTargets();
@@ -166,10 +185,14 @@ namespace MortierFu
 
         private void OnHealthChanged(TriggerHealthChanged evt)
         {
-            if (evt.Delta >= 0f || evt.Character?.Owner == null)
+            PlayerManager player = evt.Character?.Owner;
+            if (player == null)
                 return;
 
-            _playersWhoTookDamageThisGame.Add(evt.Character.Owner);
+            if (evt.Delta < 0f)
+                _playersWhoTookDamageThisGame.Add(player);
+
+            CheckVampireFullHealthAchievement(evt, player);
         }
 
         private void OnTaunt(TriggerTaunt evt)
@@ -202,6 +225,23 @@ namespace MortierFu
 
             RegisterEliminatedPlayer(evt);
         }
+        
+        private void OnGhostPropPlaced(TriggerGhostPropPlaced evt)
+        {
+            PlayerManager player = evt.Player;
+            if (player == null)
+                return;
+
+            _ghostPlacedObjectsThisRound.TryGetValue(player, out int count);
+            count++;
+
+            _ghostPlacedObjectsThisRound[player] = count;
+
+            if (count != GHOST_PLACE_OBJECT_REQUIRED_COUNT)
+                return;
+
+            SteamManager.UnlockAchievement(GHOST_PLACE_OBJECT_ACHIEVEMENT_ID);
+        }
 
         private void OnEndRound(TriggerEndRound evt)
         {
@@ -210,6 +250,7 @@ namespace MortierFu
 
             CheckNoShootingAchievement(winner);
             CheckDifferentDeathsAchievement();
+            CheckWinInPoopAchievement(winner);
         }
 
         private void OnGameEnded(int winnerPlayerIndex)
@@ -276,6 +317,17 @@ namespace MortierFu
                 return;
 
             SteamManager.UnlockAchievement(DIFFERENT_DEATHS_ACHIEVEMENT_ID);
+        }
+        
+        private void CheckWinInPoopAchievement(PlayerManager winner)
+        {
+            if (winner?.Character?.Properties == null)
+                return;
+
+            if (!winner.Character.Properties.Has(EntityProperties.mud))
+                return;
+
+            SteamManager.UnlockAchievement(WIN_IN_POOP_ACHIEVEMENT_ID);
         }
 
         private void CheckNoDamageReceivedAchievement(PlayerManager winner)
@@ -379,10 +431,28 @@ namespace MortierFu
         
         private void CheckAscensionKillAchievement(PlayerManager killer)
         {
-            if (!HasActiveAscension(killer))
+            if (GetAugment<AGM_Ascension>(killer) is not { IsActive: true })
                 return;
 
             SteamManager.UnlockAchievement(ASCENSION_KILL_ACHIEVEMENT_ID);
+        }
+        
+        private void CheckVampireFullHealthAchievement(TriggerHealthChanged evt, PlayerManager player)
+        {
+            if (GetAugment<AGM_Vampire>(player) == null || evt.MaxHealth <= 0f)
+                return;
+
+            if (evt.NewHealth / evt.MaxHealth < VAMPIRE_LOW_HEALTH_THRESHOLD)
+            {
+                _vampireLowHealthPlayers.Add(player);
+                return;
+            }
+
+            if (!_vampireLowHealthPlayers.Contains(player) || !Mathf.Approximately(evt.NewHealth, evt.MaxHealth))
+                return;
+
+            SteamManager.UnlockAchievement(VAMPIRE_FULL_HEALTH_ACHIEVEMENT_ID);
+            _vampireLowHealthPlayers.Remove(player);
         }
 
         private void CheckThirtyKillsAchievement(PlayerManager winner)
@@ -400,22 +470,9 @@ namespace MortierFu
                 return;
 
             _eliminatedPlayersThisRound.Add(player);
+            _vampireLowHealthPlayers.Remove(player);
         }
         
-        private static bool HasActiveAscension(PlayerManager player)
-        {
-            if (player?.Character?.Augments == null)
-                return false;
-
-            foreach (IAugment augment in player.Character.Augments)
-            {
-                if (augment is AGM_Ascension { IsActive: true })
-                    return true;
-            }
-
-            return false;
-        }
-
         private static bool TryGetRoundWinner(PlayerTeam winningTeam, out PlayerManager winner)
         {
             winner = null;
@@ -426,6 +483,18 @@ namespace MortierFu
             winner = winningTeam.Members[0];
 
             return winner != null;
+        }
+        
+        private static T GetAugment<T>(PlayerManager player) where T : class, IAugment
+        {
+            if (player?.Character?.Augments == null)
+                return null;
+
+            foreach (IAugment augment in player.Character.Augments)
+                if (augment is T typedAugment)
+                    return typedAugment;
+
+            return null;
         }
 
         private void ClearRuntimeData()
@@ -442,6 +511,8 @@ namespace MortierFu
 
             _activeRevengeTargets.Clear();
             _pendingRevengeTargets.Clear();
+            
+            _ghostPlacedObjectsThisRound.Clear();
             
             _eliminatedPlayersThisRound.Clear();
         }

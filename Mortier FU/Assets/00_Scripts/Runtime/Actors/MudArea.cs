@@ -3,7 +3,7 @@ using Random = UnityEngine.Random;
 
 namespace MortierFu
 {
-    public class CacaQuiSlow : BaseZone
+    public class MudArea : BaseZone
     {
         [SerializeField] private float slowMultiplier = 0.5f;
         [SerializeField] private float transitionDuration = 0.5f;

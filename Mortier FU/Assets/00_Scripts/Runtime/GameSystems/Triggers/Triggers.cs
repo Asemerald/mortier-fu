@@ -117,4 +117,9 @@ namespace MortierFu
         public PlayerCharacter Character;
         public int TauntIndex;
     }
+    
+    public struct TriggerGhostPropPlaced : ITrigger
+    {
+        public PlayerManager Player;
+    }
 }

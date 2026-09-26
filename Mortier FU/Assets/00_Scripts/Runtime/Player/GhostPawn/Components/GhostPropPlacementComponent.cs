@@ -572,21 +572,23 @@ namespace MortierFu
 
             _owner.GhostAnimator.SetTrigger("GhostSpawnProps");
             
-            GameObject spawnedProp =
-                Object.Instantiate(_currentProp.RealPrefab, _currentSpawnPosition, _currentSpawnRotation);
+            GameObject spawnedProp = Object.Instantiate(_currentProp.RealPrefab, _currentSpawnPosition, _currentSpawnRotation);
 
             GhostSystem ghostSystem = SystemManager.Instance?.Get<GhostSystem>();
 
             if (ghostSystem == null)
             {
-                Logs.LogWarning(
-                    "[GhostPropPlacementComponent] Spawned prop but GhostSystem was not found. Prop will not be auto-cleaned.",
-                    pawn);
+                Logs.LogWarning("[GhostPropPlacementComponent] Spawned prop but GhostSystem was not found. Prop will not be auto-cleaned.", pawn);
                 return;
             }
 
             ghostSystem.RegisterSpawnedProp(Owner, spawnedProp);
 
+            EventBus<TriggerGhostPropPlaced>.Raise(new TriggerGhostPropPlaced
+            {
+                Player = Owner
+            });
+            
             Logs.Log($"[GhostPropPlacementComponent] Spawned ghost prop '{_currentProp.RealPrefab.name}'.");
         }
 
