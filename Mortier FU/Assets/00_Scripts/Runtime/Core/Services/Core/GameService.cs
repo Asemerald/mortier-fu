@@ -19,6 +19,8 @@ namespace MortierFu
         private MatchConfig _lastMatchConfig = MatchConfig.Default;
 
         private static IGameMode _currentGameModeInstance;
+        
+        public bool IsCustomMatch { get; private set; }
 
         public static IGameMode CurrentGameMode
         {
@@ -45,9 +47,10 @@ namespace MortierFu
             return UniTask.CompletedTask;
         }
 
-        public void SetPendingMatchConfig(MatchConfig config)
+        public void SetPendingMatchConfig(MatchConfig config, bool isCustom)
         {
             _pendingMatchConfig = config;
+            IsCustomMatch = isCustom;
         }
 
         public async UniTask InitializeGameMode<T>() where T : class, IGameMode, new()

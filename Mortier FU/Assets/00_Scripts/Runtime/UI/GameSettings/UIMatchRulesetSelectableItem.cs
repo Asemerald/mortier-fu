@@ -65,11 +65,11 @@ namespace MortierFu
 
             if (_subtitleText)
                 if (ruleset != null)
-            {
-                MatchConfig configForPlayers = ruleset.GetConfigForPlayerCount(PlayerCount);
-                _subtitleText.text = configForPlayers.Subtitle;
-            }
-            else _subtitleText.text = string.Empty;
+                {
+                    MatchConfig configForPlayers = ruleset.GetConfigForPlayerCount(PlayerCount);
+                    _subtitleText.text = configForPlayers.Subtitle;
+                }
+                else _subtitleText.text = string.Empty;
 
             if (_descriptionText)
                 _descriptionText.text = ruleset ? ruleset.Description : string.Empty;

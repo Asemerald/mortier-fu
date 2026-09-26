@@ -181,7 +181,10 @@ namespace MortierFu
                 }
 
                 if (_settingsData)
-                    gameService.SetPendingMatchConfig(_settingsData.ToMatchConfig());
+                {
+                    SO_MatchRuleset ruleset = _settingsData.SelectedRuleset;
+                    gameService.SetPendingMatchConfig(_settingsData.ToMatchConfig(), ruleset != null && ruleset.IsCustom);
+                }
 
                 await gameService.InitializeGameMode<GM_FFA>();
 

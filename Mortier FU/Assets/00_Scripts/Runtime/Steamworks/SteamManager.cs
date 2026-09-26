@@ -9,7 +9,7 @@
 
 using UnityEngine;
 #if STEAMWORKS
-using System.Collections;
+using MortierFu;
 using MortierFu.Shared;
 using Steamworks;
 #endif
@@ -24,6 +24,7 @@ public class SteamManager : MonoBehaviour {
 	protected static bool s_EverInitialized = false;
 
 	protected static SteamManager s_instance;
+	
 	public static SteamManager Instance {
 		get {
 			if (s_instance == null) {
@@ -170,8 +171,6 @@ public class SteamManager : MonoBehaviour {
 
 		// Run Steam client callbacks
 		SteamAPI.RunCallbacks();
-		
-		
 	}
 
 	public static void AddProgressToStat(string statID, int progressToAdd = 1)
@@ -181,15 +180,28 @@ public class SteamManager : MonoBehaviour {
 			Logs.LogWarning("[Steamworks.NET] SteamAPI is not initialized. Cannot add progress to stat.");
 			return;
 		}
+		
+		if (!CanUseSteamAchievements())
+		{
+			Logs.Log($"[Steamworks.NET] Stat '{statID}' ignored because the current match is custom.");
+			return;
+		}
 
 		int currentStat;
 		
 		currentStat = SteamUserStats.GetStat(statID, out currentStat) ? currentStat : 0;
 		currentStat += progressToAdd;
 
-		SteamUserStats.SetStat(statID, progressToAdd);
-		
+		SteamUserStats.SetStat(statID, currentStat);
+
 		SteamUserStats.StoreStats();
+	}
+	
+	private static bool CanUseSteamAchievements()
+	{
+		GameService gameService = ServiceManager.Instance.Get<GameService>();
+
+		return gameService is { IsCustomMatch: false };
 	}
 
 	public static void UnlockAchievement(string achievementID)
@@ -200,6 +212,12 @@ public class SteamManager : MonoBehaviour {
 			return;
 		}
 
+		if (!CanUseSteamAchievements())
+		{
+			Logs.Log($"[Steamworks.NET] Achievement '{achievementID}' ignored because the current match is custom.");
+			return;
+		}
+		
 		bool result = SteamUserStats.SetAchievement(achievementID);
 		if (result)
 		{
