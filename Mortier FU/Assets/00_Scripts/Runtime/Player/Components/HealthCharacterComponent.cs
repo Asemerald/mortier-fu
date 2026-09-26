@@ -1,8 +1,6 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-using MortierFu.Shared;
-using UnityEngine.TextCore.Text;
 
 namespace MortierFu
 {

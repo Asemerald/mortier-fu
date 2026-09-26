@@ -129,18 +129,13 @@ namespace MortierFu
 
         private void HandlePlayerKill(EventPlayerDeath evt)
         {
-            var killerPlayer = evt.Context.Killer.Owner;
-            var victimPlayer = evt.Character.Owner;
+            PlayerManager killerPlayer = evt.Context.Killer.Owner;
+            PlayerManager victimPlayer = evt.Character.Owner;
 
-            if (killerPlayer == null || victimPlayer == null)
+            if (killerPlayer == null || victimPlayer == null || killerPlayer == victimPlayer)
                 return;
-            
-            if (killerPlayer != victimPlayer)
-            {
-                killerPlayer.Metrics.RoundKills.Add(evt.Context.DeathCause);
-            }
-            
-            SteamManager.AddProgressToStat("ELIMINATIONS", 1);
+
+            killerPlayer.Metrics.RoundKills.Add(evt.Context.DeathCause);
 
             OnPlayerKilled?.Invoke(killerPlayer, victimPlayer);
         }

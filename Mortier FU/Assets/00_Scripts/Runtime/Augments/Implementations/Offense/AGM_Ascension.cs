@@ -21,6 +21,7 @@ namespace MortierFu
         private IGameMode _gameMode;
         private bool _isActive;
         
+        public bool IsActive => _isActive;
         public AGM_Ascension(SO_Augment augmentData, PlayerCharacter owner, SO_AugmentDatabase db) : base(augmentData, owner, db)
         { }
 
