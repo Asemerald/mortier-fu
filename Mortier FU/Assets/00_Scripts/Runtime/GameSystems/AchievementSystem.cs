@@ -30,9 +30,12 @@ namespace MortierFu
         private const string BREAK_ALL_PLATFORMS_ACHIEVEMENT_ID = "BREAK_ALL_PLATFORMS";
         private const string EQUIP_ALL_COSMETICS_ACHIEVEMENT_ID = "EQUIP_ALL_COSMETICS";
         private const string CLUTCH_WIN_ACHIEVEMENT_ID = "CLUTCH_WIN";
+        private const string WATER_HOLE_ACHIEVEMENT_ID = "WATER_HOLE";
         
         private const string ISLANDS_ON_STILTS_DAY_MAP_KEY = "Map_06_Day";
         private const string ISLANDS_ON_STILTS_NIGHT_MAP_KEY = "Map_06_Night";
+        private const string WATER_HOLE_DAY_MAP_KEY = "Map_04_Day";
+        private const string WATER_HOLE_NIGHT_MAP_KEY = "Map_04_Night";
         
         private const int FIFTY_TAUNTS_REQUIRED_COUNT = 50;
         private const int THIRTY_KILLS_REQUIRED_COUNT = 30;
@@ -267,6 +270,8 @@ namespace MortierFu
         private void OnPlayerDeath(EventPlayerDeath evt)
         {
             CheckFallInWaterAchievement(evt);
+            CheckWaterHoleAchievement(evt);
+            
             TrackDifferentDeath(evt.Context.DeathCause);
 
             if (TryGetValidKill(evt, out PlayerManager killer, out PlayerManager victim))
@@ -401,6 +406,7 @@ namespace MortierFu
         }
         
         private bool IsIslandsOnStilts() => _levelSystem?.CurrentLoadedMapKey is ISLANDS_ON_STILTS_DAY_MAP_KEY or ISLANDS_ON_STILTS_NIGHT_MAP_KEY;
+        private bool IsWaterHoleMap() => _levelSystem?.CurrentLoadedMapKey is WATER_HOLE_DAY_MAP_KEY or WATER_HOLE_NIGHT_MAP_KEY;
 
         private void CheckNoShootingAchievement(PlayerManager winner)
         {
@@ -628,6 +634,20 @@ namespace MortierFu
                 return;
 
             SteamManager.UnlockAchievement(THIRTY_KILLS_ACHIEVEMENT_ID);
+        }
+        
+        private void CheckWaterHoleAchievement(EventPlayerDeath evt)
+        {
+            if (!IsWaterHoleMap())
+                return;
+
+            if (evt.Context.DeathCause != E_DeathCause.Fall)
+                return;
+
+            if (evt.Context.Killer == null)
+                return;
+
+            SteamManager.UnlockAchievement(WATER_HOLE_ACHIEVEMENT_ID);
         }
         
         private void RegisterCosmeticsUsedInGame()
