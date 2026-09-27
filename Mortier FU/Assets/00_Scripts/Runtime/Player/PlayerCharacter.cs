@@ -496,7 +496,7 @@ namespace MortierFu
 
             if (dashCount >= 3)
             {
-                SteamManager.UnlockAchievement("TRIPLE_DASH");
+                SteamManager.UnlockAchievement("THREE_TOTAL_DASHES");
             }
         }
 
