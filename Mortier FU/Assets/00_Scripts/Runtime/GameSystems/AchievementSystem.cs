@@ -26,12 +26,22 @@ namespace MortierFu
         private const string ASCENSION_KILL_ACHIEVEMENT_ID = "ASCENSION_KILL";
         private const string VAMPIRE_FULL_HEALTH_ACHIEVEMENT_ID = "VAMPIRE_FULL_HEALTH";
         private const string GHOST_PLACE_OBJECT_ACHIEVEMENT_ID = "GHOST_PLACE_OBJECT";
-        private const string WIN_IN_POOP_ACHIEVEMENT_ID = "WIN_IN_POOP";
+        private const string KILL_ALL_IN_POOP_ACHIEVEMENT_ID = "KILL_ALL_IN_POOP";
+        private const string BREAK_ALL_PLATFORMS_ACHIEVEMENT_ID = "BREAK_ALL_PLATFORMS";
+        private const string EQUIP_ALL_COSMETICS_ACHIEVEMENT_ID = "EQUIP_ALL_COSMETICS";
+        private const string CLUTCH_WIN_ACHIEVEMENT_ID = "CLUTCH_WIN";
+        
+        private const string ISLANDS_ON_STILTS_DAY_MAP_KEY = "Map_06_Day";
+        private const string ISLANDS_ON_STILTS_NIGHT_MAP_KEY = "Map_06_Night";
         
         private const int FIFTY_TAUNTS_REQUIRED_COUNT = 50;
         private const int THIRTY_KILLS_REQUIRED_COUNT = 30;
         private const int DIFFERENT_DEATHS_REQUIRED_COUNT = 3;
         private const int GHOST_PLACE_OBJECT_REQUIRED_COUNT = 3;
+        private const int COSMETIC_SKIN_COUNT = 16;
+        private const int COSMETIC_FACE_COLUMN_COUNT = 4;
+        private const int COSMETIC_FACE_ROW_COUNT = 4;
+        private const int COSMETIC_FACE_COUNT = COSMETIC_FACE_COLUMN_COUNT * COSMETIC_FACE_ROW_COUNT;
         
         private const float TAUNT_THEN_KILL_WINDOW = 5f;
         private const float VAMPIRE_LOW_HEALTH_THRESHOLD = 0.25f;
@@ -40,12 +50,19 @@ namespace MortierFu
         private readonly HashSet<PlayerManager> _playersWhoTookDamageThisGame = new();
         private readonly HashSet<PlayerManager> _eliminatedPlayersThisRound = new();
         private readonly HashSet<PlayerManager> _vampireLowHealthPlayers = new();
+        private readonly HashSet<PlayerManager> _clutchWinCandidates = new();
+        
         private readonly HashSet<DifferentDeathType> _deathTypesThisRound = new();
         
+        private readonly HashSet<BreakablePlateform> _activeBreakablePlatforms = new();
+        private readonly HashSet<BreakablePlateform> _destroyedPlatformsThisRound = new();
+        
         private readonly Dictionary<PlayerManager, float> _lastTauntTimes = new();
+      
         private readonly Dictionary<PlayerManager, int> _tauntsThisGame = new();
         private readonly Dictionary<PlayerManager, int> _killsThisGame = new();
         private readonly Dictionary<PlayerManager, int> _ghostPlacedObjectsThisRound = new();
+    
         private readonly Dictionary<PlayerManager, PlayerManager> _activeRevengeTargets = new();
         private readonly Dictionary<PlayerManager, PlayerManager> _pendingRevengeTargets = new();
         
@@ -56,10 +73,15 @@ namespace MortierFu
         private EventBinding<EventPlayerDeath> _playerDeathBinding;
         private EventBinding<TriggerGhostPropPlaced> _ghostPropPlacedBinding;
         
+        private EventBinding<TriggerBreakablePlatformDestroyed> _breakablePlatformDestroyedBinding;
+        private EventBinding<TriggerBreakablePlatformRegistered> _breakablePlatformRegisteredBinding;
+        private EventBinding<TriggerBreakablePlatformUnregistered> _breakablePlatformUnregisteredBinding;
+        
         private int _trackedDeathsThisRound;
         
         private GameModeBase _gameMode;
         private LobbyService _lobbyService;
+        private LevelSystem _levelSystem;
 
         public bool IsInitialized { get; set; }
 
@@ -67,9 +89,11 @@ namespace MortierFu
         {
             _gameMode = GameService.CurrentGameMode as GameModeBase;
             _lobbyService = ServiceManager.Instance?.Get<LobbyService>();
-
+            _levelSystem = SystemManager.Instance.Get<LevelSystem>();
+            
             RegisterEvents();
-
+            RegisterAlreadyActiveBreakablePlatforms();
+            
             Logs.Log("[AchievementSystem] Initialized.");
 
             return UniTask.CompletedTask;
@@ -83,7 +107,8 @@ namespace MortierFu
 
             _gameMode = null;
             _lobbyService = null;
-
+            _levelSystem = null;
+            
             Logs.Log("[AchievementSystem] Disposed.");
         }
 
@@ -107,9 +132,19 @@ namespace MortierFu
             _ghostPropPlacedBinding = new EventBinding<TriggerGhostPropPlaced>(OnGhostPropPlaced);
             EventBus<TriggerGhostPropPlaced>.Register(_ghostPropPlacedBinding);
             
+            _breakablePlatformRegisteredBinding = new EventBinding<TriggerBreakablePlatformRegistered>(OnBreakablePlatformRegistered);
+            EventBus<TriggerBreakablePlatformRegistered>.Register(_breakablePlatformRegisteredBinding);
+
+            _breakablePlatformUnregisteredBinding = new EventBinding<TriggerBreakablePlatformUnregistered>(OnBreakablePlatformUnregistered);
+            EventBus<TriggerBreakablePlatformUnregistered>.Register(_breakablePlatformUnregisteredBinding);
+
+            _breakablePlatformDestroyedBinding = new EventBinding<TriggerBreakablePlatformDestroyed>(OnBreakablePlatformDestroyed);
+            EventBus<TriggerBreakablePlatformDestroyed>.Register(_breakablePlatformDestroyedBinding);
+            
             if (_gameMode == null)
                 return;
 
+            _gameMode.OnGameStarted += OnGameStarted;
             _gameMode.OnRoundGameplayStarted += OnRoundGameplayStarted;
             _gameMode.OnGameEnded += OnGameEnded;
         }
@@ -152,9 +187,28 @@ namespace MortierFu
                 _ghostPropPlacedBinding = null;
             }
 
+            if (_breakablePlatformRegisteredBinding != null)
+            {
+                EventBus<TriggerBreakablePlatformRegistered>.Deregister(_breakablePlatformRegisteredBinding);
+                _breakablePlatformRegisteredBinding = null;
+            }
+
+            if (_breakablePlatformUnregisteredBinding != null)
+            {
+                EventBus<TriggerBreakablePlatformUnregistered>.Deregister(_breakablePlatformUnregisteredBinding);
+                _breakablePlatformUnregisteredBinding = null;
+            }
+
+            if (_breakablePlatformDestroyedBinding != null)
+            {
+                EventBus<TriggerBreakablePlatformDestroyed>.Deregister(_breakablePlatformDestroyedBinding);
+                _breakablePlatformDestroyedBinding = null;
+            }
+            
             if (_gameMode == null)
                 return;
 
+            _gameMode.OnGameStarted -= OnGameStarted;
             _gameMode.OnRoundGameplayStarted -= OnRoundGameplayStarted;
             _gameMode.OnGameEnded -= OnGameEnded;
         }
@@ -167,9 +221,12 @@ namespace MortierFu
             _eliminatedPlayersThisRound.Clear();
             _vampireLowHealthPlayers.Clear();
             _ghostPlacedObjectsThisRound.Clear();
+            _destroyedPlatformsThisRound.Clear();
             
             _trackedDeathsThisRound = 0;
-
+            
+            CheckClutchWinCandidates();
+            
             ActivatePendingRevengeTargets();
         }
 
@@ -194,7 +251,7 @@ namespace MortierFu
 
             CheckVampireFullHealthAchievement(evt, player);
         }
-
+        
         private void OnTaunt(TriggerTaunt evt)
         {
             PlayerManager player = evt.Character?.Owner;
@@ -226,6 +283,26 @@ namespace MortierFu
             RegisterEliminatedPlayer(evt);
         }
         
+        private void OnBreakablePlatformDestroyed(TriggerBreakablePlatformDestroyed evt)
+        {
+            if (!IsIslandsOnStilts())
+                return;
+
+            if (_activeBreakablePlatforms.Count == 0)
+                return;
+
+            if (!evt.Platform || !_activeBreakablePlatforms.Contains(evt.Platform))
+                return;
+
+            if (!_destroyedPlatformsThisRound.Add(evt.Platform))
+                return;
+
+            if (_destroyedPlatformsThisRound.Count != _activeBreakablePlatforms.Count)
+                return;
+
+            SteamManager.UnlockAchievement(BREAK_ALL_PLATFORMS_ACHIEVEMENT_ID);
+        }
+        
         private void OnGhostPropPlaced(TriggerGhostPropPlaced evt)
         {
             PlayerManager player = evt.Player;
@@ -252,6 +329,11 @@ namespace MortierFu
             CheckDifferentDeathsAchievement();
             CheckWinInPoopAchievement(winner);
         }
+        
+        private void OnGameStarted()
+        {
+            RegisterCosmeticsUsedInGame();
+        }
 
         private void OnGameEnded(int winnerPlayerIndex)
         {
@@ -263,6 +345,24 @@ namespace MortierFu
             
             CheckNoDamageReceivedAchievement(winner);
             CheckThirtyKillsAchievement(winner);
+            CheckClutchWinAchievement(winner);
+        }
+        
+        private void OnBreakablePlatformRegistered(TriggerBreakablePlatformRegistered evt)
+        {
+            if (!evt.Platform)
+                return;
+
+            _activeBreakablePlatforms.Add(evt.Platform);
+        }
+        
+        private void OnBreakablePlatformUnregistered(TriggerBreakablePlatformUnregistered evt)
+        {
+            if (!evt.Platform)
+                return;
+
+            _activeBreakablePlatforms.Remove(evt.Platform);
+            _destroyedPlatformsThisRound.Remove(evt.Platform);
         }
 
         private static bool TryGetValidKill(EventPlayerDeath evt, out PlayerManager killer, out PlayerManager victim)
@@ -299,6 +399,8 @@ namespace MortierFu
 
             _pendingRevengeTargets.Clear();
         }
+        
+        private bool IsIslandsOnStilts() => _levelSystem?.CurrentLoadedMapKey is ISLANDS_ON_STILTS_DAY_MAP_KEY or ISLANDS_ON_STILTS_NIGHT_MAP_KEY;
 
         private void CheckNoShootingAchievement(PlayerManager winner)
         {
@@ -327,7 +429,7 @@ namespace MortierFu
             if (!winner.Character.Properties.Has(EntityProperties.mud))
                 return;
 
-            SteamManager.UnlockAchievement(WIN_IN_POOP_ACHIEVEMENT_ID);
+            SteamManager.UnlockAchievement(KILL_ALL_IN_POOP_ACHIEVEMENT_ID);
         }
 
         private void CheckNoDamageReceivedAchievement(PlayerManager winner)
@@ -339,6 +441,14 @@ namespace MortierFu
                 return;
 
             SteamManager.UnlockAchievement(NO_DAMAGE_RECEIVED_ACHIEVEMENT_ID);
+        }
+        
+        private void CheckClutchWinAchievement(PlayerManager winner)
+        {
+            if (!_clutchWinCandidates.Contains(winner))
+                return;
+
+            SteamManager.UnlockAchievement(CLUTCH_WIN_ACHIEVEMENT_ID);
         }
 
         private void TrackFiftyTaunts(PlayerManager player)
@@ -454,6 +564,63 @@ namespace MortierFu
             SteamManager.UnlockAchievement(VAMPIRE_FULL_HEALTH_ACHIEVEMENT_ID);
             _vampireLowHealthPlayers.Remove(player);
         }
+        
+        private void CheckClutchWinCandidates()
+        {
+            if (_lobbyService is not { CurrentPlayerCount: 4 })
+                return;
+
+            if (_gameMode?.Teams == null || _gameMode.Teams.Count != 4)
+                return;
+
+            int lowestScore = int.MaxValue;
+
+            foreach (PlayerTeam team in _gameMode.Teams)
+            {
+                if (team.Score < lowestScore)
+                    lowestScore = team.Score;
+            }
+
+            foreach (PlayerTeam candidateTeam in _gameMode.Teams)
+            {
+                if (candidateTeam.Score != lowestScore)
+                    continue;
+
+                bool opponentAtMatchPoint = false;
+
+                foreach (PlayerTeam otherTeam in _gameMode.Teams)
+                {
+                    if (otherTeam == candidateTeam)
+                        continue;
+
+                    if (otherTeam.Score < _gameMode.ScoreToWin)
+                        continue;
+
+                    opponentAtMatchPoint = true;
+                    break;
+                }
+
+                if (!opponentAtMatchPoint)
+                    continue;
+
+                foreach (PlayerManager player in candidateTeam.Members)
+                {
+                    if (player)
+                        _clutchWinCandidates.Add(player);
+                }
+            }
+        }
+        
+        private static void CheckEquipAllCosmeticsAchievement(GameData gameData)
+        {
+            if (gameData.usedCosmeticSkins.Count < COSMETIC_SKIN_COUNT)
+                return;
+
+            if (gameData.usedCosmeticFaces.Count < COSMETIC_FACE_COUNT)
+                return;
+
+            SteamManager.UnlockAchievement(EQUIP_ALL_COSMETICS_ACHIEVEMENT_ID);
+        }
 
         private void CheckThirtyKillsAchievement(PlayerManager winner)
         {
@@ -461,6 +628,72 @@ namespace MortierFu
                 return;
 
             SteamManager.UnlockAchievement(THIRTY_KILLS_ACHIEVEMENT_ID);
+        }
+        
+        private void RegisterCosmeticsUsedInGame()
+        {
+            if (_gameMode?.Teams == null)
+                return;
+
+            SaveService saveService = ServiceManager.Instance.Get<SaveService>();
+            if (saveService?.Game == null)
+                return;
+
+            bool progressionChanged = false;
+
+            foreach (PlayerTeam team in _gameMode.Teams)
+            {
+                if (team?.Members == null)
+                    continue;
+
+                foreach (PlayerManager player in team.Members)
+                {
+                    if (!player)
+                        continue;
+
+                    if (RegisterPlayerCosmetics(saveService.Game, player))
+                        progressionChanged = true;
+                }
+            }
+
+            CheckEquipAllCosmeticsAchievement(saveService.Game);
+
+            if (progressionChanged)
+                saveService.SaveGame().Forget();
+        }
+        
+        private static bool RegisterPlayerCosmetics(GameData gameData, PlayerManager player)
+        {
+            if (player?.Customization == null)
+                return false;
+
+            bool changed = false;
+
+            int skinIndex = player.Customization.SkinIndex;
+
+            if (!gameData.usedCosmeticSkins.Contains(skinIndex))
+            {
+                gameData.usedCosmeticSkins.Add(skinIndex);
+                changed = true;
+            }
+
+            int faceIndex = GetFaceLinearIndex(player.Customization);
+
+            if (gameData.usedCosmeticFaces.Contains(faceIndex)) return changed;
+            
+            gameData.usedCosmeticFaces.Add(faceIndex);
+            changed = true;
+
+            return changed;
+        }
+        
+        private static int GetFaceLinearIndex(PlayerCustomizationData customization)
+        {
+            int column = Mathf.Clamp(customization.FaceColumn, 1, COSMETIC_FACE_COLUMN_COUNT) - 1;
+
+            int row = Mathf.Clamp(customization.FaceRow, 1, COSMETIC_FACE_ROW_COUNT) - 1;
+
+            return row * COSMETIC_FACE_COLUMN_COUNT + column;
         }
         
         private void RegisterEliminatedPlayer(EventPlayerDeath evt)
@@ -471,6 +704,13 @@ namespace MortierFu
 
             _eliminatedPlayersThisRound.Add(player);
             _vampireLowHealthPlayers.Remove(player);
+        }
+        
+        private void RegisterAlreadyActiveBreakablePlatforms()
+        {
+            foreach (BreakablePlateform platform in BreakablePlateform.ActivePlatforms)
+                if (platform)
+                    _activeBreakablePlatforms.Add(platform);
         }
         
         private static bool TryGetRoundWinner(PlayerTeam winningTeam, out PlayerManager winner)
@@ -515,6 +755,11 @@ namespace MortierFu
             _ghostPlacedObjectsThisRound.Clear();
             
             _eliminatedPlayersThisRound.Clear();
+            
+            _activeBreakablePlatforms.Clear();
+            _destroyedPlatformsThisRound.Clear();
+            
+            _clutchWinCandidates.Clear();
         }
     }
 }

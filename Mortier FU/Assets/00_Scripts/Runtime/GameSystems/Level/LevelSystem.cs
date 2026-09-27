@@ -40,7 +40,7 @@ namespace MortierFu
         private AsyncOperationHandle<SceneInstance> _mapHandle;
 
         // Preloaded maps stored by their load key string (PrimaryKey or ToString of the provided key)
-        private readonly System.Collections.Generic.Dictionary<string, AsyncOperationHandle<SceneInstance>> _preloadedMaps = new();
+        private readonly Dictionary<string, AsyncOperationHandle<SceneInstance>> _preloadedMaps = new();
 
         private CameraSystem _cameraSystem;
         private LevelReporter _boundReporter;
@@ -51,6 +51,8 @@ namespace MortierFu
 
         private SO_RaceModeDefinition _lastPlayedRaceModeDefinition;
         private string _currentLoadedMapKey;
+        
+        public string CurrentLoadedMapKey => _currentLoadedMapKey;
 
         private bool _isFirstRound = true;
         private bool _isSecondRound = false;

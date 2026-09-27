@@ -122,4 +122,19 @@ namespace MortierFu
     {
         public PlayerManager Player;
     }
+    
+    public struct TriggerBreakablePlatformDestroyed : ITrigger
+    {
+        public BreakablePlateform Platform;
+    }
+    
+    public struct TriggerBreakablePlatformRegistered : ITrigger
+    {
+        public BreakablePlateform Platform;
+    }
+
+    public struct TriggerBreakablePlatformUnregistered : ITrigger
+    {
+        public BreakablePlateform Platform;
+    }
 }

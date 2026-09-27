@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -126,8 +127,11 @@ namespace MortierFu
         public async UniTask LoadGame()
         {
             string json = await UniTask.Run(() => File.ReadAllText(_gamePath));
-            Game = JsonUtility.FromJson<GameData>(json)
-                    ?? GameData.CreateDefault();
+
+            Game = JsonUtility.FromJson<GameData>(json) ?? GameData.CreateDefault();
+
+            Game.usedCosmeticSkins ??= new List<int>();
+            Game.usedCosmeticFaces ??= new List<int>();
         }
 
         public void ResetTutorial()
