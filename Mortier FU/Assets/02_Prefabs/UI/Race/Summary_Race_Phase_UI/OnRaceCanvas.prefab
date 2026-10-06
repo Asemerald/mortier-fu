@@ -59,9 +59,9 @@ MonoBehaviour:
     KeyBoardInputImage: {fileID: 6677928742768648872}
     OkImage: {fileID: 4654492821057292585}
     ImagePlayer: {fileID: 7965555631089826159}
-    DefaultImage: {fileID: 0}
-    ImageConfirm: {fileID: 426934522, guid: b818f3779e579024ca7101be88437fe6, type: 3}
-    ImageSpam: {fileID: -69098896, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
+    WaitingSprite: {fileID: -1603552776, guid: c1889ee39c592fd498d4554930ff1ec3, type: 3}
+    ConfirmSprite: {fileID: 426934522, guid: b818f3779e579024ca7101be88437fe6, type: 3}
+    SpamSprite: {fileID: -69098896, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
     Animator: {fileID: 6099409845011404256}
     AnimatorTransform: {fileID: 8168018867978844909}
     IsActive: 0
@@ -71,9 +71,9 @@ MonoBehaviour:
     KeyBoardInputImage: {fileID: 6959238411664785639}
     OkImage: {fileID: 8980457167646223206}
     ImagePlayer: {fileID: 5959313566479194912}
-    DefaultImage: {fileID: 0}
-    ImageConfirm: {fileID: -890319914, guid: b818f3779e579024ca7101be88437fe6, type: 3}
-    ImageSpam: {fileID: -1907215393, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
+    WaitingSprite: {fileID: -206944202, guid: c1889ee39c592fd498d4554930ff1ec3, type: 3}
+    ConfirmSprite: {fileID: -890319914, guid: b818f3779e579024ca7101be88437fe6, type: 3}
+    SpamSprite: {fileID: -1907215393, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
     Animator: {fileID: 7538355391180896175}
     AnimatorTransform: {fileID: 5576102145637292194}
     IsActive: 0
@@ -83,9 +83,9 @@ MonoBehaviour:
     KeyBoardInputImage: {fileID: 2365901827620315841}
     OkImage: {fileID: 4386945211496974656}
     ImagePlayer: {fileID: 1365379339882969350}
-    DefaultImage: {fileID: 0}
-    ImageConfirm: {fileID: 2043909453, guid: b818f3779e579024ca7101be88437fe6, type: 3}
-    ImageSpam: {fileID: 2066154716, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
+    WaitingSprite: {fileID: -275486541, guid: c1889ee39c592fd498d4554930ff1ec3, type: 3}
+    ConfirmSprite: {fileID: 2043909453, guid: b818f3779e579024ca7101be88437fe6, type: 3}
+    SpamSprite: {fileID: 2066154716, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
     Animator: {fileID: 2944491117849466249}
     AnimatorTransform: {fileID: 946664119497931396}
     IsActive: 0
@@ -95,9 +95,9 @@ MonoBehaviour:
     KeyBoardInputImage: {fileID: 4146177918878554123}
     OkImage: {fileID: 2719891160527172490}
     ImagePlayer: {fileID: 841536179688113100}
-    DefaultImage: {fileID: 0}
-    ImageConfirm: {fileID: 622490035, guid: b818f3779e579024ca7101be88437fe6, type: 3}
-    ImageSpam: {fileID: 1086464935, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
+    WaitingSprite: {fileID: -209541470, guid: c1889ee39c592fd498d4554930ff1ec3, type: 3}
+    ConfirmSprite: {fileID: 622490035, guid: b818f3779e579024ca7101be88437fe6, type: 3}
+    SpamSprite: {fileID: 1086464935, guid: d28b53b7c9ebe7d49bbc72a33a5394e4, type: 3}
     Animator: {fileID: 3567870044331798339}
     AnimatorTransform: {fileID: 1476138291678576718}
     IsActive: 0
@@ -518,7 +518,7 @@ MonoBehaviour:
     serializedVersion: 2
     rgba: 4294967295
   m_fontSize: 40
-  m_fontSizeBase: 50
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

@@ -60,7 +60,20 @@ namespace MortierFu
 
         private Sprite _spriteDefaultPlayer;
 
-        private void Awake() => _raceGameObject.SetActive(false);
+        private void Awake()
+        {
+            if (_raceGameObject)
+                _raceGameObject.SetActive(false);
+
+            foreach (PlayerSlot slot in _playerSlots)
+            {
+                if (slot == null || !slot.ImagePlayer)
+                    continue;
+
+                if (!slot.WaitingSprite)
+                    slot.WaitingSprite = slot.ImagePlayer.sprite;
+            }
+        }
 
         private void Start() => _shakeService = ServiceManager.Instance.Get<ShakeService>();
 
@@ -69,16 +82,14 @@ namespace MortierFu
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
+
             _ctsAnim?.Cancel();
             _ctsAnim?.Dispose();
             _ctsAnim = new CancellationTokenSource();
-            
-            foreach (var slot in _playerSlots)
-            {
-                slot.DefaultImage = slot.ImagePlayer.sprite;
+
+            foreach (PlayerSlot slot in _playerSlots)
                 ResetSlotVisualState(slot);
-            }
-            
+
             SubscribeGameMode();
         }
 
@@ -98,7 +109,7 @@ namespace MortierFu
             
             foreach (var slot in _playerSlots)
             {
-                slot.ImagePlayer.sprite = slot.DefaultImage;
+                slot.ImagePlayer.sprite = slot.WaitingSprite;
             }
 
             
@@ -386,7 +397,7 @@ namespace MortierFu
                 slot.Animator.Update(0f);
             }
 
-            slot.ImagePlayer.sprite = slot.ImageConfirm;
+            slot.ImagePlayer.sprite = slot.ConfirmSprite;
             AudioService.PlayOneShot(AudioService.FMODEvents.SFX_UI_Ready);
         }
 
@@ -425,7 +436,7 @@ namespace MortierFu
                 });
 
 
-            slot.ImagePlayer.sprite = slot.ImageSpam;
+            slot.ImagePlayer.sprite = slot.SpamSprite;
             
             slot.Animator.ResetTrigger("Angry");
             slot.Animator.SetTrigger("Angry");
@@ -434,7 +445,7 @@ namespace MortierFu
         public  void NotifyPlayerReleaseSpam(int playerIndex)
         {
             PlayerSlot slot = _playerSlots[playerIndex];
-            slot.ImagePlayer.sprite = slot.ImageConfirm;
+            slot.ImagePlayer.sprite = slot.ConfirmSprite;
         }
 
         private void InitializeSlots(int activePlayerCount)
@@ -488,6 +499,9 @@ namespace MortierFu
             slot.IsActive = false;
             slot.HasConfirmed = false;
 
+            if (slot.ImagePlayer && slot.WaitingSprite)
+                slot.ImagePlayer.sprite = slot.WaitingSprite;
+
             if (slot.Animator)
                 slot.Animator.enabled = false;
 
@@ -514,7 +528,6 @@ namespace MortierFu
 
             if (!slot.ConfirmationButtonImageTarget && slot.GamePadInputImage)
                 slot.ConfirmationButtonImageTarget = slot.GamePadInputImage;
-            
         }
 
         private static Transform ResolveConfirmedFeedbackTarget(PlayerSlot slot)
@@ -535,9 +548,9 @@ namespace MortierFu
 
             public Image OkImage;
             public Image ImagePlayer;
-            public Sprite DefaultImage;
-            public Sprite ImageConfirm;
-            public Sprite ImageSpam;
+            public Sprite WaitingSprite;
+            public Sprite ConfirmSprite;
+            public Sprite SpamSprite;
 
             public Animator Animator;
             public Transform AnimatorTransform;
