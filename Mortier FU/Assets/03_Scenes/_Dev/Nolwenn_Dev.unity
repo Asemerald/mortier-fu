@@ -192298,6 +192298,10 @@ MonoBehaviour:
   - {fileID: 1756811793832351489, guid: 738cf5499cb15574f8a1e80b87b27687, type: 3}
   - {fileID: 1576757693759870504, guid: be91d26434038fc4ab1fce5e1ef8963f, type: 3}
   - {fileID: 5400116393604543051, guid: 5154ef36c3d199147b326e5eec96cc4b, type: 3}
+  _pickupGrabVfxPositionOffset: {x: 0, y: 0, z: 0}
+  _pickupGrabVfxRotationOffset: {x: 0, y: 0, z: 0}
+  _overridePickupGrabVfxScale: 0
+  _pickupGrabVfxScale: {x: 1, y: 1, z: 1}
   _rarity: 0
   _pickupVFX:
   - {fileID: 3805285466770860281, guid: 44d7a2fc571d04641bb02b5723cdbb10, type: 3}
@@ -305403,6 +305407,10 @@ MonoBehaviour:
   - {fileID: 1756811793832351489, guid: 738cf5499cb15574f8a1e80b87b27687, type: 3}
   - {fileID: 1576757693759870504, guid: be91d26434038fc4ab1fce5e1ef8963f, type: 3}
   - {fileID: 5400116393604543051, guid: 5154ef36c3d199147b326e5eec96cc4b, type: 3}
+  _pickupGrabVfxPositionOffset: {x: 0, y: 0, z: 0}
+  _pickupGrabVfxRotationOffset: {x: 0, y: 0, z: 0}
+  _overridePickupGrabVfxScale: 0
+  _pickupGrabVfxScale: {x: 1, y: 1, z: 1}
   _rarity: 0
   _pickupVFX:
   - {fileID: 3805285466770860281, guid: 44d7a2fc571d04641bb02b5723cdbb10, type: 3}
@@ -720036,6 +720044,72 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!1001 &1478367577
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1536937442}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e469412ae9432664f96b898eed1ecdf2, type: 2}
+    - target: {fileID: 919132149155446097, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+      propertyPath: m_Name
+      value: SM_Starts_poteaux
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+--- !u!4 &1478367578 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b580f784a06db3c4fadd6ad1cbcef3e4, type: 3}
+  m_PrefabInstance: {fileID: 1478367577}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1478404169
 Mesh:
   m_ObjectHideFlags: 0
@@ -720301,6 +720375,10 @@ MonoBehaviour:
   - {fileID: 1756811793832351489, guid: 738cf5499cb15574f8a1e80b87b27687, type: 3}
   - {fileID: 1576757693759870504, guid: be91d26434038fc4ab1fce5e1ef8963f, type: 3}
   - {fileID: 5400116393604543051, guid: 5154ef36c3d199147b326e5eec96cc4b, type: 3}
+  _pickupGrabVfxPositionOffset: {x: 0, y: 0, z: 0}
+  _pickupGrabVfxRotationOffset: {x: 0, y: 0, z: 0}
+  _overridePickupGrabVfxScale: 0
+  _pickupGrabVfxScale: {x: 1, y: 1, z: 1}
   _rarity: 0
   _pickupVFX:
   - {fileID: 3805285466770860281, guid: 44d7a2fc571d04641bb02b5723cdbb10, type: 3}
@@ -730402,6 +730480,38 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1536937441
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1536937442}
+  m_Layer: 0
+  m_Name: PF_Starts_Poteaux
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1536937442
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1536937441}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.473727, y: 0.5000016, z: -6.9780703}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1478367578}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1564005662
 GameObject:
   m_ObjectHideFlags: 0
@@ -907739,6 +907849,10 @@ MonoBehaviour:
   - {fileID: 1756811793832351489, guid: 738cf5499cb15574f8a1e80b87b27687, type: 3}
   - {fileID: 1576757693759870504, guid: be91d26434038fc4ab1fce5e1ef8963f, type: 3}
   - {fileID: 5400116393604543051, guid: 5154ef36c3d199147b326e5eec96cc4b, type: 3}
+  _pickupGrabVfxPositionOffset: {x: 0, y: 0, z: 0}
+  _pickupGrabVfxRotationOffset: {x: 0, y: 0, z: 0}
+  _overridePickupGrabVfxScale: 0
+  _pickupGrabVfxScale: {x: 1, y: 1, z: 1}
   _rarity: 0
   _pickupVFX:
   - {fileID: 3805285466770860281, guid: 44d7a2fc571d04641bb02b5723cdbb10, type: 3}
@@ -961808,6 +961922,10 @@ MonoBehaviour:
   - {fileID: 1756811793832351489, guid: 738cf5499cb15574f8a1e80b87b27687, type: 3}
   - {fileID: 1576757693759870504, guid: be91d26434038fc4ab1fce5e1ef8963f, type: 3}
   - {fileID: 5400116393604543051, guid: 5154ef36c3d199147b326e5eec96cc4b, type: 3}
+  _pickupGrabVfxPositionOffset: {x: 0, y: 0, z: 0}
+  _pickupGrabVfxRotationOffset: {x: 0, y: 0, z: 0}
+  _overridePickupGrabVfxScale: 0
+  _pickupGrabVfxScale: {x: 1, y: 1, z: 1}
   _rarity: 0
   _pickupVFX:
   - {fileID: 3805285466770860281, guid: 44d7a2fc571d04641bb02b5723cdbb10, type: 3}
@@ -1104987,3 +1105105,4 @@ SceneRoots:
   - {fileID: 2110727797}
   - {fileID: 1993821926}
   - {fileID: 502813627}
+  - {fileID: 1536937442}
