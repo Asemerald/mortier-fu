@@ -964,7 +964,13 @@ MonoBehaviour:
   _matchpoint: {fileID: 7437813349918328947}
   _playGameObject: {fileID: 7923305849057473186}
   _countdownCanvasGroup: {fileID: 13908560605953834}
+  _matchpointCanvasGroup: {fileID: 1865445620832400629}
   _playCanvasGroup: {fileID: 7350469010564902669}
+  _matchpointExitDelay: 0.8
+  _matchpointExitDuration: 0.5
+  _matchpointExitOffset: {x: 0, y: 1080}
+  _matchpointExitEase: 8
+  _matchpointFadeOut: 1
   _playDropOffset: 0
   _playShowDelay: 0
   _playPopDuration: 1
@@ -5991,6 +5997,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7159034488885751299}
+  - component: {fileID: 1865445620832400629}
   - component: {fileID: 6380638101793183294}
   - component: {fileID: 377935546414873330}
   m_Layer: 5
@@ -6020,6 +6027,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -99.1}
   m_SizeDelta: {x: 0, y: 78}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &1865445620832400629
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7437813349918328947}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!222 &6380638101793183294
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -45,6 +45,9 @@ namespace MortierFu
 
         private void OnDash(TriggerDash evt)
         {
+            if (evt.Character != owner)
+                return;
+            
             HideVFX();
             ShowVFX();
         }
